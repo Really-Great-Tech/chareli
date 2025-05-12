@@ -1,7 +1,6 @@
 import { useUserData } from '../../backend/user.service';
 
 const Home = () => {
-  // Use the React Query hook to fetch user data
   const { data: users, isLoading, error } = useUserData();
 
   return (

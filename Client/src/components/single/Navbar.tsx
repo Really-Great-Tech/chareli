@@ -25,7 +25,7 @@ const Navbar: React.FC = () => {
 
   return (
     <header className="flex justify-between p-4 items-center">
-      <div className="text-2xl font-extrabold text-[#D946EF]">CHARELI</div>
+      <Link to="/" className="text-xl font-extrabold text-[#D946EF] cursor-pointer">CHARELI</Link>
 
       <div className="flex gap-8 text-lg font-bold text-[#111826] items-center">
         <Link to="/about" className="hover:underline">About Us</Link>
@@ -37,7 +37,7 @@ const Navbar: React.FC = () => {
           onClick={toggleDarkMode}
           src={isDarkMode ? moon : sun}
           alt={isDarkMode ? 'light mode' : 'dark mode'}
-          className="w-6 h-6 cursor-pointer"
+          className="w-6 h-6 cursor"
         />
         <Button className="bg-transparent border border-[#111826] text-[#111826] text-lg">
           Log in

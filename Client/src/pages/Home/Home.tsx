@@ -1,9 +1,13 @@
-// import React from 'react'
+import AllGamesSection from '../../components/single/AllGamesSection'
+import PopularSection from '../../components/single/PopularSection'
 
-const Home = () => {
+function App() {
   return (
-    <div>Home</div>
+    <div className='font-boogaloo'>
+      <PopularSection />
+      <AllGamesSection />
+    </div>
   )
 }
 
-export default Home
+export default App

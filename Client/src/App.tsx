@@ -13,7 +13,7 @@ const queryClient = new QueryClient({
   },
 })
 
-function App() {
+const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
@@ -25,4 +25,4 @@ function App() {
   )
 }
 
-export default App
+export default App;

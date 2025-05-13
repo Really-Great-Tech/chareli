@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/button';
 import sun from '../../assets/sun.svg';
 import moon from '../../assets/moon.svg';
+import { SignUpModal } from '../modals/SignUpModal';
+
 
 const Navbar: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -11,6 +13,7 @@ const Navbar: React.FC = () => {
   });
 
   const navigate = useNavigate();
+  const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
@@ -49,9 +52,12 @@ const Navbar: React.FC = () => {
         <Button className="bg-transparent border border-[#111826] dark:border-gray-500 text-[#111826] dark:text-gray-300 text-lg cursor-pointer hover:text-white">
           Log in
         </Button>
-        <Button className="bg-transparent border border-[#C026D3] dark:border-purple-400 text-[#C026D3] dark:text-purple-300 text-lg cursor-pointer">
+        <Button
+          onClick={() => setIsSignUpModalOpen(true)}
+          className="bg-transparent border border-[#C026D3] dark:border-purple-400 text-[#C026D3] dark:text-purple-300 text-lg cursor-pointer">
           Sign up
         </Button>
+        <SignUpModal open={isSignUpModalOpen} onOpenChange={setIsSignUpModalOpen} />
       </div>
     </header>
   );

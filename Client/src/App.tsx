@@ -1,16 +1,27 @@
 import './App.css'
-import AllGamesSection from './pages/AllGamesSection'
-import NavBar from './pages/NavBar'
-import PopularSection from './pages/PopularSection'
+import { BrowserRouter } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import AppRoutes from './routing/routes'
+
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      refetchOnWindowFocus: false,
+    },
+  },
+})
 
 function App() {
   return (
-    // <div className='font-boogaloo bg-[#1E293A]'>
-    <div className='font-boogaloo'>
-    <NavBar />
-    <PopularSection />
-    <AllGamesSection />
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <div className='font-boogaloo'>
+          <AppRoutes />
+        </div>
+      </BrowserRouter>
+    </QueryClientProvider>
   )
 }
 

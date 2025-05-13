@@ -3,7 +3,7 @@ import { Button } from "../../components/ui/button";
 const About: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col">
-      <div className="flex-grow space-y-8 mx-auto pl-24 pr-24 pt-5 mb-32">
+      <div className="flex-grow space-y-8 mx-auto pl-24 pr-24 pt-10 mb-32">
 
         <section className="bg-[#1E0420] p-6 rounded-lg dark:bg-[#1E0420] lg:w-[980px]">
           <h1 className="text-6xl font-bold text-white dark:text-gray-100 text-center font-boogaloo">About us</h1>
@@ -20,7 +20,7 @@ const About: React.FC = () => {
         </section>
 
         <div className="flex justify-center">
-          <Button className="bg-transparent border border-[#C026D3] text-[#C026D3] text-lg text-center">
+          <Button className="bg-[#C026D3] border border-[#C026D3] text-white text-lg text-center">
             Join our Community
           </Button>
         </div>

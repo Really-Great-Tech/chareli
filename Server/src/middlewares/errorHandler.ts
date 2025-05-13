@@ -1,8 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import logger from '../utils/logger';
+import { captureException } from '../config/sentry';
+import config from '../config/config';
 
 interface AppError extends Error {
   statusCode?: number;
+  errors?: Record<string, string>;
 }
 
 export const errorHandler = (
@@ -18,6 +21,11 @@ export const errorHandler = (
   if (statusCode >= 500) {
     logger.error(`${statusCode} - ${message} - ${req.originalUrl} - ${req.method} - ${req.ip}`);
     logger.error(err.stack || 'No stack trace available');
+    
+    // Report to Sentry in production
+    if (config.env === 'production') {
+      captureException(err);
+    }
   } else {
     logger.warn(`${statusCode} - ${message} - ${req.originalUrl} - ${req.method} - ${req.ip}`);
   }
@@ -26,6 +34,7 @@ export const errorHandler = (
     success: false,
     error: {
       message,
+      errors: err.errors || {},
       ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
     },
   });
@@ -33,10 +42,12 @@ export const errorHandler = (
 
 export class ApiError extends Error {
   statusCode: number;
+  errors?: Record<string, string>;
 
-  constructor(statusCode: number, message: string) {
+  constructor(statusCode: number, message: string, errors?: Record<string, string>) {
     super(message);
     this.statusCode = statusCode;
+    this.errors = errors;
     Error.captureStackTrace(this, this.constructor);
   }
 
@@ -44,8 +55,8 @@ export class ApiError extends Error {
     return new ApiError(404, message);
   }
 
-  static badRequest(message = 'Bad request') {
-    return new ApiError(400, message);
+  static badRequest(message = 'Bad request', errors?: Record<string, string>) {
+    return new ApiError(400, message, errors);
   }
 
   static unauthorized(message = 'Unauthorized') {

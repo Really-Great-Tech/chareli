@@ -1,10 +1,16 @@
 import './App.css'
+import AllGamesSection from './pages/AllGamesSection'
+import NavBar from './pages/NavBar'
+import PopularSection from './pages/PopularSection'
 
 function App() {
   return (
-    <>
-      <div className="text-3xl font-bold underline text-amber-800">Welcome to Chareli</div>
-    </>
+    // <div className='font-boogaloo bg-[#1E293A]'>
+    <div className='font-boogaloo'>
+    <NavBar />
+    <PopularSection />
+    <AllGamesSection />
+    </div>
   )
 }
 

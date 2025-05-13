@@ -1,0 +1,11 @@
+@font-face {
+    font-family: 'Boogaloo';
+    src: url('./fonts/Boogaloo-Regular.ttf'),
+    /* font-weight: normal; */
+    /* font-style: normal; */
+  }
+  
+
+.font-boogaloo {
+    font-family: 'Boogaloo', cursive;
+  }

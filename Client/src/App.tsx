@@ -1,17 +1,13 @@
-import './App.css'
-import AllGamesSection from './pages/AllGamesSection'
-import NavBar from './pages/NavBar'
-import PopularSection from './pages/PopularSection'
+import React from 'react';
+import { BrowserRouter as Router } from "react-router-dom";
+import { AppRoutes } from './routing/routes';
 
-function App() {
+const App: React.FC = () => {
   return (
-    // <div className='font-boogaloo bg-[#1E293A]'>
-    <div className='font-boogaloo'>
-    <NavBar />
-    <PopularSection />
-    <AllGamesSection />
-    </div>
-  )
-}
+    <Router>
+      <AppRoutes />
+    </Router>
+  );
+};
 
-export default App
+export default App;

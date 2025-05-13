@@ -1,11 +1,25 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
 @font-face {
-    font-family: 'Boogaloo';
-    src: url('./fonts/Boogaloo-Regular.ttf'),
+  font-family: 'Boogaloo';
+  src: url('./fonts/Boogaloo-Regular.ttf'),
     /* font-weight: normal; */
     /* font-style: normal; */
-  }
-  
+}
+
+@font-face {
+  font-family: 'Pincuk';
+  src: url('./fonts/Pincuk-Regular.ttf'),
+}
+
 
 .font-boogaloo {
-    font-family: 'Boogaloo', cursive;
-  }
+  font-family: 'Boogaloo', cursive;
+}
+
+
+.font-pincuk {
+  font-family: 'Pincuk', cursive;
+}

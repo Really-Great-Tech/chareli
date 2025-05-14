@@ -18,15 +18,13 @@ import {
 
 const router = Router();
 
-// All user routes require authentication
-router.use(authenticate);
-
-// Apply API rate limiter to all user routes
 router.use(apiLimiter);
 
-// Admin-only routes
+router.post('/', createUserLimiter, validateBody(createUserSchema), createUser);
+
+// All user routes require authentication
+router.use(authenticate);
 router.get('/', isAdmin, validateQuery(userQuerySchema), getAllUsers);
-router.post('/', isAdmin, createUserLimiter, validateBody(createUserSchema), createUser);
 
 // Routes that require either admin access or ownership of the resource
 router.get('/:id', isOwnerOrAdmin, validateParams(userIdParamSchema), getUserById);

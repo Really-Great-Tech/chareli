@@ -4,6 +4,7 @@ import { User } from '../entities/User';
 import config from '../config/config';
 import logger from '../utils/logger';
 import { emailService } from './email.service';
+import twilio from 'twilio';
 
 const otpRepository = AppDataSource.getRepository(Otp);
 const userRepository = AppDataSource.getRepository(User);
@@ -18,11 +19,8 @@ export interface OtpServiceInterface {
 const DEV_TEST_OTP = '123456';
 
 export class OtpService implements OtpServiceInterface {
-  /**
-   * Generate a 6-digit OTP for the given user
-   */
+ 
   async generateOtp(userId: string, type: OtpType = OtpType.SMS): Promise<string> {
-    // Find the user
     const user = await userRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new Error('User not found');
@@ -156,21 +154,20 @@ export class OtpService implements OtpServiceInterface {
         smsSent = true;
       } else {
         try {
-          // This would be replaced with actual Twilio API call in production
-          if (!config.twilio.accountSid || !config.twilio.authToken) {
+          // Use Twilio API to send SMS
+          if (!config.twilio.accountSid || !config.twilio.authToken || !config.twilio.phoneNumber) {
             throw new Error('Twilio credentials not configured');
           }
           
-          // Simulate Twilio API call
           logger.info(`Sending OTP ${otp} to ${user.phoneNumber} via Twilio`);
           
-          // In a real implementation, you would use the Twilio SDK here
-          // const client = require('twilio')(config.twilio.accountSid, config.twilio.authToken);
-          // await client.messages.create({
-          //   body: `Your verification code is: ${otp}`,
-          //   from: config.twilio.phoneNumber,
-          //   to: user.phoneNumber
-          // });
+          // Create Twilio client and send message
+          const client = twilio(config.twilio.accountSid, config.twilio.authToken);
+          await client.messages.create({
+            body: `Your verification code is: ${otp}`,
+            from: config.twilio.phoneNumber,
+            to: user.phoneNumber
+          });
           
           smsSent = true;
         } catch (error) {

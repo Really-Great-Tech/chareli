@@ -32,7 +32,7 @@ const PopularSection = () => {
                 </div>
             </div>
             <div className="">
-                <Card className="border-hidden shadow-none p-0">
+                <Card className="border-hidden shadow-none p-0 dark:bg-[#0f1221]">
                     <div className="grid gap-1 w-full grid-cols-[repeat(auto-fit,minmax(150px,1fr))]">
                         <img src={Img1} alt="Runner Maze" className="border-4 border-transparent hover:border-[#D946EF] hover:mt-0 hover:rounded-4xl box-border transition-transform duration-200 hover:scale-110" onClick={handleGamePlay}/>
                         <img src={Img2} alt="Runner Maze" className="border-4 border-transparent hover:border-[#D946EF] hover:mt-0 hover:rounded-4xl box-border transition-transform duration-200 hover:scale-110" onClick={handleGamePlay}/>

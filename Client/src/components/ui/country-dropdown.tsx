@@ -64,7 +64,7 @@ const CountryDropdownComponent = (
     slim = false,
     className,
     value,
-    ...props
+    // ...props
   }: CountryDropdownProps,
   ref: React.ForwardedRef<HTMLButtonElement>
 ) => {

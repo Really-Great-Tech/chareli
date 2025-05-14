@@ -5,8 +5,6 @@ import sun from '../../assets/sun.svg';
 import moon from '../../assets/moon.svg';
 import { SignUpModal } from '../modals/SignUpModal';
 import { LoginModal } from '../modals/LoginModal';
-import { OTPPlatformModal } from '../modals/OTPPlatformModal';
-import { OTPVerificationModal } from '../modals/OTPVerificationModal';
 
 
 const Navbar: React.FC = () => {

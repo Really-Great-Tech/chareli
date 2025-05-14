@@ -23,3 +23,47 @@
 .font-pincuk {
   font-family: 'Pincuk', cursive;
 }
+
+body {
+    cursor: url('./assets/icn_hand.svg'), auto;
+}
+
+button, [role="button"] {
+  cursor: url('./assets/icn_hand.svg'), auto;
+}
+
+a, .cursor-pointer {
+  cursor: url('./assets/icn_hand.svg'), pointer;
+}
+
+
+/* card hover box shadow */
+.gradient-shadow-hover {
+  position: relative;
+  border-radius: 20px;
+  overflow: visible;
+}
+
+.gradient-shadow-hover:hover::after {
+  opacity: 1;
+  box-shadow: 0 10px 12px 0 rgba(217,70,239,0.5);
+  filter: blur(2px);
+  mix-blend-mode: lighten;
+  /* filter: drop-shadow(8px 8px 10px #D946EF); */
+}
+
+.gradient-shadow-hover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+  filter: drop-shadow(8px 8px 10px #D946EF);
+}
+
+
+/* in your CSS */
+.backdrop-blur-sm {
+  backdrop-filter: blur(6px);
+}

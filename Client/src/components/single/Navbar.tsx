@@ -27,6 +27,7 @@ const Navbar: React.FC = () => {
   }, [isDarkMode]);
 
   const toggleDarkMode = () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setIsDarkMode((prev: any) => !prev);
   };
 
@@ -49,7 +50,7 @@ const Navbar: React.FC = () => {
           onClick={toggleDarkMode}
           src={isDarkMode ? moon : sun}
           alt={isDarkMode ? 'light mode' : 'dark mode'}
-          className="w-6 h-6 cursor-pointer"
+          className="w-6 h-6 cursor"
         />
         <Button
           onClick={() => setIsLoginModalOpen(true)}

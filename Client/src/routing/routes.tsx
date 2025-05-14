@@ -3,6 +3,8 @@ import ErrorPage from '../pages/ErrorPage';
 import Home from '../pages/Home/Home';
 import About from '../pages/About/About';
 import MainLayout from '../layout/MainLayout';
+import GamePlay from '../pages/GamePlay/GamePlay';
+import Categories from '../pages/Categories/Categories';
 
 export const AppRoutes = () => {
   return (
@@ -13,6 +15,10 @@ export const AppRoutes = () => {
 
           <Route index element={<Home />} />
           <Route path="about" element={<About />} />
+          <Route path="categories" element={<Categories />} />
+          <Route path="gameplay" element={<GamePlay />} />
+
+
           <Route path="*" element={<ErrorPage />} />
         </Route>
       </Route>

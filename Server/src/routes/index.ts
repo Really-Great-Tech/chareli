@@ -1,8 +1,13 @@
 import { Router } from 'express';
 import userRoutes from './userRoutes';
+import authRoutes from './authRoutes';
 import { ApiError } from '../middlewares/errorHandler';
+import { apiLimiter } from '../middlewares/rateLimitMiddleware';
 
 const router = Router();
+
+// Apply API rate limiter to all routes
+router.use(apiLimiter);
 
 /**
  * @swagger
@@ -23,6 +28,7 @@ router.get('/health', (_req, res) => {
 });
 
 // API routes
+router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 
 // Handle 404 errors for routes that don't exist

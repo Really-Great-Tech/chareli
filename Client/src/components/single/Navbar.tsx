@@ -20,6 +20,7 @@ const Navbar: React.FC = () => {
   }, [isDarkMode]);
 
   const toggleDarkMode = () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setIsDarkMode((prev: any) => !prev);
   };
 

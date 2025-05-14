@@ -15,7 +15,7 @@ const Navbar: React.FC = () => {
 
   const navigate = useNavigate();
   const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
-  // const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
@@ -53,7 +53,7 @@ const Navbar: React.FC = () => {
           className="w-6 h-6 cursor"
         />
         <Button
-          // onClick={() => setIsLoginModalOpen(true)}
+          onClick={() => setIsLoginModalOpen(true)}
           className="bg-transparent border border-[#111826] dark:border-gray-500 text-[#111826] dark:text-gray-300 text-lg cursor-pointer hover:text-white">
           Log in
         </Button>
@@ -63,7 +63,7 @@ const Navbar: React.FC = () => {
           Sign up
         </Button>
         <SignUpModal open={isSignUpModalOpen} onOpenChange={setIsSignUpModalOpen} />
-        {/* <LoginModal open={isLoginModalOpen} onOpenChange={setIsLoginModalOpen} /> */}
+        <LoginModal open={isLoginModalOpen} onOpenChange={setIsLoginModalOpen} />
       </div>
     </header>
   );

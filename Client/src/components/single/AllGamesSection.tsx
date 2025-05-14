@@ -22,7 +22,7 @@ const AllGamesSection = () => {
             </div>
 
             <div className="">
-                <Card className="border-hidden shadow-none p-0">
+                <Card className="border-hidden shadow-none p-0 dark:bg-[#0f1221]">
                     <div className="grid gap-4 w-full grid-cols-[repeat(auto-fit,minmax(200px,1fr))]">
                         <img src={ImgA1} alt="Runner Maze" />
                         <img src={ImgA2} alt="Runner Maze" />

@@ -12,7 +12,7 @@ const PopularSection = () => {
                 <h1 className="text-[#D946EF] text-3xl mb-4">Popular</h1>
             </div>
             <div className="">
-                <Card className="border-hidden shadow-none p-0">
+                <Card className="border-hidden shadow-none p-0 dark:bg-[#0f1221]">
                     <div className="grid gap-4 w-full grid-cols-[repeat(auto-fit,minmax(200px,1fr))]">
                         <img src={Img1} alt="Runner Maze" />
                         <img src={Img2} alt="Runner Maze" />

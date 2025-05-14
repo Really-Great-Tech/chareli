@@ -1,0 +1,53 @@
+import * as yup from 'yup';
+import { GameStatus } from '../entities/Games';
+
+/**
+ * Create game schema validation
+ */
+export const createGameSchema = yup.object({
+  title: yup.string().trim().required('Game title is required'),
+  description: yup.string().trim().nullable(),
+  thumbnailFileId: yup.string().uuid('Invalid thumbnail file ID'),
+  gameFileId: yup.string().uuid('Invalid game file ID'),
+  categoryId: yup.string().uuid('Invalid category ID'),
+  status: yup.string().oneOf(Object.values(GameStatus), 'Invalid game status'),
+  config: yup.number().integer('Config must be an integer').default(0)
+});
+
+/**
+ * Update game schema validation
+ */
+export const updateGameSchema = yup.object({
+  title: yup.string().trim(),
+  description: yup.string().trim().nullable(),
+  thumbnailFileId: yup.string().uuid('Invalid thumbnail file ID'),
+  gameFileId: yup.string().uuid('Invalid game file ID'),
+  categoryId: yup.string().uuid('Invalid category ID'),
+  status: yup.string().oneOf(Object.values(GameStatus), 'Invalid game status'),
+  config: yup.number().integer('Config must be an integer')
+}).test(
+  'at-least-one-field',
+  'At least one field must be provided',
+  (value) => {
+    return Object.keys(value).length > 0;
+  }
+);
+
+/**
+ * Game ID param schema validation
+ */
+export const gameIdParamSchema = yup.object({
+  id: yup.string().uuid('Invalid game ID').required('Game ID is required')
+});
+
+/**
+ * Query params schema validation
+ */
+export const gameQuerySchema = yup.object({
+  page: yup.number().integer('Page must be an integer').min(1, 'Page must be at least 1'),
+  limit: yup.number().integer('Limit must be an integer').min(1, 'Limit must be at least 1').max(100, 'Limit must be at most 100'),
+  categoryId: yup.string().uuid('Invalid category ID'),
+  status: yup.string().oneOf(Object.values(GameStatus), 'Invalid game status'),
+  search: yup.string(),
+  createdById: yup.string().uuid('Invalid creator ID')
+});

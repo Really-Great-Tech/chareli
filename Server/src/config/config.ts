@@ -44,6 +44,15 @@ interface Config {
     tracesSampleRate: number;
     enabled: boolean;
   };
+  s3: {
+    region: string;
+    accessKeyId: string;
+    secretAccessKey: string;
+    bucket: string;
+    endpoint?: string;
+    forcePathStyle?: boolean;
+    signedUrlExpiration: number;
+  };
 }
 
 const config: Config = {
@@ -85,6 +94,15 @@ const config: Config = {
     environment: process.env.NODE_ENV || 'development',
     tracesSampleRate: parseFloat(process.env.SENTRY_TRACES_SAMPLE_RATE || '0.2'),
     enabled: process.env.NODE_ENV === 'production'
+  },
+  s3: {
+    region: process.env.AWS_REGION || 'us-east-1',
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+    bucket: process.env.AWS_S3_BUCKET || 'chareli-bucket',
+    endpoint: process.env.AWS_S3_ENDPOINT,
+    forcePathStyle: process.env.AWS_S3_FORCE_PATH_STYLE === 'true',
+    signedUrlExpiration: parseInt(process.env.AWS_SIGNED_URL_EXPIRATION || '3600', 10),
   }
 };
 

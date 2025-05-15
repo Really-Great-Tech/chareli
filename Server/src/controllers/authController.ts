@@ -6,6 +6,8 @@ import { AppDataSource } from '../config/database';
 import { User } from '../entities/User';
 import { Invitation } from '../entities/Invitation';
 import { OtpType } from '../entities/Otp';
+import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 
 const userRepository = AppDataSource.getRepository(User);
 const invitationRepository = AppDataSource.getRepository(Invitation);
@@ -70,12 +72,9 @@ export const registerPlayer = async (
       hasAcceptedTerms
     );
 
-    // Send OTP
-    await authService.sendOtp(user, OtpType.SMS);
-
     res.status(201).json({
       success: true,
-      message: 'User registered successfully. Please verify with OTP sent to your phone.',
+      message: 'User registered successfully.',
       data: {
         userId: user.id,
         email: user.email,
@@ -155,12 +154,9 @@ export const registerFromInvitation = async (
       hasAcceptedTerms
     );
 
-    // Send OTP
-    await authService.sendOtp(user, OtpType.SMS);
-
     res.status(201).json({
       success: true,
-      message: 'User registered successfully. Please verify with OTP sent to your phone.',
+      message: 'User registered successfully from invitation.',
       data: {
         userId: user.id,
         email: user.email,
@@ -211,15 +207,11 @@ export const login = async (
   try {
     const { email, password, otpType = OtpType.SMS } = req.body;
 
-    // Validate required fields
     if (!email || !password) {
       return next(ApiError.badRequest('Email and password are required'));
     }
 
-    // Login the user
     const user = await authService.login(email, password);
-
-    // Update last login time
     user.lastLoggedIn = new Date();
     await userRepository.save(user);
 
@@ -277,7 +269,6 @@ export const verifyOtp = async (
   try {
     const { userId, otp } = req.body;
 
-    // Validate required fields
     if (!userId || !otp) {
       return next(ApiError.badRequest('User ID and OTP are required'));
     }
@@ -380,8 +371,7 @@ export const forgotPassword = async (
 ): Promise<void> => {
   try {
     const { email } = req.body;
-
-    // Validate required fields
+    
     if (!email) {
       return next(ApiError.badRequest('Email is required'));
     }
@@ -754,5 +744,256 @@ export const deleteInvitation = async (
     });
   } catch (error) {
     next(error);
+  }
+};
+
+/**
+ * @swagger
+ * /auth/request-otp:
+ *   post:
+ *     summary: Request OTP
+ *     description: Request an OTP to be sent to email, phone, or both
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - userId
+ *               - otpType
+ *           example:
+ *             userId: "cff600fe-639b-4c1f-880b-58d23af4a2c7"
+ *             otpType: "SMS"
+ *     responses:
+ *       200:
+ *         description: OTP sent successfully
+ *       400:
+ *         description: Bad request
+ *       500:
+ *         description: Internal server error
+ */
+export const requestOtp = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { userId, otpType } = req.body;
+
+    // Validate required fields
+    if (!userId || !otpType) {
+      return next(ApiError.badRequest('User ID and OTP type are required'));
+    }
+
+    // Find the user
+    const user = await userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      return next(ApiError.notFound('User not found'));
+    }
+
+    // Validate OTP type based on user's contact info
+    if (otpType === OtpType.EMAIL && !user.email) {
+      return next(ApiError.badRequest('User does not have an email address'));
+    }
+    if (otpType === OtpType.SMS && !user.phoneNumber) {
+      return next(ApiError.badRequest('User does not have a phone number'));
+    }
+
+    // Send OTP
+    await authService.sendOtp(user, otpType);
+
+    res.status(200).json({
+      success: true,
+      message: `OTP sent successfully to ${otpType === OtpType.EMAIL ? 'email' : otpType === OtpType.SMS ? 'phone' : 'email and phone'}.`,
+      data: {
+        userId: user.id
+      }
+    });
+  } catch (error) {
+    next(error instanceof Error ? ApiError.badRequest(error.message) : error);
+  }
+};
+
+/**
+ * @swagger
+ * /auth/verify-invitation/{token}:
+ *   get:
+ *     summary: Verify invitation token
+ *     description: Verify if an invitation token is valid and check if the user already exists
+ *     tags: [Authentication]
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Invitation token
+ *     responses:
+ *       200:
+ *         description: Token is valid
+ *       400:
+ *         description: Invalid or expired token
+ *       500:
+ *         description: Internal server error
+ */
+export const verifyInvitationToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { token } = req.params;
+
+    // Find the invitation
+    const invitation = await invitationRepository.findOne({
+      where: { token },
+      relations: ['role']
+    });
+
+    if (!invitation) {
+      return next(ApiError.badRequest('Invalid invitation token'));
+    }
+
+    if (invitation.isAccepted) {
+      return next(ApiError.badRequest('Invitation has already been accepted'));
+    }
+
+    if (new Date() > invitation.expiresAt) {
+      return next(ApiError.badRequest('Invitation has expired'));
+    }
+
+    // Check if user already exists
+    const existingUser = await userRepository.findOne({
+      where: { email: invitation.email }
+    });
+
+    if (existingUser) {
+      // User already exists, they can reset password directly
+      res.status(200).json({
+        success: true,
+        message: 'User with this email already exists. You can reset your password directly.',
+        data: {
+          email: invitation.email,
+          userExists: true,
+          role: invitation.role.name
+        }
+      });
+    } else {
+      // User doesn't exist, suggest registration
+      res.status(200).json({
+        success: true,
+        message: 'Valid invitation token. Please proceed to registration.',
+        data: {
+          email: invitation.email,
+          userExists: false,
+          role: invitation.role.name
+        }
+      });
+    }
+  } catch (error) {
+    next(error instanceof Error ? ApiError.badRequest(error.message) : error);
+  }
+};
+
+/**
+ * @swagger
+ * /auth/reset-password-from-invitation/{token}:
+ *   post:
+ *     summary: Reset password from invitation
+ *     description: Reset password using an invitation token for existing users
+ *     tags: [Authentication]
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Invitation token
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - password
+ *               - confirmPassword
+ *           example:
+ *             password: "NewStrongPassword123!"
+ *             confirmPassword: "NewStrongPassword123!"
+ *     responses:
+ *       200:
+ *         description: Password reset successful
+ *       400:
+ *         description: Bad request
+ *       500:
+ *         description: Internal server error
+ */
+export const resetPasswordFromInvitation = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { token } = req.params;
+    const { password, confirmPassword } = req.body;
+
+    // Validate required fields
+    if (!password || !confirmPassword) {
+      return next(ApiError.badRequest('All fields are required'));
+    }
+
+    // Validate password match
+    if (password !== confirmPassword) {
+      return next(ApiError.badRequest('Passwords do not match'));
+    }
+
+    // Find the invitation
+    const invitation = await invitationRepository.findOne({
+      where: { token },
+      relations: ['role']
+    });
+
+    if (!invitation) {
+      return next(ApiError.badRequest('Invalid invitation token'));
+    }
+
+    if (invitation.isAccepted) {
+      return next(ApiError.badRequest('Invitation has already been accepted'));
+    }
+
+    if (new Date() > invitation.expiresAt) {
+      return next(ApiError.badRequest('Invitation has expired'));
+    }
+
+    // Find the user
+    const user = await userRepository.findOne({
+      where: { email: invitation.email }
+    });
+
+    if (!user) {
+      return next(ApiError.badRequest('User not found'));
+    }
+
+    // Hash the new password
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Update the user's password
+    user.password = hashedPassword;
+    await userRepository.save(user);
+
+    // Mark invitation as accepted
+    invitation.isAccepted = true;
+    await invitationRepository.save(invitation);
+
+    res.status(200).json({
+      success: true,
+      message: 'Password reset successful. You can now log in with your new password.'
+    });
+  } catch (error) {
+    next(error instanceof Error ? ApiError.badRequest(error.message) : error);
   }
 };

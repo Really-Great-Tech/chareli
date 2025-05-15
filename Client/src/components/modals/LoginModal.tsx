@@ -11,6 +11,7 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { AiOutlineMail } from "react-icons/ai";
+import { OTPPlatformModal } from './OTPPlatformModal';
 
 interface LoginDialogProps {
     open: boolean;
@@ -20,8 +21,14 @@ interface LoginDialogProps {
 
 export function LoginModal({ open, onOpenChange, openSignUpModal }: LoginDialogProps) {
     const [showPassword, setShowPassword] = useState(false);
-
+    const [isOTPPlatformModalOpen, setIsOTPPlatformModalOpen] = useState(false);
     const togglePasswordVisibility = () => setShowPassword(!showPassword);
+
+
+    const handleLogin = () => {
+        setIsOTPPlatformModalOpen(true);
+        onOpenChange(false);
+    }
 
     return (
         <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -65,7 +72,7 @@ export function LoginModal({ open, onOpenChange, openSignUpModal }: LoginDialogP
                         </div>
                     </AlertDialogDescription>
                 </AlertDialogHeader>
-                <AlertDialogAction className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-boogaloo">
+                <AlertDialogAction onClick={handleLogin} className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-boogaloo">
                     Login
                 </AlertDialogAction>
                 <p className="text-sm text-center text-black dark:text-white font-pincuk">
@@ -73,6 +80,7 @@ export function LoginModal({ open, onOpenChange, openSignUpModal }: LoginDialogP
                     <span className="underline text-[#C026D3] cursor-pointer" onClick={openSignUpModal}>Sign Up</span>
                 </p>
             </AlertDialogContent>
+            <OTPPlatformModal open={isOTPPlatformModalOpen} onOpenChange={setIsOTPPlatformModalOpen} />
         </AlertDialog>
     );
 }

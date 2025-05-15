@@ -95,3 +95,13 @@ export const resetPasswordSchema = yup.object({
     .oneOf([yup.ref('password')], 'Passwords must match')
     .required('Confirm password is required')
 });
+
+/**
+ * Request OTP schema validation
+ */
+export const requestOtpSchema = yup.object({
+  userId: yup.string().uuid('Invalid user ID').required('User ID is required'),
+  otpType: yup.string()
+    .oneOf(Object.values(OtpType), 'Invalid OTP type')
+    .required('OTP type is required')
+});

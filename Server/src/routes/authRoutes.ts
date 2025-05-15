@@ -11,7 +11,10 @@ import {
   deleteInvitation,
   forgotPassword,
   verifyResetToken,
-  resetPassword
+  resetPassword,
+  requestOtp,
+  verifyInvitationToken,
+  resetPasswordFromInvitation
 } from '../controllers/authController';
 import { authenticate, isAdmin } from '../middlewares/authMiddleware';
 import { validateBody, validateParams } from '../middlewares/validationMiddleware';
@@ -24,7 +27,8 @@ import {
   refreshTokenSchema,
   inviteUserSchema,
   forgotPasswordSchema,
-  resetPasswordSchema
+  resetPasswordSchema,
+  requestOtpSchema
 } from '../validation';
 import * as yup from 'yup';
 
@@ -41,7 +45,19 @@ router.post(
 );
 router.post('/login', authLimiter, validateBody(loginSchema), login);
 router.post('/verify-otp', authLimiter, validateBody(otpVerificationSchema), verifyOtp);
+router.post('/request-otp', authLimiter, validateBody(requestOtpSchema), requestOtp);
 router.post('/refresh-token', validateBody(refreshTokenSchema), refreshToken);
+router.get(
+  '/verify-invitation/:token',
+  validateParams(yup.object({ token: yup.string().required('Token is required') })),
+  verifyInvitationToken
+);
+router.post(
+  '/reset-password-from-invitation/:token',
+  validateParams(yup.object({ token: yup.string().required('Token is required') })),
+  validateBody(resetPasswordSchema),
+  resetPasswordFromInvitation
+);
 
 // Password reset routes
 router.post('/forgot-password', authLimiter, validateBody(forgotPasswordSchema), forgotPassword);

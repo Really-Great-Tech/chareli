@@ -1,6 +1,10 @@
 import { Router } from 'express';
 import userRoutes from './userRoutes';
 import authRoutes from './authRoutes';
+import categoryRoutes from './categoryRoutes';
+import fileRoutes from './fileRoutes';
+import gameRoutes from './gameRoutes';
+import systemConfigRoutes from './systemConfigRoutes';
 import { ApiError } from '../middlewares/errorHandler';
 import { apiLimiter } from '../middlewares/rateLimitMiddleware';
 
@@ -30,6 +34,10 @@ router.get('/health', (_req, res) => {
 // API routes
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
+router.use('/categories', categoryRoutes);
+router.use('/files', fileRoutes);
+router.use('/games', gameRoutes);
+router.use('/system-configs', systemConfigRoutes);
 
 // Handle 404 errors for routes that don't exist
 router.all('/:path', (req, _res, next) => {

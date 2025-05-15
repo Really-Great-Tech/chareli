@@ -1,5 +1,6 @@
 import config from '../config/config';
 import logger from '../utils/logger';
+import nodemailer from 'nodemailer';
 
 export interface EmailServiceInterface {
   sendInvitationEmail(email: string, invitationLink: string, role: string): Promise<boolean>;
@@ -79,8 +80,8 @@ export class EmailService implements EmailServiceInterface {
    * In production mode, this would use a real email service
    */
   private async sendEmail(to: string, subject: string, body: string): Promise<boolean> {
-    if (config.env === 'development') {
-      // In development mode, just log the email
+    if (config.env === 'development' && !config.email.service) {
+      // In development mode without email config, just log the email
       logger.info(`DEVELOPMENT MODE: Email to ${to}`);
       logger.info(`Subject: ${subject}`);
       logger.info(`Body: ${body}`);
@@ -98,32 +99,30 @@ export class EmailService implements EmailServiceInterface {
       
       return true;
     } else {
-      // In production mode, use a real email service
+      // In production mode or development with email service configured
       try {
-        // This would be replaced with actual email service API call in production
         if (!config.email.service || !config.email.user || !config.email.password) {
           throw new Error('Email service credentials not configured');
         }
         
-        // Simulate email service API call
-        logger.info(`Sending email to ${to} via ${config.email.service}`);
+        // Create a transporter using nodemailer
+        const transporter = nodemailer.createTransport({
+          service: 'gmail',  // Use 'gmail' as the service
+          auth: {
+            user: config.email.user,
+            pass: config.email.password  // This should be your app password
+          }
+        });
         
-        // In a real implementation, you would use a library like nodemailer here
-        // const transporter = nodemailer.createTransport({
-        //   service: config.email.service,
-        //   auth: {
-        //     user: config.email.user,
-        //     pass: config.email.password
-        //   }
-        // });
-        // 
-        // await transporter.sendMail({
-        //   from: config.email.user,
-        //   to,
-        //   subject,
-        //   html: body
-        // });
+        // Send the email
+        await transporter.sendMail({
+          from: config.email.user,
+          to,
+          subject,
+          html: body
+        });
         
+        logger.info(`Email sent successfully to ${to}`);
         return true;
       } catch (error) {
         logger.error('Failed to send email:', error);

@@ -36,6 +36,9 @@ a, .cursor-pointer {
   cursor: url('./assets/icn_hand.svg'), pointer;
 }
 
+img.cursor-pointer {
+  cursor: url('./assets/icn_hand.svg'), pointer;
+}
 
 /* card hover box shadow */
 .gradient-shadow-hover {
@@ -48,8 +51,9 @@ a, .cursor-pointer {
   opacity: 1;
   box-shadow: 0 10px 12px 0 rgba(217,70,239,0.5);
   filter: blur(2px);
-  mix-blend-mode: lighten;
+  /* mix-blend-mode: lighten; */
   /* filter: drop-shadow(8px 8px 10px #D946EF); */
+  border-radius: 30px;
 }
 
 .gradient-shadow-hover::after {

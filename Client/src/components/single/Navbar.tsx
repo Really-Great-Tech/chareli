@@ -1,8 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/button';
+import { StatsModal } from '../modals/StatsModal';
+import { ProfileModal } from '../modals/ProfileModal';
+
 import sun from '../../assets/sun.svg';
 import moon from '../../assets/moon.svg';
+import bolt from '../../assets/bolt.svg';
+import profileImg from '../../assets/profile.svg'
+
+// import { CgProfile } from "react-icons/cg";
+
 import { SignUpModal } from '../modals/SignUpModal';
 import { LoginModal } from '../modals/LoginModal';
 
@@ -16,6 +24,8 @@ const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
@@ -32,7 +42,7 @@ const Navbar: React.FC = () => {
   };
 
   return (
-    <header className="flex justify-between p-4 border-b-4 border-b-[#D946EF] items-center bg-white dark:bg-[#0f1221] transition-colors duration-300">
+    <header className="flex justify-between p-4 items-center bg-white dark:bg-[#0f1221] transition-colors duration-300">
       <div
         onClick={() => navigate('/')}
         className="text-2xl font-extrabold text-[#D946EF] dark:text-[#E879F9] cursor-pointer"
@@ -52,18 +62,35 @@ const Navbar: React.FC = () => {
           alt={isDarkMode ? 'light mode' : 'dark mode'}
           className="w-6 h-6 cursor"
         />
+        {/* logins buttons */}
         <Button
           onClick={() => setIsLoginModalOpen(true)}
-          className="bg-transparent border border-[#111826] dark:border-gray-500 text-[#111826] dark:text-gray-300 text-lg cursor-pointer hover:text-white">
+          className="bg-transparent border border-[#111826] dark:border-gray-500 text-[#111826] hover:text-[#111826] dark:text-gray-300 text-lg cursor-pointer hover:bg-accent">
           Log in
         </Button>
         <Button
           onClick={() => setIsSignUpModalOpen(true)}
-          className="bg-transparent border border-[#C026D3] dark:border-purple-400 text-[#C026D3] dark:text-purple-300 text-lg cursor-pointer">
+          className="bg-transparent border border-[#C026D3] dark:border-purple-400 text-[#C026D3] dark:text-purple-300 text-lg hover:bg-accent hover:text-[#C026D3]">
           Sign up
         </Button>
+
+        <img
+          src={bolt}
+          alt="bolt"
+          onClick={() => setIsStatsModalOpen(true)}
+        />
+        
+        <img
+          src={profileImg}
+          alt="profile image"
+          className="cursor-default"
+          onClick={() => setIsProfileModalOpen(true)}
+        />
+
         <SignUpModal open={isSignUpModalOpen} onOpenChange={setIsSignUpModalOpen} />
         <LoginModal open={isLoginModalOpen} onOpenChange={setIsLoginModalOpen} />
+        <StatsModal open={isStatsModalOpen} onClose={() => setIsStatsModalOpen(false)} />
+        <ProfileModal open={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)} />
       </div>
     </header>
   );

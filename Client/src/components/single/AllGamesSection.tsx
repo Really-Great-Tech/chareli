@@ -23,7 +23,7 @@ const AllGamesSection = () => {
 
             <div className="">
                     <div className="grid gap-4 w-full grid-cols-[repeat(auto-fit,minmax(200px,1fr))]">
-                    <Card className="border-hidden shadow-none p-0 dark:bg-[#0f1221]">
+                    <Card className="border-hidden shadow-none p-0 dark:bg-[#0f1221] hover:rounded-full">
                         <div className="relative gradient-shadow-hover transition-all duration-300">
                             <img src={ImgA1} alt="Runner Maze" className="w-full h-auto block rounded-xl" />
                             <span className="absolute bottom-3 left-1/2 -translate-x-1/2 text-white font-bold text-2xl drop-shadow-md">Fortnite</span>

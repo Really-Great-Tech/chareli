@@ -85,7 +85,7 @@ export const getDashboardAnalytics = async (
       .groupBy('analytics.gameId')
       .addGroupBy('game.title')
       .addGroupBy('thumbnailFile.s3Url')
-      .orderBy('sessionCount', 'DESC')
+      .orderBy('"sessionCount"', 'DESC')
       .limit(1)
       .getRawOne();
     
@@ -762,8 +762,8 @@ export const getUsersWithAnalytics = async (
       .addGroupBy('analytics.gameId')
       .addGroupBy('game.title')
       .addGroupBy('thumbnailFile.s3Url')
-      .orderBy('userId')
-      .addOrderBy('sessionCount', 'DESC')
+      .orderBy('"userId"')
+      .addOrderBy('"sessionCount"', 'DESC')
       .getRawMany();
 
     // Create a map of user IDs to their most played game

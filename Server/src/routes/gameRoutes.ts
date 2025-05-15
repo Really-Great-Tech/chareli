@@ -4,7 +4,9 @@ import {
   getGameById,
   createGame,
   updateGame,
-  deleteGame
+  deleteGame,
+  uploadGameFiles,
+  uploadGameFilesForUpdate
 } from '../controllers/gameController';
 import { authenticate, isAdmin } from '../middlewares/authMiddleware';
 import { validateBody, validateParams, validateQuery } from '../middlewares/validationMiddleware';
@@ -28,8 +30,8 @@ router.use(apiLimiter);
 // Game routes
 router.get('/', validateQuery(gameQuerySchema), getAllGames);
 router.get('/:id', validateParams(gameIdParamSchema), getGameById);
-router.post('/', validateBody(createGameSchema), createGame);
-router.put('/:id', validateParams(gameIdParamSchema), validateBody(updateGameSchema), updateGame);
+router.post('/', uploadGameFiles, createGame);
+router.put('/:id', validateParams(gameIdParamSchema), uploadGameFilesForUpdate, updateGame);
 router.delete('/:id', validateParams(gameIdParamSchema), deleteGame);
 
 export default router;

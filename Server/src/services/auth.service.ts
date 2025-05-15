@@ -161,15 +161,21 @@ export class AuthService {
       throw new Error('Invalid email or password');
     }
 
-    if (!user.isActive) {
-      throw new Error('Your account has been deactivated');
-    }
-
     // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       throw new Error('Invalid email or password');
     }
+
+    // If user was inactive due to inactivity, reactivate them
+    if (!user.isActive) {
+      user.isActive = true;
+      logger.info(`Reactivating previously inactive user: ${user.id} (${user.email})`);
+    }
+
+    // Update lastLoggedIn timestamp
+    user.lastLoggedIn = new Date();
+    await userRepository.save(user);
 
     return user;
   }

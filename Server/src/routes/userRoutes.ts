@@ -4,7 +4,8 @@ import {
   getUserById,
   createUser,
   updateUser,
-  deleteUser
+  deleteUser,
+  getCurrentUserStats
 } from '../controllers/userController';
 import { authenticate, isAdmin, isOwnerOrAdmin } from '../middlewares/authMiddleware';
 import { validateBody, validateParams, validateQuery } from '../middlewares/validationMiddleware';
@@ -24,6 +25,11 @@ router.post('/', createUserLimiter, validateBody(createUserSchema), createUser);
 
 // All user routes require authentication
 router.use(authenticate);
+
+// Current user routes
+router.get('/me/stats', getCurrentUserStats);
+
+// Admin routes
 router.get('/', isAdmin, validateQuery(userQuerySchema), getAllUsers);
 
 // Routes that require either admin access or ownership of the resource

@@ -7,6 +7,7 @@ export interface EmailServiceInterface {
   sendWelcomeEmail(email: string, name: string): Promise<boolean>;
   sendPasswordResetEmail(email: string, resetLink: string): Promise<boolean>;
   sendOtpEmail(email: string, otp: string): Promise<boolean>;
+  sendRoleRevokedEmail(email: string, oldRole: string): Promise<boolean>;
 }
 
 // In-memory storage for development mode
@@ -71,6 +72,20 @@ export class EmailService implements EmailServiceInterface {
       <p>If you didn't request this code, please ignore this email.</p>
     `;
     
+    return this.sendEmail(email, subject, body);
+  }
+
+  /**
+   * Send email notification when a user's role is revoked
+   */
+  async sendRoleRevokedEmail(email: string, oldRole: string): Promise<boolean> {
+    const subject = 'Your Role Has Been Changed';
+    const body = `
+      <h1>Role Change Notification</h1>
+      <p>Your ${oldRole} role has been revoked. You now have player privileges.</p>
+      <p>If you have any questions, please contact the system administrator.</p>
+    `;
+
     return this.sendEmail(email, subject, body);
   }
 

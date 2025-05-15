@@ -3,8 +3,25 @@ import { AppDataSource } from '../config/database';
 import { File } from '../entities/Files';
 import { ApiError } from '../middlewares/errorHandler';
 import { v4 as uuidv4 } from 'uuid';
+import { s3Service } from '../services/s3.service';
+import multer from 'multer';
+import logger from '../utils/logger';
 
 const fileRepository = AppDataSource.getRepository(File);
+
+// Configure multer for file uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB limit
+  }
+});
+
+// Middleware to handle file uploads
+export const uploadFile = upload.single('file');
+
+// Middleware to handle file uploads for updates
+export const uploadFileForUpdate = upload.single('file');
 
 /**
  * @swagger
@@ -146,27 +163,29 @@ export const getFileById = async (
  * @swagger
  * /files:
  *   post:
- *     summary: Create a new file record
- *     description: Create a new file record with simulated S3 data.
+ *     summary: Upload a file and create a file record
+ *     description: Upload a file to S3 and create a record in the database.
  *     tags: [Files]
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             required:
+ *               - file
  *               - type
  *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *                 description: File to upload
  *               type:
  *                 type: string
  *                 description: Type of file (e.g., 'thumbnail', 'game_file')
- *               filename:
- *                 type: string
- *                 description: Optional filename to use in the S3 key
  *     responses:
  *       201:
- *         description: File record created successfully
+ *         description: File uploaded and record created successfully
  *       400:
  *         description: Bad request
  *       500:
@@ -178,27 +197,39 @@ export const createFile = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { type, filename = 'file' } = req.body;
+    const { type } = req.body;
+    const file = req.file;
     
-    // Generate a UUID for the file
-    const fileId = uuidv4();
+    if (!file) {
+      return next(ApiError.badRequest('File is required'));
+    }
     
-    // Create mock S3 key and URL
-    const s3Key = `${fileId}-${filename.replace(/\s+/g, '-')}`;
-    const s3Url = `https://mock-s3-bucket.example.com/${s3Key}`;
+    if (!type) {
+      return next(ApiError.badRequest('File type is required'));
+    }
     
-    // Create new file record
-    const file = fileRepository.create({
-      s3Key,
-      s3Url,
+    // Upload file to S3
+    logger.info(`Uploading file to S3: ${file.originalname}`);
+    const uploadResult = await s3Service.uploadFile(
+      file.buffer,
+      file.originalname,
+      file.mimetype,
+      type // Use type as folder name
+    );
+    
+    // Create file record in database
+    logger.info('Creating file record in database');
+    const fileRecord = fileRepository.create({
+      s3Key: uploadResult.key,
+      s3Url: uploadResult.url,
       type
     });
     
-    await fileRepository.save(file);
+    await fileRepository.save(fileRecord);
     
     res.status(201).json({
       success: true,
-      data: file,
+      data: fileRecord,
     });
   } catch (error) {
     next(error);
@@ -210,7 +241,7 @@ export const createFile = async (
  * /files/{id}:
  *   put:
  *     summary: Update a file record
- *     description: Update a file record by its ID.
+ *     description: Update a file record by its ID, optionally replacing the file.
  *     tags: [Files]
  *     parameters:
  *       - in: path
@@ -223,16 +254,17 @@ export const createFile = async (
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
- *               s3Key:
+ *               file:
  *                 type: string
- *               s3Url:
- *                 type: string
+ *                 format: binary
+ *                 description: New file to upload (optional)
  *               type:
  *                 type: string
+ *                 description: Type of file (e.g., 'thumbnail', 'game_file')
  *     responses:
  *       200:
  *         description: File record updated successfully
@@ -250,7 +282,8 @@ export const updateFile = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    const { s3Key, s3Url, type } = req.body;
+    const { type } = req.body;
+    const uploadedFile = req.file;
     
     const file = await fileRepository.findOne({
       where: { id }
@@ -260,10 +293,25 @@ export const updateFile = async (
       return next(ApiError.notFound(`File with id ${id} not found`));
     }
     
-    // Update file properties if provided
-    if (s3Key) file.s3Key = s3Key;
-    if (s3Url) file.s3Url = s3Url;
-    if (type) file.type = type;
+    // If a new file is uploaded, replace the old one in S3
+    if (uploadedFile) {
+      logger.info(`Uploading new file to S3: ${uploadedFile.originalname}`);
+      const uploadResult = await s3Service.uploadFile(
+        uploadedFile.buffer,
+        uploadedFile.originalname,
+        uploadedFile.mimetype,
+        file.type // Use existing type as folder
+      );
+      
+      // Update file record with new S3 info
+      file.s3Key = uploadResult.key;
+      file.s3Url = uploadResult.url;
+    }
+    
+    // Update type if provided
+    if (type) {
+      file.type = type;
+    }
     
     await fileRepository.save(file);
     
@@ -318,6 +366,16 @@ export const deleteFile = async (
     // In a real implementation, we would check if the file is referenced by any games
     // and prevent deletion if it is. For now, we'll just delete it.
     
+    // Delete from S3
+    try {
+      logger.info(`Deleting file from S3: ${file.s3Key}`);
+      await s3Service.deleteFile(file.s3Key);
+    } catch (error) {
+      logger.warn(`Failed to delete file from S3: ${error}`);
+      // Continue with database deletion even if S3 deletion fails
+    }
+    
+    // Delete from database
     await fileRepository.remove(file);
     
     res.status(200).json({

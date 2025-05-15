@@ -5,6 +5,10 @@ import { Category } from '../entities/Category';
 import { File } from '../entities/Files';
 import { ApiError } from '../middlewares/errorHandler';
 import { RoleType } from '../entities/Role';
+import { Not } from 'typeorm';
+import { s3Service } from '../services/s3.service';
+import multer from 'multer';
+import logger from '../utils/logger';
 
 const gameRepository = AppDataSource.getRepository(Game);
 const categoryRepository = AppDataSource.getRepository(Category);
@@ -143,7 +147,7 @@ export const getAllGames = async (
  * /games/{id}:
  *   get:
  *     summary: Get game by ID
- *     description: Retrieve a single game by its ID with related entities. Accessible by admins.
+ *     description: Retrieve a single game by its ID with related entities and similar games. Accessible by admins.
  *     tags: [Games]
  *     security:
  *       - bearerAuth: []
@@ -157,7 +161,38 @@ export const getAllGames = async (
  *         description: ID of the game to retrieve
  *     responses:
  *       200:
- *         description: Game found
+ *         description: Game found with similar games
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       format: uuid
+ *                     title:
+ *                       type: string
+ *                     description:
+ *                       type: string
+ *                     category:
+ *                       type: object
+ *                     thumbnailFile:
+ *                       type: object
+ *                     gameFile:
+ *                       type: object
+ *                     createdBy:
+ *                       type: object
+ *                     similarGames:
+ *                       type: array
+ *                       description: Up to 5 similar games from the same category
+ *                       items:
+ *                         type: object
  *       401:
  *         description: Unauthorized
  *       403:
@@ -175,6 +210,7 @@ export const getGameById = async (
   try {
     const { id } = req.params;
     
+    // Get the requested game with its relations
     const game = await gameRepository.findOne({
       where: { id },
       relations: ['category', 'thumbnailFile', 'gameFile', 'createdBy']
@@ -184,9 +220,29 @@ export const getGameById = async (
       return next(ApiError.notFound(`Game with id ${id} not found`));
     }
     
+    // Find similar games (same category, different ID, active status)
+    let similarGames: Game[] = [];
+    
+    if (game.categoryId) {
+      similarGames = await gameRepository.find({
+        where: {
+          categoryId: game.categoryId,
+          id: Not(id), // Exclude the current game
+          status: GameStatus.ACTIVE
+        },
+        relations: ['thumbnailFile'],
+        take: 5, // Limit to 5 similar games
+        order: { createdAt: 'DESC' } // Get the newest games first
+      });
+    }
+    
+    // Return the game with similar games
     res.status(200).json({
       success: true,
-      data: game,
+      data: {
+        ...game,
+        similarGames
+      }
     });
   } catch (error) {
     next(error);
@@ -198,29 +254,33 @@ export const getGameById = async (
  * /games:
  *   post:
  *     summary: Create a new game
- *     description: Create a new game. Accessible by admins.
+ *     description: Create a new game with file uploads. Accessible by admins.
  *     tags: [Games]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             required:
  *               - title
+ *               - thumbnailFile
+ *               - gameFile
  *             properties:
  *               title:
  *                 type: string
  *               description:
  *                 type: string
- *               thumbnailFileId:
+ *               thumbnailFile:
  *                 type: string
- *                 format: uuid
- *               gameFileId:
+ *                 format: binary
+ *                 description: Thumbnail image file
+ *               gameFile:
  *                 type: string
- *                 format: uuid
+ *                 format: binary
+ *                 description: Game file (HTML, ZIP, etc.)
  *               categoryId:
  *                 type: string
  *                 format: uuid
@@ -241,6 +301,26 @@ export const getGameById = async (
  *       500:
  *         description: Internal server error
  */
+// Configure multer for file uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB limit
+  }
+});
+
+// Middleware to handle file uploads
+export const uploadGameFiles = upload.fields([
+  { name: 'thumbnailFile', maxCount: 1 },
+  { name: 'gameFile', maxCount: 1 }
+]);
+
+// Middleware to handle file uploads for updates
+export const uploadGameFilesForUpdate = upload.fields([
+  { name: 'thumbnailFile', maxCount: 1 },
+  { name: 'gameFile', maxCount: 1 }
+]);
+
 export const createGame = async (
   req: Request,
   res: Response,
@@ -250,8 +330,6 @@ export const createGame = async (
     const { 
       title, 
       description, 
-      thumbnailFileId, 
-      gameFileId, 
       categoryId, 
       status = GameStatus.ACTIVE,
       config = 0
@@ -261,6 +339,16 @@ export const createGame = async (
     if (!title) {
       return next(ApiError.badRequest('Game title is required'));
     }
+    
+    // Get files from request
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+    
+    if (!files || !files.thumbnailFile || !files.thumbnailFile[0] || !files.gameFile || !files.gameFile[0]) {
+      return next(ApiError.badRequest('Thumbnail and game files are required'));
+    }
+    
+    const thumbnailFile = files.thumbnailFile[0];
+    const gameFile = files.gameFile[0];
     
     // Check if category exists if provided
     if (categoryId) {
@@ -273,40 +361,46 @@ export const createGame = async (
       }
     }
     
-    // Check if thumbnail file exists if provided
-    if (thumbnailFileId) {
-      const thumbnailFile = await fileRepository.findOne({
-        where: { id: thumbnailFileId }
-      });
-      
-      if (!thumbnailFile) {
-        return next(ApiError.badRequest(`Thumbnail file with id ${thumbnailFileId} not found`));
-      }
-      
-      // Ideally, we would check if the file is an image type here
-      // For now, we'll just assume it's valid
-    }
+    // Upload files to S3
+    logger.info('Uploading thumbnail file to S3...');
+    const thumbnailUploadResult = await s3Service.uploadFile(
+      thumbnailFile.buffer,
+      thumbnailFile.originalname,
+      thumbnailFile.mimetype,
+      'thumbnails'
+    );
     
-    // Check if game file exists if provided
-    if (gameFileId) {
-      const gameFile = await fileRepository.findOne({
-        where: { id: gameFileId }
-      });
-      
-      if (!gameFile) {
-        return next(ApiError.badRequest(`Game file with id ${gameFileId} not found`));
-      }
-      
-      // Ideally, we would check if the file is a compressed folder type here
-      // For now, we'll just assume it's valid
-    }
+    logger.info('Uploading game file to S3...');
+    const gameFileUploadResult = await s3Service.uploadFile(
+      gameFile.buffer,
+      gameFile.originalname,
+      gameFile.mimetype,
+      'games'
+    );
     
-    // Create new game
+    // Create file records in the database
+    logger.info('Creating file records in the database...');
+    const thumbnailFileRecord = fileRepository.create({
+      s3Key: thumbnailUploadResult.key,
+      s3Url: thumbnailUploadResult.url,
+      type: 'thumbnail'
+    });
+    
+    const gameFileRecord = fileRepository.create({
+      s3Key: gameFileUploadResult.key,
+      s3Url: gameFileUploadResult.url,
+      type: 'game_file'
+    });
+    
+    await fileRepository.save([thumbnailFileRecord, gameFileRecord]);
+    
+    // Create new game with file IDs
+    logger.info('Creating game record...');
     const game = gameRepository.create({
       title,
       description,
-      thumbnailFileId,
-      gameFileId,
+      thumbnailFileId: thumbnailFileRecord.id,
+      gameFileId: gameFileRecord.id,
       categoryId,
       status,
       config,
@@ -335,7 +429,7 @@ export const createGame = async (
  * /games/{id}:
  *   put:
  *     summary: Update a game
- *     description: Update a game by its ID. Accessible by admins.
+ *     description: Update a game by its ID, including file uploads. Accessible by admins.
  *     tags: [Games]
  *     security:
  *       - bearerAuth: []
@@ -350,7 +444,7 @@ export const createGame = async (
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
@@ -358,12 +452,14 @@ export const createGame = async (
  *                 type: string
  *               description:
  *                 type: string
- *               thumbnailFileId:
+ *               thumbnailFile:
  *                 type: string
- *                 format: uuid
- *               gameFileId:
+ *                 format: binary
+ *                 description: New thumbnail image file (optional)
+ *               gameFile:
  *                 type: string
- *                 format: uuid
+ *                 format: binary
+ *                 description: New game file (HTML, ZIP, etc.) (optional)
  *               categoryId:
  *                 type: string
  *                 format: uuid
@@ -396,8 +492,6 @@ export const updateGame = async (
     const { 
       title, 
       description, 
-      thumbnailFileId, 
-      gameFileId, 
       categoryId, 
       status,
       config
@@ -411,6 +505,63 @@ export const updateGame = async (
       return next(ApiError.notFound(`Game with id ${id} not found`));
     }
     
+    // Handle file uploads if provided
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+    
+    // Handle thumbnail file upload
+    if (files?.thumbnailFile && files.thumbnailFile[0]) {
+      const thumbnailFile = files.thumbnailFile[0];
+      
+      // Upload to S3
+      logger.info('Uploading new thumbnail file to S3...');
+      const thumbnailUploadResult = await s3Service.uploadFile(
+        thumbnailFile.buffer,
+        thumbnailFile.originalname,
+        thumbnailFile.mimetype,
+        'thumbnails'
+      );
+      
+      // Create file record
+      logger.info('Creating new thumbnail file record...');
+      const thumbnailFileRecord = fileRepository.create({
+        s3Key: thumbnailUploadResult.key,
+        s3Url: thumbnailUploadResult.url,
+        type: 'thumbnail'
+      });
+      
+      await fileRepository.save(thumbnailFileRecord);
+      
+      // Update game with new file ID
+      game.thumbnailFileId = thumbnailFileRecord.id;
+    }
+    
+    // Handle game file upload
+    if (files?.gameFile && files.gameFile[0]) {
+      const gameFile = files.gameFile[0];
+      
+      // Upload to S3
+      logger.info('Uploading new game file to S3...');
+      const gameFileUploadResult = await s3Service.uploadFile(
+        gameFile.buffer,
+        gameFile.originalname,
+        gameFile.mimetype,
+        'games'
+      );
+      
+      // Create file record
+      logger.info('Creating new game file record...');
+      const gameFileRecord = fileRepository.create({
+        s3Key: gameFileUploadResult.key,
+        s3Url: gameFileUploadResult.url,
+        type: 'game_file'
+      });
+      
+      await fileRepository.save(gameFileRecord);
+      
+      // Update game with new file ID
+      game.gameFileId = gameFileRecord.id;
+    }
+    
     // Check if category exists if provided
     if (categoryId && categoryId !== game.categoryId) {
       const category = await categoryRepository.findOne({
@@ -422,38 +573,6 @@ export const updateGame = async (
       }
       
       game.categoryId = categoryId;
-    }
-    
-    // Check if thumbnail file exists if provided
-    if (thumbnailFileId && thumbnailFileId !== game.thumbnailFileId) {
-      const thumbnailFile = await fileRepository.findOne({
-        where: { id: thumbnailFileId }
-      });
-      
-      if (!thumbnailFile) {
-        return next(ApiError.badRequest(`Thumbnail file with id ${thumbnailFileId} not found`));
-      }
-      
-      // Ideally, we would check if the file is an image type here
-      // For now, we'll just assume it's valid
-      
-      game.thumbnailFileId = thumbnailFileId;
-    }
-    
-    // Check if game file exists if provided
-    if (gameFileId && gameFileId !== game.gameFileId) {
-      const gameFile = await fileRepository.findOne({
-        where: { id: gameFileId }
-      });
-      
-      if (!gameFile) {
-        return next(ApiError.badRequest(`Game file with id ${gameFileId} not found`));
-      }
-      
-      // Ideally, we would check if the file is a compressed folder type here
-      // For now, we'll just assume it's valid
-      
-      game.gameFileId = gameFileId;
     }
     
     // Update basic game properties

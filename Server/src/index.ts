@@ -6,6 +6,7 @@ import logger from './utils/logger';
 import fs from 'fs';
 import path from 'path';
 import { authService } from './services/auth.service';
+import { initializeScheduledJobs } from './jobs';
 
 const logDir = path.join(process.cwd(), 'logs');
 if (!fs.existsSync(logDir)) {
@@ -25,6 +26,9 @@ const startServer = async () => {
       // Initialize superadmin account
       logger.info('Initializing superadmin account...');
       await authService.initializeSuperadmin();
+      
+      // Initialize scheduled jobs
+      initializeScheduledJobs();
     } catch (dbError) {
       if (config.env === 'development') {
         logger.warn('Failed to connect to database in development mode, continuing without database connection');

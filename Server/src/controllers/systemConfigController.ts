@@ -145,8 +145,8 @@ export const getFormattedSystemConfigs = async (
  * @swagger
  * /system-configs:
  *   post:
- *     summary: Create a new system configuration
- *     description: Create a new system configuration. Accessible by admins.
+ *     summary: Create or update a system configuration
+ *     description: Create a new system configuration or update an existing one if the key already exists. Accessible by admins.
  *     tags: [SystemConfigs]
  *     security:
  *       - bearerAuth: []
@@ -169,6 +169,8 @@ export const getFormattedSystemConfigs = async (
  *     responses:
  *       201:
  *         description: Configuration created successfully
+ *       200:
+ *         description: Configuration updated successfully
  *       400:
  *         description: Bad request
  *       401:
@@ -187,25 +189,33 @@ export const createSystemConfig = async (
     const { key, value, description } = req.body;
     
     // Check if config with the same key already exists
-    const existingConfig = await systemConfigRepository.findOne({
+    let config = await systemConfigRepository.findOne({
       where: { key }
     });
     
-    if (existingConfig) {
-      return next(ApiError.badRequest(`Configuration with key ${key} already exists`));
-    }
+    let isNewConfig = false;
     
-    // Create new config
-    const config = systemConfigRepository.create({
-      key,
-      value,
-      description
-    });
+    if (config) {
+      // Update existing config
+      config.value = value;
+      if (description !== undefined) {
+        config.description = description;
+      }
+    } else {
+      // Create new config
+      isNewConfig = true;
+      config = systemConfigRepository.create({
+        key,
+        value,
+        description
+      });
+    }
     
     await systemConfigRepository.save(config);
     
-    res.status(201).json({
+    res.status(isNewConfig ? 201 : 200).json({
       success: true,
+      message: isNewConfig ? 'Configuration created successfully' : 'Configuration updated successfully',
       data: config,
     });
   } catch (error) {

@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { AppDataSource } from '../config/database';
 import { User } from '../entities/User';
 import { Role, RoleType } from '../entities/Role';
+import { Analytics } from '../entities/Analytics';
 import { ApiError } from '../middlewares/errorHandler';
 import * as bcrypt from 'bcrypt';
 import { authService } from '../services/auth.service';
@@ -9,6 +10,7 @@ import { OtpType } from '../entities/Otp';
 
 const userRepository = AppDataSource.getRepository(User);
 const roleRepository = AppDataSource.getRepository(Role);
+const analyticsRepository = AppDataSource.getRepository(Analytics);
 
 /**
  * @swagger
@@ -59,6 +61,91 @@ export const getAllUsers = async (
       success: true,
       count: users.length,
       data: users,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @swagger
+ * /users/me/stats:
+ *   get:
+ *     summary: Get current user's game statistics
+ *     description: Retrieve game play statistics for the currently logged in user.
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User stats retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+export const getCurrentUserStats = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    // Get user ID from authenticated user
+    if (!req.user || !req.user.userId) {
+      return next(ApiError.unauthorized('User not authenticated'));
+    }
+    
+    const userId = req.user.userId;
+
+    // Get total minutes played
+    const totalTimeResult = await analyticsRepository
+      .createQueryBuilder('analytics')
+      .select('SUM(analytics.duration)', 'totalDuration')
+      .where('analytics.userId = :userId', { userId })
+      .getRawOne();
+
+    // Get total play count
+    const totalPlaysResult = await analyticsRepository
+      .count({
+        where: { userId }
+      });
+
+    // Get games played with details
+    const gamesPlayed = await analyticsRepository
+      .createQueryBuilder('analytics')
+      .select('analytics.gameId', 'gameId')
+      .addSelect('game.title', 'title')
+      .addSelect('thumbnailFile.s3Url', 'thumbnailUrl')
+      .addSelect('SUM(analytics.duration)', 'totalDuration')
+      .addSelect('MAX(analytics.startTime)', 'lastPlayed')
+      .leftJoin('analytics.game', 'game')
+      .leftJoin('game.thumbnailFile', 'thumbnailFile')
+      .where('analytics.userId = :userId', { userId })
+      .groupBy('analytics.gameId')
+      .addGroupBy('game.title')
+      .addGroupBy('thumbnailFile.s3Url')
+      .orderBy('lastPlayed', 'DESC')
+      .getRawMany();
+
+    // Format the response
+    const formattedGames = gamesPlayed.map(game => ({
+      gameId: game.gameId,
+      title: game.title,
+      thumbnailUrl: game.thumbnailUrl,
+      totalMinutes: Math.round((game.totalDuration || 0) / 60), // Convert seconds to minutes
+      lastPlayed: game.lastPlayed
+    }));
+
+    // Calculate total minutes (convert from seconds)
+    const totalMinutes = Math.round((totalTimeResult?.totalDuration || 0) / 60);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        totalMinutes,
+        totalPlays: totalPlaysResult,
+        gamesPlayed: formattedGames
+      }
     });
   } catch (error) {
     next(error);

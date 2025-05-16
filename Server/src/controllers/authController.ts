@@ -3,6 +3,7 @@ import { authService } from '../services/auth.service';
 import { ApiError } from '../middlewares/errorHandler';
 import { AppDataSource } from '../config/database';
 import { User } from '../entities/User';
+import { Analytics } from '../entities/Analytics';
 import { OtpType } from '../entities/Otp';
 import * as crypto from 'crypto';
 
@@ -10,6 +11,7 @@ import * as crypto from 'crypto';
 // This controller handles core authentication functions like registration, login, and OTP verification
 
 const userRepository = AppDataSource.getRepository(User);
+const analyticsRepository = AppDataSource.getRepository(Analytics);
 
 /**
  * @swagger
@@ -70,6 +72,12 @@ export const registerPlayer = async (
       isAdult || false,
       hasAcceptedTerms
     );
+
+    // Create analytics entry for signup
+    const signupAnalytics = new Analytics();
+    signupAnalytics.userId = user.id;
+    signupAnalytics.activityType = 'Signed up';
+    await analyticsRepository.save(signupAnalytics);
 
     res.status(201).json({
       success: true,
@@ -152,6 +160,14 @@ export const registerFromInvitation = async (
       isAdult || false,
       hasAcceptedTerms
     );
+
+    // Create analytics entry for signup from invitation
+    const signupAnalytics = new Analytics();
+    signupAnalytics.userId = user.id;
+    signupAnalytics.activityType = 'Signed up from invitation';
+    // Don't set startTime for non-game activities
+    // Don't set sessionCount for non-game activities
+    await analyticsRepository.save(signupAnalytics);
 
     res.status(201).json({
       success: true,
@@ -278,6 +294,12 @@ export const verifyOtp = async (
     if (user) {
       user.lastLoggedIn = new Date();
       await userRepository.save(user);
+      
+      // Create analytics entry for login
+      const loginAnalytics = new Analytics();
+      loginAnalytics.userId = user.id;
+      loginAnalytics.activityType = 'Logged in';
+      await analyticsRepository.save(loginAnalytics);
     }
 
     res.status(200).json({

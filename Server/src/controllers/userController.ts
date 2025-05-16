@@ -288,15 +288,6 @@ export const createUser = async (
       return next(ApiError.badRequest('Invalid role'));
     }
 
-    // Check if the current user has permission to create a user with this role
-    // if (
-    //   req.user?.role === RoleType.ADMIN &&
-    //   (role.name === RoleType.SUPERADMIN || role.name === RoleType.ADMIN)
-    // ) {
-    //   return next(ApiError.forbidden('Admin can only create editor and player roles'));
-    // }
-
-    // Hash the password
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
@@ -314,6 +305,12 @@ export const createUser = async (
     });
 
     await userRepository.save(user);
+
+    // Create analytics entry for signup
+    const signupAnalytics = new Analytics();
+    signupAnalytics.userId = user.id;
+    signupAnalytics.activityType = 'Signed up';
+    await analyticsRepository.save(signupAnalytics);
 
     // Don't return sensitive information
     const { password: _, ...userWithoutSensitiveInfo } = user;

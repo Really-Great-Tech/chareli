@@ -5,7 +5,7 @@ import { Game, GameStatus } from '../entities/Games';
 import { Analytics } from '../entities/Analytics';
 import { SignupAnalytics } from '../entities/SignupAnalytics';
 import { ApiError } from '../middlewares/errorHandler';
-import { Between, FindOptionsWhere, In, LessThan, IsNull } from 'typeorm';
+import { Between, FindOptionsWhere, In, LessThan, IsNull, Not } from 'typeorm';
 import { checkInactiveUsers } from '../jobs/userInactivityCheck';
 
 const userRepository = AppDataSource.getRepository(User);
@@ -202,6 +202,9 @@ export const runInactiveUsersCheck = async (
  *       500:
  *         description: Internal server error
  */
+/**
+ * Get user activity log - shows one entry per user with their latest activity and last game played
+ */
 export const getUserActivityLog = async (
   req: Request,
   res: Response,
@@ -212,43 +215,72 @@ export const getUserActivityLog = async (
     const pageNumber = parseInt(page as string, 10);
     const limitNumber = parseInt(limit as string, 10);
     
-    // Build query for analytics
-    const queryBuilder = analyticsRepository.createQueryBuilder('analytics')
-      .leftJoinAndSelect('analytics.user', 'user')
-      .leftJoinAndSelect('analytics.game', 'game')
-      .select(['analytics', 'user.id', 'user.firstName', 'user.lastName', 'user.email', 'user.isActive', 'game']);
+    // First, get the list of users (with pagination)
+    const userQueryBuilder = userRepository.createQueryBuilder('user')
+      .select(['user.id', 'user.firstName', 'user.lastName', 'user.email', 'user.isActive']);
     
     // Apply user filter if provided
     if (userId) {
-      queryBuilder.andWhere('analytics.userId = :userId', { userId });
+      userQueryBuilder.where('user.id = :userId', { userId });
     }
     
     // Get total count for pagination
-    const total = await queryBuilder.getCount();
+    const total = await userQueryBuilder.getCount();
     
-    // Apply pagination and ordering
-    queryBuilder
+    // Apply pagination
+    userQueryBuilder
       .skip((pageNumber - 1) * limitNumber)
       .take(limitNumber)
-      .orderBy('analytics.startTime', 'DESC');
+      .orderBy('user.createdAt', 'DESC');
     
-    const activities = await queryBuilder.getMany();
+    const users = await userQueryBuilder.getMany();
     
-    // Format the data
-    const formattedActivities = activities.map(activity => {
-      // Use the user's isActive field to determine online/offline status
-      const isOnline = activity.user.isActive;
+    // Format the data - one entry per user
+    const formattedActivities = await Promise.all(users.map(async (user) => {
+      // Get the user's latest activity
+      const latestActivity = await analyticsRepository.findOne({
+        where: { userId: user.id },
+        order: { createdAt: 'DESC' }
+      });
+      
+      // Get the user's last played game
+      const lastGameActivity = await analyticsRepository.findOne({
+        where: {
+          userId: user.id,
+          gameId: Not(IsNull())
+        },
+        relations: ['game'],
+        order: { startTime: 'DESC' }
+      });
+      
+      // Default values
+      let activity = 'No activity';
+      let gameTitle = 'None';
+      let gameStartTime: Date | null = null;
+      let gameEndTime: Date | null = null;
+      
+      // If we found an activity, use its data
+      if (latestActivity) {
+        activity = latestActivity.activityType;
+      }
+      
+      // If we found a game activity, use its data
+      if (lastGameActivity && lastGameActivity.game) {
+        gameTitle = lastGameActivity.game.title;
+        gameStartTime = lastGameActivity.startTime;
+        gameEndTime = lastGameActivity.endTime;
+      }
       
       return {
-        userId: activity.userId,
-        name: `${activity.user.firstName} ${activity.user.lastName}`,
-        userStatus: isOnline ? 'Online' : 'Offline', // Set status based on recent activity
-        activity: activity.activityType,
-        lastGamePlayed: activity.game.title,
-        startTime: activity.startTime,
-        endTime: activity.endTime
+        userId: user.id,
+        name: `${user.firstName} ${user.lastName}`,
+        userStatus: user.isActive ? 'Online' : 'Offline',
+        activity: activity,
+        lastGamePlayed: gameTitle,
+        startTime: gameStartTime,
+        endTime: gameEndTime
       };
-    });
+    }));
     
     res.status(200).json({
       success: true,
@@ -381,6 +413,7 @@ export const getGamesWithAnalytics = async (
     
     // Create a map of game IDs to their analytics data
     const analyticsMap = new Map();
+    
     gamesAnalytics.forEach(item => {
       analyticsMap.set(item.gameId, {
         uniquePlayers: parseInt(item.uniquePlayers) || 0,

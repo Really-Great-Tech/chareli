@@ -15,11 +15,11 @@ export class Analytics {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column({ name: 'game_id' })
+  @Column({ name: 'game_id', nullable: true })
   @Index()
-  gameId: string;
+  gameId: string | null;
 
-  @ManyToOne(() => Game, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Game, { onDelete: 'CASCADE', nullable: true })
   @JoinColumn({ name: 'game_id' })
   game: Game;
 
@@ -27,18 +27,18 @@ export class Analytics {
   @Index()
   activityType: string;
 
-  @Column({ type: 'timestamp' })
+  @Column({ type: 'timestamp', nullable: true })
   @Index()
-  startTime: Date;
+  startTime: Date | null;
 
   @Column({ type: 'timestamp', nullable: true })
   endTime: Date;
 
   @Column({ type: 'int', nullable: true })
-  duration: number; // Duration in seconds
+  duration: number | null; // Duration in seconds
 
-  @Column({ type: 'int', default: 1 })
-  sessionCount: number;
+  @Column({ type: 'int', nullable: true, default: null })
+  sessionCount: number | null;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -50,8 +50,11 @@ export class Analytics {
   @BeforeUpdate()
   calculateDuration() {
     if (this.startTime && this.endTime) {
-      // Calculate duration in seconds
+      // Calculate duration in seconds only if both startTime and endTime are present
       this.duration = Math.floor((this.endTime.getTime() - this.startTime.getTime()) / 1000);
+    } else {
+      // Set duration to null if either startTime or endTime is missing
+      this.duration = null;
     }
   }
 }

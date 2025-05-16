@@ -21,13 +21,13 @@ const analyticsRepository = AppDataSource.getRepository(Analytics);
  *           schema:
  *             type: object
  *             required:
- *               - gameId
  *               - activityType
  *               - startTime
  *             properties:
  *               gameId:
  *                 type: string
  *                 format: uuid
+ *                 description: Optional for non-game activities like login/signup
  *               activityType:
  *                 type: string
  *               startTime:
@@ -68,7 +68,12 @@ export const createAnalytics = async (
     // Create a new analytics instance
     const analytics = new Analytics();
     analytics.userId = userId;
-    analytics.gameId = gameId;
+    
+    // Only set gameId if provided (optional for login/signup activities)
+    if (gameId) {
+      analytics.gameId = gameId;
+    }
+    
     analytics.activityType = activityType;
     analytics.startTime = new Date(startTime);
     

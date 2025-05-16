@@ -1,4 +1,5 @@
-import { Card } from "../ui/card";
+import { Dialog } from "../ui/dialog";
+import { CustomDialogContent } from "../ui/custom-dialog-content";
 import profileImg from '../../assets/profileModal-Img.svg';
 
 import { TbLogout } from "react-icons/tb";
@@ -9,11 +10,10 @@ interface ProfileModalProps {
 }
 
 export function ProfileModal({ open, onClose }: ProfileModalProps) {
-    if (!open) return null;
     return (
-        <Card className="absolute inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/10">
-            <div className="relative bg-white dark:bg-[#18192b] rounded-2xl shadow-lg p-8 min-w-[350px] max-w-[90vw] w-[400px]">
-                {/* Close Button */}
+        <Dialog open={open} onOpenChange={onClose}>
+            <CustomDialogContent className="bg-white dark:bg-[#18192b] rounded-2xl shadow-lg p-8 min-w-[350px] max-w-[90vw] w-[400px] border-none">
+                {/* Custom Close Button */}
                 <button
                     className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#C026D3] flex items-center justify-center shadow-lg hover:bg-[#a21caf] transition-colors"
                     onClick={onClose}
@@ -67,8 +67,7 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
                     </div>
                   </button>
                 </div>
-                </div>
-        </Card>
+            </CustomDialogContent>
+        </Dialog>
     );
 }
-  

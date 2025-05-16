@@ -16,7 +16,6 @@ export const createUserSchema = yup.object({
     .matches(/[^A-Za-z0-9]/, 'Password must contain at least one special character')
     .required('Password is required'),
   phoneNumber: yup.string().required('Phone number is required'),
-  roleId: yup.string().uuid('Invalid role ID').required('Role ID is required'),
   fileId: yup.string().uuid('Invalid file ID'),
   isAdult: yup.boolean().default(false),
   hasAcceptedTerms: yup.boolean().default(false)

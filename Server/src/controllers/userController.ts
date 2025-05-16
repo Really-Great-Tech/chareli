@@ -227,10 +227,7 @@ export const getUserById = async (
  * /users:
  *   post:
  *     summary: Create a new user
- *     description: Create a new user in the system. Only accessible by admins.
  *     tags: [Users]
- *     security:
- *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -242,14 +239,12 @@ export const getUserById = async (
  *               - lastName
  *               - email
  *               - password
- *               - roleId
  *           example:
  *             firstName: "Alex"
  *             lastName: "Johnson"
  *             email: "alex.johnson@example.com"
  *             password: "SecurePass789!"
  *             phoneNumber: "+1555123456"
- *             roleId: "aa628a45-4c53-4500-a66a-e4c0851c2e00"
  *     responses:
  *       201:
  *         description: User created successfully
@@ -268,10 +263,10 @@ export const createUser = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { firstName, lastName, email, password, roleId, phoneNumber } = req.body;
+    const { firstName, lastName, email, password, phoneNumber } = req.body;
 
     // Validate required fields
-    if (!firstName || !lastName || !email || !password || !roleId) {
+    if (!firstName || !lastName || !email || !password ) {
       return next(ApiError.badRequest('All fields are required'));
     }
 
@@ -286,7 +281,7 @@ export const createUser = async (
 
     // Get the role
     const role = await roleRepository.findOne({
-      where: { id: roleId }
+      where: { name: RoleType.PLAYER }
     });
 
     if (!role) {
@@ -294,12 +289,12 @@ export const createUser = async (
     }
 
     // Check if the current user has permission to create a user with this role
-    if (
-      req.user?.role === RoleType.ADMIN &&
-      (role.name === RoleType.SUPERADMIN || role.name === RoleType.ADMIN)
-    ) {
-      return next(ApiError.forbidden('Admin can only create editor and player roles'));
-    }
+    // if (
+    //   req.user?.role === RoleType.ADMIN &&
+    //   (role.name === RoleType.SUPERADMIN || role.name === RoleType.ADMIN)
+    // ) {
+    //   return next(ApiError.forbidden('Admin can only create editor and player roles'));
+    // }
 
     // Hash the password
     const saltRounds = 10;
@@ -313,7 +308,7 @@ export const createUser = async (
       password: hashedPassword,
       phoneNumber,
       role,
-      roleId,
+      roleId: role.id,
       isVerified: false,
       isActive: true
     });

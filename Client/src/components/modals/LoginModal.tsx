@@ -16,9 +16,10 @@ import { OTPPlatformModal } from './OTPPlatformModal';
 interface LoginDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    openSignUpModal: () => void;
 }
 
-export function LoginModal({ open, onOpenChange }: LoginDialogProps) {
+export function LoginModal({ open, onOpenChange, openSignUpModal }: LoginDialogProps) {
     const [showPassword, setShowPassword] = useState(false);
     const [isOTPPlatformModalOpen, setIsOTPPlatformModalOpen] = useState(false);
     const togglePasswordVisibility = () => setShowPassword(!showPassword);
@@ -76,7 +77,7 @@ export function LoginModal({ open, onOpenChange }: LoginDialogProps) {
                 </AlertDialogAction>
                 <p className="text-sm text-center text-black dark:text-white font-pincuk">
                     Don't have an account?{' '}
-                    <a href="/signup" className="underline text-[#C026D3]">Sign Up</a>
+                    <span className="underline text-[#C026D3] cursor-pointer" onClick={openSignUpModal}>Sign Up</span>
                 </p>
             </AlertDialogContent>
             <OTPPlatformModal open={isOTPPlatformModalOpen} onOpenChange={setIsOTPPlatformModalOpen} />

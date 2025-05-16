@@ -66,7 +66,7 @@ const Navbar: React.FC = () => {
         <Button
           onClick={() => setIsLoginModalOpen(true)}
           className="bg-transparent border border-[#111826] dark:border-gray-500 text-[#111826] hover:text-[#111826] dark:text-gray-300 text-lg cursor-pointer hover:bg-accent">
-          Log in
+          Log in  
         </Button>
         <Button
           onClick={() => setIsSignUpModalOpen(true)}
@@ -87,8 +87,22 @@ const Navbar: React.FC = () => {
           onClick={() => setIsProfileModalOpen(true)}
         />
 
-        <SignUpModal open={isSignUpModalOpen} onOpenChange={setIsSignUpModalOpen} />
-        <LoginModal open={isLoginModalOpen} onOpenChange={setIsLoginModalOpen} />
+        <SignUpModal
+          open={isSignUpModalOpen}
+          onOpenChange={setIsSignUpModalOpen}
+          openLoginModal={() => {
+            setIsSignUpModalOpen(false);
+            setIsLoginModalOpen(true);
+          }}
+        />
+        <LoginModal
+          open={isLoginModalOpen}
+          onOpenChange={setIsLoginModalOpen}
+          openSignUpModal={() => {
+            setIsLoginModalOpen(false);
+            setIsSignUpModalOpen(true);
+          }}
+        />
         <StatsModal open={isStatsModalOpen} onClose={() => setIsStatsModalOpen(false)} />
         <ProfileModal open={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)} />
       </div>

@@ -18,7 +18,7 @@ export function WelcomeModal({ open, onOpenChange }: WelcomeDialogProps) {
             <AlertDialogContent className="sm:max-w-[425px] dark:bg-[#334154] rounded-lg p-6">
                 <button
                     onClick={() => onOpenChange(false)}
-                    className="cursor-pointer absolute top-[-19px] right-[-10px] w-8 h-8 rounded-full bg-[#C026D3] text-white font-bold text-xl flex items-center justify-center"
+                    className="cursor-pointer absolute -top-4 -right-4 w-8 h-8 rounded-full bg-[#C026D3] text-white font-bold text-xl flex items-center justify-center"
                     aria-label="Close"
                 >
                     ✕

@@ -19,9 +19,10 @@ import { AiOutlineMail } from "react-icons/ai";
 interface SignUpDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    openLoginModal: () => void;
 }
 
-export function SignUpModal({ open, onOpenChange }: SignUpDialogProps) {
+export function SignUpModal({ open, onOpenChange, openLoginModal }: SignUpDialogProps) {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [phoneNumber, setPhoneNumber] = useState("");
@@ -153,7 +154,7 @@ export function SignUpModal({ open, onOpenChange }: SignUpDialogProps) {
                 </AlertDialogAction>
                 <p className="text-sm text-center text-black dark:text-white font-boogaloo">
                     Already have an account?{' '}
-                    <a href="/login" className="underline text-[#C026D3]">Login</a>
+                    <span className="underline text-[#C026D3] cursor-pointer" onClick={openLoginModal}>Login</span>
                 </p>
                 {/* </AlertDialogFooter> */}
             </AlertDialogContent>

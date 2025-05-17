@@ -83,7 +83,7 @@ const Navbar: React.FC = () => {
         <img
           src={profileImg}
           alt="profile image"
-          className="cursor-default"
+          className="cursor-default mr-2"
           onClick={() => setIsProfileModalOpen(true)}
         />
 

@@ -77,10 +77,10 @@ export default function Categories() {
           <ul className="flex flex-col gap-1">
             <li>
               <button
-                className={`w-full flex items-center gap-2 px-4 py-2 text-2xl rounded-lg font-bold transition
+                className={`w-full flex items-center gap-2 px-4 py-2 text-2xl rounded-lg font-bold tracking-widest transition
                   ${!selectedCategory && !selectedSecondary
-                    ? 'bg-[#D946EF] text-white shadow'
-                    : 'bg-transparent text-[#64748A] hover:bg-[#F3E8FF] hover:text-[#D946EF]'}
+                    ? 'bg-[#D946EF] text-white dark:text-white tracking-wider'
+                    : 'bg-transparent text-[#121C2D] hover:bg-[#F3E8FF] hover:text-[#D946EF] dark:text-white tracking-wider'}
                 `}
                 onClick={() => { setSelectedCategory(null); setSelectedSecondary(null); }}
               >
@@ -92,8 +92,8 @@ export default function Categories() {
                 <button
                   className={`w-full text-left text-2xl px-4 py-2 rounded-lg font-semibold transition
                     ${selectedCategory === cat
-                      ? 'bg-[#D946EF] text-white shadow'
-                      : 'text-[#64748A] hover:bg-[#F3E8FF] hover:text-[#D946EF]'}
+                      ? 'bg-[#D946EF] text-white shadow dark:text-white tracking-wider'
+                      : 'text-[#121C2D] hover:bg-[#F3E8FF] hover:text-[#D946EF] dark:text-white tracking-wider'}
                   `}
                   onClick={() => { setSelectedCategory(cat); setSelectedSecondary(null); }}
                 >
@@ -105,11 +105,11 @@ export default function Categories() {
         </nav>
         <div className="border-t border-[#E5E7EB] my-4" />
         <nav>
-          <ul className="flex flex-col gap-1">
+          <ul className="flex flex-col gap-1 tracking-widest">
             {secondary.map(sec => (
               <li key={sec}>
                 <button
-                  className={`w-full text-left text-2xl px-4 py-2 rounded-lg font-semibold text-[#64748A] hover:bg-[#F3E8FF] hover:text-[#D946EF] transition ${selectedSecondary === sec ? 'bg-[#D946EF] text-white' : ''}`}
+                  className={`w-full text-left text-2xl px-4 py-2 rounded-lg font-semibold text-[#121C2D] hover:bg-[#F3E8FF] hover:text-[#D946EF] dark:text-white tracking-wider transition ${selectedSecondary === sec ? 'bg-[#D946EF] text-white' : ''}`}
                   onClick={() => { setSelectedSecondary(sec); setSelectedCategory(null); }}
                 >
                   {sec}

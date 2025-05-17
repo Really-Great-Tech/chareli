@@ -8,7 +8,7 @@ import {
 //   CardDescription,
   CardHeader,
 //   CardTitle,
-} from "./card"
+} from "../ui/card"
 // import {
 //   type ChartConfig,
 //   ChartContainer,
@@ -24,7 +24,7 @@ const totalClicks = chartData.reduce((sum, entry) => sum + entry.value, 0)
 
 export default function Component() {
   return (
-    <Card className="flex flex-col shadow-none border border-none bg-[#F8FAFC]">
+    <Card className="flex flex-col shadow-none border border-none bg-[#F8FAFC] dark:bg-[#0F1221]">
       <CardHeader className="items-center pb-0">
       </CardHeader>
       <CardContent className="flex-1 pb-0 flex flex-col items-center">
@@ -47,7 +47,7 @@ export default function Component() {
             formatter={(value: number, name: string) => [`${value}`, name]}
           />
         </PieChart>
-        <div className="text-center font-bold text-4xl mt-2" style={{ color: "#5B6B7A" }}>
+        <div className="text-center font-bold text-2xl mt-2 dark:text-white text-[#5B6B7A] tracking-wider">
           Total Clicks = {totalClicks}
         </div>
         <div className="flex justify-center gap-8 mt-4">
@@ -59,7 +59,11 @@ export default function Component() {
               background: "#F3C7FA",
               borderRadius: 4,
             }} />
-            <span style={{ color: "#5B6B7A", fontSize: 18 }}>Didn&apos;t register = 30</span>
+            {/* <span style={{ color: "#5B6B7A dark:text-white", fontSize: 18 }}>Didn&apos;t register = 30</span> */}
+            <span className="text-[#5B6B7A] dark:text-white text-[18px]">
+              Didn&apos;t register = 30
+            </span>
+
           </div>
           <div className="flex items-center gap-2">
             <span style={{
@@ -69,7 +73,10 @@ export default function Component() {
               background: "#D24CFB",
               borderRadius: 4,
             }} />
-            <span style={{ color: "#5B6B7A", fontSize: 18 }}>Verified users = 104</span>
+            {/* <span style={{ color: "#5B6B7A", fontSize: 18 }}>Verified users = 104</span> */}
+            <span className="text-[#5B6B7A] dark:text-white text-[18px]">
+              Didn&apos;t register = 104
+            </span>
           </div>
         </div>
       </CardContent>

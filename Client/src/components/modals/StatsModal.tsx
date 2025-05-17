@@ -47,8 +47,6 @@ interface StatsModalProps {
               <div className="bg-[#E879F9] rounded-full p-3 mb-2">
               <LuGamepad2 className='w-10 h-10 text-white dark:text-[#OF1621]' />
               </div>
-              <div>
-              </div>
               <div className="flex flex-col ml-6">
               <span className="dark:text-white text-[#0F1621] font-bold text-lg tracking-widest mb-2">Total Plays</span>
               <div className=''>

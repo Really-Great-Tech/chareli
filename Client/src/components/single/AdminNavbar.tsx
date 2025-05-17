@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { IoMdSettings } from "react-icons/io";
 import { IoIosSearch } from "react-icons/io";
+// import { CommandInput } from '../ui/command';
 
 
 
@@ -16,8 +17,11 @@ const Navbar: React.FC = () => {
     return savedMode ? JSON.parse(savedMode) : false;
   });
 
-  const navigate = useNavigate();
+  const [showSearch, setShowSearch] = useState(false);
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
+  const [searchValue, setSearchValue] = useState("");
 
+  const navigate = useNavigate();
 
   useEffect(() => {
     localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
@@ -27,6 +31,21 @@ const Navbar: React.FC = () => {
       document.documentElement.classList.remove('dark');
     }
   }, [isDarkMode]);
+
+  useEffect(() => {
+    if (!showSearch) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setShowSearch(false);
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showSearch]);
+
+  useEffect(() => {
+    if (showSearch && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [showSearch]);
 
   const toggleDarkMode = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -42,16 +61,48 @@ const Navbar: React.FC = () => {
         CHARELI
       </div>
 
-    {/* right side */}
+      {/* right side */}
       <div className='flex gap-4 items-center'>
         <div className="font-extrabold text-[#D946EF] dark:text-[#E879F9] flex items-center gap-4">
-            <IoIosSearch className='w-6 h-6' />
-            <IoMdSettings className='w-6 h-6' />
+          {!showSearch ? (
+            <button
+              aria-label="Open search"
+              onClick={() => setShowSearch(true)}
+              className="focus:outline-none"
+            >
+              <IoIosSearch className='w-6 h-6' />
+            </button>
+          ) : (
+            <div className="relative">
+              <input
+                ref={searchInputRef}
+                value={searchValue}
+                onChange={e => setSearchValue(e.target.value)}
+                placeholder="Search..."
+                className="w-60 px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#D946EF] transition placeholder:text-gray-400 text-normal tracking-wider text-gray-400"
+                onBlur={() => {
+                  if (searchValue === "") setShowSearch(false);
+                }}
+                autoFocus
+              />
+              {searchValue && (
+                <button
+                  type="button"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  onClick={() => setSearchValue("")}
+                  tabIndex={-1}
+                >
+                  &#10005;
+                </button>
+              )}
+            </div>
+          )}
+          <IoMdSettings className='w-6 h-6' />
         </div>
-      <div className="space-x-4 flex items-center">
-        <img
-          onClick={toggleDarkMode}
-          src={isDarkMode ? moon : sun}
+        <div className="space-x-4 flex items-center">
+          <img
+            onClick={toggleDarkMode}
+            src={isDarkMode ? moon : sun}
           alt={isDarkMode ? 'light mode' : 'dark mode'}
           className="w-6 h-6 cursor"
           />

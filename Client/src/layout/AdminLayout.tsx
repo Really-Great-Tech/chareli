@@ -23,7 +23,7 @@ const menuItems = [
   {
     title: "Game Management",
     icon: <IoGameControllerOutline size={20} />,
-    path: "/admin/games",
+    path: "/admin/game-management",
   },
   {
     title: "Game Category",
@@ -32,7 +32,7 @@ const menuItems = [
   },
   { title: "User Management", 
     icon: <FaRegUser size={20} />, 
-    path: "/admin/users" 
+    path: "/admin/management" 
 },
   {
     title: "Analytics",
@@ -66,12 +66,12 @@ const AdminLayout: React.FC = () => {
                           `flex items-center p-2 rounded-lg transition-colors ${
                             isActive
                               ? "bg-[#D946EF] text-white"
-                              : "text-gray-400 hover:text-[#D946EF] hover:bg-[#F3E8FF] dark:text-gray-400 dark:hover:text-[#D946EF]"
+                              : "hover:text-[#D946EF] hover:bg-[#F3E8FF] dark:text-white dark:hover:text-[#D946EF] text-[#121C2D]"
                           }`
                         }
                       >
                         <span className="mr-3">{item.icon}</span>
-                        <span className="text-2xl">{item.title}</span>
+                        <span className="text-xl">{item.title}</span>
                       </NavLink>
                     </li>
                   ))}

@@ -17,7 +17,7 @@ const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <div className='font-boogaloo'>
+        <div className='font-pong'>
           <AppRoutes />
         </div>
       </BrowserRouter>

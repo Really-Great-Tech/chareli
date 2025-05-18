@@ -1,7 +1,10 @@
 import { useState } from "react";
+import { useCreateUser } from "../../backend/user.service";
+import { toast } from "sonner";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import type { FormikHelpers, FieldProps } from "formik";
 import * as Yup from "yup";
+import { passwordSchema, confirmPasswordSchema } from "../../validation/password";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import "../../styles/phone-input.css";
@@ -28,13 +31,9 @@ const validationSchema = Yup.object({
     .email("Invalid email address")
     .required("Email is required"),
   phoneNumber: Yup.string().required("Phone number is required"),
-  password: Yup.string()
-    .min(6, "Password must be at least 6 characters")
-    .required("Password is required"),
-  confirmPassword: Yup.string()
-    .oneOf([Yup.ref("password")], "Passwords must match")
-    .required("Confirm password is required"),
-  ageConfirm: Yup.boolean().oneOf([true], "You must confirm you are 18+"),
+  password: passwordSchema,
+  confirmPassword: confirmPasswordSchema,
+  ageConfirm: Yup.boolean().default(false),
   terms: Yup.boolean().oneOf([true], "You must accept the terms of use"),
 });
 
@@ -71,9 +70,31 @@ export function SignUpModal({
   const toggleConfirmPasswordVisibility = () =>
     setShowConfirmPassword(!showConfirmPassword);
 
-  const handleSignUp = (values: typeof initialValues, actions: FormikHelpers<typeof initialValues>) => {
-    console.log("Sign Up form values:", values);
-    actions.setSubmitting(false);
+  const createUser = useCreateUser();
+
+  const handleSignUp = async (values: typeof initialValues, actions: FormikHelpers<typeof initialValues>) => {
+    try {
+      const response = await createUser.mutateAsync({
+        firstName: values.firstName,
+        lastName: values.lastName,
+        email: values.email,
+        password: values.password,
+        phoneNumber: values.phoneNumber,
+        isAdult: values.ageConfirm,
+        hasAcceptedTerms: values.terms
+      });
+
+      // Close signup modal
+      onOpenChange(false);
+
+      toast.success("Account created successfully! Please login to continue.");
+      openLoginModal();
+
+    } catch (error: any) {
+      actions.setStatus({ error: "Failed to create account" });
+    } finally {
+      actions.setSubmitting(false);
+    }
   };
 
   return (
@@ -362,7 +383,7 @@ export function SignUpModal({
                     disabled={isSubmitting}
                     className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-boogaloo"
                   >
-                    Sign Up
+                    {isSubmitting ? "Creating Account..." : "Sign Up"}
                   </Button>
                 </Form>
               )}

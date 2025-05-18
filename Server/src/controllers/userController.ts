@@ -263,10 +263,10 @@ export const createUser = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { firstName, lastName, email, password, phoneNumber } = req.body;
+    const { firstName, lastName, email, password, phoneNumber, isAdult, hasAcceptedTerms } = req.body;
 
-    // Validate required fields
-    if (!firstName || !lastName || !email || !password ) {
+    // Validate required fields including terms acceptance
+    if (!firstName || !lastName || !email || !password || !hasAcceptedTerms) {
       return next(ApiError.badRequest('All fields are required'));
     }
 
@@ -276,7 +276,7 @@ export const createUser = async (
     });
 
     if (existingUser) {
-      return next(ApiError.badRequest('User with this email already exists'));
+      return next(ApiError.badRequest('An account with this email already exists'));
     }
 
     // Get the role
@@ -301,7 +301,9 @@ export const createUser = async (
       role,
       roleId: role.id,
       isVerified: false,
-      isActive: true
+      isActive: true,
+      isAdult: isAdult || false,
+      hasAcceptedTerms
     });
 
     await userRepository.save(user);

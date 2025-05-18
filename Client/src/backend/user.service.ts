@@ -56,8 +56,15 @@ export const useUpdateUserData = () => {
 export const useCreateUser = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: Omit<User, 'id' | 'createdAt' | 'updatedAt'>) => 
-      backendService.post(BackendRoute.USER, data),
+    mutationFn: (data: {
+      firstName: string;
+      lastName: string;
+      email: string;
+      password: string;
+      phoneNumber?: string;
+      isAdult: boolean;
+      hasAcceptedTerms: boolean;
+    }) => backendService.post(BackendRoute.USER, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [BackendRoute.USER] });
     },

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
+import { passwordSchema, confirmPasswordSchema } from "../../validation/password";
 import { useResetPassword } from "../../backend/auth.service";
 import { backendService } from "../../backend/api.service";
 import { BackendRoute } from "../../backend/constants";
@@ -13,16 +14,8 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { LoginModal } from "../../components/modals/LoginModal";
 
 const validationSchema = Yup.object({
-  password: Yup.string()
-    .min(8, "Password must be at least 8 characters")
-    .matches(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .matches(/[a-z]/, "Password must contain at least one lowercase letter")
-    .matches(/[0-9]/, "Password must contain at least one number")
-    .matches(/[^A-Za-z0-9]/, "Password must contain at least one special character")
-    .required("Password is required"),
-  confirmPassword: Yup.string()
-    .oneOf([Yup.ref("password")], "Passwords must match")
-    .required("Confirm password is required"),
+  password: passwordSchema,
+  confirmPassword: confirmPasswordSchema,
 });
 
 const initialValues = {

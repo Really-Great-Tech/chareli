@@ -1,30 +1,85 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
-  // SheetDescription,
   SheetClose,
 } from "../ui/sheet";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { XIcon } from "lucide-react";
+import { Button } from "../ui/button";
+import { useCategoryById, useUpdateCategory, useDeleteCategory } from "../../backend/category.service";
+import { toast } from "sonner";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
+import { DeleteConfirmationModal } from "../modals/DeleteConfirmationModal";
+import { useQueryClient } from "@tanstack/react-query";
+import { BackendRoute } from "../../backend/constants";
 
 interface EditCategoryProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  categoryId: string;
 }
 
-export function EditCategory({ open, onOpenChange }: EditCategoryProps) {
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+interface FormValues {
+  name: string;
+  description?: string;
+}
 
-  const handleEdit = () => {
-    // Handle create logic here
-    console.log("Creating category:", { name, description });
-    onOpenChange(false);
+const validationSchema = Yup.object({
+  name: Yup.string().required('Name is required'),
+  description: Yup.string(),
+});
+
+export function EditCategory({ open, onOpenChange, categoryId }: EditCategoryProps) {
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const { data: category, error } = useCategoryById(categoryId);
+  const updateCategory = useUpdateCategory();
+  const deleteCategory = useDeleteCategory();
+  const queryClient = useQueryClient();
+
+  // Close sheet if category is not found
+  useEffect(() => {
+    const axiosError = error as { response?: { status: number } };
+    if (axiosError?.response?.status === 404) {
+      onOpenChange(false);
+    }
+  }, [error, onOpenChange]);
+
+  const handleSubmit = async (values: FormValues, { setSubmitting }: any) => {
+    try {
+      await updateCategory.mutateAsync({ 
+        id: categoryId, 
+        data: values 
+      });
+      toast.success("Category updated successfully!");
+      onOpenChange(false);
+    } catch (error) {
+      toast.error("Failed to update category");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      await deleteCategory.mutateAsync(categoryId);
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.CATEGORIES] });
+      toast.success("Category deleted successfully");
+      setShowDeleteModal(false);
+      onOpenChange(false);
+    } catch (error: any) {
+      toast.error("Failed to delete category");
+    }
+  };
+
+  if (!category) return null;
+
+  const initialValues: FormValues = {
+    name: category.name,
+    description: category.description || '',
   };
 
   return (
@@ -34,99 +89,86 @@ export function EditCategory({ open, onOpenChange }: EditCategoryProps) {
         className="sm:max-w-md w-[90vw] bg-white dark:bg-[#18192b] border-l border-gray-200 dark:border-gray-800"
       >
         <SheetHeader className="pb-4 mt-8 font-boogaloo">
-          <SheetTitle className="text-xl font-bold border-b">Create New Category</SheetTitle>
+          <SheetTitle className="text-xl font-bold border-b">Edit Category</SheetTitle>
         </SheetHeader>
         
-        <div className="flex flex-col gap-6 mt-2 font-boogaloo px-3">
-          <div>
-            <Label htmlFor="category-name" className="text-base mb-1">
-              Category Name
-            </Label>
-            <Input
-              id="category-name"
-              placeholder="Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="bg-[#F5F6FA] mt-1 text-sm font-pincuk dark:bg-[#121C2D] dark:text-white py-6"
-            />
-          </div>
-          
-          <div>
-            <Label htmlFor="category-description" className="text-base mb-1 mt-4 ">
-              Game Description
-            </Label>
-            <textarea
-              id="category-description"
-              placeholder="Description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="bg-[#F5F6FA] mt-1 text-sm rounded-md border border-input w-full min-h-[100px] p-3 resize-none font-pincuk dark:bg-[#121C2D] dark:text-white"
-            />
-          </div>
-        </div>
-        
-        <div className="flex justify-between mt-8 px-3 font-boogaloo items-center">
-          <div>
-          <button
-            className="px-3 py-2 rounded-md bg-[#EF4444] text-white transition"
-            onClick={() => setShowDeleteModal(true)}
-            type="button"
-          >
-            Delete
-          </button>
-          </div>
-         <div className="flex gap-3 items-center">
-         <SheetClose asChild>
-            <button
-              className="px-3 py-2 rounded-md border border-gray-300 dark:bg-white text-black hover:bg-gray-100 transition bg-[#F1F5F9]"
-              type="button"
-            >
-              Cancel
-            </button>
-          </SheetClose>
-          
-          <button
-            className="px-3 py-2 rounded-md bg-[#D946EF] text-white transition"
-            onClick={handleEdit}
-            type="button"
-          >
-            Create
-          </button>
-         </div>
-        </div>
+        <Formik
+          initialValues={initialValues}
+          validationSchema={validationSchema}
+          onSubmit={handleSubmit}
+        >
+          {({ isSubmitting }) => (
+            <Form className="flex flex-col gap-6 mt-2 font-boogaloo px-3">
+              <div>
+                <Label htmlFor="name" className="text-base mb-1">
+                  Category Name
+                </Label>
+                <Field
+                  as={Input}
+                  id="name"
+                  name="name"
+                  placeholder="Name"
+                  className="bg-[#F5F6FA] mt-1 text-sm font-pincuk dark:bg-[#121C2D] dark:text-white"
+                />
+                <ErrorMessage name="name" component="div" className="text-red-500 text-xs mt-1 font-pincuk" />
+              </div>
+              
+              <div>
+                <Label htmlFor="description" className="text-base mb-1 mt-4">
+                  Game Description
+                </Label>
+                <Field
+                  as="textarea"
+                  id="description"
+                  name="description"
+                  placeholder="Description"
+                  className="bg-[#F5F6FA] mt-1 text-sm rounded-md border border-input w-full min-h-[100px] p-3 resize-none font-pincuk dark:bg-[#121C2D] dark:text-white"
+                />
+                <ErrorMessage name="description" component="div" className="text-red-500 text-xs mt-1 font-pincuk" />
+              </div>
 
-        {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
-          <div className="dark:bg-[#232B3B] bg-white rounded-2xl p-8 relative w-[90vw] max-w-xl font-boogaloo" style={{ boxShadow: "0 2px 4px 2px #e879f9" }}>
-            <button
-              className="absolute -top-4 -right-4 rounded-full bg-[#C026D3] w-10 h-10 flex items-center justify-center text-white"
-              onClick={() => setShowDeleteModal(false)}
-            >
-              <XIcon className="w-6 h-6" />
-            </button>
-            <h2 className="text-2xl font-boogaloo dark:text-white mb-2 text-[#121C2D]">Are you sure you want to Delete Category?</h2>
-            <p className="dark:text-[#CBD5E0] mb-8 text-[#121C2D] font-pincuk">This action can be reversed</p>
-            <div className="flex gap-4 justify-end">
-              <button
-                className="dark:bg-white text-[#232B3B] px-3 py-2 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0]"
-                onClick={() => setShowDeleteModal(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="bg-[#EF4444] text-white px-3 py-2 rounded-lg tracking-wider"
-                // Add your disable/enable logic here
-                onClick={() => {
-                  // handleDisable();
-                  setShowDeleteModal(false);
-                }}
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+              <div className="flex justify-between mt-8 items-center">
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={() => setShowDeleteModal(true)}
+                  className="dark:bg-[#EF4444]"
+                >
+                  Delete
+                </Button>
+                <div className="flex gap-3">
+                  <SheetClose asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="dark:text-black dark:bg-white"
+                    >
+                      Cancel
+                    </Button>
+                  </SheetClose>
+                  
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    variant="default"
+                    className="bg-[#D946EF] hover:bg-accent dark:text-white"
+                  >
+                    {isSubmitting ? "Updating..." : "Update"}
+                  </Button>
+                </div>
+              </div>
+            </Form>
+          )}
+        </Formik>
+
+        <DeleteConfirmationModal
+          open={showDeleteModal}
+          onOpenChange={setShowDeleteModal}
+          onConfirm={handleDelete}
+          isDeleting={deleteCategory.isPending}
+          title="Are you sure you want to Delete Category?"
+          description="This action cannot be reversed"
+        />
       </SheetContent>
     </Sheet>
   );

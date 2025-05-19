@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { AppDataSource } from '../config/database';
 import { User } from '../entities/User';
 import { Role, RoleType } from '../entities/Role';
+import { Analytics } from '../entities/Analytics';
 import { ApiError } from '../middlewares/errorHandler';
 import * as bcrypt from 'bcrypt';
 import { authService } from '../services/auth.service';
@@ -9,6 +10,7 @@ import { OtpType } from '../entities/Otp';
 
 const userRepository = AppDataSource.getRepository(User);
 const roleRepository = AppDataSource.getRepository(Role);
+const analyticsRepository = AppDataSource.getRepository(Analytics);
 
 /**
  * @swagger
@@ -59,6 +61,91 @@ export const getAllUsers = async (
       success: true,
       count: users.length,
       data: users,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @swagger
+ * /users/me/stats:
+ *   get:
+ *     summary: Get current user's game statistics
+ *     description: Retrieve game play statistics for the currently logged in user.
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User stats retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+export const getCurrentUserStats = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    // Get user ID from authenticated user
+    if (!req.user || !req.user.userId) {
+      return next(ApiError.unauthorized('User not authenticated'));
+    }
+    
+    const userId = req.user.userId;
+
+    // Get total minutes played
+    const totalTimeResult = await analyticsRepository
+      .createQueryBuilder('analytics')
+      .select('SUM(analytics.duration)', 'totalDuration')
+      .where('analytics.userId = :userId', { userId })
+      .getRawOne();
+
+    // Get total play count
+    const totalPlaysResult = await analyticsRepository
+      .count({
+        where: { userId }
+      });
+
+    // Get games played with details
+    const gamesPlayed = await analyticsRepository
+      .createQueryBuilder('analytics')
+      .select('analytics.gameId', 'gameId')
+      .addSelect('game.title', 'title')
+      .addSelect('thumbnailFile.s3Url', 'thumbnailUrl')
+      .addSelect('SUM(analytics.duration)', 'totalDuration')
+      .addSelect('MAX(analytics.startTime)', 'lastPlayed')
+      .leftJoin('analytics.game', 'game')
+      .leftJoin('game.thumbnailFile', 'thumbnailFile')
+      .where('analytics.userId = :userId', { userId })
+      .groupBy('analytics.gameId')
+      .addGroupBy('game.title')
+      .addGroupBy('thumbnailFile.s3Url')
+      .orderBy('lastPlayed', 'DESC')
+      .getRawMany();
+
+    // Format the response
+    const formattedGames = gamesPlayed.map(game => ({
+      gameId: game.gameId,
+      title: game.title,
+      thumbnailUrl: game.thumbnailUrl,
+      totalMinutes: Math.round((game.totalDuration || 0) / 60), // Convert seconds to minutes
+      lastPlayed: game.lastPlayed
+    }));
+
+    // Calculate total minutes (convert from seconds)
+    const totalMinutes = Math.round((totalTimeResult?.totalDuration || 0) / 60);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        totalMinutes,
+        totalPlays: totalPlaysResult,
+        gamesPlayed: formattedGames
+      }
     });
   } catch (error) {
     next(error);
@@ -140,10 +227,7 @@ export const getUserById = async (
  * /users:
  *   post:
  *     summary: Create a new user
- *     description: Create a new user in the system. Only accessible by admins.
  *     tags: [Users]
- *     security:
- *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -155,14 +239,12 @@ export const getUserById = async (
  *               - lastName
  *               - email
  *               - password
- *               - roleId
  *           example:
  *             firstName: "Alex"
  *             lastName: "Johnson"
  *             email: "alex.johnson@example.com"
  *             password: "SecurePass789!"
  *             phoneNumber: "+1555123456"
- *             roleId: "aa628a45-4c53-4500-a66a-e4c0851c2e00"
  *     responses:
  *       201:
  *         description: User created successfully
@@ -181,10 +263,10 @@ export const createUser = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { firstName, lastName, email, password, roleId, phoneNumber } = req.body;
+    const { firstName, lastName, email, password, phoneNumber, isAdult, hasAcceptedTerms } = req.body;
 
-    // Validate required fields
-    if (!firstName || !lastName || !email || !password || !roleId) {
+    // Validate required fields including terms acceptance
+    if (!firstName || !lastName || !email || !password || !hasAcceptedTerms) {
       return next(ApiError.badRequest('All fields are required'));
     }
 
@@ -194,27 +276,18 @@ export const createUser = async (
     });
 
     if (existingUser) {
-      return next(ApiError.badRequest('User with this email already exists'));
+      return next(ApiError.badRequest('An account with this email already exists'));
     }
 
     // Get the role
     const role = await roleRepository.findOne({
-      where: { id: roleId }
+      where: { name: RoleType.PLAYER }
     });
 
     if (!role) {
       return next(ApiError.badRequest('Invalid role'));
     }
 
-    // Check if the current user has permission to create a user with this role
-    if (
-      req.user?.role === RoleType.ADMIN &&
-      (role.name === RoleType.SUPERADMIN || role.name === RoleType.ADMIN)
-    ) {
-      return next(ApiError.forbidden('Admin can only create editor and player roles'));
-    }
-
-    // Hash the password
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
@@ -226,12 +299,20 @@ export const createUser = async (
       password: hashedPassword,
       phoneNumber,
       role,
-      roleId,
+      roleId: role.id,
       isVerified: false,
-      isActive: true
+      isActive: true,
+      isAdult: isAdult || false,
+      hasAcceptedTerms
     });
 
     await userRepository.save(user);
+
+    // Create analytics entry for signup
+    const signupAnalytics = new Analytics();
+    signupAnalytics.userId = user.id;
+    signupAnalytics.activityType = 'Signed up';
+    await analyticsRepository.save(signupAnalytics);
 
     // Don't return sensitive information
     const { password: _, ...userWithoutSensitiveInfo } = user;

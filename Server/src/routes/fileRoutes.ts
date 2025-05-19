@@ -4,7 +4,9 @@ import {
   getFileById,
   createFile,
   updateFile,
-  deleteFile
+  deleteFile,
+  uploadFile,
+  uploadFileForUpdate
 } from '../controllers/fileController';
 import { validateBody, validateParams, validateQuery } from '../middlewares/validationMiddleware';
 import { apiLimiter } from '../middlewares/rateLimitMiddleware';
@@ -23,8 +25,8 @@ router.use(apiLimiter);
 // File routes - not protected by authentication
 router.get('/', validateQuery(fileQuerySchema), getAllFiles);
 router.get('/:id', validateParams(fileIdParamSchema), getFileById);
-router.post('/', validateBody(createFileSchema), createFile);
-router.put('/:id', validateParams(fileIdParamSchema), validateBody(updateFileSchema), updateFile);
+router.post('/', uploadFile, createFile);
+router.put('/:id', validateParams(fileIdParamSchema), uploadFileForUpdate, updateFile);
 router.delete('/:id', validateParams(fileIdParamSchema), deleteFile);
 
 export default router;

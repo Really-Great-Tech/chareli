@@ -5,17 +5,20 @@ import {
   login,
   verifyOtp,
   refreshToken,
+  forgotPassword,
+  verifyResetToken,
+  resetPassword,
+  requestOtp
+} from '../controllers/authController';
+import {
   inviteUser,
   getCurrentUser,
   getAllInvitations,
   deleteInvitation,
-  forgotPassword,
-  verifyResetToken,
-  resetPassword,
-  requestOtp,
   verifyInvitationToken,
-  resetPasswordFromInvitation
-} from '../controllers/authController';
+  resetPasswordFromInvitation,
+  revokeRole
+} from '../controllers/userManagementController';
 import { authenticate, isAdmin } from '../middlewares/authMiddleware';
 import { validateBody, validateParams } from '../middlewares/validationMiddleware';
 import { authLimiter, createUserLimiter } from '../middlewares/rateLimitMiddleware';
@@ -80,6 +83,13 @@ router.delete(
   isAdmin,
   validateParams(yup.object({ id: yup.string().uuid('Invalid invitation ID').required('Invitation ID is required') })),
   deleteInvitation
+);
+router.put(
+  '/revoke-role/:id',
+  authenticate,
+  isAdmin,
+  validateParams(yup.object({ id: yup.string().uuid('Invalid user ID').required('User ID is required') })),
+  revokeRole
 );
 
 export default router;

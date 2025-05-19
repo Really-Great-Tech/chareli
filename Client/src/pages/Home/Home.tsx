@@ -3,6 +3,7 @@ import AllGamesSection from '../../components/single/AllGamesSection'
 import PopularSection from '../../components/single/PopularSection'
 import { WelcomeModal } from '../../components/modals/WelcomeModal';
 
+
 function Home() {
   const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState(true);
 

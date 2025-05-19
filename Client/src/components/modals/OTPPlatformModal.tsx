@@ -1,6 +1,5 @@
 import {
     AlertDialog,
-    // AlertDialogAction,
     AlertDialogContent,
     AlertDialogDescription,
     AlertDialogHeader,
@@ -11,20 +10,40 @@ import { Label } from "../../components/ui/label";
 import { OTPVerificationModal } from "./OTPVerificationModal";
 import { Button } from "../ui/button";
 import { useState } from "react";
+import { useRequestOtp } from "../../backend/auth.service";
+import { toast } from "sonner";
 
 interface OTPPlatformDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    userId: string;
+    email?: string;
+    phone?: string;
 }
 
-export function OTPPlatformModal({ open, onOpenChange }: OTPPlatformDialogProps) {
-    const [isOTPVerificationOpen, setIsOTPVereficationOpen] = useState(false);
+export function OTPPlatformModal({ 
+    open, 
+    onOpenChange, 
+    userId, 
+    email = "your email", 
+    phone = "your phone" 
+}: OTPPlatformDialogProps) {
+    const [isOTPVerificationOpen, setIsOTPVerificationOpen] = useState(false);
+    const [selectedOtpType, setSelectedOtpType] = useState<'EMAIL' | 'SMS'>('EMAIL');
+    const [error, setError] = useState('');
+    const requestOtp = useRequestOtp();
 
-    const handleSendOTP = () => {
-        // Logic to send OTP
-        console.log("OTP sent");
-        setIsOTPVereficationOpen(true);
-        onOpenChange(false);
+    const handleSendOTP = async () => {
+        try {
+            setError('');
+            await requestOtp.mutateAsync({ userId, otpType: selectedOtpType });
+            setIsOTPVerificationOpen(true);
+            onOpenChange(false);
+        } catch (error) {
+            console.error("Error requesting OTP:", error);
+            setError('Failed to send OTP. Please try again.');
+            toast.error('Failed to send OTP. Please try again.');
+        }
     }
 
     return (
@@ -39,10 +58,19 @@ export function OTPPlatformModal({ open, onOpenChange }: OTPPlatformDialogProps)
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <div className="space-y-4 mt-6">
-                    <RadioGroup defaultValue="email" className="space-y-3">
+                    {error && (
+                        <div className="text-red-500 text-xs font-pincuk text-center mb-4">
+                            {error}
+                        </div>
+                    )}
+                    <RadioGroup 
+                        defaultValue="EMAIL" 
+                        className="space-y-3"
+                        onValueChange={(value) => setSelectedOtpType(value as 'EMAIL' | 'SMS')}
+                    >
                         <div className="flex items-center justify-center space-x-3 border-[#E328AF] border-1 rounded p-2">
                             <RadioGroupItem
-                                value="email"
+                                value="EMAIL"
                                 id="email"
                                 className="text-[#E328AF] border-2 border-[#E328AF] h-5 w-5 focus:ring-[#E328AF] checked:bg-[#E328AF]"
                             />
@@ -50,12 +78,12 @@ export function OTPPlatformModal({ open, onOpenChange }: OTPPlatformDialogProps)
                                 htmlFor="email"
                                 className="font-pong text-base dark:text-white text-black text-center"
                             >
-                                Claire***@gmail.com
+                                {email}
                             </Label>
                         </div>
                         <div className="flex items-center justify-center space-x-3 border-[#E328AF] border-1 rounded p-2">
                             <RadioGroupItem
-                                value="phone"
+                                value="SMS"
                                 id="phone"
                                 className="text-[#E328AF] border-2 border-[#E328AF] h-5 w-5 focus:ring-[#E328AF] checked:bg-[#E328AF]"
                             />
@@ -63,7 +91,7 @@ export function OTPPlatformModal({ open, onOpenChange }: OTPPlatformDialogProps)
                                 htmlFor="phone"
                                 className="font-pong text-base dark:text-white text-black text-center"
                             >
-                                +479008****98
+                                {phone}
                             </Label>
                         </div>
                     </RadioGroup>
@@ -74,7 +102,17 @@ export function OTPPlatformModal({ open, onOpenChange }: OTPPlatformDialogProps)
                 </Button>
 
             </AlertDialogContent>
-            <OTPVerificationModal open={isOTPVerificationOpen} onOpenChange={setIsOTPVereficationOpen} />
+            <OTPVerificationModal 
+                open={isOTPVerificationOpen} 
+                onOpenChange={setIsOTPVerificationOpen} 
+                userId={userId}
+                contactMethod={selectedOtpType === 'EMAIL' ? email : phone}
+                otpType={selectedOtpType}
+                onVerificationSuccess={() => {
+                    // Close the OTPPlatformModal when verification is successful
+                    onOpenChange(false);
+                }}
+            />
         </AlertDialog>
     );
 }

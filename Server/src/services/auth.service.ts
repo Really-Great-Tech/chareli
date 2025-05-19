@@ -145,12 +145,8 @@ export class AuthService {
     return user;
   }
 
-  /**
-   * Login a user with email and password
-   * Returns the user if credentials are valid
-   */
+  
   async login(email: string, password: string): Promise<User> {
-    // Find the user with password included
     const user = await userRepository.findOne({
       where: { email },
       select: ['id', 'email', 'password', 'firstName', 'lastName', 'phoneNumber', 'isActive', 'isVerified', 'roleId'],
@@ -161,22 +157,24 @@ export class AuthService {
       throw new Error('Invalid email or password');
     }
 
-    if (!user.isActive) {
-      throw new Error('Your account has been deactivated');
-    }
-
-    // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       throw new Error('Invalid email or password');
     }
 
+    // If user was inactive due to inactivity, reactivate them
+    if (!user.isActive) {
+      user.isActive = true;
+      logger.info(`Reactivating previously inactive user: ${user.id} (${user.email})`);
+    }
+
+    // Update lastLoggedIn timestamp
+    user.lastLoggedIn = new Date();
+    await userRepository.save(user);
+
     return user;
   }
 
-  /**
-   * Send OTP to user via SMS, email, or both
-   */
   async sendOtp(user: User, type: OtpType = OtpType.SMS): Promise<boolean> {
     if (type === OtpType.SMS || type === OtpType.BOTH) {
       if (!user.phoneNumber) {
@@ -190,24 +188,17 @@ export class AuthService {
       }
     }
 
-    // Generate OTP
     const otp = await otpService.generateOtp(user.id, type);
-
-    // Send OTP
     return otpService.sendOtp(user.id, otp, type);
   }
 
-  /**
-   * Verify OTP and generate JWT tokens
-   */
+  
   async verifyOtp(userId: string, otp: string): Promise<AuthTokens> {
-    // Verify OTP
     const isValid = await otpService.verifyOtp(userId, otp);
     if (!isValid) {
       throw new Error('Invalid or expired OTP');
     }
 
-    // Find the user
     const user = await userRepository.findOne({
       where: { id: userId },
       relations: ['role']
@@ -223,13 +214,10 @@ export class AuthService {
       await userRepository.save(user);
     }
 
-    // Generate tokens
     return this.generateTokens(user);
   }
 
-  /**
-   * Generate JWT tokens for a user
-   */
+ 
   generateTokens(user: User): AuthTokens {
     const payload: TokenPayload = {
       userId: user.id,
@@ -250,9 +238,7 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  /**
-   * Refresh access token using refresh token
-   */
+ 
   async refreshToken(refreshToken: string): Promise<AuthTokens> {
     try {
       // Verify refresh token
@@ -275,46 +261,38 @@ export class AuthService {
     }
   }
 
-  /**
-   * Create an invitation for a new user
-   */
+
   async createInvitation(
     email: string,
     roleName: RoleType,
     invitedById: string
   ): Promise<Invitation> {
-    // Check if user already exists
     const existingUser = await userRepository.findOne({ where: { email } });
     if (existingUser) {
       throw new Error('User with this email already exists');
     }
 
-    // Check if invitation already exists
     const existingInvitation = await invitationRepository.findOne({ where: { email } });
     if (existingInvitation) {
       throw new Error('Invitation for this email already exists');
     }
 
-    // Get the role
     const role = await roleRepository.findOne({ where: { name: roleName } });
     if (!role) {
       throw new Error(`Role ${roleName} not found`);
     }
 
-    // Get the inviter
     const inviter = await userRepository.findOne({ where: { id: invitedById } });
     if (!inviter) {
       throw new Error('Inviter not found');
     }
 
-    // Generate token
     const token = uuidv4();
 
     // Calculate expiry date
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + config.otp.invitationExpiryDays);
 
-    // Create invitation
     const invitation = invitationRepository.create({
       email,
       role,
@@ -327,8 +305,9 @@ export class AuthService {
 
     await invitationRepository.save(invitation);
 
-    // Generate invitation link
-    const invitationLink = `${config.env === 'development' ? 'http://localhost:5000' : ''}/api/auth/register/${token}`;
+    // Generate invitation link - point to frontend route
+    const frontendUrl = config.env === 'development' ? 'http://localhost:5173' : '';
+    const invitationLink = `${frontendUrl}/register-invitation/${token}`;
 
     // Send invitation email
     await emailService.sendInvitationEmail(email, invitationLink, role.name);
@@ -336,10 +315,7 @@ export class AuthService {
     return invitation;
   }
 
-  /**
-   * Request a password reset
-   * Generates a reset token and sends it to the user's email
-   */
+ 
   async requestPasswordReset(email: string): Promise<boolean> {
     // Find the user
     const user = await userRepository.findOne({ where: { email } });
@@ -350,10 +326,8 @@ export class AuthService {
       return true;
     }
 
-    // Generate a random token
+  
     const resetToken = crypto.randomBytes(32).toString('hex');
-    
-    // Hash the token before storing it
     const hashedToken = crypto
       .createHash('sha256')
       .update(resetToken)
@@ -368,8 +342,9 @@ export class AuthService {
     user.resetTokenExpiry = resetTokenExpiry;
     await userRepository.save(user);
     
-    // Generate reset link
-    const resetLink = `${config.env === 'development' ? 'http://localhost:5000' : ''}/api/auth/reset-password/${resetToken}`;
+    // Generate reset link - point to frontend route instead of API endpoint
+    const frontendUrl = config.env === 'development' ? 'http://localhost:5173' : '';
+    const resetLink = `${frontendUrl}/reset-password/${resetToken}`;
     
     try {
       // Send reset email
@@ -381,9 +356,7 @@ export class AuthService {
     }
   }
 
-  /**
-   * Verify a password reset token
-   */
+  
   async verifyResetToken(token: string): Promise<User> {
     // Hash the token to compare with the stored hash
     const hashedToken = crypto
@@ -426,23 +399,18 @@ export class AuthService {
     return true;
   }
 
-  /**
-   * Initialize the superadmin account if it doesn't exist
-   */
+  
   async initializeSuperadmin(): Promise<void> {
     try {
-      // Check if superadmin role exists
       let superadminRole = await roleRepository.findOne({
         where: { name: RoleType.SUPERADMIN }
       });
 
-      // If roles don't exist yet, the migration might not have run
       if (!superadminRole) {
         logger.warn('Superadmin role not found. Skipping superadmin initialization.');
         return;
       }
 
-      // Check if superadmin user exists
       const existingSuperadmin = await userRepository.findOne({
         where: { role: { name: RoleType.SUPERADMIN } },
         relations: ['role']
@@ -453,7 +421,6 @@ export class AuthService {
         return;
       }
 
-      // Create superadmin user
       const hashedPassword = await this.hashPassword(config.superadmin.password);
 
       const superadmin = userRepository.create({
@@ -476,17 +443,13 @@ export class AuthService {
     }
   }
 
-  /**
-   * Hash a password
-   */
+ 
   private async hashPassword(password: string): Promise<string> {
     const saltRounds = 10;
     return bcrypt.hash(password, saltRounds);
   }
 
-  /**
-   * Verify a JWT token
-   */
+
   verifyToken(token: string): TokenPayload {
     try {
       return jwt.verify(token, config.jwt.secret) as TokenPayload;
@@ -496,5 +459,4 @@ export class AuthService {
   }
 }
 
-// Singleton instance
 export const authService = new AuthService();

@@ -2,6 +2,8 @@ import './App.css'
 import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import AppRoutes from './routing/routes'
+import { AuthProvider } from './context/AuthContext'
+import { Toaster } from 'sonner'
 
 // Create a client
 const queryClient = new QueryClient({
@@ -17,9 +19,12 @@ const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <div className='font-pong'>
-          <AppRoutes />
-        </div>
+        <AuthProvider>
+          <div className='font-boogaloo'>
+            <Toaster position="bottom-right" richColors />
+            <AppRoutes />
+          </div>
+        </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>
   )

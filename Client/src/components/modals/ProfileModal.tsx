@@ -1,5 +1,8 @@
-import { Card } from "../ui/card";
+import { Dialog } from "../ui/dialog";
+import { CustomDialogContent } from "../ui/custom-dialog-content";
 import profileImg from '../../assets/profileModal-Img.svg';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 import { TbLogout } from "react-icons/tb";
 
@@ -9,11 +12,18 @@ interface ProfileModalProps {
 }
 
 export function ProfileModal({ open, onClose }: ProfileModalProps) {
-    if (!open) return null;
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
+    
+    const handleLogout = () => {
+        logout();
+        onClose();
+        navigate('/');
+    };
     return (
-        <Card className="absolute inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/10">
-            <div className="relative bg-white dark:bg-[#18192b] rounded-2xl shadow-lg p-8 min-w-[350px] max-w-[90vw] w-[400px]">
-                {/* Close Button */}
+        <Dialog open={open} onOpenChange={onClose}>
+            <CustomDialogContent className="bg-white dark:bg-[#18192b] rounded-2xl shadow-lg p-8 min-w-[350px] max-w-[90vw] w-[400px] border-none">
+                {/* Custom Close Button */}
                 <button
                     className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#C026D3] flex items-center justify-center shadow-lg hover:bg-[#a21caf] transition-colors"
                     onClick={onClose}
@@ -37,29 +47,39 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
                     </div>
 
                     <div className='ml-4'>
-                    <div className="text-3xl font-extrabold font-pong dark:text-[#D946EF] text-[#0F1621] mb-1">KiIIer Bean</div>
-                    <div className="dark:text-white text-[#0F1621] font-thin text-base font-pincuk">killer1@gmail.com</div>
+                    <div className="text-3xl font-extrabold font-boogaloo dark:text-[#D946EF] text-[#0F1621] mb-1">
+                        {user ? `${user.firstName} ${user.lastName}` : 'Guest User'}
+                    </div>
+                    <div className="dark:text-white text-[#0F1621] font-thin text-base font-pincuk">
+                        {user?.email || 'Not logged in'}
+                    </div>
                     </div>
                 </div>
                 {/* Profile Details */}
                 <div className="dark:bg-[#18192b] bg-white rounded-xl p-4 mb-4 space-y-8">
                     <div className="flex justify-between py-2 border-b border-t border-[#CBD5E0] dark:border-[#475568] items-center mb-8">
-                        <span className="dark:text-[#D946EF] font-pong text-xl mt-4 mb-8">Name</span>
-                        <span className="dark:text-white font-pincuk mt-4 mb-8">John Doe</span>
+                        <span className="dark:text-[#D946EF] font-boogaloo text-xl mt-4 mb-8">Name</span>
+                        <span className="dark:text-white font-pincuk mt-4 mb-8">
+                            {user ? `${user.firstName} ${user.lastName}` : 'Guest User'}
+                        </span>
                     </div>
                     <div className="flex justify-between py-2 border-b border-[#CBD5E0] dark:border-[#475568] items-center">
-                        <span className="dark:text-[#D946EF] font-pong text-xl mb-6">Email account</span> 
-                        <span className="dark:text-white font-pincuk mb-6">killer1@gmail.com</span>
+                        <span className="dark:text-[#D946EF] font-boogaloo text-xl mb-6">Email account</span> 
+                        <span className="dark:text-white font-pincuk mb-6">
+                            {user?.email || 'Not available'}
+                        </span>
                     </div>
                     <div className="flex justify-between py-2 border-b border-[#CBD5E0] dark:border-[#475568] items-center">
-                        <span className="dark:text-[#D946EF] font-pong text-xl mb-6">Mobile number</span>
-                        <span className="dark:text-white font-pincuk mb-6">+97622244777</span>
+                        <span className="dark:text-[#D946EF] font-boogaloo text-xl mb-6">Mobile number</span>
+                        <span className="dark:text-white font-pincuk mb-6">
+                            {user?.phoneNumber || 'Not available'}
+                        </span>
                     </div>
                 </div>
                 <div className="flex justify-end">
                   <button
                       className="w-24 mt-2 py-2 rounded-lg bg-[#EF4444] hover:bg-[#dc2626] text-white tracking-wider text-lg transition-colors"
-                      onClick={onClose}
+                      onClick={handleLogout}
                   >
                     <div className='flex gap-2 items-center px-2'>
                         Logout
@@ -67,8 +87,7 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
                     </div>
                   </button>
                 </div>
-                </div>
-        </Card>
+            </CustomDialogContent>
+        </Dialog>
     );
 }
-  

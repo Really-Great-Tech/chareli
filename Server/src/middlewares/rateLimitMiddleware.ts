@@ -8,7 +8,7 @@ import { ApiError } from './errorHandler';
  */
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 requests per IP per 15 minutes
+  max: 50, // 5 requests per IP per 15 minutes
   standardHeaders: true,
   legacyHeaders: false,
   handler: (_req: Request, _res: Response) => {

@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { Button } from '../ui/button';
 
 import { IoMdSettings } from "react-icons/io";
 import { IoIosSearch } from "react-icons/io";
 // import { CommandInput } from '../ui/command';
+import { IoExitOutline } from "react-icons/io5";
 
 
 
@@ -11,7 +14,8 @@ import sun from '../../assets/sun.svg';
 import moon from '../../assets/moon.svg';
 
 
-const Navbar: React.FC = () => {
+const AdminNavbar: React.FC = () => {
+  const { logout } = useAuth();
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedMode = localStorage.getItem('darkMode');
     return savedMode ? JSON.parse(savedMode) : false;
@@ -106,10 +110,20 @@ const Navbar: React.FC = () => {
           alt={isDarkMode ? 'light mode' : 'dark mode'}
           className="w-6 h-6 cursor"
           />
+          <Button
+            onClick={() => {
+              logout();
+              navigate('/');
+            }}
+            className="bg-transparent flex items-center gap-2 text-red-500 hover:bg-red-500 hover:text-white"
+          >
+            <IoExitOutline className="w-5 h-5" />
+            Logout
+          </Button>
+        </div>
       </div>
-    </div>
     </header>
   );
 };
 
-export default Navbar;
+export default AdminNavbar;

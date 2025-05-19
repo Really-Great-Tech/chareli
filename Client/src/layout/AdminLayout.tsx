@@ -96,7 +96,7 @@ const AdminLayout: React.FC = () => {
               logout();
               navigate('/');
             }}
-            className="bg-transparent flex items-center gap-2 text-red-500 text-2xl hover:bg-red-500 hover:text-white px-4 py-2 w-full border border-[#E2E8F0] rounded-lg transition-colors duration-300"
+            className="bg-transparent flex items-center gap-2 text-red-500 text-2xl hover:bg-red-500 hover:text-white px-4 py-6 w-full border border-[#E2E8F0] rounded-lg transition-colors duration-300"
           >
             <IoExitOutline className="w-14 h-14" size={20} />
             <p className="items-center justify-center">Logout</p>

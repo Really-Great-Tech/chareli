@@ -41,7 +41,7 @@ export default function GameManagement() {
   const [showDeleteModal, setShowDeleteModal] = useState(false); // <-- add this
 
   return (
-    <div className="p-6">
+    <div className="px-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-[#D946EF] text-3xl font-boogaloo">All Games</h1>
         <div className="flex gap-3">

@@ -44,7 +44,7 @@ export default function GameCategories() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   return (
-    <div className="p-8">
+    <div className="px-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-boogaloo text-[#D946EF]">Game category</h1>
         <button

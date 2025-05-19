@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 export default function UserManagement() {
   const navigate = useNavigate();
   return (
-    <div className='px-3'>
+    <div className='px-8'>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-[#D946EF] text-3xl font-boogaloo">User Management</h1>
         <div className="flex gap-3">

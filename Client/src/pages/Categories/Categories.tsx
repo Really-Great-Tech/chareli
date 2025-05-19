@@ -122,31 +122,57 @@ export default function Categories() {
       {/* Main Content */}
       <div className="flex-1 p-8">
         <div>
-          <div className="grid gap-4 w-full grid-cols-[repeat(auto-fit,minmax(200px,1fr))]">
-            {filteredGames.map((game) => (
+          {filteredGames.length === 1 ? (
+            <div className="flex justify-center">
               <Card
-                key={game.name}
-                className="border-hidden shadow-none p-0 dark:bg-[#0f1221] hover:rounded-full max-w-xs"
+                key={filteredGames[0].name}
+                className="border-hidden shadow-none p-0 dark:bg-[#0f1221] hover:rounded-full max-w-xs w-full"
               >
                 <div className="relative gradient-shadow-hover transition-all duration-300">
                   {/* Tag if Recently Added */}
-                  {game.tags.includes("Recently Added") && (
+                  {filteredGames[0].tags.includes("Recently Added") && (
                     <span className="absolute top-3 right-3 bg-[#94A3B7] text-xs font-semibold tracking-wide text-white px-3 py-1 rounded-lg shadow-md z-10">
                       Recently Added
                     </span>
                   )}
                   <img
-                    src={game.img}
-                    alt={game.name}
+                    src={filteredGames[0].img}
+                    alt={filteredGames[0].name}
                     className="w-full h-auto block rounded-xl object-cover"
                   />
                   <span className="absolute bottom-3 left-1/2 -translate-x-1/2 text-white font-bold text-2xl drop-shadow-md">
-                    {game.name}
+                    {filteredGames[0].name}
                   </span>
                 </div>
               </Card>
-            ))}
-          </div>
+            </div>
+          ) : (
+            <div className="grid gap-4 w-full grid-cols-[repeat(auto-fit,minmax(200px,1fr))]">
+              {filteredGames.map((game) => (
+                <Card
+                  key={game.name}
+                  className="border-hidden shadow-none p-0 dark:bg-[#0f1221] hover:rounded-full max-w-xs"
+                >
+                  <div className="relative gradient-shadow-hover transition-all duration-300">
+                    {/* Tag if Recently Added */}
+                    {game.tags.includes("Recently Added") && (
+                      <span className="absolute top-3 right-3 bg-[#94A3B7] text-xs font-semibold tracking-wide text-white px-3 py-1 rounded-lg shadow-md z-10">
+                        Recently Added
+                      </span>
+                    )}
+                    <img
+                      src={game.img}
+                      alt={game.name}
+                      className="w-full h-auto block rounded-xl object-cover"
+                    />
+                    <span className="absolute bottom-3 left-1/2 -translate-x-1/2 text-white font-bold text-2xl drop-shadow-md">
+                      {game.name}
+                    </span>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

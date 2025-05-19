@@ -19,7 +19,7 @@ export default function Analytics() {
       {/* donut chart */}
        <div className="col-span-1 md:col-span-2 lg:col-span-4">
         <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
-          <div className="justify-between items-center flex p-3">
+          <div className="justify-between items-center flex px-8">
             <p className="text-3xl">Registration insights</p>
           </div>
           {/* inner card */}

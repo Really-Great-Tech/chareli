@@ -7,16 +7,20 @@ import GamePlay from '../pages/GamePlay/GamePlay';
 import Categories from '../pages/Categories/Categories';
 import { ResetPasswordPage } from '../pages/ResetPassword/ResetPasswordPage';
 import { ProtectedRoute } from './ProtectedRoute';
-
-// admin routes
 import AdminLayout from '../layout/AdminLayout';
-
 import AdminHome from '../pages/Admin/Home/Home';
-import AdminAbout from '../pages/Admin/About/About';
-import GameCategories from '../pages/Admin/Categories/Categories';
+import GameManagement from '../pages/Admin/Management/GameManagement';
 import UserManagement from '../pages/Admin/UserManagement/UserManagement';
 import Analytics from '../pages/Admin/Analytics/Analytics';
 import Configuration from '../pages/Admin/Configuration/Configuration';
+import ViewGame from '../pages/Admin/ViewGame';
+import GameCategories from '../pages/Admin/Category/GameCategories';
+import UserManagementView from '../pages/Admin/UserMgtView';
+import TeamManagement from '../pages/Admin/Team/TeamManagement';
+import Settings from '../pages/Admin/Settings';
+import ViewProfile from '../pages/Admin/ViewProfile';
+import { AcceptInvitationModal } from "../components/modals/AdminModals/AcceptInvitationModal"
+
 
 export const AppRoutes = () => {
   return (
@@ -33,28 +37,33 @@ export const AppRoutes = () => {
 
           <Route path="*" element={<ErrorPage />} />
         </Route>
+      </Route>
 
-        {/* Auth Routes */}
         <Route path="reset-password/:token" element={<ResetPasswordPage />} />
-        <Route path="register-invitation/:token" element={<ErrorPage />} /> {/* TODO: Create RegisterInvitationPage */}
+        <Route path="register-invitation/:token" element={<AcceptInvitationModal open={false} onOpenChange={function (): void {
+        throw new Error('Function not implemented.');
+      } } isExistingUser={false} />} /> {/* TODO: Create RegisterInvitationPage */}
 
-        {/* admin */}
-      <Route path='admin/' element={<ProtectedRoute requireAdmin={true} />}>
-        <Route element={<AdminLayout />}>
+        <Route path="admin/" element={<ProtectedRoute requireAdmin={true} />}>
+          <Route element={<AdminLayout />}>
+            <Route index element={<AdminHome />} />
+            {/* <Route path="about" element={<AdminAbout />} />*/}
+            <Route path="game-management" element={<GameManagement />} />
+            <Route path="categories" element={<GameCategories />} />
+            <Route path="management" element={<UserManagement />} />
+            <Route path="management/:userId" element={<UserManagementView />} />
+            <Route path="team" element={<TeamManagement />} />
+            <Route path="analytics" element={<Analytics />} />
+            <Route path="config" element={<Configuration />} />
+            <Route path="view-game" element={<ViewGame />} />
 
-          <Route index element={<AdminHome />} />
-          <Route path="about" element={<AdminAbout />} />
-          <Route path="categories" element={<GameCategories />} />
-          <Route path="users" element={<UserManagement />} />
-          <Route path="analytics" element={<Analytics />} />
-          <Route path="configuration" element={<Configuration />} />
-
-
-          <Route path="*" element={<ErrorPage />} />
+            {/* settings */}
+            <Route path="settings" element={<Settings />} />
+            <Route path="view-profile" element={<ViewProfile />} />
+          </Route>
         </Route>
-      </Route>
 
-      </Route>
+            <Route path="*" element={<ErrorPage />} />
 
     </Routes>
   );

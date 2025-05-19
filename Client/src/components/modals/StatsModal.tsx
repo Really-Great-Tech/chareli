@@ -39,13 +39,15 @@ export function StatsModal({ open, onClose }: StatsModalProps) {
                 <div className="dark:text-white text-[#0F1621] text-xl">1,300 minutes</div>
               </div>
             </div>
-            <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-xl p-6 w-full flex items-start">
-              <div className="bg-[#E879F9] rounded-full p-3 flex items-center justify-center">
-                <LuGamepad2 className="w-8 h-8 text-white" />
+            <div className="flex items-center bg-[#F1F5F9] dark:bg-[#121C2D] rounded-xl p-6 w-full">
+              <div className="bg-[#E879F9] rounded-full p-3 mb-2">
+              <LuGamepad2 className='w-10 h-10 text-white dark:text-[#OF1621]' />
               </div>
-              <div className="ml-4">
-                <div className="dark:text-white text-[#0F1621] font-bold text-lg">Total Plays</div>
-                <div className="dark:text-white text-[#0F1621] text-xl">500</div>
+              <div className="flex flex-col ml-6">
+              <span className="dark:text-white text-[#0F1621] font-bold text-lg tracking-widest mb-2">Total Plays</span>
+              <div className=''>
+              <span className="dark:text-white text-[#0F1621] text-xl font-thin mt-1 font-sans">500</span>
+              </div>
               </div>
             </div>
           </div>

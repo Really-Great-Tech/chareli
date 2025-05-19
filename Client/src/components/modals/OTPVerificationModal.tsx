@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -68,6 +69,7 @@ export function OTPVerificationModal({
       // Show success message
       toast.success("OTP verified successfully!");
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       setError("Invalid OTP. Please try again.");
       toast.error("Invalid OTP. Please try again.");
@@ -83,6 +85,7 @@ export function OTPVerificationModal({
       // Show success message
       setError("OTP resent successfully!");
       toast.success("OTP resent successfully!");
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       setError("Failed to resend OTP. Please try again.");
       toast.error("Failed to resend OTP. Please try again.");

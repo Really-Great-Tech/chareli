@@ -2,7 +2,12 @@
 import { useState } from "react";
 import { Card } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
-// import { Input } from "../../../components/ui/input";
+import { DeleteConfirmationModal } from "../../../components/modals/DeleteConfirmationModal";
+import { toast } from "sonner";
+import { useGames, useDeleteGame } from "../../../backend/games.service";
+import type { GameStatus } from "../../../backend/types";
+import { useQueryClient } from "@tanstack/react-query";
+import { BackendRoute } from "../../../backend/constants";
 import { FilterSheet } from "../../../components/single/Filter-Sheet";
 import { IoEyeOutline, IoEyeOffOutline } from "react-icons/io5";
 import { CiEdit } from "react-icons/ci";
@@ -11,41 +16,58 @@ import { RiEqualizer2Line } from "react-icons/ri";
 import { CreateGameSheet } from "../../../components/single/CreateGame-Sheet";
 import { useNavigate } from "react-router-dom";
 import { EditSheet } from "../../../components/single/Edit-Sheet";
-
 import { cn } from "../../../lib/utils";
+import gameImg from "../../../assets/gamesImg/1.svg";
 
-// Placeholder image, replace with actual import if available
-import gameImg from "@/assets/gamesImg/1.svg";
-
-const mockGames = Array.from({ length: 10 }).map((_, i) => ({
-  id: i + 1,
-  title: "War Shooting",
-  category: ["Shooting", "Racing", "Arcade"][i % 3],
-  minutesPlayed: 400,
-  status: i % 4 < 2 ? "Active" : "Inactive",
-  image: gameImg,
-}));
-
-const totalGames = 46;
 const pageSize = 10;
-const totalPages = Math.ceil(totalGames / pageSize);
-
 
 export default function GameManagement() {
   const [page, setPage] = useState(1);
+  const [filters, setFilters] = useState<{ categoryId?: string; status?: GameStatus }>();
   const navigate = useNavigate();
 
-  // Add these three state hooks
   const [editOpen, setEditOpen] = useState(false);
-  const [selectedGame, setSelectedGame] = useState(null);
-  const [showDeleteModal, setShowDeleteModal] = useState(false); // <-- add this
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const { data: games, isLoading } = useGames(filters);
+  const deleteGame = useDeleteGame();
+
+  const handleDelete = async () => {
+    if (!selectedGameId) return;
+    try {
+      await deleteGame.mutateAsync(selectedGameId);
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES] });
+      toast.success("Game deleted successfully");
+      setDeleteModalOpen(false);
+      setEditOpen(false); // Close edit sheet
+      setSelectedGameId(null); // Clear selected game
+    } catch (error: any) {
+      // Check if it's a "not found" error, which means the game was already deleted
+      if (error?.response?.data?.error?.message?.includes('not found')) {
+        queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES] });
+        toast.success("Game deleted successfully");
+        setDeleteModalOpen(false);
+        setEditOpen(false); // Close edit sheet
+        setSelectedGameId(null); // Clear selected game
+      } else {
+        toast.error("Failed to delete game");
+      }
+    }
+  };
+
+  const totalGames = games?.length || 0;
+  const totalPages = Math.ceil(totalGames / pageSize);
 
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-[#D946EF] text-3xl font-boogaloo">All Games</h1>
         <div className="flex gap-3">
-          <FilterSheet>
+          <FilterSheet 
+            onFilter={setFilters}
+            onReset={() => setFilters(undefined)}
+          >
             <Button
               variant="outline"
               className="border-[#475568] text-[#475568] flex items-center gap-2 dark:text-white"
@@ -73,7 +95,13 @@ export default function GameManagement() {
             </tr>
           </thead>
           <tbody>
-            {mockGames.map((game, idx) => (
+            {isLoading ? (
+              <tr>
+                <td colSpan={5} className="px-4 py-3 text-center">
+                  Loading...
+                </td>
+              </tr>
+            ) : games?.map((game, idx) => (
               <tr
                 key={game.id}
                 className={cn(
@@ -83,16 +111,16 @@ export default function GameManagement() {
               >
                 <td className="px-4 py-3 flex items-center gap-3">
                   <img
-                    src={game.image}
+                    src={game.thumbnailFile?.url || gameImg}
                     alt={game.title}
                     className="w-12 h-12 rounded-lg object-cover"
                   />
                   <span className="text-lg font-light">{game.title}</span>
                 </td>
-                <td className="px-4 py-3 font-pincuk">{game.category}</td>
-                <td className="px-4 py-3 font-pincuk">{game.minutesPlayed}</td>
+                <td className="px-4 py-3 font-pincuk">{game.category?.name || 'Uncategorized'}</td>
+                <td className="px-4 py-3 font-pincuk">-</td>
                 <td className="px-4 py-3">
-                  {game.status === "Active" ? (
+                  {game.status === "active" ? (
                     <span className="inline-flex items-center gap-2 p-1 rounded bg-[#419E6A] text-white font-pincuk text-sm">
                       <span className="w-2 h-2 bg-white rounded-full inline-block"></span>
                       Active
@@ -110,7 +138,7 @@ export default function GameManagement() {
                       className="text-black hover:text-black p-1 dark:text-white"
                       title="Edit"
                       onClick={() => {
-                        setSelectedGame(game as any);
+                        setSelectedGameId(game.id);
                         setEditOpen(true);
                       }}
                     >
@@ -121,15 +149,14 @@ export default function GameManagement() {
                       title="View"
                       onClick={() => navigate(`/admin/view-game`)}
                     >
-                      {game.status === "Active" ? <IoEyeOutline /> : <IoEyeOffOutline />}
+                      {game.status === "active" ? <IoEyeOutline /> : <IoEyeOffOutline />}
                     </button>
                     <button
                       className="text-black hover:text-black p-1 dark:text-white"
                       title="Delete"
                       onClick={() => {
-                        setSelectedGame(game as any);
-                        // setEditOpen(true);
-                        setShowDeleteModal(true);
+                        setSelectedGameId(game.id);
+                        setDeleteModalOpen(true);
                       }}
                     >
                       <RiDeleteBin6Line />
@@ -162,17 +189,22 @@ export default function GameManagement() {
           </div>
         </div>
       </Card>
-      {/* Only render EditSheet if a game is selected */}
-      {selectedGame && (
+      {/* Edit Sheet */}
+      {selectedGameId && (
         <EditSheet
           open={editOpen}
           onOpenChange={setEditOpen}
-          gameData={selectedGame}
-          showDeleteModal={showDeleteModal}
-          setShowDeleteModal={setShowDeleteModal}
+          gameId={selectedGameId}
         />
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        open={deleteModalOpen}
+        onOpenChange={setDeleteModalOpen}
+        onConfirm={handleDelete}
+        isDeleting={deleteGame.isPending}
+      />
     </div>
   );
 }
- 

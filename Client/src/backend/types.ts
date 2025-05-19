@@ -6,12 +6,69 @@ export interface Role {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface Category {
+  id: string;
+  name: string;
+  description?: string;
+  games?: Game[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FileMetadata {
+  id: string;
+  name: string;
+  url: string;
+  type: string;
+  size: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type GameStatus = 'active' | 'disabled';
+
+export interface Game {
+  id: string;
+  title: string;
+  description?: string;
+  thumbnailFileId?: string;
+  thumbnailFile?: FileMetadata;
+  status: GameStatus;
+  gameFileId?: string;
+  gameFile?: FileMetadata;
+  config: number;
+  categoryId?: string;
+  category?: Category;
+  createdById?: string;
+  createdBy?: User;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateGameDto {
+  title: string;
+  description?: string;
+  thumbnailFile?: File;
+  gameFile?: File;
+  config?: number;
+  categoryId?: string;
+}
+
+export interface UpdateGameDto extends Partial<CreateGameDto> {}
+
+// These types represent the actual API response structure
+export interface GameResponse extends Omit<Game, 'thumbnailFile' | 'gameFile'> {
+  thumbnailFile?: FileMetadata;
+  gameFile?: FileMetadata;
+}
 export interface User {
   id: string;
   firstName: string;
   lastName: string;
   email: string;
   phoneNumber?: string;
+  password?: string;
   isAdmin: boolean;
   isActive: boolean;
   createdAt: string;

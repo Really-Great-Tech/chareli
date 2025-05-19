@@ -13,4 +13,8 @@ export const BackendRoute = {
   AUTH_REQUEST_OTP: '/api/auth/request-otp',
   AUTH_FORGOT_PASSWORD: '/api/auth/forgot-password',
   AUTH_RESET_PASSWORD: '/api/auth/reset-password',
+  GAMES: '/api/games',
+  GAME_BY_ID: '/api/games/:id',
+  CATEGORIES: '/api/categories',
+  CATEGORY_BY_ID: '/api/categories/:id',
 } as const;

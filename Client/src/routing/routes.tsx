@@ -6,13 +6,9 @@ import MainLayout from '../layout/MainLayout';
 import GamePlay from '../pages/GamePlay/GamePlay';
 import Categories from '../pages/Categories/Categories';
 import { ResetPasswordPage } from '../pages/ResetPassword/ResetPasswordPage';
-// import { ProtectedRoute } from './ProtectedRoute';
-
-// admin routes
+import { ProtectedRoute } from './ProtectedRoute';
 import AdminLayout from '../layout/AdminLayout';
-
 import AdminHome from '../pages/Admin/Home/Home';
-// import AdminAbout from '../pages/Admin/About/About';
 import GameManagement from '../pages/Admin/Management/GameManagement';
 import UserManagement from '../pages/Admin/UserManagement/UserManagement';
 import Analytics from '../pages/Admin/Analytics/Analytics';
@@ -25,7 +21,6 @@ import Settings from '../pages/Admin/Settings';
 import ViewProfile from '../pages/Admin/ViewProfile';
 import { AcceptInvitationModal } from "../components/modals/AdminModals/AcceptInvitationModal"
 
-// import RequireAdminAuth from './RequireAdminAuth';
 
 export const AppRoutes = () => {
   return (
@@ -44,16 +39,13 @@ export const AppRoutes = () => {
         </Route>
       </Route>
 
-        {/* Auth Routes */}
         <Route path="reset-password/:token" element={<ResetPasswordPage />} />
         <Route path="register-invitation/:token" element={<AcceptInvitationModal open={false} onOpenChange={function (): void {
         throw new Error('Function not implemented.');
       } } isExistingUser={false} />} /> {/* TODO: Create RegisterInvitationPage */}
 
-        {/* admin */}
-        {/* <Route path="admin/" element={<RequireAdminAuth />}> */}
-        {/* <Route path="admin/" element={<ProtectedRoute requireAdmin={true} />}> */}
-          <Route path="admin/" element={<AdminLayout />}>
+        <Route path="admin/" element={<ProtectedRoute requireAdmin={true} />}>
+          <Route element={<AdminLayout />}>
             <Route index element={<AdminHome />} />
             {/* <Route path="about" element={<AdminAbout />} />*/}
             <Route path="game-management" element={<GameManagement />} />
@@ -68,7 +60,7 @@ export const AppRoutes = () => {
             {/* settings */}
             <Route path="settings" element={<Settings />} />
             <Route path="view-profile" element={<ViewProfile />} />
-          {/* </Route> */}
+          </Route>
         </Route>
 
             <Route path="*" element={<ErrorPage />} />

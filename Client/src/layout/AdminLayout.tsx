@@ -1,17 +1,18 @@
 import React from "react";
-import { Outlet } from "react-router-dom";
+import { useAuth } from '../../../Client/src/context/AuthContext';
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import AdminNavbar from "../components/single/AdminNavbar";
-// import AdminSidebar from "../components/single/AdminSideBar";
-import { NavLink } from "react-router-dom";
 
 
-import { IoGameControllerOutline } from "react-icons/io5";
+
+import { IoExitOutline, IoGameControllerOutline } from "react-icons/io5";
 import { FiHome } from "react-icons/fi";
 import { MdOutlineCategory } from "react-icons/md";
 import { FaRegUser } from "react-icons/fa6";
 import { FaChartLine } from "react-icons/fa";
 import { SlEqualizer } from "react-icons/sl";
 import { RiTeamLine } from "react-icons/ri";
+import { Button } from "../components/ui/button";
 
 
 
@@ -52,14 +53,18 @@ const menuItems = [
 ];
 
 const AdminLayout: React.FC = () => {
+  
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen dark:bg-[#0f1221] text-white dark:text-gray-900 transition-colors duration-300">
       <AdminNavbar />
       <div className="flex">
-        <div>
+        <div className="justify-between">
             {/* sidebar */}
           <aside>
-            <div className="flex flex-col h-full w-60">
+            <div className="flex flex-col w-60">
               <nav className="">
                 <ul className="space-y-5 px-2">
                   {menuItems.map((item, index) => (
@@ -83,13 +88,24 @@ const AdminLayout: React.FC = () => {
                 </ul>
               </nav>
             </div>
+
+            {/* logout */}
+            <div className="mt-96 pt-72 px-2">
+            <Button
+            onClick={() => {
+              logout();
+              navigate('/');
+            }}
+            className="bg-transparent flex items-center gap-2 text-red-500 text-2xl hover:bg-red-500 hover:text-white px-4 py-2 w-full border border-[#E2E8F0] rounded-lg transition-colors duration-300"
+          >
+            <IoExitOutline className="w-14 h-14" size={20} />
+            <p className="items-center justify-center">Logout</p>
+          </Button>
+            </div>
+
           </aside>
         </div>
         <main className="ml-6 flex-1 bg-white dark:bg-[#0f1221] min-h-screen">
-            {/* main content */}
-          {/* <div className="text-red-700">
-            Hello world
-        </div> */}
           <Outlet />
         </main>
       </div>

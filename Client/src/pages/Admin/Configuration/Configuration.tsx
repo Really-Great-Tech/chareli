@@ -39,8 +39,8 @@ export default function Configuration() {
   };
 
   return (
-    <div className="p-8 font-pong text-[#121C2D] dark:text-white">
-      <h1 className="text-3xl text-[#D946EF] mb-6 font-pong">User Sign Up Configuration</h1>
+    <div className="p-8 font-boogaloo text-[#121C2D] dark:text-white">
+      <h1 className="text-3xl text-[#D946EF] mb-6 font-boogaloo">User Sign Up Configuration</h1>
       <div className="space-y-6">
         {/* Email Authentication Section */}
         <div className="bg-[#f6f8fd] rounded-xl p-6 dark:bg-[#121C2D]">

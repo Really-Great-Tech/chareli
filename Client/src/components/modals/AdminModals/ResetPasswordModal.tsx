@@ -30,12 +30,12 @@ export default function ResetPasswordModal({ open, onClose }: ResetPasswordModal
       </Button>
 
       <div className="bg-[#F1F5F9] rounded-2xl p-10 w-[500px] max-w-full shadow-none border border-[#E2E8F0] flex flex-col items-center relative">
-        <h2 className="text-3xl font-bold text-[#D946EF] mb-8 underline underline-offset-4 text-center font-pong tracking-wider">
+        <h2 className="text-3xl font-bold text-[#D946EF] mb-8 underline underline-offset-4 text-center font-boogaloo tracking-wider">
           Reset Password
         </h2>
         <form className="w-full flex flex-col gap-6" onSubmit={handleSubmit}>
           <div>
-            <label className="block font-bold text-2xl mb-2 font-pong tracking-wider">Email</label>
+            <label className="block font-bold text-2xl mb-2 font-boogaloo tracking-wider">Email</label>
             <input
               type="email"
               className="w-full rounded-lg bg-[#E2E8F0] px-4 py-3 text-gray-500 font-pincuk text-sm  border border-[#CBD5E0]"

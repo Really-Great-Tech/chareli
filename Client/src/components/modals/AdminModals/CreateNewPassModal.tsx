@@ -31,12 +31,12 @@ export default function CreateNewPassModal({ open, onClose }: ResetPasswordModal
       </Button>
 
       <div className="bg-[#F1F5F9] rounded-2xl p-10 w-[500px] max-w-full shadow-none border border-[#E2E8F0] flex flex-col items-center relative">
-        <h2 className="text-3xl font-bold text-[#D946EF] mb-8 underline underline-offset-4 text-center font-pong tracking-wider">
+        <h2 className="text-3xl font-bold text-[#D946EF] mb-8 underline underline-offset-4 text-center font-boogaloo tracking-wider">
           Create New Password
         </h2>
         <form className="w-full flex flex-col gap-6" onSubmit={handleSubmit}>
           <div>
-            <label className="block font-bold text-2xl mb-2 font-pong tracking-wider">Set New Password</label>
+            <label className="block font-bold text-2xl mb-2 font-boogaloo tracking-wider">Set New Password</label>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
@@ -52,7 +52,7 @@ export default function CreateNewPassModal({ open, onClose }: ResetPasswordModal
             </div>
           </div>
           <div>
-            <label className="block font-bold text-lg mb-1 font-pong tracking-wider">Confirm New Password</label>
+            <label className="block font-bold text-lg mb-1 font-boogaloo tracking-wider">Confirm New Password</label>
             <div className="relative">
               <input
                 type={showConfirmPassword ? "text" : "password"}

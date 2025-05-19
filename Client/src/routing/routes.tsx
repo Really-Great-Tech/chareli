@@ -6,10 +6,10 @@ import MainLayout from '../layout/MainLayout';
 import GamePlay from '../pages/GamePlay/GamePlay';
 import Categories from '../pages/Categories/Categories';
 import { ResetPasswordPage } from '../pages/ResetPassword/ResetPasswordPage';
-import { ProtectedRoute } from './ProtectedRoute';
+// import { ProtectedRoute } from './ProtectedRoute';
 
 // admin routes
-// import AdminLayout from '../layout/AdminLayout';
+import AdminLayout from '../layout/AdminLayout';
 
 import AdminHome from '../pages/Admin/Home/Home';
 // import AdminAbout from '../pages/Admin/About/About';
@@ -52,13 +52,13 @@ export const AppRoutes = () => {
 
         {/* admin */}
         {/* <Route path="admin/" element={<RequireAdminAuth />}> */}
-        <Route path="admin/" element={<ProtectedRoute requireAdmin={true} />}>
-          {/* <Route element={<AdminLayout />}> */}
+        {/* <Route path="admin/" element={<ProtectedRoute requireAdmin={true} />}> */}
+          <Route path="admin/" element={<AdminLayout />}>
             <Route index element={<AdminHome />} />
             {/* <Route path="about" element={<AdminAbout />} />*/}
             <Route path="game-management" element={<GameManagement />} />
             <Route path="categories" element={<GameCategories />} />
-            <Route path="users" element={<UserManagement />} />
+            <Route path="management" element={<UserManagement />} />
             <Route path="management/:userId" element={<UserManagementView />} />
             <Route path="team" element={<TeamManagement />} />
             <Route path="analytics" element={<Analytics />} />

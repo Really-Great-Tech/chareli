@@ -18,7 +18,7 @@ export function PopUpSheet({ children }: {children:React.ReactNode}) {
       <SheetTrigger asChild>
         {children}
       </SheetTrigger>
-      <SheetContent className="font-pong dark:bg-[#0F1621]">
+      <SheetContent className="font-boogaloo dark:bg-[#0F1621]">
         <SheetHeader>
           <SheetTitle className="text-xl font-normal tracking-wider mt-6">Admin Cofiguration</SheetTitle>
          <div className="border border-b-gray-200"></div>

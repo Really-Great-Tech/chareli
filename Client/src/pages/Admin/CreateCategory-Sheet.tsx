@@ -31,11 +31,11 @@ export function CreateCategory({ open, onOpenChange }: CreateCategoryProps) {
         side="right" 
         className="sm:max-w-md w-[90vw] bg-white dark:bg-[#18192b] border-l border-gray-200 dark:border-gray-800"
       >
-        <SheetHeader className="pb-4 mt-8 font-pong">
+        <SheetHeader className="pb-4 mt-8 font-boogaloo">
           <SheetTitle className="text-xl font-bold border-b">Create New Category</SheetTitle>
         </SheetHeader>
         
-        <div className="flex flex-col gap-6 mt-2 font-pong px-3">
+        <div className="flex flex-col gap-6 mt-2 font-boogaloo px-3">
           <div>
             <Label htmlFor="category-name" className="text-base mb-1">
               Category Name
@@ -63,7 +63,7 @@ export function CreateCategory({ open, onOpenChange }: CreateCategoryProps) {
           </div>
         </div>
         
-        <div className="flex gap-4 justify-end mt-8 px-3 font-pong">
+        <div className="flex gap-4 justify-end mt-8 px-3 font-boogaloo">
           <SheetClose asChild>
             <button
               className="px-6 py-2 rounded-md border border-gray-300 bg-white text-black hover:bg-gray-100 transition"

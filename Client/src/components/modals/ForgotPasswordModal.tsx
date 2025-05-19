@@ -93,7 +93,7 @@ export function ForgotPasswordModal({
           <span className="text-white text-2xl font-bold">×</span>
         </button>
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-[#E328AF] text-center font-pong">
+          <DialogTitle className="text-2xl font-bold text-[#E328AF] text-center font-boogaloo">
             {isSubmitted ? "Check Your Email" : "Forgot Password"}
           </DialogTitle>
           <DialogDescription className="text-center">
@@ -112,14 +112,14 @@ export function ForgotPasswordModal({
                   <Button
                     type="button"
                     onClick={resetForm}
-                    className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-pong"
+                    className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-boogaloo"
                   >
                     Try Another Email
                   </Button>
                   <Button
                     type="button"
                     onClick={handleBackToLogin}
-                    className="w-full bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-black dark:text-white border border-gray-300 dark:border-gray-700 font-pong"
+                    className="w-full bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-black dark:text-white border border-gray-300 dark:border-gray-700 font-boogaloo"
                   >
                     Back to Login
                   </Button>
@@ -139,7 +139,7 @@ export function ForgotPasswordModal({
                     <div className="relative">
                       <Label
                         htmlFor="email"
-                        className="font-pong text-base text-black dark:text-white"
+                        className="font-boogaloo text-base text-black dark:text-white"
                       >
                         Email
                       </Label>
@@ -165,14 +165,14 @@ export function ForgotPasswordModal({
                     <Button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-pong"
+                      className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-boogaloo"
                     >
                       {isSubmitting ? "Sending..." : "Send Reset Instructions"}
                     </Button>
                     <Button
                       type="button"
                       onClick={handleBackToLogin}
-                      className="w-full bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-black dark:text-white border border-gray-300 dark:border-gray-700 font-pong"
+                      className="w-full bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-black dark:text-white border border-gray-300 dark:border-gray-700 font-boogaloo"
                     >
                       Back to Login
                     </Button>

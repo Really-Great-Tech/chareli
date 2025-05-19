@@ -33,11 +33,11 @@ export function EditCategory({ open, onOpenChange }: EditCategoryProps) {
         side="right" 
         className="sm:max-w-md w-[90vw] bg-white dark:bg-[#18192b] border-l border-gray-200 dark:border-gray-800"
       >
-        <SheetHeader className="pb-4 mt-8 font-pong">
+        <SheetHeader className="pb-4 mt-8 font-boogaloo">
           <SheetTitle className="text-xl font-bold border-b">Create New Category</SheetTitle>
         </SheetHeader>
         
-        <div className="flex flex-col gap-6 mt-2 font-pong px-3">
+        <div className="flex flex-col gap-6 mt-2 font-boogaloo px-3">
           <div>
             <Label htmlFor="category-name" className="text-base mb-1">
               Category Name
@@ -65,7 +65,7 @@ export function EditCategory({ open, onOpenChange }: EditCategoryProps) {
           </div>
         </div>
         
-        <div className="flex justify-between mt-8 px-3 font-pong items-center">
+        <div className="flex justify-between mt-8 px-3 font-boogaloo items-center">
           <div>
           <button
             className="px-3 py-2 rounded-md bg-[#EF4444] text-white transition"
@@ -97,14 +97,14 @@ export function EditCategory({ open, onOpenChange }: EditCategoryProps) {
 
         {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
-          <div className="dark:bg-[#232B3B] bg-white rounded-2xl p-8 relative w-[90vw] max-w-xl font-pong" style={{ boxShadow: "0 2px 4px 2px #e879f9" }}>
+          <div className="dark:bg-[#232B3B] bg-white rounded-2xl p-8 relative w-[90vw] max-w-xl font-boogaloo" style={{ boxShadow: "0 2px 4px 2px #e879f9" }}>
             <button
               className="absolute -top-4 -right-4 rounded-full bg-[#C026D3] w-10 h-10 flex items-center justify-center text-white"
               onClick={() => setShowDeleteModal(false)}
             >
               <XIcon className="w-6 h-6" />
             </button>
-            <h2 className="text-2xl font-pong dark:text-white mb-2 text-[#121C2D]">Are you sure you want to Delete Category?</h2>
+            <h2 className="text-2xl font-boogaloo dark:text-white mb-2 text-[#121C2D]">Are you sure you want to Delete Category?</h2>
             <p className="dark:text-[#CBD5E0] mb-8 text-[#121C2D] font-pincuk">This action can be reversed</p>
             <div className="flex gap-4 justify-end">
               <button

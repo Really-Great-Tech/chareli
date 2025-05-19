@@ -27,7 +27,7 @@ export function InviteSheet({ children }: { children: React.ReactNode }) {
       <SheetTrigger asChild>
         {children}
       </SheetTrigger>
-      <SheetContent className="font-pong dark:bg-[#0F1621] max-w-md w-full">
+      <SheetContent className="font-boogaloo dark:bg-[#0F1621] max-w-md w-full">
         <SheetHeader>
           <SheetTitle className="text-xl font-normal tracking-wider mt-6">Share Admin Invite</SheetTitle>
           <div className="border border-b-gray-200"></div>
@@ -76,7 +76,7 @@ export function FilterSheet({ children }: {children:React.ReactNode}) {
       <SheetTrigger asChild>
         {children}
       </SheetTrigger>
-      <SheetContent className="font-pong dark:bg-[#0F1621]">
+      <SheetContent className="font-boogaloo dark:bg-[#0F1621]">
         <SheetHeader>
           <SheetTitle className="text-xl font-normal tracking-wider mt-6">Filter</SheetTitle>
          <div className="border border-b-gray-200"></div>

@@ -29,7 +29,7 @@ export function EditProfileSheet({ open, onOpenChange, profile }: EditProfileShe
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="max-w-md w-full p-6 font-pong dark:bg-[#0F1621]">
+      <SheetContent side="right" className="max-w-md w-full p-6 font-boogaloo dark:bg-[#0F1621]">
         <SheetHeader>
           <SheetTitle className="text-lg mt-4 tracking-wider">Edit Profile</SheetTitle>
         </SheetHeader>

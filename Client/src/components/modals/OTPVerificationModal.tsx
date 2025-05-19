@@ -96,7 +96,7 @@ export function OTPVerificationModal({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221]">
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-2xl font-bold dark:text-white text-black font-pong">
+          <AlertDialogTitle className="text-2xl font-bold dark:text-white text-black font-boogaloo">
             OTP Verification
           </AlertDialogTitle>
           <AlertDialogDescription className="dark:text-white text-black font-pincuk text-xs mt-1">
@@ -133,7 +133,7 @@ export function OTPVerificationModal({
         <Button
           onClick={handleVerify}
           disabled={isVerifying || otp.length !== 6}
-          className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-pong"
+          className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-boogaloo"
         >
           {isVerifying ? "Verifying..." : "Verify"}
         </Button>

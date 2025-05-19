@@ -12,7 +12,7 @@ export default function UserManagement() {
   return (
     <div className='px-3'>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-[#D946EF] text-3xl font-pong">User Management</h1>
+        <h1 className="text-[#D946EF] text-3xl font-boogaloo">User Management</h1>
         <div className="flex gap-3">
           <UserManagementFilterSheet>
             <Button

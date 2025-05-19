@@ -19,7 +19,7 @@ export function CreateGameSheet({ children }: {children:React.ReactNode}) {
       <SheetTrigger asChild>
         {children}
       </SheetTrigger>
-      <SheetContent className="font-pong dark:bg-[#0F1621] max-w-xl w-full">
+      <SheetContent className="font-boogaloo dark:bg-[#0F1621] max-w-xl w-full">
         <SheetHeader>
           <SheetTitle className="text-2xl font-bold tracking-wider mt-6 mb-2">Create New Game</SheetTitle>
           <div className="border border-b-gray-200 mb-2"></div>

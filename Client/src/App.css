@@ -10,6 +10,13 @@
   --font-face-font-style: normal;
 }
 
+/* @theme {
+  --font-boogaloo: 'Boogaloo';
+  --font-face-src: url('./fonts/Boogaloo-Regular.ttf');
+  --font-face-font-weight: normal;
+  --font-face-font-style: normal;
+}  */
+
 @theme {
   --font-pincuk: 'Pincuk';
   --font-face-src: url('./fonts/Pincuk-Regular.ttf');

@@ -46,7 +46,7 @@ export default function GameCategories() {
   return (
     <div className="p-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-pong text-[#D946EF]">Game category</h1>
+        <h1 className="text-3xl font-boogaloo text-[#D946EF]">Game category</h1>
         <button
           className="bg-[#D946EF] text-white px-3 py-3 rounded-lg text-lg tracking-wide hover:bg-[#D946EF] transition"
           onClick={() => setCreateOpen(true)}
@@ -61,7 +61,7 @@ export default function GameCategories() {
             className="bg-[#F1F5F9] rounded-2xl p-6 shadow flex flex-col gap-2 relative min-h-[120px] dark:bg-[#121C2D]"
           >
             <div className="flex justify-between items-start mb-2">
-              <h2 className="text-xl tracking-wide font-bold font-pong text-[#232B3B] dark:text-white">{cat.name}</h2>
+              <h2 className="text-xl tracking-wide font-bold font-boogaloo text-[#232B3B] dark:text-white">{cat.name}</h2>
               <div className="flex gap-2">
                 <button className="p-1 rounded transition">
                   <CiEdit className="dark:text-white w-5 h-5 text-black" onClick={() => setEditOpen(true)} />
@@ -80,14 +80,14 @@ export default function GameCategories() {
       </div>
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
-          <div className="dark:bg-[#232B3B] bg-white rounded-2xl p-8 relative w-[90vw] max-w-xl font-pong" style={{ boxShadow: "0 2px 4px 2px #e879f9" }}>
+          <div className="dark:bg-[#232B3B] bg-white rounded-2xl p-8 relative w-[90vw] max-w-xl font-boogaloo" style={{ boxShadow: "0 2px 4px 2px #e879f9" }}>
             <button
               className="absolute -top-4 -right-4 rounded-full bg-[#C026D3] w-10 h-10 flex items-center justify-center text-white"
               onClick={() => setShowDeleteModal(false)}
             >
               <XIcon className="w-6 h-6" />
             </button>
-            <h2 className="text-2xl font-pong dark:text-white mb-2 text-[#121C2D]">Are you sure you want to Delete Category?</h2>
+            <h2 className="text-2xl font-boogaloo dark:text-white mb-2 text-[#121C2D]">Are you sure you want to Delete Category?</h2>
             <p className="dark:text-[#CBD5E0] mb-8 text-[#121C2D] font-pincuk">This action can be reversed</p>
             <div className="flex gap-4 justify-end">
               <button

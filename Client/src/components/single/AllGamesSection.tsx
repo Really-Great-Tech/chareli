@@ -8,7 +8,7 @@ const AllGamesSection = () => {
     return (
         <div className="p-4">
             <div>
-                <h1 className="text-[#D946EF] text-3xl mb-4 font-pong">All Games</h1>
+                <h1 className="text-[#D946EF] text-3xl mb-4 font-boogaloo">All Games</h1>
             </div>
             {/* filtering tabs */}
             <div className="flex gap-3 mb-8">
@@ -45,7 +45,7 @@ const AllGamesSection = () => {
                     </Card>
                     </div>
             </div>
-        </div>
+        </div>  
     );
 };
     

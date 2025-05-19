@@ -24,7 +24,7 @@ export default function TeamManagement() {
   return (
     <div className="px-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-[#D946EF] text-3xl font-pong font-bold">Team</h1>
+        <h1 className="text-[#D946EF] text-3xl font-boogaloo font-bold">Team</h1>
         <InviteSheet>
           <button className="bg-[#D946EF] text-white px-4 py-3 rounded-lg hover:bg-[#c026d3] transition-all">
             Invite Team Member

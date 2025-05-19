@@ -19,7 +19,7 @@ const PopularSection = () => {
     return (
         <div className="p-4">
             <div className="flex items-center justify-between mb-4">
-                <h1 className="text-[#D946EF] text-3xl font-pong">Popular</h1>
+                <h1 className="text-[#D946EF] text-3xl font-boogaloo">Popular</h1>
                 <div className="relative w-96">     
                     <IoIosSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#64748A] text-xl pointer-events-none" />
                     <Input 

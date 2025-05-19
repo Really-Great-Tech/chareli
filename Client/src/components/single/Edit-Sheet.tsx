@@ -49,7 +49,7 @@ export function EditSheet({ open, onOpenChange, gameData, showDeleteModal, setSh
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="max-w-md w-full p-6 font-pong dark:bg-[#0F1621]">
+      <SheetContent side="right" className="max-w-md w-full p-6 font-boogaloo dark:bg-[#0F1621]">
         <div className="mb-4">
           <SheetTitle className="text-lg mt-8 tracking-wider border-b">Edit Game</SheetTitle>
         </div>
@@ -171,7 +171,7 @@ export function EditSheet({ open, onOpenChange, gameData, showDeleteModal, setSh
       {/* Delete Confirmation Modal */}
       <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
         <DialogContent
-          className="rounded-2xl border-0 shadow-sm p-8 max-w-lg font-pong tracking-wide dark:bg-[#334154]"
+          className="rounded-2xl border-0 shadow-sm p-8 max-w-lg font-boogaloo tracking-wide dark:bg-[#334154]"
           style={{ boxShadow: "0 2px 4px 2px #e879f9" }}
           hideClose
         >

@@ -53,7 +53,7 @@ Whether you're going solo in campaign mode or teaming up in multiplayer deathmat
         <div className="bg-[#F1F5F9] dark:bg-[#334154] rounded-2xl p-6 flex flex-col items-center w-full md:w-1/3">
           <img src={game.image} alt={game.title} className="w-28 h-28 rounded-full object-cover mb-4" />
           <div className="flex gap-2 items-center">
-          <h2 className="text-xl font-bold font-pong mb-2 text-[#121C2D] tracking-wider dark:text-white">{game.title}</h2>
+          <h2 className="text-xl font-bold font-boogaloo mb-2 text-[#121C2D] tracking-wider dark:text-white">{game.title}</h2>
           <span className={`inline-flex items-center gap-2 px-3 py-1 rounded text-sm font-pincuk mb-2 ${game.status === "Active" ? "bg-[#D946EF]/20 dark:bg-[#E879F9] text-[#121C2D]" : "bg-[#CBD5E0] text-[#121C2D]"}`}>
             <span className={`w-2 h-2 rounded inline-block ${game.status === "Active" ? "bg-[#419E6A]" : "bg-red-500"}`}></span>
             {game.status}
@@ -144,7 +144,7 @@ Whether you're going solo in campaign mode or teaming up in multiplayer deathmat
             >
               <XIcon className="w-6 h-6" />
             </button>
-            <h2 className="text-2xl font-pong dark:text-white mb-2 text-[#121C2D]">Are you sure you want to Disable?</h2>
+            <h2 className="text-2xl font-boogaloo dark:text-white mb-2 text-[#121C2D]">Are you sure you want to Disable?</h2>
             <p className="dark:text-[#CBD5E0] mb-8 text-[#121C2D] font-pincuk">This action can be reversed</p>
             <div className="flex gap-4 justify-end">
               <button

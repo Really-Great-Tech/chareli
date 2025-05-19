@@ -112,7 +112,7 @@ export function LoginModal({
           <span className="text-white text-2xl font-bold">×</span>
         </button>
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-[#E328AF] text-center font-pong">
+          <DialogTitle className="text-2xl font-bold text-[#E328AF] text-center font-boogaloo">
             Login
           </DialogTitle>
           <DialogDescription className="text-center">
@@ -126,7 +126,7 @@ export function LoginModal({
                   <div className="relative">
                     <Label
                       htmlFor="email"
-                      className="font-pong text-base text-black dark:text-white"
+                      className="font-boogaloo text-base text-black dark:text-white"
                     >
                       Email
                     </Label>
@@ -152,7 +152,7 @@ export function LoginModal({
                   <div className="relative">
                     <Label
                       htmlFor="password"
-                      className="font-pong text-base text-black dark:text-white"
+                      className="font-boogaloo text-base text-black dark:text-white"
                     >
                       Password
                     </Label>
@@ -206,7 +206,7 @@ export function LoginModal({
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-pong"
+                    className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-boogaloo"
                   >
                     Login
                   </Button>

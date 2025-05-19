@@ -112,7 +112,7 @@ export function SignUpModal({
           <span className="text-white text-2xl font-bold">×</span>
         </button>
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-[#E328AF] text-center font-pong">
+          <DialogTitle className="text-2xl font-bold text-[#E328AF] text-center font-boogaloo">
             Sign Up
           </DialogTitle>
           <DialogDescription className="text-center">
@@ -127,7 +127,7 @@ export function SignUpModal({
                     <div className="flex-1 relative">
                       <Label
                         htmlFor="firstName"
-                        className="font-pong text-base text-black dark:text-white"
+                        className="font-boogaloo text-base text-black dark:text-white"
                       >
                         First Name
                       </Label>
@@ -153,7 +153,7 @@ export function SignUpModal({
                     <div className="flex-1 relative">
                       <Label
                         htmlFor="lastName"
-                        className="font-pong text-base text-black dark:text-white"
+                        className="font-boogaloo text-base text-black dark:text-white"
                       >
                         Last Name
                       </Label>
@@ -180,7 +180,7 @@ export function SignUpModal({
                   <div className="relative">
                     <Label
                       htmlFor="email"
-                      className="font-pong text-base text-black dark:text-white"
+                      className="font-boogaloo text-base text-black dark:text-white"
                     >
                       E-Mail
                     </Label>
@@ -206,7 +206,7 @@ export function SignUpModal({
                   <div className="relative">
                     <Label
                       htmlFor="phoneNumber"
-                      className="font-pong text-base text-black dark:text-white"
+                      className="font-boogaloo text-base text-black dark:text-white"
                     >
                       Phone Number
                     </Label>
@@ -259,7 +259,7 @@ export function SignUpModal({
                   <div className="relative">
                     <Label
                       htmlFor="password"
-                      className="font-pong text-base text-black dark:text-white"
+                      className="font-boogaloo text-base text-black dark:text-white"
                     >
                       Password
                     </Label>
@@ -296,7 +296,7 @@ export function SignUpModal({
                   <div className="relative">
                     <Label
                       htmlFor="confirmPassword"
-                      className="font-pong text-base text-black dark:text-white"
+                      className="font-boogaloo text-base text-black dark:text-white"
                     >
                       Confirm Password
                     </Label>
@@ -345,7 +345,7 @@ export function SignUpModal({
                       </Field>
                       <Label
                         htmlFor="ageConfirm"
-                        className="font-pong text-black dark:text-white"
+                        className="font-boogaloo text-black dark:text-white"
                       >
                         Confirm age 18+
                       </Label>
@@ -369,7 +369,7 @@ export function SignUpModal({
                       </Field>
                       <Label
                         htmlFor="terms"
-                        className="font-pong text-black dark:text-white"
+                        className="font-boogaloo text-black dark:text-white"
                       >
                         Accept Terms of Use
                       </Label>
@@ -383,7 +383,7 @@ export function SignUpModal({
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-pong"
+                    className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-boogaloo"
                   >
                     {isSubmitting ? "Creating Account..." : "Sign Up"}
                   </Button>
@@ -392,7 +392,7 @@ export function SignUpModal({
             </Formik>
           </DialogDescription>
         </DialogHeader>
-        <p className="text-sm text-center text-black dark:text-white font-pong">
+        <p className="text-sm text-center text-black dark:text-white font-boogaloo">
           Already have an account?{" "}
           <span
             className="underline text-[#C026D3] cursor-pointer"

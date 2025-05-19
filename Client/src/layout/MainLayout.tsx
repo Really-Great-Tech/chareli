@@ -11,7 +11,7 @@ const MainLayout: React.FC = () => {
             </main>
             <footer className="text-center text-white dark:white py-8 bg-[#1E0420] dark:bg-[#1E0420] w-full">
                 <div className='w-full lg:w-[800px] mx-auto'>
-                    <p className='font-pong mb-2 text-xs'>These games are brought to you by Chareli, a web-based gaming platform.</p>
+                    <p className='font-boogaloo mb-2 text-xs'>These games are brought to you by Chareli, a web-based gaming platform.</p>
 
                     <p className='font-pincuk text-sm mt-2 mb-2'>By using this service, you agree to the Chareli <span className='text-[#C026D3] underline cursor-pointer'>Terms of Service</span>. Chareli's <span className='text-[#C026D3] underline cursor-pointer'>Privacy Policy</span> sets out how we handle your data.
                     </p>

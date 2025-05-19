@@ -20,7 +20,7 @@ const App: React.FC = () => {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
-          <div className='font-boogaloo'>
+          <div className='font-pong'>
             <Toaster position="bottom-right" richColors />
             <AppRoutes />
           </div>

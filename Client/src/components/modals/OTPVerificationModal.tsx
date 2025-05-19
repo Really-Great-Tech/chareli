@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -68,6 +69,7 @@ export function OTPVerificationModal({
       // Show success message
       toast.success("OTP verified successfully!");
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       setError("Invalid OTP. Please try again.");
       toast.error("Invalid OTP. Please try again.");
@@ -83,6 +85,7 @@ export function OTPVerificationModal({
       // Show success message
       setError("OTP resent successfully!");
       toast.success("OTP resent successfully!");
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       setError("Failed to resend OTP. Please try again.");
       toast.error("Failed to resend OTP. Please try again.");
@@ -93,7 +96,7 @@ export function OTPVerificationModal({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221]">
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-2xl font-bold dark:text-white text-black font-boogaloo">
+          <AlertDialogTitle className="text-2xl font-bold dark:text-white text-black font-pong">
             OTP Verification
           </AlertDialogTitle>
           <AlertDialogDescription className="dark:text-white text-black font-pincuk text-xs mt-1">
@@ -130,7 +133,7 @@ export function OTPVerificationModal({
         <Button
           onClick={handleVerify}
           disabled={isVerifying || otp.length !== 6}
-          className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-boogaloo"
+          className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-pong"
         >
           {isVerifying ? "Verifying..." : "Verify"}
         </Button>

@@ -23,8 +23,8 @@ export function WelcomeModal({ open, onOpenChange }: WelcomeDialogProps) {
                 >
                     ✕
                 </button>
-                <AlertDialogHeader>
-                    <AlertDialogTitle className="text-2xl font-bold dark:text-white text-black text-left font-pong">
+                <DialogHeader>
+                    <DialogTitle className="text-2xl font-bold dark:text-white text-black text-left font-pong">
                         Welcome to Our Website
                     </DialogTitle>
                     <DialogDescription className="text-left dark:text-white text-black font-pincuk text-xs mt-1">

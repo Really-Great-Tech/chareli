@@ -9,7 +9,7 @@ import { ResetPasswordPage } from '../pages/ResetPassword/ResetPasswordPage';
 import { ProtectedRoute } from './ProtectedRoute';
 
 // admin routes
-import AdminLayout from '../layout/AdminLayout';
+// import AdminLayout from '../layout/AdminLayout';
 
 import AdminHome from '../pages/Admin/Home/Home';
 // import AdminAbout from '../pages/Admin/About/About';
@@ -23,6 +23,7 @@ import UserManagementView from '../pages/Admin/UserMgtView';
 import TeamManagement from '../pages/Admin/Team/TeamManagement';
 import Settings from '../pages/Admin/Settings';
 import ViewProfile from '../pages/Admin/ViewProfile';
+import { AcceptInvitationModal } from "../components/modals/AdminModals/AcceptInvitationModal"
 
 // import RequireAdminAuth from './RequireAdminAuth';
 
@@ -45,11 +46,13 @@ export const AppRoutes = () => {
 
         {/* Auth Routes */}
         <Route path="reset-password/:token" element={<ResetPasswordPage />} />
-        <Route path="register-invitation/:token" element={<ErrorPage />} /> {/* TODO: Create RegisterInvitationPage */}
+        <Route path="register-invitation/:token" element={<AcceptInvitationModal open={false} onOpenChange={function (): void {
+        throw new Error('Function not implemented.');
+      } } isExistingUser={false} />} /> {/* TODO: Create RegisterInvitationPage */}
 
         {/* admin */}
         {/* <Route path="admin/" element={<RequireAdminAuth />}> */}
-        <Route path="admin/" element={<AdminLayout />} element={<ProtectedRoute requireAdmin={true} />}>
+        <Route path="admin/" element={<ProtectedRoute requireAdmin={true} />}>
           {/* <Route element={<AdminLayout />}> */}
             <Route index element={<AdminHome />} />
             {/* <Route path="about" element={<AdminAbout />} />*/}

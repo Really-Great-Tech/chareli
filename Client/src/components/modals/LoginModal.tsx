@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import type { FormikHelpers } from "formik";
@@ -50,6 +51,7 @@ export function LoginModal({
   const [userId, setUserId] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [userPhone, setUserPhone] = useState("");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [hasBothContactMethods, setHasBothContactMethods] = useState(false);
   const [isOTPVerificationModalOpen, setIsOTPVerificationModalOpen] = useState(false);
   const [selectedOtpType, setSelectedOtpType] = useState<'EMAIL' | 'SMS'>('EMAIL');
@@ -110,7 +112,7 @@ export function LoginModal({
           <span className="text-white text-2xl font-bold">×</span>
         </button>
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-[#E328AF] text-center font-boogaloo">
+          <DialogTitle className="text-2xl font-bold text-[#E328AF] text-center font-pong">
             Login
           </DialogTitle>
           <DialogDescription className="text-center">
@@ -124,7 +126,7 @@ export function LoginModal({
                   <div className="relative">
                     <Label
                       htmlFor="email"
-                      className="font-boogaloo text-base text-black dark:text-white"
+                      className="font-pong text-base text-black dark:text-white"
                     >
                       Email
                     </Label>
@@ -150,7 +152,7 @@ export function LoginModal({
                   <div className="relative">
                     <Label
                       htmlFor="password"
-                      className="font-boogaloo text-base text-black dark:text-white"
+                      className="font-pong text-base text-black dark:text-white"
                     >
                       Password
                     </Label>
@@ -204,7 +206,7 @@ export function LoginModal({
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-boogaloo"
+                    className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-pong"
                   >
                     Login
                   </Button>

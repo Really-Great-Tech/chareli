@@ -47,7 +47,7 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
                     </div>
 
                     <div className='ml-4'>
-                    <div className="text-3xl font-extrabold font-boogaloo dark:text-[#D946EF] text-[#0F1621] mb-1">
+                    <div className="text-3xl font-extrabold font-pong dark:text-[#D946EF] text-[#0F1621] mb-1">
                         {user ? `${user.firstName} ${user.lastName}` : 'Guest User'}
                     </div>
                     <div className="dark:text-white text-[#0F1621] font-thin text-base font-pincuk">
@@ -58,19 +58,19 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
                 {/* Profile Details */}
                 <div className="dark:bg-[#18192b] bg-white rounded-xl p-4 mb-4 space-y-8">
                     <div className="flex justify-between py-2 border-b border-t border-[#CBD5E0] dark:border-[#475568] items-center mb-8">
-                        <span className="dark:text-[#D946EF] font-boogaloo text-xl mt-4 mb-8">Name</span>
+                        <span className="dark:text-[#D946EF] font-pong text-xl mt-4 mb-8">Name</span>
                         <span className="dark:text-white font-pincuk mt-4 mb-8">
                             {user ? `${user.firstName} ${user.lastName}` : 'Guest User'}
                         </span>
                     </div>
                     <div className="flex justify-between py-2 border-b border-[#CBD5E0] dark:border-[#475568] items-center">
-                        <span className="dark:text-[#D946EF] font-boogaloo text-xl mb-6">Email account</span> 
+                        <span className="dark:text-[#D946EF] font-pong text-xl mb-6">Email account</span> 
                         <span className="dark:text-white font-pincuk mb-6">
                             {user?.email || 'Not available'}
                         </span>
                     </div>
                     <div className="flex justify-between py-2 border-b border-[#CBD5E0] dark:border-[#475568] items-center">
-                        <span className="dark:text-[#D946EF] font-boogaloo text-xl mb-6">Mobile number</span>
+                        <span className="dark:text-[#D946EF] font-pong text-xl mb-6">Mobile number</span>
                         <span className="dark:text-white font-pincuk mb-6">
                             {user?.phoneNumber || 'Not available'}
                         </span>

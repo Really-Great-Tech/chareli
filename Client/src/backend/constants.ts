@@ -8,6 +8,7 @@ export const BackendRoute = {
   AUTH_LOGIN: '/api/auth/login',
   AUTH_VERIFY_OTP: '/api/auth/verify-otp',
   AUTH_ME: '/api/auth/me',
+  AUTH_CHANGE_PASSWORD: '/api/auth/me/change-password',
   AUTH_REFRESH_TOKEN: '/api/auth/refresh-token',
   AUTH_REGISTER: '/api/auth/register',
   AUTH_REQUEST_OTP: '/api/auth/request-otp',

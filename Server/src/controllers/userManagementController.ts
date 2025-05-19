@@ -486,6 +486,51 @@ export const resetPasswordFromInvitation = async (
  *       500:
  *         description: Internal server error
  */
+export const changePassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return next(ApiError.unauthorized('User not authenticated'));
+    }
+
+    const user = await userRepository.findOne({
+      where: { id: userId },
+      select: ['id', 'password']
+    });
+
+    if (!user) {
+      return next(ApiError.notFound('User not found'));
+    }
+
+    // Verify old password
+    const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
+    if (!isPasswordValid) {
+      return next(ApiError.badRequest('Current password is incorrect'));
+    }
+
+    // Hash new password
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    // Update password
+    user.password = hashedPassword;
+    await userRepository.save(user);
+
+    res.status(200).json({
+      success: true,
+      message: 'Password changed successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const revokeRole = async (
   req: Request,
   res: Response,

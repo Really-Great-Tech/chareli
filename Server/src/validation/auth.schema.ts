@@ -105,3 +105,17 @@ export const requestOtpSchema = yup.object({
     .oneOf(Object.values(OtpType), 'Invalid OTP type')
     .required('OTP type is required')
 });
+
+/**
+ * Change password schema validation
+ */
+export const changePasswordSchema = yup.object({
+  oldPassword: yup.string().required('Current password is required'),
+  newPassword: yup.string()
+    .min(8, 'Password must be at least 8 characters')
+    .matches(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .matches(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .matches(/[0-9]/, 'Password must contain at least one number')
+    .matches(/[^A-Za-z0-9]/, 'Password must contain at least one special character')
+    .required('New password is required')
+});

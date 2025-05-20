@@ -5,11 +5,14 @@ import { ResetPasswordForm } from './ResetPasswordForm';
 import { RegisterForm } from './RegisterForm';
 import { toast } from 'sonner';
 import { Button } from '../../components/ui/button';
+import { LoginModal } from '../../components/modals/LoginModal';
 
 export function RegisterInvitationPage() {
   const { token } = useParams();
   const navigate = useNavigate();
   const { data, isLoading } = useVerifyInvitation(token || '');
+  const [isLoginModalOpen, setIsLoginModalOpen] = React.useState(false);
+  const [isSuccess, setIsSuccess] = React.useState(false);
 
   console.log(data)
 
@@ -46,34 +49,72 @@ export function RegisterInvitationPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-[#0F1621] p-4">
-      <div className="w-full max-w-md">
-        <div className="bg-white dark:bg-[#121C2D] rounded-lg shadow-lg p-8">
-          <h1 className="text-3xl font-boogaloo text-center mb-8">
-            {(data as any).userExists ? 'Reset Password' : 'Complete Registration'}
-          </h1>
-          
-          {(data as any).userExists ? (
-            <ResetPasswordForm 
-              email={(data as any).email} 
-              token={token || ''} 
-              onSuccess={() => {
-                toast.success('Password reset successful. You can now log in.');
-                navigate('/');
-              }}
-            />
-          ) : (
-            <RegisterForm 
-              email={(data as any).email} 
-              token={token || ''} 
-              onSuccess={() => {
-                toast.success('Registration successful. You can now log in.');
-                navigate('/');
-              }}
-            />
-          )}
+    <>
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-[#0F1621] p-4">
+        <div className="w-full max-w-md">
+          <div className="bg-white dark:bg-[#121C2D] rounded-lg shadow-lg p-8">
+            <h1 className="text-3xl font-boogaloo text-center mb-8">
+              {(data as any)?.userExists ? 'Reset Password' : 'Complete Registration'}
+            </h1>
+            
+            {isSuccess ? (
+              <div className="text-center">
+                <p className="text-gray-600 dark:text-gray-300 mb-6">
+                  {(data as any)?.userExists 
+                    ? 'Your password has been reset successfully.' 
+                    : 'Your account has been created successfully.'}
+                </p>
+                <div className="space-y-4">
+                  <Button 
+                    onClick={() => setIsLoginModalOpen(true)}
+                    className="w-full bg-[#D946EF] dark:text-white hover:text-[#D946EF] hover:bg-[#F3E8FF]"
+                  >
+                    Log In Now
+                  </Button>
+                  <Button 
+                    onClick={() => navigate('/')}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    Return to Home
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <>
+                {(data as any)?.userExists ? (
+                  <ResetPasswordForm 
+                    email={(data as any)?.email || ''} 
+                    token={token || ''} 
+                    onSuccess={() => {
+                      toast.success('Password reset successful. Please log in.');
+                      setIsSuccess(true);
+                      setIsLoginModalOpen(true);
+                    }}
+                  />
+                ) : (
+                  <RegisterForm 
+                    email={(data as any)?.email || ''} 
+                    token={token || ''} 
+                    onSuccess={() => {
+                      toast.success('Registration successful. Please log in.');
+                      setIsSuccess(true);
+                      setIsLoginModalOpen(true);
+                    }}
+                  />
+                )}
+              </>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+
+      <LoginModal
+        open={isLoginModalOpen}
+        onOpenChange={setIsLoginModalOpen}
+        openSignUpModal={() => {}} // Not needed since we're in the registration flow
+        defaultEmail={(data as any)?.email || ''}
+      />
+    </>
   );
 }

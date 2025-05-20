@@ -20,6 +20,7 @@ export const BackendRoute = {
   AUTH_VERIFY_INVITATION: '/api/auth/verify-invitation/:token',
   AUTH_REGISTER_FROM_INVITATION: '/api/auth/register/:token',
   AUTH_RESET_PASSWORD_FROM_INVITATION: '/api/auth/reset-password-from-invitation/:token',
+  AUTH_REVOKE_ROLE: '/api/auth/revoke-role/:id',
   GAMES: '/api/games',
   GAME_BY_ID: '/api/games/:id',
   CATEGORIES: '/api/categories',

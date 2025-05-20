@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { backendService } from './api.service';
 import { BackendRoute } from './constants';
+import type { User } from './types';
 
 export interface InviteUserRequest {
   email: string;
@@ -100,7 +101,7 @@ export const useInviteTeamMember = () => {
  * @returns Query function to verify token
  */
 export const useVerifyInvitation = (token: string) => {
-  return useQuery<VerifyInvitationResponse, Error, VerifyInvitationResponse>({
+  return useQuery<VerifyInvitationResponse>({
     queryKey: ['verifyInvitation', token],
     queryFn: async () => {
       const url = BackendRoute.AUTH_VERIFY_INVITATION.replace(':token', token);
@@ -141,6 +142,32 @@ export const useResetPasswordFromInvitation = () => {
       const response = await backendService.post(url, data);
       return response.data;
     }
+  });
+};
+
+export const useAllTeamMembers = () => {
+  return useQuery({
+    queryKey: ['allTeamMembers'], 
+    queryFn: async () => {
+      const { data } = await backendService.get(BackendRoute.USER);
+      return data;
+    },
+    refetchOnWindowFocus: false,
+  });
+};
+
+export const useRevokeRole = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const url = BackendRoute.AUTH_REVOKE_ROLE.replace(':id', id);
+      const response = await backendService.put(url);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.USER] });
+      queryClient.invalidateQueries({ queryKey: ["allTeamMembers"] });
+    },
   });
 };
 

@@ -17,7 +17,7 @@ import { useGameById, useUpdateGame, useDeleteGame } from "../../backend/games.s
 import { useCategories } from "../../backend/category.service";
 import { toast } from "sonner";
 import uploadImg from "../../assets/Fetch-upload.svg";
-import type { GameResponse } from "../../backend/types";
+// import type { GameResponse } from "../../backend/types";
 
 interface EditSheetProps {
   open: boolean;

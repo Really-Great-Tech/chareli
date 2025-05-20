@@ -17,6 +17,41 @@ interface Config {
   jwt: {
     secret: string;
     expiresIn: string;
+    refreshSecret: string;
+    refreshExpiresIn: string;
+  };
+  superadmin: {
+    email: string;
+    password: string;
+  };
+  twilio: {
+    accountSid: string;
+    authToken: string;
+    phoneNumber: string;
+  };
+  email: {
+    service: string;
+    user: string;
+    password: string;
+  };
+  otp: {
+    expiryMinutes: number;
+    invitationExpiryDays: number;
+  };
+  sentry: {
+    dsn: string;
+    environment: string;
+    tracesSampleRate: number;
+    enabled: boolean;
+  };
+  s3: {
+    region: string;
+    accessKeyId: string;
+    secretAccessKey: string;
+    bucket: string;
+    endpoint?: string;
+    forcePathStyle?: boolean;
+    signedUrlExpiration: number;
   };
 }
 
@@ -33,7 +68,42 @@ const config: Config = {
   jwt: {
     secret: process.env.JWT_SECRET || 'your_jwt_secret_key_here',
     expiresIn: process.env.JWT_EXPIRATION || '1h',
+    refreshSecret: process.env.JWT_REFRESH_SECRET || 'your_refresh_token_secret_here',
+    refreshExpiresIn: process.env.JWT_REFRESH_EXPIRATION || '7d',
   },
+  superadmin: {
+    email: process.env.SUPERADMIN_EMAIL || 'admin@example.com',
+    password: process.env.SUPERADMIN_PASSWORD || 'Admin123!',
+  },
+  twilio: {
+    accountSid: process.env.TWILIO_ACCOUNT_SID || '',
+    authToken: process.env.TWILIO_AUTH_TOKEN || '',
+    phoneNumber: process.env.TWILIO_PHONE_NUMBER || '',
+  },
+  email: {
+    service: process.env.EMAIL_SERVICE || '',
+    user: process.env.EMAIL_USER || '',
+    password: process.env.EMAIL_PASSWORD || '',
+  },
+  otp: {
+    expiryMinutes: parseInt(process.env.OTP_EXPIRY_MINUTES || '5', 10),
+    invitationExpiryDays: parseInt(process.env.INVITATION_EXPIRY_DAYS || '7', 10),
+  },
+  sentry: {
+    dsn: process.env.SENTRY_DSN || '',
+    environment: process.env.NODE_ENV || 'development',
+    tracesSampleRate: parseFloat(process.env.SENTRY_TRACES_SAMPLE_RATE || '0.2'),
+    enabled: process.env.NODE_ENV === 'production'
+  },
+  s3: {
+    region: process.env.AWS_REGION || 'us-east-1',
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+    bucket: process.env.AWS_S3_BUCKET || 'chareli-bucket',
+    endpoint: process.env.AWS_S3_ENDPOINT,
+    forcePathStyle: process.env.AWS_S3_FORCE_PATH_STYLE === 'true',
+    signedUrlExpiration: parseInt(process.env.AWS_SIGNED_URL_EXPIRATION || '3600', 10),
+  }
 };
 
 export default config;

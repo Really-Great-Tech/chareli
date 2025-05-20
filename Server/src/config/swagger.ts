@@ -23,6 +23,162 @@ const options: swaggerJsdoc.Options = {
         description: 'Development server',
       },
     ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
+      },
+      schemas: {
+        User: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              format: 'uuid',
+            },
+            firstName: {
+              type: 'string',
+            },
+            lastName: {
+              type: 'string',
+            },
+            email: {
+              type: 'string',
+              format: 'email',
+            },
+            phoneNumber: {
+              type: 'string',
+            },
+            role: {
+              type: 'object',
+              properties: {
+                id: {
+                  type: 'string',
+                  format: 'uuid',
+                },
+                name: {
+                  type: 'string',
+                  enum: ['superadmin', 'admin', 'editor', 'player'],
+                },
+                description: {
+                  type: 'string',
+                },
+              },
+            },
+            isActive: {
+              type: 'boolean',
+            },
+            isVerified: {
+              type: 'boolean',
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+          },
+        },
+        Role: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              format: 'uuid',
+            },
+            name: {
+              type: 'string',
+              enum: ['superadmin', 'admin', 'editor', 'player'],
+            },
+            description: {
+              type: 'string',
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+          },
+        },
+        Invitation: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              format: 'uuid',
+            },
+            email: {
+              type: 'string',
+              format: 'email',
+            },
+            role: {
+              $ref: '#/components/schemas/Role',
+            },
+            token: {
+              type: 'string',
+            },
+            isAccepted: {
+              type: 'boolean',
+            },
+            expiresAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+            invitedBy: {
+              $ref: '#/components/schemas/User',
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+          },
+        },
+        AuthTokens: {
+          type: 'object',
+          properties: {
+            accessToken: {
+              type: 'string',
+            },
+            refreshToken: {
+              type: 'string',
+            },
+          },
+        },
+        Error: {
+          type: 'object',
+          properties: {
+            success: {
+              type: 'boolean',
+              example: false,
+            },
+            error: {
+              type: 'object',
+              properties: {
+                message: {
+                  type: 'string',
+                },
+                stack: {
+                  type: 'string',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    // Individual routes that require authentication will specify their own security requirements
   },
   apis: ['./src/routes/*.ts', './src/controllers/*.ts'],
 };

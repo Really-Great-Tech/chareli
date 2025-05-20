@@ -1,11 +1,111 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
 @font-face {
-    font-family: 'Boogaloo';
-    src: url('./fonts/Boogaloo-Regular.ttf'),
+  font-family: 'Pong-Game';
+  src: url('./fonts/Pong-Game.ttf'),
     /* font-weight: normal; */
     /* font-style: normal; */
+  /* src: url('./fonts/Boogaloo-Regular.ttf'), */
+    /* font-weight: normal; */
+    /* font-style: normal; */
+}
+
+@font-face {
+  font-family: 'Boogaloo';
+  src: url('./fonts/Boogaloo-Regular.ttf'),
+    /* font-weight: normal; */
+    /* font-style: normal; */
+}
+
+@font-face {
+  font-family: 'Pincuk';
+  src: url('./fonts/Pincuk-Regular.ttf'),
+}
+
+@layer base {
+  :root {
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%; 
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
   }
-  
+
+  .dark {
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+
 
 .font-boogaloo {
-    font-family: 'Boogaloo', cursive;
-  }
+  font-family: 'Boogaloo', cursive;
+}
+
+
+.font-pincuk {
+  font-family: 'Pincuk', cursive;
+}
+
+body {
+    cursor: url('./assets/icn_hand.svg'), auto;
+}
+
+button, [role="button"] {
+  cursor: url('./assets/icn_hand.svg'), auto;
+}
+
+a, .cursor-pointer {
+  cursor: url('./assets/icn_hand.svg'), pointer;
+}
+
+img.cursor-pointer {
+  cursor: url('./assets/icn_hand.svg'), pointer;
+}
+
+/* card hover box shadow */
+.gradient-shadow-hover {
+  position: relative;
+  border-radius: 20px;
+  overflow: visible;
+}
+
+.gradient-shadow-hover:hover::after {
+  opacity: 1;
+  box-shadow: 0 10px 12px 0 rgba(217,70,239,0.5);
+  filter: blur(2px);
+  /* mix-blend-mode: lighten; */
+  /* filter: drop-shadow(8px 8px 10px #D946EF); */
+  border-radius: 30px;
+}
+
+.gradient-shadow-hover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+  filter: drop-shadow(8px 8px 10px #D946EF);
+}
+
+
+/* in your CSS */
+.backdrop-blur-sm {
+  backdrop-filter: blur(6px);
+}
+
+/* Hide scrollbar but allow scrolling */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}

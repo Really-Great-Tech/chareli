@@ -67,11 +67,11 @@ export const getDashboardAnalytics = async (
     // 5. Total Time Played (in minutes)
     const totalTimePlayedResult = await analyticsRepository
       .createQueryBuilder('analytics')
-      .select('SUM(analytics.duration)', 'totalDuration')
+      .select('SUM(analytics.duration)', 'totalPlayTime')
       .getRawOne();
     
     // Convert seconds to minutes and round to nearest minute
-    const totalTimePlayed = Math.round((totalTimePlayedResult?.totalDuration || 0) / 60);
+    const totalTimePlayed = Math.round((totalTimePlayedResult?.totalPlayTime || 0) / 60);
     
     // 6. Most Popular Game
     const mostPopularGameResult = await analyticsRepository
@@ -85,7 +85,7 @@ export const getDashboardAnalytics = async (
       .groupBy('analytics.gameId')
       .addGroupBy('game.title')
       .addGroupBy('thumbnailFile.s3Url')
-      .orderBy('"sessionCount"', 'DESC')
+      .orderBy('COUNT(*)', 'DESC')
       .limit(1)
       .getRawOne();
     
@@ -545,14 +545,14 @@ export const getGameAnalyticsById = async (
       .addSelect('user.firstName', 'firstName')
       .addSelect('user.lastName', 'lastName')
       .addSelect('COUNT(analytics.id)', 'sessionCount')
-      .addSelect('SUM(analytics.duration)', 'totalDuration')
+      .addSelect('SUM(analytics.duration)', 'totalPlayTime')
       .leftJoin('analytics.user', 'user')
       .where(whereConditions)
       .groupBy('analytics.userId')
       .addGroupBy('user.email')
       .addGroupBy('user.firstName')
       .addGroupBy('user.lastName')
-      .orderBy('totalDuration', 'DESC')
+      .orderBy('SUM(analytics.duration)', 'DESC')
       .limit(10)
       .getRawMany();
     
@@ -562,7 +562,7 @@ export const getGameAnalyticsById = async (
       email: player.userEmail,
       name: `${player.firstName} ${player.lastName}`,
       sessionCount: parseInt(player.sessionCount) || 0,
-      totalPlayTime: Math.round((player.totalDuration || 0) / 60) // Convert to minutes
+      totalPlayTime: Math.round((player.totalPlayTime || 0) / 60) // Convert to minutes
     }));
     
     // Get daily play time for trend analysis
@@ -571,7 +571,7 @@ export const getGameAnalyticsById = async (
       .select('DATE(analytics.startTime)', 'date')
       .addSelect('COUNT(analytics.id)', 'sessions')
       .addSelect('COUNT(DISTINCT analytics.userId)', 'players')
-      .addSelect('SUM(analytics.duration)', 'duration')
+      .addSelect('SUM(analytics.duration)', 'totalPlayTime')
       .where(whereConditions)
       .groupBy('DATE(analytics.startTime)')
       .orderBy('date', 'ASC')
@@ -582,7 +582,7 @@ export const getGameAnalyticsById = async (
       date: day.date,
       sessions: parseInt(day.sessions) || 0,
       players: parseInt(day.players) || 0,
-      playTime: Math.round((day.duration || 0) / 60) // Convert to minutes
+      playTime: Math.round((day.totalPlayTime || 0) / 60) // Convert to minutes
     }));
     
     // Prepare the response
@@ -655,6 +655,7 @@ export const getUserAnalyticsById = async (
         phoneNumber: true,
         isActive: true,
         isVerified: true,
+        lastLoggedIn: true,
         createdAt: true,
         updatedAt: true,
         role: {
@@ -669,6 +670,7 @@ export const getUserAnalyticsById = async (
       return next(ApiError.notFound(`User with id ${id} not found`));
     }
 
+    console.log(user)
     // Get user's analytics summary
     const analyticsSummary = await analyticsRepository
       .createQueryBuilder('analytics')
@@ -685,7 +687,7 @@ export const getUserAnalyticsById = async (
       .addSelect('game.title', 'gameTitle')
       .addSelect('thumbnailFile.s3Url', 'thumbnailUrl')
       .addSelect('COUNT(analytics.id)', 'sessionCount')
-      .addSelect('SUM(analytics.duration)', 'totalDuration')
+      .addSelect('SUM(analytics.duration)', 'totalPlayTime')
       .addSelect('MAX(analytics.startTime)', 'lastPlayed')
       .leftJoin('analytics.game', 'game')
       .leftJoin('game.thumbnailFile', 'thumbnailFile')
@@ -702,7 +704,7 @@ export const getUserAnalyticsById = async (
       gameTitle: game.gameTitle,
       thumbnailUrl: game.thumbnailUrl || null,
       sessionCount: parseInt(game.sessionCount) || 0,
-      totalDuration: Math.round((game.totalDuration || 0) / 60), // Convert to minutes
+      totalPlayTime: Math.round((game.totalPlayTime || 0) / 60), // Convert to minutes
       lastPlayed: game.lastPlayed
     }));
 
@@ -761,6 +763,7 @@ export const getUsersWithAnalytics = async (
         phoneNumber: true,
         isActive: true,
         isVerified: true,
+        lastLoggedIn: true,
         createdAt: true,
         updatedAt: true,
         role: {
@@ -775,9 +778,9 @@ export const getUsersWithAnalytics = async (
     const usersAnalytics = await analyticsRepository
       .createQueryBuilder('analytics')
       .select('analytics.userId', 'userId')
-      .addSelect('COUNT(DISTINCT analytics.gameId)', 'totalGamesPlayed')
-      .addSelect('COUNT(analytics.id)', 'totalSessionCount')
-      .addSelect('SUM(analytics.duration)', 'totalTimePlayed')
+      .addSelect('COUNT(DISTINCT CASE WHEN analytics.gameId IS NOT NULL THEN analytics.gameId END)', 'totalGamesPlayed')
+      .addSelect('COUNT(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.id END)', 'totalSessionCount')
+      .addSelect('SUM(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.duration ELSE 0 END)', 'totalTimePlayed')
       .groupBy('analytics.userId')
       .getRawMany();
 
@@ -795,8 +798,8 @@ export const getUsersWithAnalytics = async (
       .addGroupBy('analytics.gameId')
       .addGroupBy('game.title')
       .addGroupBy('thumbnailFile.s3Url')
-      .orderBy('"userId"')
-      .addOrderBy('"sessionCount"', 'DESC')
+      .orderBy('analytics.userId')
+      .addOrderBy('COUNT(analytics.id)', 'DESC')
       .getRawMany();
 
     // Create a map of user IDs to their most played game

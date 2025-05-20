@@ -4,8 +4,11 @@ import { Card } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
 import { DeleteConfirmationModal } from "../../../components/modals/DeleteConfirmationModal";
 import { toast } from "sonner";
-import { useGames, useDeleteGame } from "../../../backend/games.service";
+import { useDeleteGame } from "../../../backend/games.service";
+import { useGamesAnalytics } from "../../../backend/analytics.service";
 import type { GameStatus } from "../../../backend/types";
+import { NoResults } from '../../../components/single/NoResults';
+import { RiGamepadLine } from 'react-icons/ri';
 import { useQueryClient } from "@tanstack/react-query";
 import { BackendRoute } from "../../../backend/constants";
 import { FilterSheet } from "../../../components/single/Filter-Sheet";
@@ -30,14 +33,22 @@ export default function GameManagement() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
   const queryClient = useQueryClient();
-  const { data: games, isLoading } = useGames(filters);
+  const { data: gamesWithAnalytics, isLoading } = useGamesAnalytics();
   const deleteGame = useDeleteGame();
 
+  // Apply filters
+  const filteredGames = gamesWithAnalytics?.filter(game => {
+    if (filters?.categoryId && game.category?.id !== filters.categoryId) return false;
+    if (filters?.status && game.status !== filters.status) return false;
+    return true;
+  });
+
+ 
   const handleDelete = async () => {
     if (!selectedGameId) return;
     try {
       await deleteGame.mutateAsync(selectedGameId);
-      queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS] });
       toast.success("Game deleted successfully");
       setDeleteModalOpen(false);
       setEditOpen(false); // Close edit sheet
@@ -45,7 +56,7 @@ export default function GameManagement() {
     } catch (error: any) {
       // Check if it's a "not found" error, which means the game was already deleted
       if (error?.response?.data?.error?.message?.includes('not found')) {
-        queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES] });
+        queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS] });
         toast.success("Game deleted successfully");
         setDeleteModalOpen(false);
         setEditOpen(false); // Close edit sheet
@@ -56,7 +67,7 @@ export default function GameManagement() {
     }
   };
 
-  const totalGames = games?.length || 0;
+  const totalGames = filteredGames?.length || 0;
   const totalPages = Math.ceil(totalGames / pageSize);
 
   return (
@@ -101,7 +112,20 @@ export default function GameManagement() {
                   Loading...
                 </td>
               </tr>
-            ) : games?.map((game, idx) => (
+            ) : !filteredGames?.length ? (
+              <tr>
+                <td colSpan={5}>
+                  <NoResults 
+                    title={gamesWithAnalytics?.length ? "No matching results" : "No games found"}
+                    message={gamesWithAnalytics?.length 
+                      ? "Try adjusting your filters"
+                      : "No games have been added to the system yet"
+                    }
+                    icon={<RiGamepadLine className="w-12 h-12 text-gray-400" />}
+                  />
+                </td>
+              </tr>
+            ) : filteredGames.map((game, idx) => (
               <tr
                 key={game.id}
                 className={cn(
@@ -109,16 +133,19 @@ export default function GameManagement() {
                   idx % 2 === 0 ? "dark:bg-[#18192b]" : "dark:bg-[#23243a]"
                 )}
               >
+
                 <td className="px-4 py-3 flex items-center gap-3">
                   <img
-                    src={game.thumbnailFile?.url || gameImg}
+                    src={(game.thumbnailFile as any)?.s3Url || gameImg}
                     alt={game.title}
                     className="w-12 h-12 rounded-lg object-cover"
                   />
                   <span className="text-lg font-light">{game.title}</span>
                 </td>
                 <td className="px-4 py-3 font-pincuk">{game.category?.name || 'Uncategorized'}</td>
-                <td className="px-4 py-3 font-pincuk">-</td>
+                <td className="px-4 py-3 font-pincuk">
+                  {game.analytics?.totalPlayTime != null ? `${Math.round(game.analytics.totalPlayTime)} min` : '-'}
+                </td>
                 <td className="px-4 py-3">
                   {game.status === "active" ? (
                     <span className="inline-flex items-center gap-2 p-1 rounded bg-[#419E6A] text-white font-pincuk text-sm">
@@ -147,7 +174,7 @@ export default function GameManagement() {
                     <button
                       className="text-black hover:text-black p-1 dark:text-white"
                       title="View"
-                      onClick={() => navigate(`/admin/view-game`)}
+              onClick={() => navigate(`/admin/view-game/${game.id}`)}
                     >
                       {game.status === "active" ? <IoEyeOutline /> : <IoEyeOffOutline />}
                     </button>

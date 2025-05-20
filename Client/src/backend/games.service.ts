@@ -34,6 +34,7 @@ export const useCreateGame = () => {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS] });
     },
   });
 };
@@ -50,6 +51,20 @@ export const useUpdateGame = () => {
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES] });
       queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES, id] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS] });
+    },
+  });
+};
+
+export const useToggleGameStatus = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (gameId: string) => {
+      const response = await backendService.patch(`${BackendRoute.ADMIN_GAMES}/${gameId}/toggle-status`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS] });
     },
   });
 };
@@ -61,6 +76,7 @@ export const useDeleteGame = () => {
       backendService.delete(BackendRoute.GAME_BY_ID.replace(':id', id)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS] });
     },
   });
 };

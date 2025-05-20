@@ -3,6 +3,8 @@ import { MdOutlineCancel } from "react-icons/md";
 import { InviteSheet } from "../../../components/single/Invite-Sheet";
 import { useAllTeamMembers, useRevokeRole } from "../../../backend/teams.service";
 import { DeleteConfirmationModal } from "../../../components/modals/DeleteConfirmationModal";
+import { NoResults } from '../../../components/single/NoResults';
+import { RiTeamLine } from 'react-icons/ri';
 import { toast } from "sonner";
 import type { User } from "../../../backend/types";
 
@@ -62,6 +64,18 @@ export default function TeamManagement() {
               <tr>
                 <td colSpan={4} className="text-center py-6">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D946EF] mx-auto"></div>
+                </td>
+              </tr>
+            ) : !(teamData || []).filter((member: User) => 
+              member.role.name.toLowerCase() !== 'player'
+            ).length ? (
+              <tr>
+                <td colSpan={4} className="text-center py-6">
+                  <NoResults 
+                    title="No team members found"
+                    message="Your team doesn't have any members yet. Click 'Invite Team Member' to add someone."
+                    icon={<RiTeamLine className="w-12 h-12 text-gray-400" />}
+                  />
                 </td>
               </tr>
             ) : (teamData || []).filter((member: User) => 

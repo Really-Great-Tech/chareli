@@ -55,11 +55,11 @@ export const registerPlayer = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { firstName, lastName, email, password, phoneNumber, isAdult, hasAcceptedTerms } = req.body;
+    const { firstName, lastName, email, password, phoneNumber, isAdult = true, hasAcceptedTerms = true } = req.body;
 
     // Validate required fields
-    if (!firstName || !lastName || !email || !password || !phoneNumber || hasAcceptedTerms !== true) {
-      return next(ApiError.badRequest('All fields are required and you must accept the terms and conditions'));
+    if (!firstName || !lastName || !email || !password || !phoneNumber) {
+      return next(ApiError.badRequest('All fields are required'));
     }
 
     // Register the user
@@ -143,11 +143,11 @@ export const registerFromInvitation = async (
 ): Promise<void> => {
   try {
     const { token } = req.params;
-    const { firstName, lastName, password, phoneNumber, isAdult, hasAcceptedTerms } = req.body;
+    const { firstName, lastName, password, phoneNumber, isAdult = true, hasAcceptedTerms = true } = req.body;
 
     // Validate required fields
-    if (!firstName || !lastName || !password || !phoneNumber || hasAcceptedTerms !== true) {
-      return next(ApiError.badRequest('All fields are required and you must accept the terms and conditions'));
+    if (!firstName || !lastName || !password || !phoneNumber) {
+      return next(ApiError.badRequest('All fields are required'));
     }
 
     // Register the user

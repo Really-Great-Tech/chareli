@@ -1,26 +1,36 @@
-// import React from "react";
+import { useState } from "react";
 import { MdOutlineCancel } from "react-icons/md";
-import { InviteSheet } from "../../../components/single/Invite-Sheet"
-
-const teamMembers = [
-  {
-    name: "John Doe",
-    email: "john@email.com",
-    role: "Admin",
-  },
-  {
-    name: "John Doe",
-    email: "john@email.com",
-    role: "Admin",
-  },
-  {
-    name: "John Doe",
-    email: "john@email.com",
-    role: "Super Admin",
-  },
-];
+import { InviteSheet } from "../../../components/single/Invite-Sheet";
+import { useAllTeamMembers, useRevokeRole } from "../../../backend/teams.service";
+import { DeleteConfirmationModal } from "../../../components/modals/DeleteConfirmationModal";
+import { toast } from "sonner";
+import type { User } from "../../../backend/types";
 
 export default function TeamManagement() {
+  const { data: teamData, isLoading, error } = useAllTeamMembers();
+  const revokeRole = useRevokeRole();
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+
+  console.log(teamData)
+  const handleRevokeClick = (user: User) => {
+    setSelectedUser(user);
+    setIsConfirmOpen(true);
+  };
+
+  const handleConfirmRevoke = async () => {
+    if (!selectedUser) return;
+
+    try {
+      await revokeRole.mutateAsync(selectedUser.id);
+      toast.success(`${selectedUser.firstName}'s role has been revoked`);
+      setIsConfirmOpen(false);
+      setSelectedUser(null);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to revoke role');
+    }
+  };
+
   return (
     <div className="px-8">
       <div className="flex justify-between items-center mb-6">
@@ -42,27 +52,48 @@ export default function TeamManagement() {
             </tr>
           </thead>
           <tbody>
-            {teamMembers.map((member, idx) => (
+            {error ? (
+              <tr>
+                <td colSpan={4} className="text-center py-6 text-red-500">
+                  Failed to load team members. Please try again.
+                </td>
+              </tr>
+            ) : isLoading ? (
+              <tr>
+                <td colSpan={4} className="text-center py-6">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D946EF] mx-auto"></div>
+                </td>
+              </tr>
+            ) : (teamData || []).filter((member: User) => 
+              member.role.name.toLowerCase() !== 'player'
+            ).map((member: User) => (
               <tr
-                key={idx}
+                key={member.id}
                 className="border-t border-[#d8d9da] text-md font-pincuk"
               >
-                <td className="py-6 text-[#121C2D] dark:text-white">{member.name}</td>
+                <td className="py-6 text-[#121C2D] dark:text-white">
+                  {member.firstName} {member.lastName}
+                </td>
                 <td className="py-6 text-[#121C2D] dark:text-white">{member.email}</td>
                 <td className="py-6">
-                  {member.role === "Admin" ? (
+                  {member.role.name.toLowerCase() === "admin" ? (
                     <span className="bg-[#D946EF] text-white px-3 py-2 rounded-lg text-md">
                       Admin
                     </span>
                   ) : (
                     <span className="bg-[#334154] text-white px-3 py-2 rounded-lg text-md">
-                      Super Admin
+                      {member.role.name}
                     </span>
                   )}
                 </td>
                 <td className="py-6">
-                  <button className="flex items-center gap-2 bg-[#EF4444] hover:bg-[#dc2626] text-white px-3  py-1 rounded-lg text-md transition-all">
-                    <span className="text-xl"><MdOutlineCancel className="w-4 h-4" /></span> Revoke
+                  <button 
+                    onClick={() => handleRevokeClick(member)}
+                    className="flex items-center gap-2 bg-[#EF4444] hover:bg-[#dc2626] text-white px-3 py-1 rounded-lg text-md transition-all"
+                    disabled={revokeRole.isPending && selectedUser?.id === member.id}
+                  >
+                    <span className="text-xl"><MdOutlineCancel className="w-4 h-4" /></span>
+                    {revokeRole.isPending && selectedUser?.id === member.id ? 'Revoking...' : 'Revoke'}
                   </button>
                 </td>
               </tr>
@@ -70,6 +101,17 @@ export default function TeamManagement() {
           </tbody>
         </table>
       </div>
+
+      <DeleteConfirmationModal
+        open={isConfirmOpen}
+        onOpenChange={setIsConfirmOpen}
+        onConfirm={handleConfirmRevoke}
+        isDeleting={revokeRole.isPending}
+        title="Revoke Team Member Role?"
+        description={selectedUser ? `Are you sure you want to revoke ${selectedUser.firstName}'s ${selectedUser.role.name} role? They will be changed to a player.` : ''}
+        confirmButtonText="Revoke"
+        loadingText="Revoking..."
+      />
     </div>
   );
 }

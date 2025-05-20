@@ -92,3 +92,17 @@ export const useDeleteUser = () => {
     },
   });
 };
+
+/**
+ * Hook to change user password
+ * @returns Mutation function to change password
+ */
+export const useChangePassword = () => {
+  return useMutation({
+    mutationFn: async ({ oldPassword, password }: { oldPassword: string; password: string }) => {
+      const url = BackendRoute.AUTH_CHANGE_PASSWORD;
+      const response = await backendService.post(url, { oldPassword, newPassword: password });
+      return response;
+    }
+  });
+};

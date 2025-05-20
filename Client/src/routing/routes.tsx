@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import ErrorPage from '../pages/ErrorPage';
 import Home from '../pages/Home/Home';
 import About from '../pages/About/About';
+import { RegisterInvitationPage } from '../pages/RegisterInvitation';
 import MainLayout from '../layout/MainLayout';
 import GamePlay from '../pages/GamePlay/GamePlay';
 import Categories from '../pages/Categories/Categories';
@@ -19,7 +20,6 @@ import UserManagementView from '../pages/Admin/UserMgtView';
 import TeamManagement from '../pages/Admin/Team/TeamManagement';
 import Settings from '../pages/Admin/Settings';
 import ViewProfile from '../pages/Admin/ViewProfile';
-import { AcceptInvitationModal } from "../components/modals/AdminModals/AcceptInvitationModal"
 
 
 export const AppRoutes = () => {
@@ -40,9 +40,7 @@ export const AppRoutes = () => {
       </Route>
 
         <Route path="reset-password/:token" element={<ResetPasswordPage />} />
-        <Route path="register-invitation/:token" element={<AcceptInvitationModal open={false} onOpenChange={function (): void {
-        throw new Error('Function not implemented.');
-      } } isExistingUser={false} />} /> {/* TODO: Create RegisterInvitationPage */}
+        <Route path="register-invitation/:token" element={<RegisterInvitationPage />} />
 
         <Route path="admin/" element={<ProtectedRoute requireAdmin={true} />}>
           <Route element={<AdminLayout />}>

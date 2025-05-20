@@ -107,3 +107,9 @@ export interface ResetPasswordData {
   password: string;
   confirmPassword: string;
 }
+
+export interface ChangePasswordData {
+  id: string;
+  oldPassword: string;
+  password: string;
+}

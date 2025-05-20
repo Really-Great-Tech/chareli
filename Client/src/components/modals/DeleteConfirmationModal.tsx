@@ -9,6 +9,8 @@ interface DeleteConfirmationModalProps {
   isDeleting?: boolean;
   title?: string;
   description?: string;
+  confirmButtonText?: string;
+  loadingText?: string;
 }
 
 export function DeleteConfirmationModal({
@@ -17,7 +19,9 @@ export function DeleteConfirmationModal({
   onConfirm,
   isDeleting = false,
   title = "Are you sure you want to delete?",
-  description = "This action cannot be reversed"
+  description = "This action cannot be reversed",
+  confirmButtonText = "Delete",
+  loadingText = "Deleting..."
 }: DeleteConfirmationModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -42,7 +46,7 @@ export function DeleteConfirmationModal({
             onClick={onConfirm}
             disabled={isDeleting}
           >
-            {isDeleting ? "Deleting..." : "Delete"}
+            {isDeleting ? loadingText : confirmButtonText}
           </Button>
         </DialogFooter>
         <DialogClose asChild>

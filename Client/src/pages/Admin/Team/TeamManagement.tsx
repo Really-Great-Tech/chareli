@@ -14,7 +14,6 @@ export default function TeamManagement() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
-  console.log(teamData)
   const handleRevokeClick = (user: User) => {
     setSelectedUser(user);
     setIsConfirmOpen(true);

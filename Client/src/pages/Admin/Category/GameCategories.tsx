@@ -7,31 +7,33 @@ import { useCategories, useDeleteCategory } from "../../../backend/category.serv
 import { useGames } from "../../../backend/games.service";
 import { DeleteConfirmationModal } from "../../../components/modals/DeleteConfirmationModal";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
-import { BackendRoute } from "../../../backend/constants";
 
 export default function GameCategories() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-
-  const queryClient = useQueryClient();
   const { data: categories, isLoading: loadingCategories } = useCategories();
   const { data: games, isLoading: loadingGames } = useGames();
-  
+  const { mutateAsync: deleteCategory, isPending: issDeletingCategory } = useDeleteCategory();
   const isLoading = loadingCategories || loadingGames;
-  const deleteCategory = useDeleteCategory();
+  
 
   const handleDelete = async () => {
     if (!selectedCategoryId) return;
     try {
-      await deleteCategory.mutateAsync(selectedCategoryId);
-      queryClient.invalidateQueries({ queryKey: [BackendRoute.CATEGORIES] });
+      await deleteCategory(selectedCategoryId);
       toast.success("Category deleted successfully");
       setShowDeleteModal(false);
+      setSelectedCategoryId(null);
+      setEditOpen(false);
     } catch (error: any) {
-      toast.error("Failed to delete category");
+       const errorMessage =
+      error?.response?.data?.error?.message ||
+      error?.response?.data?.message ||
+      error.message ||
+      "Failed to delete category";
+      toast.error(errorMessage);
     }
   };
 
@@ -92,12 +94,12 @@ export default function GameCategories() {
         open={showDeleteModal}
         onOpenChange={setShowDeleteModal}
         onConfirm={handleDelete}
-        isDeleting={deleteCategory.isPending}
+        isDeleting={issDeletingCategory}
         title="Are you sure you want to Delete Category?"
         description="This action cannot be reversed"
       />
       <CreateCategory open={createOpen} onOpenChange={setCreateOpen} />
-      {selectedCategoryId && (
+      {editOpen && selectedCategoryId && (
         <EditCategory 
           open={editOpen} 
           onOpenChange={setEditOpen} 

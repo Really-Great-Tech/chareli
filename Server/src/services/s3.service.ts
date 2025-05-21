@@ -48,13 +48,20 @@ export class S3Service implements S3ServiceInterface {
    */
   async uploadFile(file: Buffer, originalname: string, contentType: string, folder?: string): Promise<S3UploadResult> {
     try {
-      const fileId = uuidv4();
-      const extension = path.extname(originalname);
-      const filename = path.basename(originalname, extension).replace(/\s+/g, '-').toLowerCase();
-      
-      const key = folder 
-        ? `${folder}/${fileId}-${filename}${extension}`
-        : `${fileId}-${filename}${extension}`;
+      // For game files, preserve the original path structure
+      let key;
+      if (folder === 'games') {
+        // Keep original path for game files
+        key = `${folder}/${originalname}`;
+      } else {
+        // For other files (like thumbnails), use the old naming
+        const fileId = uuidv4();
+        const extension = path.extname(originalname);
+        const filename = path.basename(originalname, extension).replace(/\s+/g, '-').toLowerCase();
+        key = folder 
+          ? `${folder}/${fileId}-${filename}${extension}`
+          : `${fileId}-${filename}${extension}`;
+      }
       
       const command = new PutObjectCommand({
         Bucket: this.bucket,
@@ -223,6 +230,16 @@ export class S3Service implements S3ServiceInterface {
     } catch (error) {
       return false;
     }
+  }
+
+  /**
+   * Get the base URL for S3 bucket
+   * @returns Base URL for the bucket
+   */
+  getBaseUrl(): string {
+    return config.s3.endpoint 
+      ? `${config.s3.endpoint}/${this.bucket}`
+      : `https://${this.bucket}.s3.${config.s3.region}.amazonaws.com`;
   }
 }
 

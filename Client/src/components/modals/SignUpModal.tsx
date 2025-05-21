@@ -76,7 +76,7 @@ export function SignUpModal({
 
   const handleSignUp = async (values: typeof initialValues, actions: FormikHelpers<typeof initialValues>) => {
     try {
-      const response = await createUser.mutateAsync({
+      await createUser.mutateAsync({
         firstName: values.firstName,
         lastName: values.lastName,
         email: values.email,

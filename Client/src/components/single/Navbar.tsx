@@ -15,7 +15,7 @@ import { LoginModal } from '../modals/LoginModal';
 
 
 const Navbar: React.FC = () => {
-  const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const { isAuthenticated, isAdmin, logout } = useAuth();
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedMode = localStorage.getItem('darkMode');
     return savedMode ? JSON.parse(savedMode) : false;

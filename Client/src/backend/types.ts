@@ -152,3 +152,24 @@ export interface ChangePasswordData {
   oldPassword: string;
   password: string;
 }
+
+export interface CreateAnalyticsData {
+  gameId?: string;
+  activityType: string;
+  startTime?: Date;
+  endTime?: Date;
+  sessionCount?: number;
+}
+
+export interface Analytics {
+  id: string;
+  userId: string;
+  gameId?: string;
+  activityType: string;
+  startTime?: Date;
+  endTime?: Date;
+  duration?: number;
+  sessionCount?: number;
+  createdAt: string;
+  updatedAt: string;
+}

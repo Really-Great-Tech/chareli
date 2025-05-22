@@ -17,6 +17,8 @@ import {
 } from '../validation';
 
 const router = Router();
+router.get('/', validateQuery(categoryQuerySchema), getAllCategories);
+router.get('/:id', validateParams(categoryIdParamSchema), getCategoryById);
 
 // All category routes require authentication and admin privileges
 router.use(authenticate);
@@ -26,8 +28,6 @@ router.use(isAdmin);
 router.use(apiLimiter);
 
 // Category routes
-router.get('/', validateQuery(categoryQuerySchema), getAllCategories);
-router.get('/:id', validateParams(categoryIdParamSchema), getCategoryById);
 router.post('/', validateBody(createCategorySchema), createCategory);
 router.put('/:id', validateParams(categoryIdParamSchema), validateBody(updateCategorySchema), updateCategory);
 router.delete('/:id', validateParams(categoryIdParamSchema), deleteCategory);

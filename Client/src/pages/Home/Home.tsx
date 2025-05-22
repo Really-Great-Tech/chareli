@@ -1,20 +1,37 @@
-// import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AllGamesSection from '../../components/single/AllGamesSection'
 import PopularSection from '../../components/single/PopularSection'
-// import { WelcomeModal } from '../../components/modals/WelcomeModal';
-
+import { LoginModal } from '../../components/modals/LoginModal';
+import { useAuth } from '../../context/AuthContext';
 
 function Home() {
-  // const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState(true);
+  const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
+  const { keepPlayingRedirect, setKeepPlayingRedirect } = useAuth();
+
+  useEffect(() => {
+    if (keepPlayingRedirect) {
+      setIsSignUpModalOpen(true);
+      setKeepPlayingRedirect(false);
+    }
+  }, [keepPlayingRedirect, setKeepPlayingRedirect]);
+
+  const handleOpenSignUpModal = () => {
+    setIsSignUpModalOpen(true);
+  };
+
+  const handleCloseSignUpModal = () => {
+    setIsSignUpModalOpen(false);
+  };
 
   return (
     <div className='font-boogaloo'>
       <PopularSection />
       <AllGamesSection />
-      {/* <WelcomeModal
-        open={isWelcomeModalOpen}
-        onOpenChange={setIsWelcomeModalOpen}
-      /> */}
+      <LoginModal 
+        open={isSignUpModalOpen}
+        onOpenChange={handleCloseSignUpModal}
+        openSignUpModal={handleOpenSignUpModal}
+      />
     </div>
   )
 }

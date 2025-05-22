@@ -1,14 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { backendService } from './api.service';
 import { BackendRoute } from './constants';
-import type { GameResponse, GameStatus } from './types';
+import type { GameResponse, GameStatus, PaginatedResponse } from './types';
 
 export const useGames = (params?: { categoryId?: string; status?: GameStatus }) => {
-  return useQuery<GameResponse[]>({
+  return useQuery<PaginatedResponse<GameResponse>>({
     queryKey: [BackendRoute.GAMES, params],
     queryFn: async () => {
       const response = await backendService.get(BackendRoute.GAMES, { params });
-      return response.data as GameResponse[];
+      return response.data as PaginatedResponse<GameResponse>;
     },
   });
 };
@@ -18,6 +18,7 @@ export const useGameById = (id: string) => {
     queryKey: [BackendRoute.GAMES, id],
     queryFn: async () => {
       const response = await backendService.get(BackendRoute.GAME_BY_ID.replace(':id', id));
+      console.log('Game API Response:', response.data);
       return response.data as GameResponse;
     },
   });

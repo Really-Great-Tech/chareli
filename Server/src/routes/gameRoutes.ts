@@ -21,6 +21,9 @@ import {
 const router = Router();
 
 // All game routes require authentication and admin privileges
+router.get('/', validateQuery(gameQuerySchema), getAllGames);
+router.get('/:id', validateParams(gameIdParamSchema), getGameById);
+
 router.use(authenticate);
 router.use(isAdmin);
 
@@ -28,8 +31,6 @@ router.use(isAdmin);
 router.use(apiLimiter);
 
 // Game routes
-router.get('/', validateQuery(gameQuerySchema), getAllGames);
-router.get('/:id', validateParams(gameIdParamSchema), getGameById);
 router.post('/', uploadGameFiles, createGame);
 router.put('/:id', validateParams(gameIdParamSchema), uploadGameFilesForUpdate, updateGame);
 router.delete('/:id', validateParams(gameIdParamSchema), deleteGame);

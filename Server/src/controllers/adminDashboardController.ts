@@ -418,7 +418,7 @@ export const getGamesWithAnalytics = async (
       analyticsMap.set(item.gameId, {
         uniquePlayers: parseInt(item.uniquePlayers) || 0,
         totalSessions: parseInt(item.totalSessions) || 0,
-        totalPlayTime: Math.round((item.totalPlayTime || 0) / 60) // Convert seconds to minutes
+        totalPlayTime: item.totalPlayTime || 0
       });
     });
     
@@ -822,7 +822,7 @@ export const getUsersWithAnalytics = async (
       analyticsMap.set(item.userId, {
         totalGamesPlayed: parseInt(item.totalGamesPlayed) || 0,
         totalSessionCount: parseInt(item.totalSessionCount) || 0,
-        totalTimePlayed: Math.round((item.totalTimePlayed || 0) / 60), // Convert seconds to minutes
+        totalTimePlayed: item.totalTimePlayed || 0, 
         mostPlayedGame: mostPlayedGameMap.get(item.userId) || null
       });
     });

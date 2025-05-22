@@ -333,7 +333,7 @@ export const useCurrentUserStats = () => {
     queryKey: [BackendRoute.USER_STATS],
     queryFn: async () => {
       const response = await backendService.get(BackendRoute.USER_STATS);
-      return response.data.data;
+      return response.data;
     },
     refetchOnWindowFocus: false,
   });

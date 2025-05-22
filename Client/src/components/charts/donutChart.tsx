@@ -104,7 +104,7 @@ export function DonutChart() {
             >
               <div className="w-5 h-5 mr-3" style={{ backgroundColor: index === 0 ? "#D946EF" : "#F5D0FE" }}></div>
               <span className="text-lg text-gray-600 font-pincuk dark:text-white">
-                {index === 0 ? "Active users" : "Non-active"} = {entry.value}
+                {index === 0 ? "Active users" : "Non-active"} = {_entry.value}
               </span>
             </div>
           ))}

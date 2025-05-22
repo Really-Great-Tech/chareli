@@ -96,7 +96,7 @@ export function DonutChart() {
         </div>
         
         <div className="space-y-3">
-          {data.map((entry, index) => (
+          {data.map((_entry, index) => (
             <div 
               key={`legend-${index}`} 
               className="flex items-center cursor-pointer"

@@ -407,9 +407,10 @@ export const createGame = async (
         throw new ApiError(400, 'No index.html found in the zip file');
       }
 
+      const indexPath = processedZip.indexPath.replace(/\\/g, '/');
       const gameFileRecord = fileRepository.create({
-        s3Key: `${s3GamePath}/${processedZip.indexPath.replace(/\\/g, '/')}`,
-        s3Url: `${s3Service.getBaseUrl()}/${s3GamePath}/`,
+        s3Key: `${s3GamePath}/${indexPath}`,
+        s3Url: `${s3Service.getBaseUrl()}/${s3GamePath}/${indexPath}`,
         type: 'game_file'
       });
 
@@ -598,9 +599,10 @@ export const updateGame = async (
         throw new ApiError(400, 'No index.html found in the zip file');
       }
 
+      const indexPath = processedZip.indexPath.replace(/\\/g, '/');
       const gameFileRecord = fileRepository.create({
-        s3Key: `${s3GamePath}/${processedZip.indexPath.replace(/\\/g, '/')}`,
-        s3Url: `${s3Service.getBaseUrl()}/${s3GamePath}/`,
+        s3Key: `${s3GamePath}/${indexPath}`,
+        s3Url: `${s3Service.getBaseUrl()}/${s3GamePath}/${indexPath}`,
         type: 'game_file'
       });
       

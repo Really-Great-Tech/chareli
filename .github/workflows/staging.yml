@@ -4,10 +4,6 @@ on:
   push:
     branches:
       - staging
-  pull_request:
-    branches:
-      - staging
-  workflow_dispatch:
 
 permissions:
   packages: write
@@ -107,7 +103,7 @@ jobs:
           cache-dependency-path: Server/package-lock.json
 
       - name: Install Dependencies
-        run: npm ci
+        run: npm install
 
       - name: Run lint and Unit tests
         run: pnpm lint && pnpm test

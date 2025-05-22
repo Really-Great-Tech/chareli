@@ -51,7 +51,12 @@ export default function GameCategories() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {isLoading ? (
           <div className="col-span-full text-center py-8">Loading...</div>
-        ) : categories?.map((cat) => (
+        ) : !categories?.length ? (
+          <div className="col-span-full text-center py-12">
+            <p className="text-xl font-boogaloo text-[#475568] dark:text-white mb-2">No categories found</p>
+            <p className="text-sm text-[#475568] dark:text-white">Click "Create New Category" to add your first category</p>
+          </div>
+        ) : categories.map((cat) => (
           <div
             key={cat.name}
             className="bg-[#F1F5F9] rounded-2xl p-6 shadow flex flex-col gap-2 relative min-h-[120px] dark:bg-[#121C2D]"
@@ -85,7 +90,7 @@ export default function GameCategories() {
               {cat.description || 'No description'}
             </p>
             <span className="text-[#D946EF] font-bold text-sm shadow-none tracking-wider">
-              {games?.filter(game => game.categoryId === cat.id).length || 0} games
+              {(games as any)?.filter((game: any) => game.categoryId === cat.id).length || 0} games
             </span>
           </div>
         ))}

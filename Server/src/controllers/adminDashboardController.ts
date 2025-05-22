@@ -401,15 +401,20 @@ export const getGamesWithAnalytics = async (
     const gameIds = games.map(game => game.id);
     
     // Get analytics data for these games
-    const gamesAnalytics = await analyticsRepository
-      .createQueryBuilder('analytics')
-      .select('analytics.gameId', 'gameId')
-      .addSelect('COUNT(DISTINCT analytics.userId)', 'uniquePlayers')
-      .addSelect('COUNT(analytics.id)', 'totalSessions')
-      .addSelect('SUM(analytics.duration)', 'totalPlayTime')
-      .where('analytics.gameId IN (:...gameIds)', { gameIds })
-      .groupBy('analytics.gameId')
-      .getRawMany();
+    let gamesAnalytics = [];
+
+    if (gameIds.length > 0) {
+      gamesAnalytics = await analyticsRepository
+        .createQueryBuilder('analytics')
+        .select('analytics.gameId', 'gameId')
+        .addSelect('COUNT(DISTINCT analytics.userId)', 'uniquePlayers')
+        .addSelect('COUNT(analytics.id)', 'totalSessions')
+        .addSelect('SUM(analytics.duration)', 'totalPlayTime')
+        .where('analytics.gameId IN (:...gameIds)', { gameIds })
+        .groupBy('analytics.gameId')
+        .getRawMany();
+    }
+
     
     // Create a map of game IDs to their analytics data
     const analyticsMap = new Map();
@@ -670,7 +675,6 @@ export const getUserAnalyticsById = async (
       return next(ApiError.notFound(`User with id ${id} not found`));
     }
 
-    console.log(user)
     // Get user's analytics summary
     const analyticsSummary = await analyticsRepository
       .createQueryBuilder('analytics')

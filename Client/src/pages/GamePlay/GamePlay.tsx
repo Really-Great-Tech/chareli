@@ -10,13 +10,15 @@ import { Card } from '../../components/ui/card';
 
 import { LuExpand } from "react-icons/lu";
 import KeepPlayingModal from '../../components/modals/KeepPlayingModal';
+import { LoginModal } from '../../components/modals/LoginModal';
 
 
 export default function GamePlay() {
 
 
-    // Modal state
+    // Modal states
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
 
     const handleModal = () => {
         setIsModalOpen(true);
@@ -26,6 +28,14 @@ export default function GamePlay() {
         setIsModalOpen(false);
     };
 
+    const handleOpenSignUpModal = () => {
+        setIsSignUpModalOpen(true);
+    };
+
+    const handleCloseSignUpModal = () => {
+        setIsSignUpModalOpen(false);
+    };
+
     const [expanded, setExpanded] = useState(false);
 
     return (
@@ -33,7 +43,11 @@ export default function GamePlay() {
             {/* Game area */}
             <div className={`relative w-full ${expanded ? 'h-screen max-w-full fixed inset-0 z-40 bg-black bg-opacity-90' : 'max-w-full pl-6 pr-6'} mx-auto rounded-2xl border-4 border-purple-400`} style={{ background: '#18181b' }}>
                 {/* Modal (inside game area, with blur) */}
-                <KeepPlayingModal open={isModalOpen} onClose={handleCloseModal} />
+                <KeepPlayingModal 
+                    open={isModalOpen} 
+                    onClose={handleCloseModal} 
+                    openSignUpModal={handleOpenSignUpModal}
+                />
                 <img
                     src={IframeImg}
                     alt="Embedded Content"
@@ -71,6 +85,11 @@ export default function GamePlay() {
                     </Card>
                 </div>
             </div>
+            <LoginModal 
+                open={isSignUpModalOpen}
+                onOpenChange={handleCloseSignUpModal}
+                openSignUpModal={handleOpenSignUpModal}
+            />
         </div>
     );
 }

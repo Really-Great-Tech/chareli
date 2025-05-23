@@ -37,19 +37,74 @@ export const getDashboardAnalytics = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    // 1. Total Users (unique visitors)
-    const uniqueSessionsResult = await signupAnalyticsRepository
+    const now = new Date();
+    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+
+    // Get users who were active yesterday (24-48 hours ago)
+    const yesterdayUsersResult = await analyticsRepository
       .createQueryBuilder('analytics')
-      .select('COUNT(DISTINCT analytics.sessionId)', 'count')
-      .where('analytics.sessionId IS NOT NULL')
+      .select('COUNT(DISTINCT analytics.userId)', 'count')
+      .where('analytics.createdAt BETWEEN :start AND :end', {
+        start: fortyEightHoursAgo,
+        end: twentyFourHoursAgo
+      })
       .getRawOne();
+
+    // Among those users, count how many returned in the last 24 hours
+    const returningUsersResult = await analyticsRepository
+      .createQueryBuilder('a1')
+      .select('COUNT(DISTINCT a1.userId)', 'count')
+      .innerJoin('analytics', 'a2', 'a1.userId = a2.userId')
+      .where('a1.createdAt > :twentyFourHoursAgo', { twentyFourHoursAgo })
+      .andWhere('a2.createdAt BETWEEN :start AND :end', {
+        start: fortyEightHoursAgo,
+        end: twentyFourHoursAgo
+      })
+      .getRawOne();
+
+    const yesterdayUsers = parseInt(yesterdayUsersResult?.count) || 0;
+    const returningUsers = parseInt(returningUsersResult?.count) || 0;
+    const retentionRate = yesterdayUsers > 0 
+      ? Number(((returningUsers / yesterdayUsers) * 100).toFixed(2))
+      : 0;
+
+    // 1. Total Users (unique visitors by IP)
+    const [currentUniqueIPsResult, previousUniqueIPsResult] = await Promise.all([
+      signupAnalyticsRepository
+        .createQueryBuilder('analytics')
+        .select('COUNT(DISTINCT analytics.ipAddress)', 'count')
+        .where('analytics.ipAddress IS NOT NULL')
+        .getRawOne(),
+      signupAnalyticsRepository
+        .createQueryBuilder('analytics')
+        .select('COUNT(DISTINCT analytics.ipAddress)', 'count')
+        .where('analytics.ipAddress IS NOT NULL')
+        .andWhere('analytics.createdAt < :twentyFourHoursAgo', { twentyFourHoursAgo })
+        .getRawOne()
+    ]);
     
-    const totalUsers = uniqueSessionsResult?.count || 0;
-    
+    const currentTotalUsers = currentUniqueIPsResult?.count || 0;
+    const previousTotalUsers = previousUniqueIPsResult?.count || 0;
+    const totalUsersPercentageChange = previousTotalUsers > 0 
+      ? ((currentTotalUsers - previousTotalUsers) / previousTotalUsers) * 100 
+      : 0;
+
     // 2. Total Registered Users with active/inactive breakdown
-    const totalRegisteredUsers = await userRepository.count();
-    
-    // Count active and inactive users
+    const [currentTotalRegisteredUsers, previousTotalRegisteredUsers] = await Promise.all([
+      userRepository.count(),
+      userRepository.count({
+        where: {
+          createdAt: LessThan(twentyFourHoursAgo)
+        }
+      })
+    ]);
+
+    const totalRegisteredUsersPercentageChange = previousTotalRegisteredUsers > 0
+      ? ((currentTotalRegisteredUsers - previousTotalRegisteredUsers) / previousTotalRegisteredUsers) * 100
+      : 0;
+
+    // Count active and inactive users (no percentage change needed as requested)
     const activeUsers = await userRepository.count({
       where: { isActive: true }
     });
@@ -57,67 +112,140 @@ export const getDashboardAnalytics = async (
     const inactiveUsers = await userRepository.count({
       where: { isActive: false }
     });
-    
+
     // 3. Total Games
-    const totalGames = await gameRepository.count();
-    
-    // 4. Total Sessions
-    const totalSessions = await analyticsRepository.count();
-    
-    // 5. Total Time Played (in minutes)
-    const totalTimePlayedResult = await analyticsRepository
-      .createQueryBuilder('analytics')
-      .select('SUM(analytics.duration)', 'totalPlayTime')
-      .getRawOne();
-    
-    // Convert seconds to minutes and round to nearest minute
-    const totalTimePlayed = Math.round((totalTimePlayedResult?.totalPlayTime || 0) / 60);
-    
-    // 6. Most Popular Game
-    const mostPopularGameResult = await analyticsRepository
+    const [currentTotalGames, previousTotalGames] = await Promise.all([
+      gameRepository.count(),
+      gameRepository.count({
+        where: {
+          createdAt: LessThan(twentyFourHoursAgo)
+        }
+      })
+    ]);
+
+    const totalGamesPercentageChange = previousTotalGames > 0
+      ? ((currentTotalGames - previousTotalGames) / previousTotalGames) * 100
+      : 0;
+
+    // 4. Total Sessions (game-related only)
+    const [currentTotalSessions, previousTotalSessions] = await Promise.all([
+      analyticsRepository.count({
+        where: {
+          gameId: Not(IsNull())
+        }
+      }),
+      analyticsRepository.count({
+        where: {
+          gameId: Not(IsNull()),
+          createdAt: LessThan(twentyFourHoursAgo)
+        }
+      })
+    ]);
+
+    const totalSessionsPercentageChange = previousTotalSessions > 0
+      ? ((currentTotalSessions - previousTotalSessions) / previousTotalSessions) * 100
+      : 0;
+
+    // 5. Total Time Played (in minutes, game-related only)
+    const [currentTotalTimePlayedResult, previousTotalTimePlayedResult] = await Promise.all([
+      analyticsRepository
+        .createQueryBuilder('analytics')
+        .select('SUM(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.duration ELSE 0 END)', 'totalPlayTime')
+        .where('analytics.gameId IS NOT NULL')
+        .getRawOne(),
+      analyticsRepository
+        .createQueryBuilder('analytics')
+        .select('SUM(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.duration ELSE 0 END)', 'totalPlayTime')
+        .where('analytics.gameId IS NOT NULL')
+        .andWhere('analytics.createdAt < :twentyFourHoursAgo', { twentyFourHoursAgo })
+        .getRawOne()
+    ]);
+
+    const currentTotalTimePlayed = Math.round((currentTotalTimePlayedResult?.totalPlayTime || 0) / 60);
+    const previousTotalTimePlayed = Math.round((previousTotalTimePlayedResult?.totalPlayTime || 0) / 60);
+    const totalTimePlayedPercentageChange = previousTotalTimePlayed > 0
+      ? ((currentTotalTimePlayed - previousTotalTimePlayed) / previousTotalTimePlayed) * 100
+      : 0;
+
+    // 6. Most Played Game
+    const mostPlayedGameResult = await analyticsRepository
       .createQueryBuilder('analytics')
       .select('analytics.gameId', 'gameId')
       .addSelect('game.title', 'gameTitle')
       .addSelect('thumbnailFile.s3Url', 'thumbnailUrl')
-      .addSelect('COUNT(*)', 'sessionCount')
+      .addSelect('COUNT(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.id END)', 'sessionCount')
       .leftJoin('analytics.game', 'game')
       .leftJoin('game.thumbnailFile', 'thumbnailFile')
+      .where('analytics.gameId IS NOT NULL')
       .groupBy('analytics.gameId')
       .addGroupBy('game.title')
       .addGroupBy('thumbnailFile.s3Url')
-      .orderBy('COUNT(*)', 'DESC')
+      .orderBy('COUNT(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.id END)', 'DESC')
       .limit(1)
       .getRawOne();
     
-    const mostPopularGame = mostPopularGameResult ? {
-      id: mostPopularGameResult.gameId,
-      title: mostPopularGameResult.gameTitle,
-      thumbnailUrl: mostPopularGameResult.thumbnailUrl || null,
-      sessionCount: parseInt(mostPopularGameResult.sessionCount)
+    const mostPlayedGame = mostPlayedGameResult ? {
+      id: mostPlayedGameResult.gameId,
+      title: mostPlayedGameResult.gameTitle,
+      thumbnailUrl: mostPlayedGameResult.thumbnailUrl || null,
+      sessionCount: parseInt(mostPlayedGameResult.sessionCount)
     } : null;
     
-    // 7. Average Session Duration (in minutes)
-    const avgDurationResult = await analyticsRepository
-      .createQueryBuilder('analytics')
-      .select('AVG(analytics.duration)', 'avgDuration')
-      .where('analytics.duration IS NOT NULL')
-      .getRawOne();
-    
-    // Convert seconds to minutes and round to nearest minute
-    const avgSessionDuration = Math.round((avgDurationResult?.avgDuration || 0) / 60);
-    
+    // 7. Average Session Duration (in minutes, game-related only)
+    const [currentAvgDurationResult, previousAvgDurationResult] = await Promise.all([
+      analyticsRepository
+        .createQueryBuilder('analytics')
+        .select('AVG(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.duration END)', 'avgDuration')
+        .where('analytics.gameId IS NOT NULL')
+        .andWhere('analytics.duration IS NOT NULL')
+        .getRawOne(),
+      analyticsRepository
+        .createQueryBuilder('analytics')
+        .select('AVG(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.duration END)', 'avgDuration')
+        .where('analytics.gameId IS NOT NULL')
+        .andWhere('analytics.duration IS NOT NULL')
+        .andWhere('analytics.createdAt < :twentyFourHoursAgo', { twentyFourHoursAgo })
+        .getRawOne()
+    ]);
+
+    // Convert to minutes before calculating percentage change
+    const currentAvgSessionDuration = Math.round(currentAvgDurationResult?.avgDuration || 0);
+    const previousAvgSessionDuration = Math.round(previousAvgDurationResult?.avgDuration || 0);
+    const avgSessionDurationPercentageChange = previousAvgSessionDuration > 0
+      ? ((currentAvgSessionDuration - previousAvgSessionDuration) / previousAvgSessionDuration) * 100
+      : 0;
+
     res.status(200).json({
       success: true,
       data: {
-        totalUsers,
-        totalRegisteredUsers,
+        totalUsers: {
+          current: currentTotalUsers,
+          percentageChange: Number(totalUsersPercentageChange.toFixed(2))
+        },
+        totalRegisteredUsers: {
+          current: currentTotalRegisteredUsers,
+          percentageChange: Number(totalRegisteredUsersPercentageChange.toFixed(2))
+        },
         activeUsers,
         inactiveUsers,
-        totalGames,
-        totalSessions,
-        totalTimePlayed,
-        mostPopularGame,
-        avgSessionDuration
+        totalGames: {
+          current: currentTotalGames,
+          percentageChange: Number(totalGamesPercentageChange.toFixed(2))
+        },
+        totalSessions: {
+          current: currentTotalSessions,
+          percentageChange: Number(totalSessionsPercentageChange.toFixed(2))
+        },
+        totalTimePlayed: {
+          current: currentTotalTimePlayed,
+          percentageChange: Number(totalTimePlayedPercentageChange.toFixed(2))
+        },
+        mostPlayedGame,
+        avgSessionDuration: {
+          current: currentAvgSessionDuration,
+          percentageChange: Number(avgSessionDurationPercentageChange.toFixed(2))
+        },
+        retentionRate
       }
     });
   } catch (error) {
@@ -407,9 +535,9 @@ export const getGamesWithAnalytics = async (
       gamesAnalytics = await analyticsRepository
         .createQueryBuilder('analytics')
         .select('analytics.gameId', 'gameId')
-        .addSelect('COUNT(DISTINCT analytics.userId)', 'uniquePlayers')
-        .addSelect('COUNT(analytics.id)', 'totalSessions')
-        .addSelect('SUM(analytics.duration)', 'totalPlayTime')
+        .addSelect('COUNT(DISTINCT CASE WHEN analytics.gameId IS NOT NULL THEN analytics.userId END)', 'uniquePlayers')
+        .addSelect('COUNT(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.id END)', 'totalSessions')
+        .addSelect('SUM(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.duration ELSE 0 END)', 'totalPlayTime')
         .where('analytics.gameId IN (:...gameIds)', { gameIds })
         .groupBy('analytics.gameId')
         .getRawMany();
@@ -535,10 +663,10 @@ export const getGameAnalyticsById = async (
     // Get game's analytics summary
     const analyticsSummary = await analyticsRepository
       .createQueryBuilder('analytics')
-      .select('COUNT(DISTINCT analytics.userId)', 'uniquePlayers')
-      .addSelect('COUNT(analytics.id)', 'totalSessions')
-      .addSelect('SUM(analytics.duration)', 'totalPlayTime')
-      .addSelect('AVG(analytics.duration)', 'avgSessionDuration')
+      .select('COUNT(DISTINCT CASE WHEN analytics.gameId IS NOT NULL THEN analytics.userId END)', 'uniquePlayers')
+      .addSelect('COUNT(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.id END)', 'totalSessions')
+      .addSelect('SUM(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.duration ELSE 0 END)', 'totalPlayTime')
+      .addSelect('AVG(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.duration END)', 'avgSessionDuration')
       .where(whereConditions)
       .getRawOne();
     
@@ -549,15 +677,15 @@ export const getGameAnalyticsById = async (
       .addSelect('user.email', 'userEmail')
       .addSelect('user.firstName', 'firstName')
       .addSelect('user.lastName', 'lastName')
-      .addSelect('COUNT(analytics.id)', 'sessionCount')
-      .addSelect('SUM(analytics.duration)', 'totalPlayTime')
+      .addSelect('COUNT(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.id END)', 'sessionCount')
+      .addSelect('SUM(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.duration ELSE 0 END)', 'totalPlayTime')
       .leftJoin('analytics.user', 'user')
       .where(whereConditions)
       .groupBy('analytics.userId')
       .addGroupBy('user.email')
       .addGroupBy('user.firstName')
       .addGroupBy('user.lastName')
-      .orderBy('SUM(analytics.duration)', 'DESC')
+      .orderBy('SUM(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.duration ELSE 0 END)', 'DESC')
       .limit(10)
       .getRawMany();
     
@@ -574,9 +702,9 @@ export const getGameAnalyticsById = async (
     const dailyPlayTime = await analyticsRepository
       .createQueryBuilder('analytics')
       .select('DATE(analytics.startTime)', 'date')
-      .addSelect('COUNT(analytics.id)', 'sessions')
-      .addSelect('COUNT(DISTINCT analytics.userId)', 'players')
-      .addSelect('SUM(analytics.duration)', 'totalPlayTime')
+      .addSelect('COUNT(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.id END)', 'sessions')
+      .addSelect('COUNT(DISTINCT CASE WHEN analytics.gameId IS NOT NULL THEN analytics.userId END)', 'players')
+      .addSelect('SUM(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.duration ELSE 0 END)', 'totalPlayTime')
       .where(whereConditions)
       .groupBy('DATE(analytics.startTime)')
       .orderBy('date', 'ASC')
@@ -678,9 +806,9 @@ export const getUserAnalyticsById = async (
     // Get user's analytics summary
     const analyticsSummary = await analyticsRepository
       .createQueryBuilder('analytics')
-      .select('COUNT(DISTINCT analytics.gameId)', 'totalGamesPlayed')
-      .addSelect('COUNT(analytics.id)', 'totalSessionCount')
-      .addSelect('SUM(analytics.duration)', 'totalTimePlayed')
+      .select('COUNT(DISTINCT CASE WHEN analytics.gameId IS NOT NULL THEN analytics.gameId END)', 'totalGamesPlayed')
+      .addSelect('COUNT(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.id END)', 'totalSessionCount')
+      .addSelect('SUM(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.duration ELSE 0 END)', 'totalTimePlayed')
       .where('analytics.userId = :userId', { userId: id })
       .getRawOne();
 
@@ -690,12 +818,13 @@ export const getUserAnalyticsById = async (
       .select('analytics.gameId', 'gameId')
       .addSelect('game.title', 'gameTitle')
       .addSelect('thumbnailFile.s3Url', 'thumbnailUrl')
-      .addSelect('COUNT(analytics.id)', 'sessionCount')
-      .addSelect('SUM(analytics.duration)', 'totalPlayTime')
+      .addSelect('COUNT(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.id END)', 'sessionCount')
+      .addSelect('SUM(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.duration ELSE 0 END)', 'totalPlayTime')
       .addSelect('MAX(analytics.startTime)', 'lastPlayed')
       .leftJoin('analytics.game', 'game')
       .leftJoin('game.thumbnailFile', 'thumbnailFile')
       .where('analytics.userId = :userId', { userId: id })
+      .andWhere('analytics.gameId IS NOT NULL')
       .groupBy('analytics.gameId')
       .addGroupBy('game.title')
       .addGroupBy('thumbnailFile.s3Url')
@@ -750,6 +879,111 @@ export const getUserAnalyticsById = async (
  *       500:
  *         description: Internal server error
  */
+/**
+ * @swagger
+ * /admin/games-popularity:
+ *   get:
+ *     summary: Get popularity metrics for all games
+ *     description: Returns total plays, average play time, and popularity trend for each game
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Games popularity metrics retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
+ *       500:
+ *         description: Internal server error
+ */
+export const getGamesPopularityMetrics = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const now = new Date();
+    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+
+    // Get all games with basic info
+    const games = await gameRepository.find({
+      relations: ['thumbnailFile'],
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        thumbnailFile: {
+          s3Url: true
+        }
+      }
+    });
+
+    // Get metrics for all games
+    const gamesMetrics = await Promise.all(games.map(async (game) => {
+      // Get total plays and average play time
+      const overallMetrics = await analyticsRepository
+        .createQueryBuilder('analytics')
+        .select('COUNT(*)', 'totalPlays')
+        .addSelect('AVG(analytics.duration)', 'averagePlayTime')
+        .where('analytics.gameId = :gameId', { gameId: game.id })
+        .andWhere('analytics.gameId IS NOT NULL')
+        .getRawOne();
+
+      // Get plays in last 24 hours
+      const currentPeriodPlays = await analyticsRepository
+        .createQueryBuilder('analytics')
+        .select('COUNT(*)', 'count')
+        .where('analytics.gameId = :gameId', { gameId: game.id })
+        .andWhere('analytics.gameId IS NOT NULL')
+        .andWhere('analytics.createdAt > :twentyFourHoursAgo', { twentyFourHoursAgo })
+        .getRawOne();
+
+      // Get plays in previous 24 hours
+      const previousPeriodPlays = await analyticsRepository
+        .createQueryBuilder('analytics')
+        .select('COUNT(*)', 'count')
+        .where('analytics.gameId = :gameId', { gameId: game.id })
+        .andWhere('analytics.gameId IS NOT NULL')
+        .andWhere('analytics.createdAt BETWEEN :start AND :end', {
+          start: fortyEightHoursAgo,
+          end: twentyFourHoursAgo
+        })
+        .getRawOne();
+
+      const currentPlays = parseInt(currentPeriodPlays?.count) || 0;
+      const previousPlays = parseInt(previousPeriodPlays?.count) || 0;
+
+      // Determine popularity trend
+      let popularity: 'up' | 'down' = 'down';
+      if (currentPlays > previousPlays) {
+        popularity = 'up';
+      }
+
+      return {
+        id: game.id,
+        title: game.title,
+        thumbnailUrl: game.thumbnailFile?.s3Url || null,
+        status: game.status,
+        metrics: {
+          totalPlays: parseInt(overallMetrics?.totalPlays) || 0,
+          averagePlayTime: Math.round((overallMetrics?.averagePlayTime || 0) / 60), // Convert to minutes
+          popularity
+        }
+      };
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: gamesMetrics
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getUsersWithAnalytics = async (
   req: Request,
   res: Response,
@@ -795,15 +1029,16 @@ export const getUsersWithAnalytics = async (
       .addSelect('analytics.gameId', 'gameId')
       .addSelect('game.title', 'gameTitle')
       .addSelect('thumbnailFile.s3Url', 'thumbnailUrl')
-      .addSelect('COUNT(analytics.id)', 'sessionCount')
+      .addSelect('COUNT(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.id END)', 'sessionCount')
       .leftJoin('analytics.game', 'game')
       .leftJoin('game.thumbnailFile', 'thumbnailFile')
+      .where('analytics.gameId IS NOT NULL')
       .groupBy('analytics.userId')
       .addGroupBy('analytics.gameId')
       .addGroupBy('game.title')
       .addGroupBy('thumbnailFile.s3Url')
       .orderBy('analytics.userId')
-      .addOrderBy('COUNT(analytics.id)', 'DESC')
+      .addOrderBy('COUNT(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.id END)', 'DESC')
       .getRawMany();
 
     // Create a map of user IDs to their most played game

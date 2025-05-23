@@ -20,6 +20,8 @@ app.use(requestLogger);
 // Initialize Sentry request handler (only in production)
 app.use(sentryRequestHandler());
 
+app.set('trust proxy', true);
+
 // Security middleware
 app.use(helmet()); // Adds various HTTP headers for security
 app.use(cors({

@@ -38,16 +38,13 @@ function detectDeviceType(userAgent: string): string {
   return 'desktop';
 }
 
-/**
- * Get country from IP address using ip-api.com
- * @param ipAddress The IP address
- * @returns Country name or null if not found
- */
+
 async function getCountryFromIP(ipAddress: string): Promise<string | null> {
   try {
-    // Skip for localhost or private IPs
+    // Ignore private/local IPs
     if (
       ipAddress === '127.0.0.1' || 
+      ipAddress === '::1' || 
       ipAddress === 'localhost' || 
       ipAddress.startsWith('192.168.') || 
       ipAddress.startsWith('10.') || 
@@ -55,15 +52,23 @@ async function getCountryFromIP(ipAddress: string): Promise<string | null> {
     ) {
       return 'Local';
     }
-    
-    const response = await fetch(`http://ip-api.com/json/${ipAddress}?fields=country,status`);
-    const data = await response.json() as { status: string; country: string };
-    return data.status === 'success' ? data.country : null;
+
+    const response = await fetch(`http://ip-api.com/json/${ipAddress}?fields=status,country,message`);
+    const data = await response.json() as {
+      status: string;
+      country?: string;
+      message?: string;
+    };
+
+    console.log('IP API response:', data); 
+
+    return data.status === 'success' ? data.country || null : null;
   } catch (error) {
     console.error('Error getting country from IP:', error);
     return null;
   }
 }
+
 
 /**
  * @swagger
@@ -100,8 +105,7 @@ export const trackSignupClick = async (
 ): Promise<void> => {
   try {
     const { sessionId, type } = req.body;
-    
-    // Validate required fields
+
     if (!type) {
       res.status(400).json({ 
         success: false, 
@@ -109,34 +113,37 @@ export const trackSignupClick = async (
       });
       return;
     }
-    
-    const ipAddress = req.ip || req.socket.remoteAddress || '';
+
+    // Extract real IP address (behind proxy/CDN safe)
+    const forwarded = req.headers['x-forwarded-for'];
+    const ipAddress = Array.isArray(forwarded)
+      ? forwarded[0]
+      : (forwarded || req.socket.remoteAddress || req.ip || '');
+
+    console.log('Detected IP address:', ipAddress); 
+
     const userAgent = req.headers['user-agent'] || '';
-    
-    // Detect device type
     const deviceType = detectDeviceType(userAgent);
-    
-    // Get country from IP
+
     const country = await getCountryFromIP(ipAddress);
-    
-    // Create analytics entry
+
     const analytics = signupAnalyticsRepository.create({
       sessionId: sessionId || undefined,
       ipAddress,
       country: country || undefined,
       deviceType,
-      type // Store the form type
+      type,
     });
-    
+
     await signupAnalyticsRepository.save(analytics);
-    
+
     res.status(201).json({ success: true });
   } catch (error) {
     console.error('Failed to track signup click:', error);
-    // Don't block the user experience
-    res.status(200).json({ success: true });
+    res.status(200).json({ success: true }); // don't block user experience
   }
 };
+
 
 /**
  * @swagger

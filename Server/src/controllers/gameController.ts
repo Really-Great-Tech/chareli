@@ -7,8 +7,11 @@ import { ApiError } from '../middlewares/errorHandler';
 import { RoleType } from '../entities/Role';
 import { Not } from 'typeorm';
 import { s3Service } from '../services/s3.service';
+import { zipService } from '../services/zip.service';
 import multer from 'multer';
 import logger from '../utils/logger';
+import { v4 as uuidv4 } from 'uuid';
+import * as path from 'path';
 
 const gameRepository = AppDataSource.getRepository(Game);
 const categoryRepository = AppDataSource.getRepository(Category);
@@ -305,7 +308,7 @@ export const getGameById = async (
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB limit
+    fileSize: Infinity, // No size limit for game files
   }
 });
 
@@ -326,6 +329,11 @@ export const createGame = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
+  // Start a transaction
+  const queryRunner = AppDataSource.createQueryRunner();
+  await queryRunner.connect();
+  await queryRunner.startTransaction();
+
   try {
     const { 
       title, 
@@ -350,77 +358,102 @@ export const createGame = async (
     const thumbnailFile = files.thumbnailFile[0];
     const gameFile = files.gameFile[0];
     
-    // Check if category exists if provided
-    if (categoryId) {
-      const category = await categoryRepository.findOne({
-        where: { id: categoryId }
-      });
-      
-      if (!category) {
-        return next(ApiError.badRequest(`Category with id ${categoryId} not found`));
+    try {
+      // Check if category exists if provided
+      if (categoryId) {
+        const category = await queryRunner.manager.findOne(Category, {
+          where: { id: categoryId }
+        });
+        
+        if (!category) {
+          throw new ApiError(400, `Category with id ${categoryId} not found`);
+        }
       }
+
+      // Process game zip file first to validate it
+      logger.info('Processing game zip file...');
+      const processedZip = await zipService.processGameZip(gameFile.buffer);
+      
+      if (processedZip.error) {
+        throw new ApiError(400, processedZip.error);
+      }
+
+      // Generate unique game folder name
+      const gameFolderId = uuidv4();
+
+      // Upload thumbnail to S3
+      logger.info('Uploading thumbnail file to S3...');
+      const thumbnailUploadResult = await s3Service.uploadFile(
+        thumbnailFile.buffer,
+        thumbnailFile.originalname,
+        thumbnailFile.mimetype,
+        'thumbnails'
+      );
+
+      // Upload game folder to S3
+      logger.info('Uploading game folder to S3...');
+      const s3GamePath = `games/${gameFolderId}`;
+      await s3Service.uploadDirectory(processedZip.extractedPath, s3GamePath);
+
+      // Create file records in the database using transaction
+      logger.info('Creating file records in the database...');
+      const thumbnailFileRecord = fileRepository.create({
+        s3Key: thumbnailUploadResult.key,
+        s3Url: thumbnailUploadResult.url,
+        type: 'thumbnail'
+      });
+
+      if (!processedZip.indexPath) {
+        throw new ApiError(400, 'No index.html found in the zip file');
+      }
+
+      const indexPath = processedZip.indexPath.replace(/\\/g, '/');
+      const gameFileRecord = fileRepository.create({
+        s3Key: `${s3GamePath}/${indexPath}`,
+        s3Url: `${s3Service.getBaseUrl()}/${s3GamePath}/${indexPath}`,
+        type: 'game_file'
+      });
+
+      await queryRunner.manager.save([thumbnailFileRecord, gameFileRecord]);
+
+      // Create new game with file IDs using transaction
+      logger.info('Creating game record...');
+      const game = gameRepository.create({
+        title,
+        description,
+        thumbnailFileId: thumbnailFileRecord.id,
+        gameFileId: gameFileRecord.id,
+        categoryId,
+        status,
+        config,
+        createdById: req.user?.userId
+      });
+
+      await queryRunner.manager.save(game);
+
+      // Commit transaction
+      await queryRunner.commitTransaction();
+
+      // Fetch the game with relations to return
+      const savedGame = await gameRepository.findOne({
+        where: { id: game.id },
+        relations: ['category', 'thumbnailFile', 'gameFile', 'createdBy']
+      });
+
+      res.status(201).json({
+        success: true,
+        data: savedGame,
+      });
+    } catch (error) {
+      // Rollback transaction on error
+      await queryRunner.rollbackTransaction();
+      throw error;
     }
-    
-    // Upload files to S3
-    logger.info('Uploading thumbnail file to S3...');
-    const thumbnailUploadResult = await s3Service.uploadFile(
-      thumbnailFile.buffer,
-      thumbnailFile.originalname,
-      thumbnailFile.mimetype,
-      'thumbnails'
-    );
-    
-    logger.info('Uploading game file to S3...');
-    const gameFileUploadResult = await s3Service.uploadFile(
-      gameFile.buffer,
-      gameFile.originalname,
-      gameFile.mimetype,
-      'games'
-    );
-    
-    // Create file records in the database
-    logger.info('Creating file records in the database...');
-    const thumbnailFileRecord = fileRepository.create({
-      s3Key: thumbnailUploadResult.key,
-      s3Url: thumbnailUploadResult.url,
-      type: 'thumbnail'
-    });
-    
-    const gameFileRecord = fileRepository.create({
-      s3Key: gameFileUploadResult.key,
-      s3Url: gameFileUploadResult.url,
-      type: 'game_file'
-    });
-    
-    await fileRepository.save([thumbnailFileRecord, gameFileRecord]);
-    
-    // Create new game with file IDs
-    logger.info('Creating game record...');
-    const game = gameRepository.create({
-      title,
-      description,
-      thumbnailFileId: thumbnailFileRecord.id,
-      gameFileId: gameFileRecord.id,
-      categoryId,
-      status,
-      config,
-      createdById: req.user?.userId // Set current user as creator
-    });
-    
-    await gameRepository.save(game);
-    
-    // Fetch the game with relations to return
-    const savedGame = await gameRepository.findOne({
-      where: { id: game.id },
-      relations: ['category', 'thumbnailFile', 'gameFile', 'createdBy']
-    });
-    
-    res.status(201).json({
-      success: true,
-      data: savedGame,
-    });
   } catch (error) {
     next(error);
+  } finally {
+    // Release query runner
+    await queryRunner.release();
   }
 };
 
@@ -487,6 +520,11 @@ export const updateGame = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
+  // Start a transaction
+  const queryRunner = AppDataSource.createQueryRunner();
+  await queryRunner.connect();
+  await queryRunner.startTransaction();
+
   try {
     const { id } = req.params;
     const { 
@@ -497,7 +535,7 @@ export const updateGame = async (
       config
     } = req.body;
     
-    const game = await gameRepository.findOne({
+    const game = await queryRunner.manager.findOne(Game, {
       where: { id }
     });
     
@@ -539,24 +577,36 @@ export const updateGame = async (
     if (files?.gameFile && files.gameFile[0]) {
       const gameFile = files.gameFile[0];
       
-      // Upload to S3
-      logger.info('Uploading new game file to S3...');
-      const gameFileUploadResult = await s3Service.uploadFile(
-        gameFile.buffer,
-        gameFile.originalname,
-        gameFile.mimetype,
-        'games'
-      );
+      // Process game zip file first to validate it
+      logger.info('Processing game zip file...');
+      const processedZip = await zipService.processGameZip(gameFile.buffer);
       
-      // Create file record
+      if (processedZip.error) {
+        throw new ApiError(400, processedZip.error);
+      }
+
+      // Generate unique game folder name
+      const gameFolderId = uuidv4();
+
+      // Upload game folder to S3
+      logger.info('Uploading game folder to S3...');
+      const s3GamePath = `games/${gameFolderId}`;
+      await s3Service.uploadDirectory(processedZip.extractedPath, s3GamePath);
+
+      // Create file record for the index.html
       logger.info('Creating new game file record...');
+      if (!processedZip.indexPath) {
+        throw new ApiError(400, 'No index.html found in the zip file');
+      }
+
+      const indexPath = processedZip.indexPath.replace(/\\/g, '/');
       const gameFileRecord = fileRepository.create({
-        s3Key: gameFileUploadResult.key,
-        s3Url: gameFileUploadResult.url,
+        s3Key: `${s3GamePath}/${indexPath}`,
+        s3Url: `${s3Service.getBaseUrl()}/${s3GamePath}/${indexPath}`,
         type: 'game_file'
       });
       
-      await fileRepository.save(gameFileRecord);
+      await queryRunner.manager.save(gameFileRecord);
       
       // Update game with new file ID
       game.gameFileId = gameFileRecord.id;
@@ -581,7 +631,10 @@ export const updateGame = async (
     if (status) game.status = status as GameStatus;
     if (config !== undefined) game.config = config;
     
-    await gameRepository.save(game);
+    await queryRunner.manager.save(game);
+
+    // Commit transaction
+    await queryRunner.commitTransaction();
     
     // Fetch the updated game with relations to return
     const updatedGame = await gameRepository.findOne({
@@ -594,7 +647,12 @@ export const updateGame = async (
       data: updatedGame,
     });
   } catch (error) {
+    // Rollback transaction on error
+    await queryRunner.rollbackTransaction();
     next(error);
+  } finally {
+    // Release query runner
+    await queryRunner.release();
   }
 };
 

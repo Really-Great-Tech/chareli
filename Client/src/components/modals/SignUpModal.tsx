@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState } from "react";
 import { useCreateUser } from "../../backend/user.service";
+import { useTrackSignupClick } from "../../backend/signup.analytics.service";
 import { toast } from "sonner";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import type { FormikHelpers, FieldProps } from "formik";
@@ -37,7 +38,9 @@ const validationSchema = Yup.object({
   password: passwordSchema,
   confirmPassword: confirmPasswordSchema,
   ageConfirm: Yup.boolean().default(false),
-  terms: Yup.boolean().oneOf([true], "You must accept the terms of use"),
+  terms: Yup.boolean()
+    .oneOf([true], "You must accept the terms of use")
+    .required("You must accept the terms of use"),
 });
 
 // Initial values
@@ -74,10 +77,14 @@ export function SignUpModal({
     setShowConfirmPassword(!showConfirmPassword);
 
   const createUser = useCreateUser();
+  const { mutate: trackSignup } = useTrackSignupClick();
 
   const handleSignUp = async (values: typeof initialValues, actions: FormikHelpers<typeof initialValues>) => {
     try {
-      const response = await createUser.mutateAsync({
+      // Track the final signup button click
+      trackSignup({ type: 'signup-modal' });
+
+      await createUser.mutateAsync({
         firstName: values.firstName,
         lastName: values.lastName,
         email: values.email,
@@ -121,8 +128,11 @@ export function SignUpModal({
               initialValues={initialValues}
               validationSchema={validationSchema}
               onSubmit={handleSignUp}
+              validateOnMount={false}
+              validateOnChange={false}
+              validateOnBlur={false}
             >
-              {({ isSubmitting, setFieldValue}) => (
+              {({ isSubmitting}) => (
                 <Form className="space-y-1">
                   <div className="flex space-x-4">
                     <div className="flex-1 relative">
@@ -333,20 +343,22 @@ export function SignUpModal({
                   </div>
                   <div className="my-5 flex flex-col gap-3">
                     <div className="flex items-center space-x-2">
-                      <Field
-                        name="ageConfirm"
-                        id="ageConfirm"
-                      >
-                        {({ field }: FieldProps) => (
+                      <Field name="ageConfirm">
+                        {({ field, form }: FieldProps) => (
                           <Checkbox
+                            id="ageConfirm"
                             checked={field.value}
-                            onCheckedChange={(checked) => setFieldValue("ageConfirm", checked)}
+                            onCheckedChange={(checked) => {
+                              form.setFieldValue("ageConfirm", checked);
+                              form.setFieldTouched("ageConfirm", true);
+                            }}
+                            className="border-2 border-gray-400 data-[state=checked]:bg-[#C026D3] data-[state=checked]:border-[#C026D3]"
                           />
                         )}
                       </Field>
                       <Label
                         htmlFor="ageConfirm"
-                        className="font-boogaloo text-black dark:text-white"
+                        className="font-boogaloo text-black dark:text-white cursor-pointer"
                       >
                         Confirm age 18+
                       </Label>
@@ -357,20 +369,22 @@ export function SignUpModal({
                       className="text-red-500 text-xs font-pincuk"
                     />
                     <div className="flex items-center space-x-2">
-                      <Field
-                        name="terms"
-                        id="terms"
-                      >
-                        {({ field }: FieldProps) => (
+                      <Field name="terms">
+                        {({ field, form }: FieldProps) => (
                           <Checkbox
+                            id="terms"
                             checked={field.value}
-                            onCheckedChange={(checked) => setFieldValue("terms", checked)}
+                            onCheckedChange={(checked) => {
+                              form.setFieldValue("terms", checked);
+                              form.setFieldTouched("terms", true);
+                            }}
+                            className="border-2 border-gray-400 data-[state=checked]:bg-[#C026D3] data-[state=checked]:border-[#C026D3]"
                           />
                         )}
                       </Field>
                       <Label
                         htmlFor="terms"
-                        className="font-boogaloo text-black dark:text-white"
+                        className="font-boogaloo text-black dark:text-white cursor-pointer"
                       >
                         Accept Terms of Use
                       </Label>

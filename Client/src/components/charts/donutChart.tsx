@@ -1,13 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { Pie, PieChart, Sector, Tooltip } from "recharts";
+import { useDashboardAnalytics } from "../../backend/analytics.service";
 
-const data = [
-  { name: "Active users", value: 104, fill: "#D946EF" },
-  { name: "Non-active", value: 30, fill: "#F5D0FE" }
-];
-
-// Custom active shape component to create the expansion effect
 const renderActiveShape = (props: { cx: any; cy: any; innerRadius: any; outerRadius: any; startAngle: any; endAngle: any; fill: any; }) => {
   const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
   
@@ -26,15 +20,22 @@ const renderActiveShape = (props: { cx: any; cy: any; innerRadius: any; outerRad
   );
 };
 
+interface ChartData {
+  name: string;
+  value: number;
+  fill: string;
+}
+
 // Custom tooltip component
-const CustomTooltip = ({ active, payload }: any) => {
+const CustomTooltip = ({ active, payload, data }: { active?: boolean; payload?: any[]; data: ChartData[] }) => {
   if (active && payload && payload.length) {
+    const total = data.reduce((sum: number, entry: ChartData) => sum + entry.value, 0);
     return (
       <div className="bg-white p-3 rounded-md shadow-lg border border-gray-200" style={{ position: 'absolute', zIndex: 1000, pointerEvents: 'none' }}>
         <p className="font-medium text-gray-800">{payload[0].name}</p>
         <p className="text-gray-600">Count: <span className="font-semibold">{payload[0].value}</span></p>
         <p className="text-gray-600">Percentage: <span className="font-semibold">
-          {((payload[0].value / data.reduce((sum, entry) => sum + entry.value, 0)) * 100).toFixed(1)}%
+          {((payload[0].value / total) * 100).toFixed(1)}%
         </span></p>
       </div>
     );
@@ -43,9 +44,24 @@ const CustomTooltip = ({ active, payload }: any) => {
 };
 
 export function DonutChart() {
-  const total = data.reduce((sum, entry) => sum + entry.value, 0);
-  // Set active index to 0 (first segment) to make it expanded
   const [activeIndex, setActiveIndex] = useState(0);
+
+  const { data: analytics, isLoading } = useDashboardAnalytics();
+
+  const data = [
+    { name: "Active users", value: analytics?.activeUsers || 0, fill: "#D946EF" },
+    { name: "Non-active", value: analytics?.inactiveUsers || 0, fill: "#F5D0FE" }
+  ];
+
+  const total = analytics ? analytics.activeUsers + analytics.inactiveUsers : 0;
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[300px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D946EF]"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-start justify-between max-w-3xl mx-auto">
@@ -66,7 +82,7 @@ export function DonutChart() {
             activeShape={(props: unknown) => renderActiveShape(props as { cx: any; cy: any; innerRadius: any; outerRadius: any; startAngle: any; endAngle: any; fill: any; })}
             onMouseEnter={(_, index) => setActiveIndex(index)}
           />
-          <Tooltip content={<CustomTooltip />} wrapperStyle={{ zIndex: 1000 }} />
+          <Tooltip content={<CustomTooltip data={data} />} wrapperStyle={{ zIndex: 1000 }} />
         </PieChart>
         <div className="absolute text-6xl font-black text-gray-800 dark:text-white" style={{ fontFamily: 'Impact, sans-serif', zIndex: 1 }}>
           {total}
@@ -80,15 +96,15 @@ export function DonutChart() {
         </div>
         
         <div className="space-y-3">
-          {data.map((entry, index) => (
+          {data.map((_entry, index) => (
             <div 
               key={`legend-${index}`} 
               className="flex items-center cursor-pointer"
               onMouseEnter={() => setActiveIndex(index)}
             >
-              <div className="w-5 h-5 mr-3" style={{ backgroundColor: index === 0 ? "#F5D0FE" : "#D946EF" }}></div>
+              <div className="w-5 h-5 mr-3" style={{ backgroundColor: index === 0 ? "#D946EF" : "#F5D0FE" }}></div>
               <span className="text-lg text-gray-600 font-pincuk dark:text-white">
-                {index === 0 ? "Non-active" : "Active users"} = {index === 0 ? 30 : 104}
+                {index === 0 ? "Active users" : "Non-active"} = {_entry.value}
               </span>
             </div>
           ))}

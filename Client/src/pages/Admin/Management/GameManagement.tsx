@@ -2,7 +2,15 @@
 import { useState } from "react";
 import { Card } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
-// import { Input } from "../../../components/ui/input";
+import { DeleteConfirmationModal } from "../../../components/modals/DeleteConfirmationModal";
+import { toast } from "sonner";
+import { useDeleteGame } from "../../../backend/games.service";
+import { useGamesAnalytics } from "../../../backend/analytics.service";
+import type { GameStatus } from "../../../backend/types";
+import { NoResults } from "../../../components/single/NoResults";
+import { RiGamepadLine } from "react-icons/ri";
+import { useQueryClient } from "@tanstack/react-query";
+import { BackendRoute } from "../../../backend/constants";
 import { FilterSheet } from "../../../components/single/Filter-Sheet";
 import { IoEyeOutline, IoEyeOffOutline } from "react-icons/io5";
 import { CiEdit } from "react-icons/ci";
@@ -11,41 +19,74 @@ import { RiEqualizer2Line } from "react-icons/ri";
 import { CreateGameSheet } from "../../../components/single/CreateGame-Sheet";
 import { useNavigate } from "react-router-dom";
 import { EditSheet } from "../../../components/single/Edit-Sheet";
-
 import { cn } from "../../../lib/utils";
+import gameImg from "../../../assets/gamesImg/1.svg";
+import { formatTime } from "../../../utils/main";
 
-// Placeholder image, replace with actual import if available
-import gameImg from "@/assets/gamesImg/1.svg";
-
-const mockGames = Array.from({ length: 10 }).map((_, i) => ({
-  id: i + 1,
-  title: "War Shooting",
-  category: ["Shooting", "Racing", "Arcade"][i % 3],
-  minutesPlayed: 400,
-  status: i % 4 < 2 ? "Active" : "Inactive",
-  image: gameImg,
-}));
-
-const totalGames = 46;
 const pageSize = 10;
-const totalPages = Math.ceil(totalGames / pageSize);
-
 
 export default function GameManagement() {
   const [page, setPage] = useState(1);
+  const [filters, setFilters] = useState<{
+    categoryId?: string;
+    status?: GameStatus;
+  }>();
   const navigate = useNavigate();
 
-  // Add these three state hooks
   const [editOpen, setEditOpen] = useState(false);
-  const [selectedGame, setSelectedGame] = useState(null);
-  const [showDeleteModal, setShowDeleteModal] = useState(false); // <-- add this
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const { data: gamesWithAnalytics, isLoading } = useGamesAnalytics();
+  const deleteGame = useDeleteGame();
+
+  // Apply filters
+  const filteredGames = gamesWithAnalytics?.filter((game) => {
+    if (filters?.categoryId && game.category?.id !== filters.categoryId)
+      return false;
+    if (filters?.status && game.status !== filters.status) return false;
+    return true;
+  });
+
+  const handleDelete = async () => {
+    if (!selectedGameId) return;
+    try {
+      await deleteGame.mutateAsync(selectedGameId);
+      queryClient.invalidateQueries({
+        queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS],
+      });
+      toast.success("Game deleted successfully");
+      setDeleteModalOpen(false);
+      setEditOpen(false); // Close edit sheet
+      setSelectedGameId(null); // Clear selected game
+    } catch (error: any) {
+      // Check if it's a "not found" error, which means the game was already deleted
+      if (error?.response?.data?.error?.message?.includes("not found")) {
+        queryClient.invalidateQueries({
+          queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS],
+        });
+        toast.success("Game deleted successfully");
+        setDeleteModalOpen(false);
+        setEditOpen(false); // Close edit sheet
+        setSelectedGameId(null); // Clear selected game
+      } else {
+        toast.error("Failed to delete game");
+      }
+    }
+  };
+
+  const totalGames = filteredGames?.length || 0;
+  const totalPages = Math.ceil(totalGames / pageSize);
 
   return (
     <div className="px-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-[#D946EF] text-3xl font-boogaloo">All Games</h1>
         <div className="flex gap-3">
-          <FilterSheet>
+          <FilterSheet
+            onFilter={setFilters}
+            onReset={() => setFilters(undefined)}
+          >
             <Button
               variant="outline"
               className="border-[#475568] text-[#475568] flex items-center gap-2 dark:text-white"
@@ -73,77 +114,113 @@ export default function GameManagement() {
             </tr>
           </thead>
           <tbody>
-            {mockGames.map((game, idx) => (
-              <tr
-                key={game.id}
-                className={cn(
-                  "border-b dark:border-[#23243a] hover:bg-[#f3e8ff]/40 dark:hover:bg-[#23243a]/40 transition",
-                  idx % 2 === 0 ? "dark:bg-[#18192b]" : "dark:bg-[#23243a]"
-                )}
-              >
-                <td className="px-4 py-3 flex items-center gap-3">
-                  <img
-                    src={game.image}
-                    alt={game.title}
-                    className="w-12 h-12 rounded-lg object-cover"
-                  />
-                  <span className="text-lg font-light">{game.title}</span>
-                </td>
-                <td className="px-4 py-3 font-pincuk">{game.category}</td>
-                <td className="px-4 py-3 font-pincuk">{game.minutesPlayed}</td>
-                <td className="px-4 py-3">
-                  {game.status === "Active" ? (
-                    <span className="inline-flex items-center gap-2 p-1 rounded bg-[#419E6A] text-white font-pincuk text-sm">
-                      <span className="w-2 h-2 bg-white rounded-full inline-block"></span>
-                      Active
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-2  p-1 rounded bg-[#CBD5E0] text-[#22223B] font-pincuk text-sm">
-                      <span className="w-2 h-2 bg-red-500 rounded-full inline-block"></span>
-                      Inactive
-                    </span>
-                  )}
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex gap-3 items-cente">
-                    <button
-                      className="text-black hover:text-black p-1 dark:text-white"
-                      title="Edit"
-                      onClick={() => {
-                        setSelectedGame(game as any);
-                        setEditOpen(true);
-                      }}
-                    >
-                      <CiEdit />
-                    </button>
-                    <button
-                      className="text-black hover:text-black p-1 dark:text-white"
-                      title="View"
-                      onClick={() => navigate(`/admin/view-game`)}
-                    >
-                      {game.status === "Active" ? <IoEyeOutline /> : <IoEyeOffOutline />}
-                    </button>
-                    <button
-                      className="text-black hover:text-black p-1 dark:text-white"
-                      title="Delete"
-                      onClick={() => {
-                        setSelectedGame(game as any);
-                        // setEditOpen(true);
-                        setShowDeleteModal(true);
-                      }}
-                    >
-                      <RiDeleteBin6Line />
-                    </button>
-                  </div>
+            {isLoading ? (
+              <tr>
+                <td colSpan={5} className="px-4 py-3 text-center">
+                  Loading...
                 </td>
               </tr>
-            ))}
+            ) : !filteredGames?.length ? (
+              <tr>
+                <td colSpan={5}>
+                  <NoResults
+                    title={
+                      gamesWithAnalytics?.length
+                        ? "No matching results"
+                        : "No games found"
+                    }
+                    message={
+                      gamesWithAnalytics?.length
+                        ? "Try adjusting your filters"
+                        : "No games have been added to the system yet"
+                    }
+                    icon={<RiGamepadLine className="w-12 h-12 text-gray-400" />}
+                  />
+                </td>
+              </tr>
+            ) : (
+              filteredGames.map((game, idx) => (
+                <tr
+                  key={game.id}
+                  className={cn(
+                    "border-b dark:border-[#23243a] hover:bg-[#f3e8ff]/40 dark:hover:bg-[#23243a]/40 transition",
+                    idx % 2 === 0 ? "dark:bg-[#18192b]" : "dark:bg-[#23243a]"
+                  )}
+                >
+                  <td className="px-4 py-3 flex items-center gap-3">
+                    <img
+                      src={(game.thumbnailFile as any)?.s3Url || gameImg}
+                      alt={game.title}
+                      className="w-12 h-12 rounded-lg object-cover"
+                    />
+                    <span className="text-lg font-light">{game.title}</span>
+                  </td>
+                  <td className="px-4 py-3 font-pincuk">
+                    {game.category?.name || "Uncategorized"}
+                  </td>
+                  <td className="px-4 py-3 font-pincuk">
+                    {game.analytics?.totalPlayTime != null
+                      ? formatTime(game.analytics.totalPlayTime || 0)
+                      : "-"}
+                  </td>
+                  <td className="px-4 py-3">
+                    {game.status === "active" ? (
+                      <span className="inline-flex items-center gap-2 p-1 rounded bg-[#419E6A] text-white font-pincuk text-sm">
+                        <span className="w-2 h-2 bg-white rounded-full inline-block"></span>
+                        Active
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-2  p-1 rounded bg-[#CBD5E0] text-[#22223B] font-pincuk text-sm">
+                        <span className="w-2 h-2 bg-red-500 rounded-full inline-block"></span>
+                        Inactive
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex gap-3 items-cente">
+                      <button
+                        className="text-black hover:text-black p-1 dark:text-white"
+                        title="Edit"
+                        onClick={() => {
+                          setSelectedGameId(game.id);
+                          setEditOpen(true);
+                        }}
+                      >
+                        <CiEdit />
+                      </button>
+                      <button
+                        className="text-black hover:text-black p-1 dark:text-white"
+                        title="View"
+                        onClick={() => navigate(`/admin/view-game/${game.id}`)}
+                      >
+                        {game.status === "active" ? (
+                          <IoEyeOutline />
+                        ) : (
+                          <IoEyeOffOutline />
+                        )}
+                      </button>
+                      <button
+                        className="text-black hover:text-black p-1 dark:text-white"
+                        title="Delete"
+                        onClick={() => {
+                          setSelectedGameId(game.id);
+                          setDeleteModalOpen(true);
+                        }}
+                      >
+                        <RiDeleteBin6Line />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
         {/* Pagination */}
         <div className="flex justify-between items-center px-4 py-3 bg-[#F1F5F9] dark:bg-[#18192b] rounded-b-xl ">
           <span className="text-sm">
-            Showing {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, totalGames)} from {totalGames} data
+            Showing {(page - 1) * pageSize + 1}-
+            {Math.min(page * pageSize, totalGames)} from {totalGames} data
           </span>
           <div className="flex items-center gap-2 rounded-xl space-x-4 pr-1 pl-0.5 border border-[#D946EF] dark:text-white">
             {Array.from({ length: totalPages }, (_, i) => (
@@ -162,17 +239,22 @@ export default function GameManagement() {
           </div>
         </div>
       </Card>
-      {/* Only render EditSheet if a game is selected */}
-      {selectedGame && (
+      
+      {editOpen && selectedGameId && (
         <EditSheet
           open={editOpen}
           onOpenChange={setEditOpen}
-          gameData={selectedGame}
-          showDeleteModal={showDeleteModal}
-          setShowDeleteModal={setShowDeleteModal}
+          gameId={selectedGameId}
         />
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        open={deleteModalOpen}
+        onOpenChange={setDeleteModalOpen}
+        onConfirm={handleDelete}
+        isDeleting={deleteGame.isPending}
+      />
     </div>
   );
 }
- 

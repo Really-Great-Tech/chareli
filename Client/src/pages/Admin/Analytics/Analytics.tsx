@@ -1,5 +1,4 @@
 import { useState } from "react";
-
 import { DonutChart } from "../../../components/charts/donutChart";
 import { Card } from "../../../components/ui/card";
 import usersLine from "../../../assets/users-line.svg"
@@ -32,7 +31,7 @@ export default function Analytics() {
               <p className="text-lg text-[#64748A] dark:text-white">Total number of registered users</p>
               </div>
 
-              <DonutChart/>
+              <DonutChart />
               </div>
             </div>
           </Card>

@@ -24,10 +24,10 @@ interface Config {
     email: string;
     password: string;
   };
-  twilio: {
-    accountSid: string;
+  smsService: {
+    providerId: string;
     authToken: string;
-    phoneNumber: string;
+    fromNumber: string;
   };
   email: {
     service: string;
@@ -75,10 +75,10 @@ const config: Config = {
     email: process.env.SUPERADMIN_EMAIL || 'admin@example.com',
     password: process.env.SUPERADMIN_PASSWORD || 'Admin123!',
   },
-  twilio: {
-    accountSid: process.env.TWILIO_ACCOUNT_SID || '',
-    authToken: process.env.TWILIO_AUTH_TOKEN || '',
-    phoneNumber: process.env.TWILIO_PHONE_NUMBER || '',
+  smsService: {
+    providerId: process.env.SMS_PROVIDER_ID || '',
+    authToken: process.env.SMS_AUTH_TOKEN || '',
+    fromNumber: process.env.SMS_FROM_NUMBER || '',
   },
   email: {
     service: process.env.EMAIL_SERVICE || '',

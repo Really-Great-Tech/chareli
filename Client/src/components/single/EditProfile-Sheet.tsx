@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Sheet,
   SheetContent,
@@ -10,22 +9,72 @@ import {
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Button } from "../ui/button";
+import { useUpdateUserData } from "../../backend/user.service";
+import { toast } from "sonner";
+import { useAuth } from "../../context/AuthContext";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
 
 interface EditProfileSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   profile: {
-    name: string;
+    firstName: string;
+    lastName: string;
     email: string;
     phone: string;
   };
 }
 
+const validationSchema = Yup.object().shape({
+  firstName: Yup.string()
+    .required("First name is required")
+    .min(2, "First name must be at least 2 characters")
+    .max(50, "First name must be less than 50 characters"),
+  lastName: Yup.string()
+    .required("Last name is required")
+    .min(2, "Last name must be at least 2 characters")
+    .max(50, "Last name must be less than 50 characters"),
+  email: Yup.string()
+    .email("Invalid email address")
+    .required("Email is required"),
+  phone: Yup.string()
+    .nullable()
+    .matches(/^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/, "Invalid phone number format")
+});
+
 export function EditProfileSheet({ open, onOpenChange, profile }: EditProfileSheetProps) {
-  // Add local state for each field
-  const [name, setName] = useState(profile.name || "");
-  const [email, setEmail] = useState(profile.email || "");
-  const [phone, setPhone] = useState(profile.phone || "");
+  const updateUser = useUpdateUserData();
+  const { user } = useAuth();
+
+  const initialValues = {
+    firstName: profile.firstName,
+    lastName: profile.lastName,
+    email: profile.email,
+    phone: profile.phone
+  };
+
+  const handleSubmit = async (values: typeof initialValues) => {
+    try {
+      if (!user?.id) {
+        toast.error("User ID not found");
+        return;
+      }
+
+      await updateUser.mutateAsync({
+        id: user.id,
+        firstName: values.firstName.trim(),
+        lastName: values.lastName.trim(),
+        email: values.email,
+        phoneNumber: values.phone || undefined
+      });
+
+      toast.success("Profile updated successfully");
+      onOpenChange(false);
+    } catch (error) {
+      toast.error("Failed to update profile");
+    }
+  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -33,54 +82,107 @@ export function EditProfileSheet({ open, onOpenChange, profile }: EditProfileShe
         <SheetHeader>
           <SheetTitle className="text-lg mt-4 tracking-wider">Edit Profile</SheetTitle>
         </SheetHeader>
-        <div className="flex flex-col gap-6 mt-4 px-2">
-          <div>
-            <Label htmlFor="profile-name" className="text-base mb-1">
-              Name
-            </Label>
-            <Input
-              id="profile-name"
-              placeholder={profile.name}
-              value={name}
-              onChange={e => setName(e.target.value)}
-              className="bg-[#F1F5F9] mt-1 text-sm font-pincuk dark:bg-[#121C2D] dark:text-white"
-            />
-          </div>
-          <div>
-            <Label htmlFor="profile-email" className="text-base mb-1">
-              Email
-            </Label>
-            <Input
-              id="profile-email"
-              placeholder={profile.email}
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              className="bg-[#F1F5F9] mt-1 text-sm font-pincuk dark:bg-[#121C2D] dark:text-white"
-            />
-          </div>
-          <div>
-            <Label htmlFor="profile-phone" className="text-base mb-1">
-              Phone Number
-            </Label>
-            <Input
-              id="profile-phone"
-              placeholder={profile.phone}
-              value={phone}
-              onChange={e => setPhone(e.target.value)}
-              className="bg-[#F1F5F9] mt-1 text-sm font-pincuk dark:bg-[#121C2D] dark:text-white"
-            />
-          </div>
-        </div>
-        <SheetFooter className="flex flex-row justify-end mt-8 gap-4">
-          <SheetClose asChild>
-            <Button variant="outline" className="w-20 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] dark:text-white">
-              Cancel
-            </Button>
-          </SheetClose>
-          <Button className="w-20 h-12 bg-[#D946EF] text-white tracking-wide">
-            Update
-          </Button>
-        </SheetFooter>
+        <Formik
+          initialValues={initialValues}
+          validationSchema={validationSchema}
+          onSubmit={handleSubmit}
+        >
+          {({ errors, touched }) => (
+            <Form className="flex flex-col gap-6 mt-4 px-2">
+              <div>
+                <Label htmlFor="firstName" className="text-base mb-1">
+                  First Name
+                </Label>
+                <Field
+                  as={Input}
+                  id="firstName"
+                  name="firstName"
+                  placeholder="Enter first name"
+                  className={`bg-[#F1F5F9] mt-1 text-sm font-pincuk dark:bg-[#121C2D] dark:text-white ${
+                    errors.firstName && touched.firstName ? "border-red-500" : ""
+                  }`}
+                />
+                <ErrorMessage
+                  name="firstName"
+                  component="div"
+                  className="text-red-500 text-sm mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="lastName" className="text-base mb-1">
+                  Last Name
+                </Label>
+                <Field
+                  as={Input}
+                  id="lastName"
+                  name="lastName"
+                  placeholder="Enter last name"
+                  className={`bg-[#F1F5F9] mt-1 text-sm font-pincuk dark:bg-[#121C2D] dark:text-white ${
+                    errors.lastName && touched.lastName ? "border-red-500" : ""
+                  }`}
+                />
+                <ErrorMessage
+                  name="lastName"
+                  component="div"
+                  className="text-red-500 text-sm mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="email" className="text-base mb-1">
+                  Email
+                </Label>
+                <Field
+                  as={Input}
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="Enter email"
+                  className={`bg-[#F1F5F9] mt-1 text-sm font-pincuk dark:bg-[#121C2D] dark:text-white ${
+                    errors.email && touched.email ? "border-red-500" : ""
+                  }`}
+                />
+                <ErrorMessage
+                  name="email"
+                  component="div"
+                  className="text-red-500 text-sm mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="phone" className="text-base mb-1">
+                  Phone Number
+                </Label>
+                <Field
+                  as={Input}
+                  id="phone"
+                  name="phone"
+                  placeholder="Enter phone number"
+                  className={`bg-[#F1F5F9] mt-1 text-sm font-pincuk dark:bg-[#121C2D] dark:text-white ${
+                    errors.phone && touched.phone ? "border-red-500" : ""
+                  }`}
+                />
+                <ErrorMessage
+                  name="phone"
+                  component="div"
+                  className="text-red-500 text-sm mt-1"
+                />
+              </div>
+              <SheetFooter className="flex flex-row justify-end mt-8 gap-4">
+                <SheetClose asChild>
+                  <Button variant="outline" className="w-20 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] dark:text-white">
+                    Cancel
+                  </Button>
+                </SheetClose>
+                <Button 
+                  type="submit"
+                  className="w-20 h-12 bg-[#D946EF] text-white tracking-wide"
+                  disabled={updateUser.isPending}
+                >
+                  {updateUser.isPending ? "..." : "Update"}
+                </Button>
+              </SheetFooter>
+            </Form>
+          )}
+        </Formik>
       </SheetContent>
     </Sheet>
   );

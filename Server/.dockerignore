@@ -1,0 +1,40 @@
+# Version control
+.git
+.gitignore
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Dependencies
+node_modules
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Build output
+dist
+build
+
+# Editor directories and files
+.idea
+.vscode
+*.swp
+*.swo
+.history/*
+.vscode/*
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Temporary files
+.tmp
+.temp
+
+# System files
+.DS_Store
+Thumbs.db

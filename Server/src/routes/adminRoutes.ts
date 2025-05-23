@@ -5,6 +5,7 @@ import {
   getUserAnalyticsById,
   getGamesWithAnalytics,
   getGameAnalyticsById,
+  getGamesPopularityMetrics,
   runInactiveUsersCheck,
   getUserActivityLog
 } from '../controllers/adminDashboardController';
@@ -29,6 +30,9 @@ router.get('/games-analytics', getGamesWithAnalytics);
 
 // Get analytics for a specific game
 router.get('/games/:id/analytics', getGameAnalyticsById);
+
+// Get games popularity metrics
+router.get('/games-popularity', getGamesPopularityMetrics);
 
 // User activity log
 router.get('/user-activity-log', getUserActivityLog);

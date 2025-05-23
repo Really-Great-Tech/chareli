@@ -42,11 +42,6 @@ export class AuthService {
     hasAcceptedTerms: boolean = false
   ): Promise<User> {
     // Check if user already exists
-    const existingUser = await userRepository.findOne({ where: { email } });
-    if (existingUser) {
-      throw new Error('User with this email already exists');
-    }
-
     // Get the player role
     const playerRole = await roleRepository.findOne({
       where: { name: RoleType.PLAYER }
@@ -107,15 +102,6 @@ export class AuthService {
 
     if (new Date() > invitation.expiresAt) {
       throw new Error('Invitation has expired');
-    }
-
-    // Check if user already exists
-    const existingUser = await userRepository.findOne({
-      where: { email: invitation.email }
-    });
-
-    if (existingUser) {
-      throw new Error('User with this email already exists');
     }
 
     // Hash the password
@@ -267,11 +253,17 @@ export class AuthService {
     roleName: RoleType,
     invitedById: string
   ): Promise<Invitation> {
-    const existingUser = await userRepository.findOne({ where: { email } });
-    if (existingUser) {
-      throw new Error('User with this email already exists');
+    // Check if user already has this role
+    const existingUser = await userRepository.findOne({ 
+      where: { email },
+      relations: ['role']
+    });
+    
+    if (existingUser && existingUser.role.name === roleName) {
+      throw new Error('User already has this role');
     }
 
+    // Check for pending invitation
     const existingInvitation = await invitationRepository.findOne({ where: { email } });
     if (existingInvitation) {
       throw new Error('Invitation for this email already exists');

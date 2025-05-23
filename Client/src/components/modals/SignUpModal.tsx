@@ -150,26 +150,7 @@ export function SignUpModal({
   );
   const { mutate: trackSignup } = useTrackSignupClick();
 
-  const handleSignUp = async (values: typeof initialValues, actions: FormikHelpers<typeof initialValues>) => {
-    try {
-      // Track the final signup button click
-      trackSignup({ type: 'signup-modal' });
-
-      await createUser.mutateAsync({
-        firstName: values.firstName,
-        lastName: values.lastName,
-        email: values.email,
-        password: values.password,
-        phoneNumber: values.phoneNumber,
-        isAdult: values.ageConfirm,
-        hasAcceptedTerms: values.terms
-      });
-
-      // Close signup modal
-      onOpenChange(false);
-
-      toast.success("Account created successfully! Please login to continue.");
-      openLoginModal();
+  // (Removed duplicate/incomplete handleSignUp function)
 
   const handleSignUp = useCallback(async (
     values: SignUpValues, 

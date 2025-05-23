@@ -13,4 +13,5 @@ export const BackendRoute = {
   AUTH_REQUEST_OTP: '/api/auth/request-otp',
   AUTH_FORGOT_PASSWORD: '/api/auth/forgot-password',
   AUTH_RESET_PASSWORD: '/api/auth/reset-password',
+  SIGNUP_CONFIG: '/api/system-configs',
 } as const;

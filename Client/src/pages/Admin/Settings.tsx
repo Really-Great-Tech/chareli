@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState } from "react";
-
 import { FaChevronRight } from "react-icons/fa";
 import { FaRegUser } from "react-icons/fa6";
 import { MdLockOutline } from "react-icons/md";
@@ -11,16 +9,17 @@ import ChangePasswordSheet from "../../components/single/ChangePassword-Sheet";
 import { TermsSheet } from "../../components/single/Terms-Sheet";
 
 const Settings: React.FC = () => {
-  const [wafEnabled, setWafEnabled] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
-  const [profile] = useState({
-    oldpassword: "",
-    newpassword: "",
-  });
+  const [wafEnabled, setWafEnabled] = useState(false);
   const navigate = useNavigate();
 
-  // Update the settings array to use navigate for Profile
+  // Placeholder for future WAF implementation
+  const handleWafToggle = () => {
+    setWafEnabled(!wafEnabled);
+    // TODO: Implement WAF toggle functionality
+  };
+
   const settings = [
     {
       icon: <FaRegUser size={16} />,
@@ -45,6 +44,7 @@ const Settings: React.FC = () => {
       title: "WAF (Two-Factor Auth / Web App Firewall) + TFA to admin",
       description: "Manage",
       isSwitch: true,
+      onClick: handleWafToggle,
     },
     {
       icon: <IoDocumentTextOutline size={16} />,
@@ -79,7 +79,7 @@ const Settings: React.FC = () => {
               <button
                 type="button"
                 aria-pressed={wafEnabled}
-                onClick={() => setWafEnabled((v) => !v)}
+                onClick={item.onClick}
                 className={`relative w-14 h-8 rounded-full transition-colors duration-200 focus:outline-none ${
                   wafEnabled ? "bg-[#344054]" : "bg-gray-200"
                 }`}
@@ -92,8 +92,8 @@ const Settings: React.FC = () => {
               </button>
             ) : (
               <button
-              onClick={item.onClick}
-              className="text-[#C77DFF] font-bold text-2xl hover:text-[#a259d9] transition-colors"
+                onClick={item.onClick}
+                className="text-[#C77DFF] font-bold text-2xl hover:text-[#a259d9] transition-colors"
               >
                 <FaChevronRight className="text-gray-900 dark:text-white"/>
               </button>
@@ -101,8 +101,18 @@ const Settings: React.FC = () => {
           </div>
         ))}
       </div>
-      <ChangePasswordSheet open={showChangePassword} onOpenChange={setShowChangePassword} profile={profile}/>
-      <TermsSheet open={showTerms} onOpenChange={setShowTerms} profile={profile}/>
+      <ChangePasswordSheet 
+        open={showChangePassword} 
+        onOpenChange={setShowChangePassword}
+      />
+      <TermsSheet 
+        open={showTerms} 
+        onOpenChange={setShowTerms} 
+        profile={{
+          oldpassword: "",
+          newpassword: ""
+        }}
+      />
     </div>
   );
 };

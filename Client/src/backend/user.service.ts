@@ -9,10 +9,10 @@ import type { User } from './types';
  */
 export const useUserData = () => {
   return useQuery<User>({
-    queryKey: [BackendRoute.USER],
+    queryKey: [BackendRoute.AUTH_ME],
     queryFn: async () => {
-      const response = await backendService.get(BackendRoute.USER);
-      return response as unknown as User;
+      const response = await backendService.get(BackendRoute.AUTH_ME);
+      return response.data as unknown as User;
     },
     refetchOnWindowFocus: false,
   });
@@ -42,9 +42,14 @@ export const useUserById = (id: string) => {
 export const useUpdateUserData = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: Partial<User>) => backendService.patch(BackendRoute.USER, data),
+    mutationFn: async ({ id, ...data }: Partial<User> & { id: string }) => {
+      const url = BackendRoute.USER_BY_ID.replace(':id', id);
+      const response = await backendService.put(url, data);
+      return response;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [BackendRoute.USER] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.AUTH_ME] });
     },
   });
 };
@@ -85,5 +90,19 @@ export const useDeleteUser = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [BackendRoute.USER] });
     },
+  });
+};
+
+/**
+ * Hook to change user password
+ * @returns Mutation function to change password
+ */
+export const useChangePassword = () => {
+  return useMutation({
+    mutationFn: async ({ oldPassword, password }: { oldPassword: string; password: string }) => {
+      const url = BackendRoute.AUTH_CHANGE_PASSWORD;
+      const response = await backendService.post(url, { oldPassword, newPassword: password });
+      return response;
+    }
   });
 };

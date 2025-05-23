@@ -1,45 +1,68 @@
 import { Card } from "../../components/ui/card";
-import Img1 from '../../assets/gamesImg/1.svg';
-import Img2 from '../../assets/gamesImg/2.svg';
-import Img3 from '../../assets/gamesImg/3.svg';
-import Img4 from '../../assets/gamesImg/4.svg';
-import Img5 from '../../assets/gamesImg/5.svg';
 import { Input } from "../ui/input";
-
 import { IoIosSearch } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
+import { useGames } from "../../backend/games.service";
+import { useState } from "react";
+import GamesSkeleton from "./GamesSkeleton";
 
 const PopularSection = () => {
     const navigate = useNavigate();
+    const [searchQuery, setSearchQuery] = useState("");
+    const { data, isLoading, error } = useGames();
+    const games: any = data || [];
 
-    const handleGamePlay = () => {
-        navigate('/gameplay');
+    console.log("games for popular", data)
+
+    // Filter active games and limit to 4
+    const filteredGames = games
+        .filter((game: any) => 
+            game.title.toLowerCase().includes(searchQuery.toLowerCase()) && 
+            game.status === 'active'
+        )
+        .slice(0, 4); // Limit to 4 games
+
+    const handleGamePlay = (gameId: string) => {
+        navigate(`/gameplay/${gameId}`);
     };
 
     return (
-        <div className="p-4">
-            <div className="flex items-center justify-between mb-4">
-                <h1 className="text-[#D946EF] text-3xl font-boogaloo">Popular</h1>
-                <div className="relative w-96">     
-                    <IoIosSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#64748A] text-xl pointer-events-none" />
+        <div className="p-6 max-w-[1440px] mx-auto">
+            <div className="flex items-center justify-between mb-8">
+                <h1 className="text-[#D946EF] text-4xl font-boogaloo tracking-wide">Popular</h1>
+                <div className="relative w-[400px]">     
+                    <IoIosSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#64748A] text-xl pointer-events-none" />
                     <Input 
-                        className="pl-10 w-96 h-10 rounded-xl text-[#64748A] tracking-wider border border-[#D946EF] focus:border-[#D946EF] focus:outline-none shadow-[0_0_0_2px_rgba(217,70,239,0.1)] 
-                        // placeholder:font-semibold 
-                        placeholder:text-[#64748A]
+                        className="pl-12 w-full h-12 rounded-2xl text-[#64748A] tracking-wider border-2 border-[#D946EF] focus:border-[#D946EF] focus:outline-none shadow-[0_0_8px_rgba(217,70,239,0.2)] 
+                        placeholder:text-[#64748A] bg-white/5
                         placeholder:text-sm"
                         placeholder="What game do you want to search for?"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
             </div>
             <div className="">
                 <Card className="border-hidden shadow-none p-0 dark:bg-[#0f1221]">
-                    <div className="grid gap-1 w-full grid-cols-[repeat(auto-fit,minmax(150px,1fr))]">
-                        <img src={Img1} alt="Runner Maze" className="border-4 border-transparent hover:border-[#D946EF] hover:mt-0 hover:rounded-4xl box-border transition-transform duration-200 hover:scale-110" onClick={handleGamePlay}/>
-                        <img src={Img2} alt="Runner Maze" className="border-4 border-transparent hover:border-[#D946EF] hover:mt-0 hover:rounded-4xl box-border transition-transform duration-200 hover:scale-110" onClick={handleGamePlay}/>
-                        <img src={Img3} alt="Runner Maze" className="border-4 border-transparent hover:border-[#D946EF] hover:mt-0 hover:rounded-4xl box-border transition-transform duration-200 hover:scale-110" onClick={handleGamePlay} />
-                        <img src={Img4} alt="Runner Maze" className="border-4 border-transparent hover:border-[#D946EF] hover:mt-0 hover:rounded-4xl box-border transition-transform duration-200 hover:scale-110" onClick={handleGamePlay}/>
-                        <img src={Img5} alt="Runner Maze" className="border-4 border-transparent hover:border-[#D946EF] hover:mt-0 hover:rounded-4xl box-border transition-transform duration-200 hover:scale-110" onClick={handleGamePlay}/>
-                    </div>
+                    {isLoading ? (
+                        <GamesSkeleton count={4} />
+                    ) : error ? (
+                        <div className="text-center py-8 text-red-500">Error loading games</div>
+                    ) : (
+                        <div className="grid gap-[10px] w-full grid-cols-[repeat(auto-fit,minmax(268.8px,1fr))]">
+                            {filteredGames?.map((game: any) => (
+                                <div key={game.id} className="relative p-[10px] group cursor-pointer">
+                                    <img 
+                                        src={game.thumbnailFile?.s3Url} 
+                                        alt={game.title}
+                                        loading="lazy"
+                                        className="w-full h-[290px] min-h-[290px] max-h-[290px] object-cover rounded-[32px] border-4 border-transparent group-hover:border-[#D946EF] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(217,70,239,0.3)]"
+                                        onClick={() => handleGamePlay(game.id)}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </Card>
             </div>
         </div>

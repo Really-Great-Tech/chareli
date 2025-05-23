@@ -4,7 +4,6 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import type { FormikHelpers } from "formik";
 import * as Yup from "yup";
 import { useAuth } from "../../context/AuthContext";
-// import { useRequestOtp } from "../../backend/auth.service";
 import { toast } from "sonner";
 import { ForgotPasswordModal } from "./ForgotPasswordModal";
 import {
@@ -26,6 +25,12 @@ interface LoginDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   openSignUpModal: () => void;
+  defaultEmail?: string;
+}
+
+interface LoginFormValues {
+  email: string;
+  password: string;
 }
 
 const validationSchema = Yup.object({
@@ -35,33 +40,33 @@ const validationSchema = Yup.object({
   password: Yup.string().required("Password is required"),
 });
 
-
-const initialValues = {
-  email: "",
+const getInitialValues = (defaultEmail?: string): LoginFormValues => ({
+  email: defaultEmail || "",
   password: "",
-};
+});
 
 export function LoginModal({
   open,
   onOpenChange,
   openSignUpModal,
+  defaultEmail,
 }: LoginDialogProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [isOTPPlatformModalOpen, setIsOTPPlatformModalOpen] = useState(false);
   const [userId, setUserId] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [userPhone, setUserPhone] = useState("");
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [hasBothContactMethods, setHasBothContactMethods] = useState(false);
   const [isOTPVerificationModalOpen, setIsOTPVerificationModalOpen] = useState(false);
   const [selectedOtpType, setSelectedOtpType] = useState<'EMAIL' | 'SMS'>('EMAIL');
   const [loginError, setLoginError] = useState("");
   const [isForgotPasswordModalOpen, setIsForgotPasswordModalOpen] = useState(false);
   const { login } = useAuth();
-  // const requestOtp = useRequestOtp();
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
-  const handleLogin = async (values: typeof initialValues, actions: FormikHelpers<typeof initialValues>) => {
+  console.log(hasBothContactMethods)
+  
+  const handleLogin = async (values: LoginFormValues, actions: FormikHelpers<LoginFormValues>) => {
     try {
       setLoginError("");
       const response = await login(values.email, values.password);
@@ -87,7 +92,6 @@ export function LoginModal({
   
       onOpenChange(false);
     } catch (error: any) {
-
       if (error.response?.data?.message) {
         setLoginError(error.response.data.message);
         toast.error(error.response.data.message);
@@ -117,7 +121,7 @@ export function LoginModal({
           </DialogTitle>
           <DialogDescription className="text-center">
             <Formik
-              initialValues={initialValues}
+              initialValues={getInitialValues(defaultEmail)}
               validationSchema={validationSchema}
               onSubmit={handleLogin}
             >

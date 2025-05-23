@@ -1,4 +1,4 @@
-import React from 'react'
+import { useState } from 'react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../../components/ui/table";
 import { Card } from "../../../components/ui/card";
 import { UserManagementFilterSheet } from '../../../components/single/UserMgtFilter-Sheet';
@@ -6,21 +6,99 @@ import { Button } from '../../../components/ui/button';
 import { RiEqualizer2Line } from 'react-icons/ri';
 import { PiExportBold } from "react-icons/pi";
 import { useNavigate } from "react-router-dom";
+import { useUsersAnalytics, useGamesAnalytics } from '../../../backend/analytics.service';
+import type { FilterState, GameAnalytics } from '../../../backend/analytics.service';
+import { NoResults } from '../../../components/single/NoResults';
+import { formatTime } from '../../../utils/main';
 
 export default function UserManagement() {
   const navigate = useNavigate();
+  const [page, setPage] = useState(1);
+  const [filters, setFilters] = useState<FilterState>({
+    registrationDates: {
+      startDate: '',
+      endDate: ''
+    },
+    sessionCount: '',
+    timePlayed: {
+      min: 0,
+      max: 0
+    },
+    gameTitle: '',
+    gameCategory: ''
+  });
+
+  const { data: users, isLoading } = useUsersAnalytics(filters);
+  const { data: games } = useGamesAnalytics();
+  const usersPerPage = 12;
+
+  console.log("users for analytics", users)
+
+  const handleFiltersChange = (newFilters: FilterState) => {
+    setFilters(newFilters);
+    setPage(1); // Reset to first page when filters change
+  };
+
+  const handleFilterReset = () => {
+    setFilters({
+      registrationDates: {
+        startDate: '',
+        endDate: ''
+      },
+      sessionCount: '',
+      timePlayed: {
+        min: 0,
+        max: 0
+      },
+      gameTitle: '',
+      gameCategory: ''
+    });
+    setPage(1);
+  };
+
+  
+
+
+  // Filter users based on criteria
+  const filteredUsers = users?.filter(user => {
+    if (filters.registrationDates.startDate && new Date(user.createdAt) < new Date(filters.registrationDates.startDate)) return false;
+    if (filters.registrationDates.endDate && new Date(user.createdAt) > new Date(filters.registrationDates.endDate)) return false;
+    if (filters.sessionCount && user.analytics?.totalSessionCount < parseInt(filters.sessionCount)) return false;
+    if (filters.timePlayed.min && (user.analytics?.totalTimePlayed || 0) / 60 < filters.timePlayed.min) return false;
+    if (filters.timePlayed.max && (user.analytics?.totalTimePlayed || 0) / 60 > filters.timePlayed.max) return false;
+    if (filters.gameCategory && user.analytics?.mostPlayedGame?.gameId && !games?.find((g: GameAnalytics) => g.id === user.analytics?.mostPlayedGame?.gameId && g.category?.name === filters.gameCategory)) return false;
+    if (filters.gameTitle && user.analytics?.mostPlayedGame?.gameTitle !== filters.gameTitle) return false;
+    return true;
+  });
+
+
+
+
+
+
+
   return (
     <div className='px-8'>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-[#D946EF] text-3xl font-boogaloo">User Management</h1>
         <div className="flex gap-3">
-          <UserManagementFilterSheet>
+          <UserManagementFilterSheet
+            filters={filters}
+            onFiltersChange={handleFiltersChange}
+            onReset={handleFilterReset}
+          >
             <Button
               variant="outline"
               className="border-[#475568] text-[#475568] flex items-center gap-2 dark:text-white py-6"
             >
               Filter
-              <div className='text-[#D946EF] bg-[#FAE8FF] px-3 py-1 rounded-full'>3</div>
+              <div className='text-[#D946EF] bg-[#FAE8FF] px-3 py-1 rounded-full'>
+                {Object.values(filters).filter(value => 
+                  typeof value === 'object' 
+                    ? Object.values(value).some(v => v !== '' && v !== 0)
+                    : value !== ''
+                ).length}
+              </div>
               <RiEqualizer2Line size={32} />
             </Button>
           </UserManagementFilterSheet>
@@ -38,38 +116,24 @@ export default function UserManagement() {
           </div>
           {/* table */}
           <div className="px-4 pb-4">
-            {/** Pagination logic for users */}
-            {(() => {
-              // Mock user data: 20 users for 4 pages
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              const allUsers = Array.from({ length: 20 }, (_, idx) => ({
-                name: "John Doe",
-                email: "john@email.com",
-                phone: "233567923890",
-                country: ["Ireland", "France", "USA", "Israel", "Australia"][Math.floor(idx / 4)],
-                registration: "12/08/2025",
-                games: 34,
-                time: "120 minutes",
-                sessions: 20,
-                lastLogin: "16:59"
-              }));
-              const usersPerPage = 12;
-              // eslint-disable-next-line react-hooks/rules-of-hooks
-              const [userPage, setUserPage] = React.useState(1);
-              const totalUserPages = 4; // Only 4 pages
-              const startIdx = (userPage - 1) * usersPerPage;
-              const endIdx = startIdx + usersPerPage;
-              const usersToShow = allUsers.slice(startIdx, endIdx);
-
-              return (
-                <>
-                  <Table>
+            {isLoading ? (
+              <div className="text-center py-4">Loading...</div>
+            ) : !filteredUsers?.length ? (
+              <NoResults 
+                title={users?.length ? "No matching results" : "No users found"}
+                message={users?.length 
+                  ? "Try adjusting your filters or search criteria"
+                  : "There are no users in the system yet"
+                }
+              />
+            ) : (
+              <>
+                <Table>
                     <TableHeader>
                       <TableRow className="text-xl text-bold">
                         <TableHead>Name</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Phone</TableHead>
-                        <TableHead>Country</TableHead>
                         <TableHead>Registration Date</TableHead>
                         <TableHead>Games Played</TableHead>
                         <TableHead>Time Played</TableHead>
@@ -78,25 +142,28 @@ export default function UserManagement() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {usersToShow.map((user, idx) => (
+                      {filteredUsers && filteredUsers.slice((page - 1) * usersPerPage, page * usersPerPage).map((user, idx) => (
                         <TableRow
                           key={idx}
                           className="font-sans cursor-pointer hover:bg-[#f3e8ff] dark:hover:bg-[#23243a]"
-                          onClick={() => navigate(`/admin/management/${startIdx + idx + 1}`)}
+                          onClick={() => navigate(`/admin/management/${user.id}`)}
                         >
-                          <TableCell>{user.name}</TableCell>
-                          <TableCell>{user.email}</TableCell>
-                          <TableCell>{user.phone}</TableCell>
-                          <TableCell>{user.country}</TableCell>
-                          <TableCell>{user.registration}</TableCell>
-                          <TableCell>{user.games}</TableCell>
-                          <TableCell>{user.time}</TableCell>
-                          <TableCell>{user.sessions}</TableCell>
+                          <TableCell>{`${user.firstName} ${user.lastName}`}</TableCell>
+                          <TableCell>{user.email || '-'}</TableCell>
+                          <TableCell>{user.phoneNumber || '-'}</TableCell>
+                          <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+                          <TableCell>{user.analytics?.totalGamesPlayed || 0}</TableCell>
+                          <TableCell>{formatTime(user.analytics?.totalTimePlayed || 0)}</TableCell>
+                          <TableCell>{user.analytics?.totalSessionCount || 0}</TableCell>
                           <TableCell>
                             <span className="flex items-center gap-2">
                               <div className="bg-[#94A3B7] p-2 rounded-lg">
-                                <span className="inline-block w-2 h-2 rounded-full bg-yellow-500" />
-                                <span className="rounded px-2 py-1 text-white font-semibold text-sm">{user.lastLogin}</span>
+                                <span className={`inline-block w-2 h-2 rounded-full ${user.lastLoggedIn ? 'bg-green-500' : 'bg-red-500'}`} />
+                                <span className="rounded px-2 py-1 text-white font-semibold text-sm">
+                                  {user.lastLoggedIn ? 
+                                    new Date(user.lastLoggedIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) 
+                                    : 'Never logged in'}
+                                </span>
                               </div>
                             </span>
                           </TableCell>
@@ -106,14 +173,14 @@ export default function UserManagement() {
                   </Table>
                   <div className="flex justify-between items-center mt-4">
                     <span className="text-sm">
-                      Showing {startIdx + 1}-{Math.min(endIdx, allUsers.length)} from {allUsers.length} data
+                      Showing {((page - 1) * usersPerPage) + 1}-{Math.min(page * usersPerPage, filteredUsers?.length || 0)} from {filteredUsers?.length || 0} data
                     </span>
                     <div className="flex items-center gap-2 rounded-xl space-x-4 pr-1 pl-0.5 border border-[#D946EF] dark:text-white">
-                      {Array.from({ length: totalUserPages }, (_, i) => (
+                      {Array.from({ length: Math.ceil((filteredUsers?.length || 0) / usersPerPage) }, (_, i) => (
                         <button
                           key={i + 1}
-                          className={`w-7 h-7 rounded-full ${userPage === i + 1 ? "bg-gray-300 dark:text-white" : ""} text-black dark:text-white`}
-                          onClick={() => setUserPage(i + 1)}
+                          className={`w-7 h-7 rounded-full ${page === i + 1 ? "bg-[#D946EF] text-white" : "bg-transparent text-[#D946EF]"} hover:bg-[#f3e8ff]`}
+                          onClick={() => setPage(i + 1)}
                         >
                           {i + 1}
                         </button>
@@ -121,8 +188,7 @@ export default function UserManagement() {
                     </div>
                   </div>
                 </>
-              );
-            })()}
+              )}
           </div>
         </Card>
       </div>

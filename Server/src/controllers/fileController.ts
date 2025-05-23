@@ -4,8 +4,10 @@ import { File } from '../entities/Files';
 import { ApiError } from '../middlewares/errorHandler';
 import { v4 as uuidv4 } from 'uuid';
 import { s3Service } from '../services/s3.service';
+import { zipService } from '../services/zip.service';
 import multer from 'multer';
 import logger from '../utils/logger';
+import * as path from 'path';
 
 const fileRepository = AppDataSource.getRepository(File);
 
@@ -208,24 +210,52 @@ export const createFile = async (
       return next(ApiError.badRequest('File type is required'));
     }
     
-    // Upload file to S3
-    logger.info(`Uploading file to S3: ${file.originalname}`);
-    const uploadResult = await s3Service.uploadFile(
-      file.buffer,
-      file.originalname,
-      file.mimetype,
-      type // Use type as folder name
-    );
-    
-    // Create file record in database
-    logger.info('Creating file record in database');
-    const fileRecord = fileRepository.create({
-      s3Key: uploadResult.key,
-      s3Url: uploadResult.url,
-      type
-    });
-    
-    await fileRepository.save(fileRecord);
+    let fileRecord;
+
+    // Handle file upload based on type
+    if (type === 'game_file') {
+      // Process game zip file
+      logger.info('Processing game zip file');
+      const processedZip = await zipService.processGameZip(file.buffer);
+      
+      if (processedZip.error) {
+        return next(ApiError.badRequest(processedZip.error));
+      }
+
+      const gameId = uuidv4(); // Generate unique ID for this game
+      
+      // Upload entire game folder to S3
+      const s3GamePath = `games/${gameId}`;
+      await s3Service.uploadDirectory(processedZip.extractedPath, s3GamePath);
+
+      // Create file record for the index.html
+      fileRecord = fileRepository.create({
+        s3Key: `${s3GamePath}/${processedZip.indexPath}`,
+        s3Url: `${s3Service.getBaseUrl()}/${s3GamePath}/`,
+        type: 'game_file'
+      });
+
+      await fileRepository.save(fileRecord);
+    } else {
+      // Handle normal file upload (e.g., thumbnail)
+      logger.info(`Uploading file to S3: ${file.originalname}`);
+      const uploadResult = await s3Service.uploadFile(
+        file.buffer,
+        file.originalname,
+        file.mimetype,
+        type
+      );
+      
+      // Create file record in database
+      logger.info('Creating file record in database');
+      fileRecord = fileRepository.create({
+        s3Key: uploadResult.key,
+        s3Url: uploadResult.url,
+        type
+      });
+      
+      await fileRepository.save(fileRecord);
+    }
     
     res.status(201).json({
       success: true,

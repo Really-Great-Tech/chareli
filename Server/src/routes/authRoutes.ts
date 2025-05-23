@@ -17,7 +17,8 @@ import {
   deleteInvitation,
   verifyInvitationToken,
   resetPasswordFromInvitation,
-  revokeRole
+  revokeRole,
+  changePassword
 } from '../controllers/userManagementController';
 import { authenticate, isAdmin } from '../middlewares/authMiddleware';
 import { validateBody, validateParams } from '../middlewares/validationMiddleware';
@@ -31,7 +32,8 @@ import {
   inviteUserSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
-  requestOtpSchema
+  requestOtpSchema,
+  changePasswordSchema
 } from '../validation';
 import * as yup from 'yup';
 
@@ -75,6 +77,7 @@ router.post(
 
 // Protected routes
 router.get('/me', authenticate, getCurrentUser);
+router.post('/me/change-password', authenticate, validateBody(changePasswordSchema), changePassword);
 router.post('/invite', authenticate, isAdmin, validateBody(inviteUserSchema), inviteUser);
 router.get('/invitations', authenticate, isAdmin, getAllInvitations);
 router.delete(

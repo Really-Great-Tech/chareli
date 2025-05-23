@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState, useMemo, useCallback } from "react";
 import { useRegister } from "../../backend/auth.service";
+import { useTrackSignupClick } from "../../backend/signup.analytics.service";
 import { toast } from "sonner";
 import { useConfig } from "../../context/ConfigContext";
 import type { SignUpConfig } from "../../backend/config.service";
@@ -79,7 +80,9 @@ const createValidationSchema = (config: SignUpConfig | null) => {
     schema.ageConfirm = Yup.boolean().default(false);
   }
   if (config.fields.terms) {
-    schema.terms = Yup.boolean().oneOf([true], "You must accept the terms of use");
+    schema.terms = Yup.boolean()
+    .oneOf([true], "You must accept the terms of use")
+    .required("You must accept the terms of use");
   }
 
   return Yup.object(schema);
@@ -145,6 +148,28 @@ export function SignUpModal({
     () => createInitialValues(signUpConfig), 
     [signUpConfig]
   );
+  const { mutate: trackSignup } = useTrackSignupClick();
+
+  const handleSignUp = async (values: typeof initialValues, actions: FormikHelpers<typeof initialValues>) => {
+    try {
+      // Track the final signup button click
+      trackSignup({ type: 'signup-modal' });
+
+      await createUser.mutateAsync({
+        firstName: values.firstName,
+        lastName: values.lastName,
+        email: values.email,
+        password: values.password,
+        phoneNumber: values.phoneNumber,
+        isAdult: values.ageConfirm,
+        hasAcceptedTerms: values.terms
+      });
+
+      // Close signup modal
+      onOpenChange(false);
+
+      toast.success("Account created successfully! Please login to continue.");
+      openLoginModal();
 
   const handleSignUp = useCallback(async (
     values: SignUpValues, 
@@ -280,8 +305,11 @@ export function SignUpModal({
               initialValues={initialValues}
               validationSchema={validationSchema}
               onSubmit={handleSignUp}
+              validateOnMount={false}
+              validateOnChange={false}
+              validateOnBlur={false}
             >
-              {({ isSubmitting, setFieldValue, handleSubmit }) => (
+              {({ isSubmitting, handleSubmit }) => (
                 <Form className="space-y-1" onSubmit={(e) => {
                   console.log('Form submitted');
                   handleSubmit(e);
@@ -517,62 +545,58 @@ export function SignUpModal({
                   )}
                   {/* Checkboxes */}
                   <div className="my-5 flex flex-col gap-3">
-                    {signUpConfig.fields.ageConfirm && (
-                      <>
-                        <div className="flex items-center space-x-2">
-                          <Field
-                            name="ageConfirm"
+                    <div className="flex items-center space-x-2">
+                      <Field name="ageConfirm">
+                        {({ field, form }: FieldProps) => (
+                          <Checkbox
                             id="ageConfirm"
-                          >
-                            {({ field }: FieldProps) => (
-                              <Checkbox
-                                checked={field.value}
-                                onCheckedChange={(checked) => setFieldValue("ageConfirm", checked)}
-                              />
-                            )}
-                          </Field>
-                          <Label
-                            htmlFor="ageConfirm"
-                            className="font-boogaloo text-black dark:text-white"
-                          >
-                            Confirm age 18+
-                          </Label>
-                        </div>
-                        <ErrorMessage
-                          name="ageConfirm"
-                          component="div"
-                          className="text-red-500 text-xs font-pincuk"
-                        />
-                      </>
-                    )}
-                    {signUpConfig.fields.terms && (
-                      <>
-                        <div className="flex items-center space-x-2">
-                          <Field
-                            name="terms"
+                            checked={field.value}
+                            onCheckedChange={(checked) => {
+                              form.setFieldValue("ageConfirm", checked);
+                              form.setFieldTouched("ageConfirm", true);
+                            }}
+                            className="border-2 border-gray-400 data-[state=checked]:bg-[#C026D3] data-[state=checked]:border-[#C026D3]"
+                          />
+                        )}
+                      </Field>
+                      <Label
+                        htmlFor="ageConfirm"
+                        className="font-boogaloo text-black dark:text-white cursor-pointer"
+                      >
+                        Confirm age 18+
+                      </Label>
+                    </div>
+                    <ErrorMessage
+                      name="ageConfirm"
+                      component="div"
+                      className="text-red-500 text-xs font-pincuk"
+                    />
+                    <div className="flex items-center space-x-2">
+                      <Field name="terms">
+                        {({ field, form }: FieldProps) => (
+                          <Checkbox
                             id="terms"
-                          >
-                            {({ field }: FieldProps) => (
-                              <Checkbox
-                                checked={field.value}
-                                onCheckedChange={(checked) => setFieldValue("terms", checked)}
-                              />
-                            )}
-                          </Field>
-                          <Label
-                            htmlFor="terms"
-                            className="font-boogaloo text-black dark:text-white"
-                          >
-                            Accept Terms of Use
-                          </Label>
-                        </div>
-                        <ErrorMessage
-                          name="terms"
-                          component="div"
-                          className="text-red-500 text-xs font-pincuk"
-                        />
-                      </>
-                    )}
+                            checked={field.value}
+                            onCheckedChange={(checked) => {
+                              form.setFieldValue("terms", checked);
+                              form.setFieldTouched("terms", true);
+                            }}
+                            className="border-2 border-gray-400 data-[state=checked]:bg-[#C026D3] data-[state=checked]:border-[#C026D3]"
+                          />
+                        )}
+                      </Field>
+                      <Label
+                        htmlFor="terms"
+                        className="font-boogaloo text-black dark:text-white cursor-pointer"
+                      >
+                        Accept Terms of Use
+                      </Label>
+                    </div>
+                    <ErrorMessage
+                      name="terms"
+                      component="div"
+                      className="text-red-500 text-xs font-pincuk"
+                    />
                   </div>
                   <Button
                     type="submit"

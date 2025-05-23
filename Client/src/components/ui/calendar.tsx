@@ -3,9 +3,10 @@
 import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { DayPicker } from "react-day-picker"
+import type { DayPickerProps } from "react-day-picker"
 
-import { cn } from "@/lib/utils"
-import { buttonVariants } from "@/components/ui/button"
+import { cn } from "../../lib/utils"
+import { buttonVariants } from "./button"
 
 function Calendar({
   className,
@@ -60,13 +61,17 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        IconLeft: ({ className, ...props }) => (
-          <ChevronLeft className={cn("size-4", className)} {...props} />
-        ),
-        IconRight: ({ className, ...props }) => (
-          <ChevronRight className={cn("size-4", className)} {...props} />
-        ),
-      }}
+        Dropdown: () => (
+          <div className="flex gap-1">
+            <button className="nav_button nav_button_previous">
+              <ChevronLeft className="size-4" />
+            </button>
+            <button className="nav_button nav_button_next">
+              <ChevronRight className="size-4" />
+            </button>
+          </div>
+        )
+      } satisfies NonNullable<DayPickerProps["components"]>}
       {...props}
     />
   )

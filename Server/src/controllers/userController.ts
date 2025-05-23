@@ -7,6 +7,7 @@ import { ApiError } from '../middlewares/errorHandler';
 import * as bcrypt from 'bcrypt';
 import { authService } from '../services/auth.service';
 import { OtpType } from '../entities/Otp';
+import { Not, IsNull } from 'typeorm';
 
 const userRepository = AppDataSource.getRepository(User);
 const roleRepository = AppDataSource.getRepository(Role);
@@ -104,10 +105,13 @@ export const getCurrentUserStats = async (
       .where('analytics.userId = :userId', { userId })
       .getRawOne();
 
-    // Get total play count
+    // Get total play count (only count entries with gameId)
     const totalPlaysResult = await analyticsRepository
       .count({
-        where: { userId }
+        where: {
+          userId,
+          gameId: Not(IsNull())
+        }
       });
 
     // Get games played with details
@@ -124,7 +128,7 @@ export const getCurrentUserStats = async (
       .groupBy('analytics.gameId')
       .addGroupBy('game.title')
       .addGroupBy('thumbnailFile.s3Url')
-      .orderBy('lastPlayed', 'DESC')
+      .orderBy('"lastPlayed"', 'DESC')
       .getRawMany();
 
     // Format the response

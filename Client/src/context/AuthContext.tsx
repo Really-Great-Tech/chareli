@@ -17,6 +17,8 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
   isLoading: boolean;
+  keepPlayingRedirect: boolean;
+  setKeepPlayingRedirect: (value: boolean) => void;
   login: (email: string, password: string, otpType?: 'SMS' | 'EMAIL' | 'BOTH') => Promise<LoginResponse>;
   verifyOtp: (userId: string, otp: string) => Promise<User>;
   logout: () => void;
@@ -28,6 +30,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [keepPlayingRedirect, setKeepPlayingRedirect] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -100,6 +103,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isAuthenticated: !!user,
         isAdmin: isRoleIncluded,
         isLoading,
+        keepPlayingRedirect,
+        setKeepPlayingRedirect,
         login,
         verifyOtp,
         logout,

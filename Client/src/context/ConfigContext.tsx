@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect } from 'react';
+import { createContext, useContext, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { useGetSignUpConfig, type SignUpConfig, defaultConfig } from '../backend/config.service';
 
@@ -32,6 +32,7 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useConfig() {
   return useContext(ConfigContext);
 }

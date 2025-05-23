@@ -1,10 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useGames } from "../../backend/games.service";
 import { useCategories } from "../../backend/category.service";
-import { useState } from "react";
 import GamesSkeleton from "./GamesSkeleton";
 
 const AllGamesSection = () => {

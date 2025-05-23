@@ -186,6 +186,9 @@ export function SignUpModal({
       }
   
       try {
+        // Track signup click
+        trackSignup({ type: 'signup-modal' });
+
         // Only include fields that are enabled in config
         // Ensure required fields are present and non-undefined
         const payload = {

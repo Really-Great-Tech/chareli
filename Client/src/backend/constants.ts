@@ -14,6 +14,7 @@ export const BackendRoute = {
   AUTH_REQUEST_OTP: '/api/auth/request-otp',
   AUTH_FORGOT_PASSWORD: '/api/auth/forgot-password',
   AUTH_RESET_PASSWORD: '/api/auth/reset-password',
+  SIGNUP_CONFIG: '/api/system-configs',
   AUTH_INVITE: '/api/auth/invite',
   AUTH_INVITATIONS: '/api/auth/invitations',
   AUTH_INVITATION_BY_ID: '/api/auth/invitations/:id',

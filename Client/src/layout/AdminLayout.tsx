@@ -90,7 +90,7 @@ const AdminLayout: React.FC = () => {
             </div>
 
             {/* logout */}
-            <div className="mt-96 pt-72 px-2">
+            <div className="mt-96 pt-24 px-2">
             <Button
             onClick={() => {
               logout();

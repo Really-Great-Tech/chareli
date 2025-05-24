@@ -21,6 +21,7 @@ import { useNavigate } from "react-router-dom";
 import { EditSheet } from "../../../components/single/Edit-Sheet";
 import { cn } from "../../../lib/utils";
 import gameImg from "../../../assets/gamesImg/1.svg";
+import { formatTime } from "../../../utils/main";
 
 const pageSize = 10;
 
@@ -159,7 +160,7 @@ export default function GameManagement() {
                   </td>
                   <td className="px-4 py-3 font-pincuk">
                     {game.analytics?.totalPlayTime != null
-                      ? `${Math.round(game.analytics.totalPlayTime)} min`
+                      ? formatTime(game.analytics.totalPlayTime || 0)
                       : "-"}
                   </td>
                   <td className="px-4 py-3">

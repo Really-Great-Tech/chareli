@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { useUsersAnalytics, useGamesAnalytics } from '../../../backend/analytics.service';
 import type { FilterState, GameAnalytics } from '../../../backend/analytics.service';
 import { NoResults } from '../../../components/single/NoResults';
+import { formatTime } from '../../../utils/main';
 
 export default function UserManagement() {
   const navigate = useNavigate();
@@ -31,6 +32,8 @@ export default function UserManagement() {
   const { data: games } = useGamesAnalytics();
   const usersPerPage = 12;
 
+  console.log("users for analytics", users)
+
   const handleFiltersChange = (newFilters: FilterState) => {
     setFilters(newFilters);
     setPage(1); // Reset to first page when filters change
@@ -52,6 +55,9 @@ export default function UserManagement() {
     });
     setPage(1);
   };
+
+  
+
 
   // Filter users based on criteria
   const filteredUsers = users?.filter(user => {
@@ -147,7 +153,7 @@ export default function UserManagement() {
                           <TableCell>{user.phoneNumber || '-'}</TableCell>
                           <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
                           <TableCell>{user.analytics?.totalGamesPlayed || 0}</TableCell>
-                          <TableCell>{Math.round(user.analytics?.totalTimePlayed / 60)} min</TableCell>
+                          <TableCell>{formatTime(user.analytics?.totalTimePlayed || 0)}</TableCell>
                           <TableCell>{user.analytics?.totalSessionCount || 0}</TableCell>
                           <TableCell>
                             <span className="flex items-center gap-2">

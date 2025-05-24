@@ -57,7 +57,7 @@ const HorizontalBarChart = () => {
   }
 
   // Ensure all click types are represented
-  const allClickTypes = ["navbar", "signup-modal", "popup"];
+  const allClickTypes = ["navbar", "signup-modal", "keep-playing"];
   const clicksMap = new Map(
     analyticsData.clicksByType?.map(click => [click.type, parseInt(click.count)]) || []
   );
@@ -68,8 +68,7 @@ const HorizontalBarChart = () => {
     fill: colors[index % colors.length]
   }));
 
-  console.log('Chart data points:', data);
-
+ 
   return (
     <Card className="w-full p-4 bg-[#F8FAFC] dark:bg-[#0F1221] shadow-none border-none rounded-2xl">
       <CardContent>

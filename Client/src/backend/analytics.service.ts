@@ -2,33 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { backendService } from './api.service';
 import { BackendRoute } from './constants';
 
-// Analytics Types
-interface Analytics {
-  id: string;
-  userId: string;
-  gameId?: string;
-  startTime?: Date;
-  endTime?: Date;
-  score?: number;
-  duration?: number;
-  level?: number;
-  status: string;
-  metadata?: Record<string, any>;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface CreateAnalyticsData {
-  userId: string;
-  gameId?: string;
-  startTime?: Date;
-  endTime?: Date;
-  score?: number;
-  duration?: number;
-  level?: number;
-  status: string;
-  metadata?: Record<string, any>;
-}
+import type { Analytics, CreateAnalyticsData } from './types';
 
 /**
  * Hook to fetch all analytics entries
@@ -359,7 +333,7 @@ export const useCurrentUserStats = () => {
     queryKey: [BackendRoute.USER_STATS],
     queryFn: async () => {
       const response = await backendService.get(BackendRoute.USER_STATS);
-      return response.data.data;
+      return response.data;
     },
     refetchOnWindowFocus: false,
   });

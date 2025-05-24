@@ -53,6 +53,8 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
 
   const { data: game, error } = useGameById(gameId);
 
+  console.log("games by id", gameFileName)
+
   // Close sheet if game is not found
   useEffect(() => {
     const axiosError = error as { response?: { status: number } };
@@ -70,15 +72,15 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
       setGameFileName(null);
 
       // Set thumbnail preview if available
-      if (game.thumbnailFile?.url) {
-        setIsImageLoading(true);
-        setThumbnailPreview(game.thumbnailFile.url);
-      }
+      // if (game.thumbnailFile?.url) {
+      //   setIsImageLoading(true);
+      //   setThumbnailPreview(game.thumbnailFile.url);
+      // }
 
-      // Set game file name if available
-      if (game.gameFile?.name) {
-        setGameFileName(game.gameFile.name);
-      }
+      // // Set game file name if available
+      // if (game.gameFile?.name) {
+      //   setGameFileName(game.gameFile.name);
+      // }
     }
   }, [game?.id]); // Only run when game ID changes to prevent unnecessary updates
   const updateGame = useUpdateGame();
@@ -242,11 +244,11 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
                       }}
                     />
                   </label>
-                  {(gameFileName || game.gameFile?.name) && (
+                  {/* {(gameFileName || game.gameFile?.name) && (
                     <span className="text-sm font-pincuk text-gray-600 dark:text-gray-300">
                       {gameFileName || game.gameFile?.name}
                     </span>
-                  )}
+                  )} */}
                 </div>
                 <ErrorMessage name="gameFile" component="div" className="text-red-500 text-xs mt-1 font-pincuk" />
               </div>

@@ -83,7 +83,7 @@ jobs:
       - name: Build Frontend
         working-directory: ./Client
         env:
-          VITE_API_URL: ""
+          VITE_API_URL: "/api"
         run: npm run build
 
       - name: Archive Frontend Build

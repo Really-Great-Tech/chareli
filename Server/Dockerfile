@@ -1,4 +1,4 @@
-# Use Node.js 18 as the base image (LTS version)
+# Use Node.js 22 as the base image (LTS version)
 FROM node:22-alpine AS builder
 
 # Set working directory

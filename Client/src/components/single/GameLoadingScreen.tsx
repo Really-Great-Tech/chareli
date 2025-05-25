@@ -5,10 +5,10 @@ interface GameLoadingScreenProps {
     game: {
         title: string;
         thumbnailFile?: {
-            s3Url: string;
+            url: string;
         };
         gameFile?: {
-            s3Url: string;
+            url: string;
         };
     };
     progress: number;
@@ -47,7 +47,7 @@ const GameLoadingScreen = ({ game, progress, onProgress }: GameLoadingScreenProp
         <div 
             className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden rounded-2xl"
             style={{
-                backgroundImage: game.thumbnailFile?.s3Url ? `url(${game.thumbnailFile.s3Url})` : 'none',
+                backgroundImage: game.thumbnailFile?.url ? `url(${game.thumbnailFile.url})` : 'none',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center'
             }}

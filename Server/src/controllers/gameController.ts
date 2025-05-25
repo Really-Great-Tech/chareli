@@ -7,6 +7,7 @@ import { ApiError } from '../middlewares/errorHandler';
 import { RoleType } from '../entities/Role';
 import { Not } from 'typeorm';
 import { s3Service } from '../services/s3.service';
+import { cloudFrontService } from '../services/cloudfront.service';
 import { zipService } from '../services/zip.service';
 import multer from 'multer';
 import logger from '../utils/logger';
@@ -16,6 +17,29 @@ import * as path from 'path';
 const gameRepository = AppDataSource.getRepository(Game);
 const categoryRepository = AppDataSource.getRepository(Category);
 const fileRepository = AppDataSource.getRepository(File);
+
+/**
+ * Transform game data to include CloudFront URLs
+ */
+const transformGameWithCloudFrontUrls = (game: any) => {
+  const transformedGame = { ...game };
+  
+  if (game.thumbnailFile && game.thumbnailFile.s3Key) {
+    transformedGame.thumbnailFile = {
+      ...game.thumbnailFile,
+      url: cloudFrontService.transformS3KeyToCloudFront(game.thumbnailFile.s3Key)
+    };
+  }
+  
+  if (game.gameFile && game.gameFile.s3Key) {
+    transformedGame.gameFile = {
+      ...game.gameFile,
+      url: cloudFrontService.transformS3KeyToCloudFront(game.gameFile.s3Key)
+    };
+  }
+  
+  return transformedGame;
+};
 
 /**
  * @swagger
@@ -131,14 +155,17 @@ export const getAllGames = async (
     
     const games = await queryBuilder.getMany();
     
+    // Transform games to include CloudFront URLs
+    const transformedGames = games.map(game => transformGameWithCloudFrontUrls(game));
+    
     res.status(200).json({
       success: true,
-      count: games.length,
+      count: transformedGames.length,
       total,
       page: pageNumber,
       limit: limitNumber,
       totalPages: Math.ceil(total / limitNumber),
-      data: games,
+      data: transformedGames,
     });
   } catch (error) {
     next(error);
@@ -239,12 +266,15 @@ export const getGameById = async (
       });
     }
     
-    // Return the game with similar games
+    // Transform game and similar games to include CloudFront URLs
+    const transformedGame = transformGameWithCloudFrontUrls(game);
+    const transformedSimilarGames = similarGames.map(transformGameWithCloudFrontUrls);
+    
     res.status(200).json({
       success: true,
       data: {
-        ...game,
-        similarGames
+        ...transformedGame,
+        similarGames: transformedSimilarGames
       }
     });
   } catch (error) {
@@ -399,7 +429,6 @@ export const createGame = async (
       logger.info('Creating file records in the database...');
       const thumbnailFileRecord = fileRepository.create({
         s3Key: thumbnailUploadResult.key,
-        s3Url: thumbnailUploadResult.url,
         type: 'thumbnail'
       });
 
@@ -410,7 +439,6 @@ export const createGame = async (
       const indexPath = processedZip.indexPath.replace(/\\/g, '/');
       const gameFileRecord = fileRepository.create({
         s3Key: `${s3GamePath}/${indexPath}`,
-        s3Url: `${s3Service.getBaseUrl()}/${s3GamePath}/${indexPath}`,
         type: 'game_file'
       });
 
@@ -440,9 +468,12 @@ export const createGame = async (
         relations: ['category', 'thumbnailFile', 'gameFile', 'createdBy']
       });
 
+      // Transform game to include CloudFront URLs
+      const transformedGame = transformGameWithCloudFrontUrls(savedGame);
+
       res.status(201).json({
         success: true,
-        data: savedGame,
+        data: transformedGame,
       });
     } catch (error) {
       // Rollback transaction on error
@@ -563,7 +594,6 @@ export const updateGame = async (
       logger.info('Creating new thumbnail file record...');
       const thumbnailFileRecord = fileRepository.create({
         s3Key: thumbnailUploadResult.key,
-        s3Url: thumbnailUploadResult.url,
         type: 'thumbnail'
       });
       
@@ -602,7 +632,6 @@ export const updateGame = async (
       const indexPath = processedZip.indexPath.replace(/\\/g, '/');
       const gameFileRecord = fileRepository.create({
         s3Key: `${s3GamePath}/${indexPath}`,
-        s3Url: `${s3Service.getBaseUrl()}/${s3GamePath}/${indexPath}`,
         type: 'game_file'
       });
       
@@ -642,9 +671,12 @@ export const updateGame = async (
       relations: ['category', 'thumbnailFile', 'gameFile', 'createdBy']
     });
     
+    // Transform game to include CloudFront URLs
+    const transformedGame = transformGameWithCloudFrontUrls(updatedGame);
+    
     res.status(200).json({
       success: true,
-      data: updatedGame,
+      data: transformedGame,
     });
   } catch (error) {
     // Rollback transaction on error

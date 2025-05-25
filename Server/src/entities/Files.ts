@@ -9,9 +9,6 @@ export class File {
   s3Key: string; 
 
   @Column()
-  s3Url: string;  
-
-  @Column()
   type: string;
 
   @CreateDateColumn()

@@ -7,6 +7,7 @@ import { SignupAnalytics } from '../entities/SignupAnalytics';
 import { ApiError } from '../middlewares/errorHandler';
 import { Between, FindOptionsWhere, In, LessThan, IsNull, Not } from 'typeorm';
 import { checkInactiveUsers } from '../jobs/userInactivityCheck';
+import { cloudFrontService } from '../services/cloudfront.service';
 
 const userRepository = AppDataSource.getRepository(User);
 const gameRepository = AppDataSource.getRepository(Game);
@@ -172,14 +173,14 @@ export const getDashboardAnalytics = async (
       .createQueryBuilder('analytics')
       .select('analytics.gameId', 'gameId')
       .addSelect('game.title', 'gameTitle')
-      .addSelect('thumbnailFile.s3Url', 'thumbnailUrl')
+      .addSelect('thumbnailFile.s3Key', 'thumbnailKey')
       .addSelect('COUNT(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.id END)', 'sessionCount')
       .leftJoin('analytics.game', 'game')
       .leftJoin('game.thumbnailFile', 'thumbnailFile')
       .where('analytics.gameId IS NOT NULL')
       .groupBy('analytics.gameId')
       .addGroupBy('game.title')
-      .addGroupBy('thumbnailFile.s3Url')
+      .addGroupBy('thumbnailFile.s3Key')
       .orderBy('COUNT(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.id END)', 'DESC')
       .limit(1)
       .getRawOne();
@@ -187,7 +188,7 @@ export const getDashboardAnalytics = async (
     const mostPlayedGame = mostPlayedGameResult ? {
       id: mostPlayedGameResult.gameId,
       title: mostPlayedGameResult.gameTitle,
-      thumbnailUrl: mostPlayedGameResult.thumbnailUrl || null,
+      thumbnailUrl: mostPlayedGameResult.thumbnailKey ? cloudFrontService.transformS3KeyToCloudFront(mostPlayedGameResult.thumbnailKey) : null,
       sessionCount: parseInt(mostPlayedGameResult.sessionCount)
     } : null;
     
@@ -555,7 +556,7 @@ export const getGamesWithAnalytics = async (
       });
     });
     
-    // Combine game data with analytics data
+    // Combine game data with analytics data and transform URLs
     const gamesWithAnalytics = games.map(game => {
       const analytics = analyticsMap.get(game.id) || {
         uniquePlayers: 0,
@@ -563,10 +564,17 @@ export const getGamesWithAnalytics = async (
         totalPlayTime: 0
       };
       
-      return {
+      // Transform game data to include CloudFront URLs
+      const transformedGame = {
         ...game,
+        thumbnailFile: game.thumbnailFile ? {
+          ...game.thumbnailFile,
+          url: game.thumbnailFile.s3Key ? cloudFrontService.transformS3KeyToCloudFront(game.thumbnailFile.s3Key) : null
+        } : null,
         analytics
       };
+      
+      return transformedGame;
     });
     
     res.status(200).json({
@@ -718,9 +726,18 @@ export const getGameAnalyticsById = async (
       playTime: Math.round((day.totalPlayTime || 0) / 60) // Convert to minutes
     }));
     
+    // Transform game data to include CloudFront URLs
+    const transformedGame = {
+      ...game,
+      thumbnailFile: game.thumbnailFile ? {
+        ...game.thumbnailFile,
+        url: game.thumbnailFile.s3Key ? cloudFrontService.transformS3KeyToCloudFront(game.thumbnailFile.s3Key) : null
+      } : null
+    };
+
     // Prepare the response
     const gameAnalytics = {
-      game,
+      game: transformedGame,
       analytics: {
         uniquePlayers: parseInt(analyticsSummary?.uniquePlayers) || 0,
         totalSessions: parseInt(analyticsSummary?.totalSessions) || 0,
@@ -817,7 +834,7 @@ export const getUserAnalyticsById = async (
       .createQueryBuilder('analytics')
       .select('analytics.gameId', 'gameId')
       .addSelect('game.title', 'gameTitle')
-      .addSelect('thumbnailFile.s3Url', 'thumbnailUrl')
+      .addSelect('thumbnailFile.s3Key', 'thumbnailKey')
       .addSelect('COUNT(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.id END)', 'sessionCount')
       .addSelect('SUM(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.duration ELSE 0 END)', 'totalPlayTime')
       .addSelect('MAX(analytics.startTime)', 'lastPlayed')
@@ -827,7 +844,7 @@ export const getUserAnalyticsById = async (
       .andWhere('analytics.gameId IS NOT NULL')
       .groupBy('analytics.gameId')
       .addGroupBy('game.title')
-      .addGroupBy('thumbnailFile.s3Url')
+      .addGroupBy('thumbnailFile.s3Key')
       .orderBy('lastPlayed', 'DESC')
       .getRawMany();
 
@@ -835,7 +852,7 @@ export const getUserAnalyticsById = async (
     const formattedGameActivity = gameActivity.map(game => ({
       gameId: game.gameId,
       gameTitle: game.gameTitle,
-      thumbnailUrl: game.thumbnailUrl || null,
+      thumbnailUrl: game.thumbnailKey ? cloudFrontService.transformS3KeyToCloudFront(game.thumbnailKey) : null,
       sessionCount: parseInt(game.sessionCount) || 0,
       totalPlayTime: Math.round((game.totalPlayTime || 0) / 60), // Convert to minutes
       lastPlayed: game.lastPlayed
@@ -916,7 +933,7 @@ export const getGamesPopularityMetrics = async (
         title: true,
         status: true,
         thumbnailFile: {
-          s3Url: true
+          s3Key: true
         }
       }
     });
@@ -965,7 +982,7 @@ export const getGamesPopularityMetrics = async (
       return {
         id: game.id,
         title: game.title,
-        thumbnailUrl: game.thumbnailFile?.s3Url || null,
+        thumbnailUrl: game.thumbnailFile?.s3Key ? cloudFrontService.transformS3KeyToCloudFront(game.thumbnailFile.s3Key) : null,
         status: game.status,
         metrics: {
           totalPlays: parseInt(overallMetrics?.totalPlays) || 0,
@@ -1028,7 +1045,7 @@ export const getUsersWithAnalytics = async (
       .select('analytics.userId', 'userId')
       .addSelect('analytics.gameId', 'gameId')
       .addSelect('game.title', 'gameTitle')
-      .addSelect('thumbnailFile.s3Url', 'thumbnailUrl')
+      .addSelect('thumbnailFile.s3Key', 'thumbnailKey')
       .addSelect('COUNT(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.id END)', 'sessionCount')
       .leftJoin('analytics.game', 'game')
       .leftJoin('game.thumbnailFile', 'thumbnailFile')
@@ -1036,7 +1053,7 @@ export const getUsersWithAnalytics = async (
       .groupBy('analytics.userId')
       .addGroupBy('analytics.gameId')
       .addGroupBy('game.title')
-      .addGroupBy('thumbnailFile.s3Url')
+      .addGroupBy('thumbnailFile.s3Key')
       .orderBy('analytics.userId')
       .addOrderBy('COUNT(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.id END)', 'DESC')
       .getRawMany();
@@ -1049,7 +1066,7 @@ export const getUsersWithAnalytics = async (
         mostPlayedGameMap.set(item.userId, {
           gameId: item.gameId,
           gameTitle: item.gameTitle,
-          thumbnailUrl: item.thumbnailUrl || null,
+          thumbnailUrl: item.thumbnailKey ? cloudFrontService.transformS3KeyToCloudFront(item.thumbnailKey) : null,
           sessionCount: parseInt(item.sessionCount) || 0
         });
       }

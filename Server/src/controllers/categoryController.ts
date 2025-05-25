@@ -2,6 +2,19 @@ import { Request, Response, NextFunction } from 'express';
 import { AppDataSource } from '../config/database';
 import { Category } from '../entities/Category';
 import { ApiError } from '../middlewares/errorHandler';
+import { cloudFrontService } from '../services/cloudfront.service';
+import { File } from '../entities/Files';
+
+// Extend File type to include url
+type FileWithUrl = File & { url?: string };
+type GameWithUrls = {
+  id: string;
+  title: string;
+  description?: string;
+  thumbnailFile?: FileWithUrl;
+  gameFile?: FileWithUrl;
+  [key: string]: any;
+};
 
 const categoryRepository = AppDataSource.getRepository(Category);
 
@@ -125,16 +138,37 @@ export const getCategoryById = async (
     
     const category = await categoryRepository.findOne({
       where: { id },
-      relations: ['games']
+      relations: ['games', 'games.thumbnailFile', 'games.gameFile']
     });
     
     if (!category) {
       return next(ApiError.notFound(`Category with id ${id} not found`));
     }
+
+    // Transform game URLs in the category
+    const transformedCategory = {
+      ...category,
+      games: category.games.map(game => {
+        const transformedGame: GameWithUrls = { ...game };
+        if (game.thumbnailFile?.s3Key) {
+          transformedGame.thumbnailFile = {
+            ...game.thumbnailFile,
+            url: cloudFrontService.transformS3KeyToCloudFront(game.thumbnailFile.s3Key)
+          } as FileWithUrl;
+        }
+        if (game.gameFile?.s3Key) {
+          transformedGame.gameFile = {
+            ...game.gameFile,
+            url: cloudFrontService.transformS3KeyToCloudFront(game.gameFile.s3Key)
+          } as FileWithUrl;
+        }
+        return transformedGame;
+      })
+    };
     
     res.status(200).json({
       success: true,
-      data: category,
+      data: transformedCategory,
     });
   } catch (error) {
     next(error);

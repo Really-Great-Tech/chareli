@@ -121,7 +121,7 @@ export default function Categories() {
                       </span>
                     )}
                       <img 
-                        src={game.thumbnailFile?.s3Url} 
+                        src={game.thumbnailFile?.url} 
                         alt={game.title}
                         loading="lazy"
                         className="w-full h-full object-cover border-4 border-transparent group-hover:border-[#D946EF] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(217,70,239,0.3)]"

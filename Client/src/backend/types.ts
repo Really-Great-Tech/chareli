@@ -71,7 +71,7 @@ export interface PaginatedResponse<T> {
 export interface GameFile {
   id: string;
   s3Key: string;
-  s3Url: string;
+  url: string;
   type: string;
   createdAt: string;
   updatedAt: string;

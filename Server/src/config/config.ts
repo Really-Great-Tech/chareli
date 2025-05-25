@@ -53,7 +53,19 @@ interface Config {
     forcePathStyle?: boolean;
     signedUrlExpiration: number;
   };
+  cloudfront: {
+    distributionDomain: string;
+    keyPairId: string;
+    privateKey: string;
+    cookieExpiration: number;
+  };
 }
+
+console.log({
+  keyPairId: process.env.CLOUDFRONT_KEY_PAIR_ID || '',
+    privateKey: process.env.CLOUDFRONT_PRIVATE_KEY || '',
+    cookieExpiration: 86400, // 1 day in seconds
+})
 
 const config: Config = {
   env: process.env.NODE_ENV || 'development',
@@ -103,6 +115,12 @@ const config: Config = {
     endpoint: process.env.AWS_S3_ENDPOINT,
     forcePathStyle: process.env.AWS_S3_FORCE_PATH_STYLE === 'true',
     signedUrlExpiration: parseInt(process.env.AWS_SIGNED_URL_EXPIRATION || '3600', 10),
+  },
+  cloudfront: {
+    distributionDomain: process.env.CLOUDFRONT_DISTRIBUTION_DOMAIN || '',
+    keyPairId: process.env.CLOUDFRONT_KEY_PAIR_ID || '',
+    privateKey: process.env.CLOUDFRONT_PRIVATE_KEY || '',
+    cookieExpiration: 86400, // 1 day in seconds
   }
 };
 

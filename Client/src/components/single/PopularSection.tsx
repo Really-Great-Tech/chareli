@@ -12,7 +12,7 @@ const PopularSection = () => {
     const { data, isLoading, error } = useGames();
     const games: any = data || [];
 
-    console.log("games for popular", data)
+    console.log("games for popular", games[0]?.thumbnailFile?.url)
 
     // Filter active games and limit to 4
     const filteredGames = games
@@ -53,7 +53,7 @@ const PopularSection = () => {
                             {filteredGames?.map((game: any) => (
                                 <div key={game.id} className="relative p-[10px] group cursor-pointer">
                                     <img 
-                                        src={game.thumbnailFile?.s3Url} 
+                                        src={game.thumbnailFile?.url} 
                                         alt={game.title}
                                         loading="lazy"
                                         className="w-full h-[290px] min-h-[290px] max-h-[290px] object-cover rounded-[32px] border-4 border-transparent group-hover:border-[#D946EF] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(217,70,239,0.3)]"

@@ -149,7 +149,7 @@ export default function GameManagement() {
                 >
                   <td className="px-4 py-3 flex items-center gap-3">
                     <img
-                      src={(game.thumbnailFile as any)?.s3Url || gameImg}
+                      src={(game.thumbnailFile as any)?.url || gameImg}
                       alt={game.title}
                       className="w-12 h-12 rounded-lg object-cover"
                     />

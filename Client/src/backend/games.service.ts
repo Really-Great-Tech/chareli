@@ -14,7 +14,7 @@ export const useGames = (params?: { categoryId?: string; status?: GameStatus }) 
 };
 
 export const useGameById = (id: string) => {
-  return useQuery<GameResponse>({
+  return useQuery<any>({
     queryKey: [BackendRoute.GAMES, id],
     queryFn: async () => {
       const response = await backendService.get(BackendRoute.GAME_BY_ID.replace(':id', id));

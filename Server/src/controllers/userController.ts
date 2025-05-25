@@ -8,6 +8,7 @@ import * as bcrypt from 'bcrypt';
 import { authService } from '../services/auth.service';
 import { OtpType } from '../entities/Otp';
 import { Not, IsNull } from 'typeorm';
+import { cloudFrontService } from '../services/cloudfront.service';
 
 const userRepository = AppDataSource.getRepository(User);
 const roleRepository = AppDataSource.getRepository(Role);
@@ -119,7 +120,7 @@ export const getCurrentUserStats = async (
       .createQueryBuilder('analytics')
       .select('analytics.gameId', 'gameId')
       .addSelect('game.title', 'title')
-      .addSelect('thumbnailFile.s3Url', 'thumbnailUrl')
+      .addSelect('thumbnailFile.s3Key', 'thumbnailKey')
       .addSelect('SUM(analytics.duration)', 'totalDuration')
       .addSelect('MAX(analytics.startTime)', 'lastPlayed')
       .leftJoin('analytics.game', 'game')
@@ -127,7 +128,7 @@ export const getCurrentUserStats = async (
       .where('analytics.userId = :userId', { userId })
       .groupBy('analytics.gameId')
       .addGroupBy('game.title')
-      .addGroupBy('thumbnailFile.s3Url')
+      .addGroupBy('thumbnailFile.s3Key')
       .orderBy('"lastPlayed"', 'DESC')
       .getRawMany();
 
@@ -135,7 +136,7 @@ export const getCurrentUserStats = async (
     const formattedGames = gamesPlayed.map(game => ({
       gameId: game.gameId,
       title: game.title,
-      thumbnailUrl: game.thumbnailUrl,
+      thumbnailUrl: game.thumbnailKey ? cloudFrontService.transformS3KeyToCloudFront(game.thumbnailKey) : null,
       totalMinutes: Math.round((game.totalDuration || 0) / 60), // Convert seconds to minutes
       lastPlayed: game.lastPlayed
     }));

@@ -51,7 +51,7 @@ export default function ViewGame() {
         {/* Left: Game Card */}
         <div className="bg-[#F1F5F9] dark:bg-[#334154] rounded-2xl p-6 flex flex-col items-center w-full md:w-1/3">
           <img 
-            src={(game as any)?.game.thumbnailFile?.s3Url || gameImg} 
+            src={(game as any)?.game.thumbnailFile?.url || gameImg} 
             alt={(game as any).game?.description || 'Game'} 
             className="w-28 h-28 rounded-full object-cover mb-4" 
           />

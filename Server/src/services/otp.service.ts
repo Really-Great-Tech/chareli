@@ -4,7 +4,7 @@ import { User } from '../entities/User';
 import config from '../config/config';
 import logger from '../utils/logger';
 import { emailService } from './email.service';
-import twilio from 'twilio';
+import { SNSClient, PublishCommand } from "@aws-sdk/client-sns";
 
 const otpRepository = AppDataSource.getRepository(Otp);
 const userRepository = AppDataSource.getRepository(User);
@@ -19,6 +19,17 @@ export interface OtpServiceInterface {
 const DEV_TEST_OTP = '123456';
 
 export class OtpService implements OtpServiceInterface {
+  private snsClient: SNSClient;
+
+  constructor() {
+    this.snsClient = new SNSClient({
+      region: config.smsService.region,
+      credentials: {
+        accessKeyId: config.smsService.accessKeyId,
+        secretAccessKey: config.smsService.secretAccessKey,
+      }
+    });
+  }
  
   async generateOtp(userId: string, type: OtpType = OtpType.SMS): Promise<string> {
     const user = await userRepository.findOne({ where: { id: userId } });
@@ -66,9 +77,6 @@ export class OtpService implements OtpServiceInterface {
     return otp;
   }
 
-  /**
-   * Verify the OTP for the given user
-   */
   async verifyOtp(userId: string, otp: string): Promise<boolean> {
     // In development mode, always accept the test OTP
     if (config.env === 'development' && otp === DEV_TEST_OTP) {
@@ -106,11 +114,8 @@ export class OtpService implements OtpServiceInterface {
     return isValid;
   }
 
-  /**
-   * Send OTP to the user via email, SMS, or both
-   */
+
   async sendOtp(userId: string, otp: string, type: OtpType = OtpType.SMS): Promise<boolean> {
-    // Find the user
     const user = await userRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new Error('User not found');
@@ -119,7 +124,6 @@ export class OtpService implements OtpServiceInterface {
     let emailSent = false;
     let smsSent = false;
 
-    // Send via email if type is EMAIL or BOTH
     if (type === OtpType.EMAIL || type === OtpType.BOTH) {
       if (!user.email) {
         throw new Error('User does not have an email address');
@@ -132,7 +136,6 @@ export class OtpService implements OtpServiceInterface {
         emailSent = true;
       } else {
         try {
-          // Send OTP via email
           await emailService.sendOtpEmail(user.email, otp);
           emailSent = true;
         } catch (error) {
@@ -154,24 +157,27 @@ export class OtpService implements OtpServiceInterface {
         smsSent = true;
       } else {
         try {
-          // Use SMS service to send message
-          if (!config.smsService.providerId || !config.smsService.authToken || !config.smsService.fromNumber) {
-            throw new Error('SMS service credentials not configured');
-          }
+          logger.info(`Sending OTP ${otp} to ${user.phoneNumber} via AWS SNS`);
           
-          logger.info(`Sending OTP ${otp} to ${user.phoneNumber} via SMS service`);
-          
-          // Create SMS client and send message
-          const client = twilio(config.smsService.providerId, config.smsService.authToken);
-          await client.messages.create({
-            body: `Your verification code is: ${otp}`,
-            from: config.smsService.fromNumber,
-            to: user.phoneNumber
+          const command = new PublishCommand({
+            Message: `Your verification code is: ${otp}`,
+            PhoneNumber: user.phoneNumber,
+            MessageAttributes: {
+              'AWS.SNS.SMS.SenderID': {
+                DataType: 'String',
+                StringValue: config.smsService.senderName
+              },
+              'AWS.SNS.SMS.SMSType': {
+                DataType: 'String',
+                StringValue: 'Transactional'
+              }
+            }
           });
-          
+
+          await this.snsClient.send(command);
           smsSent = true;
         } catch (error) {
-          logger.error('Failed to send OTP via SMS service:', error);
+          logger.error('Failed to send OTP via AWS SNS:', error);
         }
       }
     }

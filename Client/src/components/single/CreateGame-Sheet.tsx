@@ -1,13 +1,13 @@
-import { useState } from "react";
-import { Formik, Form, Field, ErrorMessage } from "formik";
-import * as Yup from "yup";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
-import uploadImg from "../../assets/Fetch-upload.svg";
-import { useCreateGame } from "../../backend/games.service";
-import { useCategories } from "../../backend/category.service";
-import { toast } from "sonner";
+import { useState } from 'react';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import uploadImg from '../../assets/fetch-upload.svg';
+import { useCreateGame } from '../../backend/games.service';
+import { useCategories } from '../../backend/category.service';
+import { toast } from 'sonner';
 import {
   Sheet,
   SheetClose,
@@ -15,7 +15,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "../ui/sheet";
+} from '../ui/sheet';
 
 interface FormValues {
   title: string;
@@ -35,7 +35,7 @@ const validationSchema = Yup.object({
     .min(0, 'Config must be a positive number'),
   categoryId: Yup.string().required('Category is required'),
   thumbnailFile: Yup.mixed<File>(),
-  gameFile: Yup.mixed<File>()
+  gameFile: Yup.mixed<File>(),
 });
 
 // Initial values
@@ -46,19 +46,28 @@ const initialValues: FormValues = {
   categoryId: '',
 };
 
-export function CreateGameSheet({ children, onOpenChange }: { children: React.ReactNode; onOpenChange?: (open: boolean) => void }) {
+export function CreateGameSheet({
+  children,
+  onOpenChange,
+}: {
+  children: React.ReactNode;
+  onOpenChange?: (open: boolean) => void;
+}) {
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const [gameFileName, setGameFileName] = useState<string | null>(null);
   const createGame = useCreateGame();
   const { data: categories } = useCategories();
-  const handleSubmit = async (values: FormValues, { setSubmitting, resetForm }: any) => {
+  const handleSubmit = async (
+    values: FormValues,
+    { setSubmitting, resetForm }: any
+  ) => {
     try {
       const formData = new FormData();
       formData.append('title', values.title);
       formData.append('description', values.description);
       formData.append('config', String(values.config));
       formData.append('categoryId', values.categoryId);
-      
+
       if (values.thumbnailFile) {
         formData.append('thumbnailFile', values.thumbnailFile);
       }
@@ -67,13 +76,13 @@ export function CreateGameSheet({ children, onOpenChange }: { children: React.Re
       }
 
       await createGame.mutateAsync(formData);
-      toast.success("Game created successfully!");
+      toast.success('Game created successfully!');
       resetForm();
       setThumbnailPreview(null);
       setGameFileName(null);
       onOpenChange?.(false);
     } catch (error) {
-      toast.error("Failed to create game");
+      toast.error('Failed to create game');
     } finally {
       setSubmitting(false);
     }
@@ -81,12 +90,12 @@ export function CreateGameSheet({ children, onOpenChange }: { children: React.Re
 
   return (
     <Sheet>
-      <SheetTrigger asChild>
-        {children}
-      </SheetTrigger>
+      <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent className="font-boogaloo dark:bg-[#0F1621] max-w-xl w-full overflow-y-auto">
         <SheetHeader>
-          <SheetTitle className="text-2xl font-bold tracking-wider mt-6 mb-2">Create New Game</SheetTitle>
+          <SheetTitle className="text-2xl font-bold tracking-wider mt-6 mb-2">
+            Create New Game
+          </SheetTitle>
           <div className="border border-b-gray-200 mb-2"></div>
         </SheetHeader>
         <Formik
@@ -102,9 +111,17 @@ export function CreateGameSheet({ children, onOpenChange }: { children: React.Re
                 <div className="flex items-center gap-4">
                   <label className="w-40 h-38 flex flex-col items-center justify-center border border-[#CBD5E0] rounded-lg cursor-pointer hover:border-[#D946EF] transition">
                     {thumbnailPreview ? (
-                      <img src={thumbnailPreview} alt="thumbnail preview" className="w-full h-full object-cover rounded-lg" />
+                      <img
+                        src={thumbnailPreview}
+                        alt="thumbnail preview"
+                        className="w-full h-full object-cover rounded-lg"
+                      />
                     ) : (
-                      <img src={uploadImg} alt="upload" className="dark:text-white" />
+                      <img
+                        src={uploadImg}
+                        alt="upload"
+                        className="dark:text-white"
+                      />
                     )}
                     <input
                       type="file"
@@ -124,12 +141,21 @@ export function CreateGameSheet({ children, onOpenChange }: { children: React.Re
                     />
                   </label>
                 </div>
-                <ErrorMessage name="thumbnailFile" component="div" className="text-red-500 text-xs mt-1 font-pincuk" />
+                <ErrorMessage
+                  name="thumbnailFile"
+                  component="div"
+                  className="text-red-500 text-xs mt-1 font-pincuk"
+                />
               </div>
 
               {/* Title Input */}
               <div>
-                <Label htmlFor="title" className="text-lg mb-2 block dark:text-white">Title</Label>
+                <Label
+                  htmlFor="title"
+                  className="text-lg mb-2 block dark:text-white"
+                >
+                  Title
+                </Label>
                 <Field
                   as={Input}
                   id="title"
@@ -137,12 +163,21 @@ export function CreateGameSheet({ children, onOpenChange }: { children: React.Re
                   className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white bg-[#F1F5F9] dark:bg-[#121C2D] px-3 text-gray-700 focus:border-[#D946EF] focus:outline-none font-pincuk text-sm"
                   placeholder="Enter game title"
                 />
-                <ErrorMessage name="title" component="div" className="text-red-500 text-xs mt-1 font-pincuk" />
+                <ErrorMessage
+                  name="title"
+                  component="div"
+                  className="text-red-500 text-xs mt-1 font-pincuk"
+                />
               </div>
 
               {/* Description */}
               <div>
-                <Label htmlFor="description" className="text-lg mb-2 block dark:text-white">Short Description</Label>
+                <Label
+                  htmlFor="description"
+                  className="text-lg mb-2 block dark:text-white"
+                >
+                  Short Description
+                </Label>
                 <Field
                   as="textarea"
                   id="description"
@@ -150,7 +185,11 @@ export function CreateGameSheet({ children, onOpenChange }: { children: React.Re
                   className="w-full min-h-[80px] rounded-md border border-[#CBD5E0] dark:text-white dark:bg-[#121C2D] bg-[#F1F5F9] px-3 py-2 font-pincuk text-sm text-gray-700 focus:border-[#D946EF] focus:outline-none resize-none"
                   placeholder="Description"
                 />
-                <ErrorMessage name="description" component="div" className="text-red-500 text-xs mt-1 font-pincuk" />
+                <ErrorMessage
+                  name="description"
+                  component="div"
+                  className="text-red-500 text-xs mt-1 font-pincuk"
+                />
               </div>
 
               {/* Game Upload */}
@@ -178,12 +217,21 @@ export function CreateGameSheet({ children, onOpenChange }: { children: React.Re
                     </span>
                   )}
                 </div>
-                <ErrorMessage name="gameFile" component="div" className="text-red-500 text-xs mt-1 font-pincuk" />
+                <ErrorMessage
+                  name="gameFile"
+                  component="div"
+                  className="text-red-500 text-xs mt-1 font-pincuk"
+                />
               </div>
 
               {/* Category Dropdown */}
               <div>
-                <Label htmlFor="categoryId" className="text-lg mb-2 block dark:text-white">Game Category</Label>
+                <Label
+                  htmlFor="categoryId"
+                  className="text-lg mb-2 block dark:text-white"
+                >
+                  Game Category
+                </Label>
                 <Field
                   as="select"
                   id="categoryId"
@@ -197,12 +245,21 @@ export function CreateGameSheet({ children, onOpenChange }: { children: React.Re
                     </option>
                   ))}
                 </Field>
-                <ErrorMessage name="categoryId" component="div" className="text-red-500 text-xs mt-1 font-pincuk" />
+                <ErrorMessage
+                  name="categoryId"
+                  component="div"
+                  className="text-red-500 text-xs mt-1 font-pincuk"
+                />
               </div>
 
               {/* Config Input */}
               <div>
-                <Label htmlFor="config" className="text-lg mb-2 block dark:text-white">Game Config</Label>
+                <Label
+                  htmlFor="config"
+                  className="text-lg mb-2 block dark:text-white"
+                >
+                  Game Config
+                </Label>
                 <Field
                   as={Input}
                   type="number"
@@ -212,7 +269,11 @@ export function CreateGameSheet({ children, onOpenChange }: { children: React.Re
                   className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white dark:bg-[#121C2D] bg-[#F1F5F9] px-3 font-pincuk text-sm text-gray-700 focus:border-[#D946EF] focus:outline-none"
                   placeholder="Enter config number"
                 />
-                <ErrorMessage name="config" component="div" className="text-red-500 text-xs mt-1 font-pincuk" />
+                <ErrorMessage
+                  name="config"
+                  component="div"
+                  className="text-red-500 text-xs mt-1 font-pincuk"
+                />
               </div>
 
               <div className="flex gap-3 justify-end px-2 mt-4">
@@ -229,7 +290,7 @@ export function CreateGameSheet({ children, onOpenChange }: { children: React.Re
                   disabled={isSubmitting}
                   className="w-24 h-12 bg-[#D946EF] dark:text-white hover:text-[#D946EF] hover:bg-[#F3E8FF]"
                 >
-                  {isSubmitting ? "Creating..." : "Create"}
+                  {isSubmitting ? 'Creating...' : 'Create'}
                 </Button>
               </div>
             </Form>
@@ -237,5 +298,5 @@ export function CreateGameSheet({ children, onOpenChange }: { children: React.Re
         </Formik>
       </SheetContent>
     </Sheet>
-  )
+  );
 }

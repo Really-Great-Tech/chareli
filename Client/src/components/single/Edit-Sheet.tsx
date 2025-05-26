@@ -1,23 +1,27 @@
-import { useState, useEffect } from "react";
-import { Formik, Form, Field, ErrorMessage } from "formik";
-import * as Yup from "yup";
+import { useState, useEffect } from 'react';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
 import {
   Sheet,
   SheetContent,
   SheetTitle,
   SheetFooter,
   SheetClose,
-} from "../ui/sheet";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
-import { Button } from "../ui/button";
-import { DeleteConfirmationModal } from "../modals/DeleteConfirmationModal";
-import { XIcon } from "lucide-react";
-import { useGameById, useUpdateGame, useDeleteGame } from "../../backend/games.service";
-import { useCategories } from "../../backend/category.service";
-import { toast } from "sonner";
-import uploadImg from "../../assets/Fetch-upload.svg";
-import type { GameResponse } from "../../backend/types";
+} from '../ui/sheet';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { Button } from '../ui/button';
+import { DeleteConfirmationModal } from '../modals/DeleteConfirmationModal';
+import { XIcon } from 'lucide-react';
+import {
+  useGameById,
+  useUpdateGame,
+  useDeleteGame,
+} from '../../backend/games.service';
+import { useCategories } from '../../backend/category.service';
+import { toast } from 'sonner';
+import uploadImg from '../../assets/fetch-upload.svg';
+// import type { GameResponse } from "../../backend/types";
 
 interface EditSheetProps {
   open: boolean;
@@ -42,7 +46,7 @@ const validationSchema = Yup.object({
     .min(0, 'Config must be a positive number'),
   categoryId: Yup.string().required('Category is required'),
   thumbnailFile: Yup.mixed<File>(),
-  gameFile: Yup.mixed<File>()
+  gameFile: Yup.mixed<File>(),
 });
 
 export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
@@ -52,6 +56,8 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
   const [gameFileName, setGameFileName] = useState<string | null>(null);
 
   const { data: game, error } = useGameById(gameId);
+
+  console.log('games by id', gameFileName);
 
   // Close sheet if game is not found
   useEffect(() => {
@@ -70,15 +76,15 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
       setGameFileName(null);
 
       // Set thumbnail preview if available
-      if (game.thumbnailFile?.url) {
-        setIsImageLoading(true);
-        setThumbnailPreview(game.thumbnailFile.url);
-      }
+      // if (game.thumbnailFile?.url) {
+      //   setIsImageLoading(true);
+      //   setThumbnailPreview(game.thumbnailFile.url);
+      // }
 
-      // Set game file name if available
-      if (game.gameFile?.name) {
-        setGameFileName(game.gameFile.name);
-      }
+      // // Set game file name if available
+      // if (game.gameFile?.name) {
+      //   setGameFileName(game.gameFile.name);
+      // }
     }
   }, [game?.id]); // Only run when game ID changes to prevent unnecessary updates
   const updateGame = useUpdateGame();
@@ -91,7 +97,7 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
       formData.append('description', values.description);
       formData.append('config', String(values.config));
       formData.append('categoryId', values.categoryId);
-      
+
       if (values.thumbnailFile) {
         formData.append('thumbnailFile', values.thumbnailFile);
       }
@@ -100,10 +106,10 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
       }
 
       await updateGame.mutateAsync({ id: gameId, data: formData });
-      toast.success("Game updated successfully!");
+      toast.success('Game updated successfully!');
       onOpenChange(false);
     } catch (error) {
-      toast.error("Failed to update game");
+      toast.error('Failed to update game');
     } finally {
       setSubmitting(false);
     }
@@ -112,11 +118,11 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
   const handleDelete = async () => {
     try {
       await deleteGame.mutateAsync(gameId);
-      toast.success("Game deleted successfully");
+      toast.success('Game deleted successfully');
       setShowDeleteModal(false);
       onOpenChange(false);
     } catch (error) {
-      toast.error("Failed to delete game");
+      toast.error('Failed to delete game');
     }
   };
 
@@ -131,9 +137,14 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="max-w-md w-full overflow-y-auto p-6 font-boogaloo dark:bg-[#0F1621]">
+      <SheetContent
+        side="right"
+        className="max-w-md w-full overflow-y-auto p-6 font-boogaloo dark:bg-[#0F1621]"
+      >
         <div className="mb-4">
-          <SheetTitle className="text-lg mt-8 tracking-wider border-b">Edit Game</SheetTitle>
+          <SheetTitle className="text-lg mt-8 tracking-wider border-b">
+            Edit Game
+          </SheetTitle>
         </div>
         <Formik
           initialValues={initialValues}
@@ -150,7 +161,9 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
                       <img
                         src={thumbnailPreview}
                         alt="Thumbnail"
-                        className={`w-36 h-36 rounded-lg object-cover transition-opacity duration-200 ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}
+                        className={`w-36 h-36 rounded-lg object-cover transition-opacity duration-200 ${
+                          isImageLoading ? 'opacity-0' : 'opacity-100'
+                        }`}
                         onLoad={() => setIsImageLoading(false)}
                         onError={(e) => {
                           // If image fails to load, clear the preview
@@ -198,22 +211,34 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
                     </label>
                   )}
                 </div>
-                <ErrorMessage name="thumbnailFile" component="div" className="text-red-500 text-xs mt-1 font-pincuk" />
+                <ErrorMessage
+                  name="thumbnailFile"
+                  component="div"
+                  className="text-red-500 text-xs mt-1 font-pincuk"
+                />
               </div>
 
               <div className="mt-8">
-                <Label htmlFor="title" className="">Title</Label>
+                <Label htmlFor="title" className="">
+                  Title
+                </Label>
                 <Field
                   as={Input}
                   id="title"
                   name="title"
                   className="mt-1 font-pincuk bg-[#F1F5F9] shadow-none dark:bg-[#121C2D]"
                 />
-                <ErrorMessage name="title" component="div" className="text-red-500 text-xs mt-1 font-pincuk" />
+                <ErrorMessage
+                  name="title"
+                  component="div"
+                  className="text-red-500 text-xs mt-1 font-pincuk"
+                />
               </div>
 
               <div className="mt-8">
-                <Label htmlFor="description" className="">Short Description</Label>
+                <Label htmlFor="description" className="">
+                  Short Description
+                </Label>
                 <Field
                   as="textarea"
                   id="description"
@@ -221,7 +246,11 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
                   className="w-full mt-1 rounded-md border bg-transparent p-2 text-sm font-pincuk dark:text-white dark:bg-[#121C2D]"
                   rows={3}
                 />
-                <ErrorMessage name="description" component="div" className="text-red-500 text-xs mt-1 font-pincuk" />
+                <ErrorMessage
+                  name="description"
+                  component="div"
+                  className="text-red-500 text-xs mt-1 font-pincuk"
+                />
               </div>
 
               <div className="mt-8">
@@ -242,17 +271,23 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
                       }}
                     />
                   </label>
-                  {(gameFileName || game.gameFile?.name) && (
+                  {/* {(gameFileName || game.gameFile?.name) && (
                     <span className="text-sm font-pincuk text-gray-600 dark:text-gray-300">
                       {gameFileName || game.gameFile?.name}
                     </span>
-                  )}
+                  )} */}
                 </div>
-                <ErrorMessage name="gameFile" component="div" className="text-red-500 text-xs mt-1 font-pincuk" />
+                <ErrorMessage
+                  name="gameFile"
+                  component="div"
+                  className="text-red-500 text-xs mt-1 font-pincuk"
+                />
               </div>
 
               <div className="mt-8">
-                <Label htmlFor="categoryId" className="">Game Category</Label>
+                <Label htmlFor="categoryId" className="">
+                  Game Category
+                </Label>
                 <div className="relative">
                   <Field
                     as="select"
@@ -269,15 +304,27 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
                   </Field>
                   <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#64748b]">
                     <svg width="20" height="20" fill="none" viewBox="0 0 20 20">
-                      <path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path
+                        d="M6 8l4 4 4-4"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
                   </span>
                 </div>
-                <ErrorMessage name="categoryId" component="div" className="text-red-500 text-xs mt-1 font-pincuk" />
+                <ErrorMessage
+                  name="categoryId"
+                  component="div"
+                  className="text-red-500 text-xs mt-1 font-pincuk"
+                />
               </div>
 
               <div>
-                <Label htmlFor="config" className="mt-8">Game Config</Label>
+                <Label htmlFor="config" className="mt-8">
+                  Game Config
+                </Label>
                 <Field
                   as={Input}
                   type="number"
@@ -286,35 +333,39 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
                   min="0"
                   className="mt-1 bg-[#F1F5F9] shadow-none border-none dark:bg-[#121C2D]"
                 />
-                <ErrorMessage name="config" component="div" className="text-red-500 text-xs mt-1 font-pincuk" />
+                <ErrorMessage
+                  name="config"
+                  component="div"
+                  className="text-red-500 text-xs mt-1 font-pincuk"
+                />
               </div>
 
               <SheetFooter className="flex flex-row justify-between mt-6">
-                <Button 
+                <Button
                   type="button"
-                  variant="destructive" 
-                  onClick={() => setShowDeleteModal(true)} 
+                  variant="destructive"
+                  onClick={() => setShowDeleteModal(true)}
                   className="dark:bg-[#EF4444]"
                 >
                   Delete
                 </Button>
                 <div className="flex gap-2">
                   <SheetClose asChild>
-                    <Button 
+                    <Button
                       type="button"
-                      variant="outline" 
+                      variant="outline"
                       className="dark:text-black dark:bg-white"
                     >
                       Cancel
                     </Button>
                   </SheetClose>
-                  <Button 
+                  <Button
                     type="submit"
                     disabled={isSubmitting}
-                    variant="default" 
+                    variant="default"
                     className="bg-[#D946EF] hover:bg-accent dark:text-white"
                   >
-                    {isSubmitting ? "Updating..." : "Update"}
+                    {isSubmitting ? 'Updating...' : 'Update'}
                   </Button>
                 </div>
               </SheetFooter>

@@ -3,6 +3,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import config from '../config/config';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
+import { promises as fs } from 'fs';
 import logger from '../utils/logger';
 
 export interface S3UploadResult {
@@ -15,6 +16,7 @@ export interface S3UploadResult {
 export interface S3ServiceInterface {
   uploadFile(file: Buffer, originalname: string, contentType: string, folder?: string): Promise<S3UploadResult>;
   uploadFiles(files: Array<{ buffer: Buffer, originalname: string, contentType: string }>, folder?: string): Promise<S3UploadResult[]>;
+  uploadDirectory(dirPath: string, s3Prefix: string): Promise<void>;
   deleteFile(key: string): Promise<boolean>;
   getFile(key: string): Promise<Buffer>;
   getSignedUrl(key: string, operation: 'get' | 'put', expiresIn?: number): Promise<string>;
@@ -48,13 +50,20 @@ export class S3Service implements S3ServiceInterface {
    */
   async uploadFile(file: Buffer, originalname: string, contentType: string, folder?: string): Promise<S3UploadResult> {
     try {
-      const fileId = uuidv4();
-      const extension = path.extname(originalname);
-      const filename = path.basename(originalname, extension).replace(/\s+/g, '-').toLowerCase();
-      
-      const key = folder 
-        ? `${folder}/${fileId}-${filename}${extension}`
-        : `${fileId}-${filename}${extension}`;
+      // For game files, preserve the original path structure
+      let key;
+      if (folder === 'games') {
+        // Keep original path for game files
+        key = `${folder}/${originalname}`;
+      } else {
+        // For other files (like thumbnails), use the old naming
+        const fileId = uuidv4();
+        const extension = path.extname(originalname);
+        const filename = path.basename(originalname, extension).replace(/\s+/g, '-').toLowerCase();
+        key = folder 
+          ? `${folder}/${fileId}-${filename}${extension}`
+          : `${fileId}-${filename}${extension}`;
+      }
       
       const command = new PutObjectCommand({
         Bucket: this.bucket,
@@ -88,6 +97,77 @@ export class S3Service implements S3ServiceInterface {
    * @param folder Optional folder path within the bucket
    * @returns Array of objects containing the S3 keys and URLs
    */
+  /**
+   * Upload an entire directory to S3
+   * @param dirPath Local directory path
+   * @param s3Prefix S3 key prefix (folder path)
+   */
+  async uploadDirectory(dirPath: string, s3Prefix: string): Promise<void> {
+    try {
+      const files = await fs.readdir(dirPath, { withFileTypes: true });
+      
+      for (const file of files) {
+        const fullPath = path.join(dirPath, file.name);
+        
+        if (file.isDirectory()) {
+          // Recursively upload subdirectories
+          await this.uploadDirectory(
+            fullPath,
+            path.join(s3Prefix, file.name).replace(/\\/g, '/')
+          );
+        } else {
+          // Upload file
+          const fileContent = await fs.readFile(fullPath);
+          const s3Key = path.join(s3Prefix, file.name).replace(/\\/g, '/');
+          
+          // Determine content type based on file extension
+          const ext = path.extname(file.name).toLowerCase();
+          let contentType = 'application/octet-stream';
+          
+          switch (ext) {
+            case '.html':
+              contentType = 'text/html';
+              break;
+            case '.css':
+              contentType = 'text/css';
+              break;
+            case '.js':
+              contentType = 'application/javascript';
+              break;
+            case '.json':
+              contentType = 'application/json';
+              break;
+            case '.png':
+              contentType = 'image/png';
+              break;
+            case '.jpg':
+            case '.jpeg':
+              contentType = 'image/jpeg';
+              break;
+            case '.gif':
+              contentType = 'image/gif';
+              break;
+            case '.svg':
+              contentType = 'image/svg+xml';
+              break;
+          }
+          
+          const command = new PutObjectCommand({
+            Bucket: this.bucket,
+            Key: s3Key,
+            Body: fileContent,
+            ContentType: contentType
+          });
+          
+          await this.s3Client.send(command);
+        }
+      }
+    } catch (error) {
+      logger.error('Error uploading directory to S3:', error);
+      throw new Error('Failed to upload directory to S3');
+    }
+  }
+
   async uploadFiles(files: Array<{ buffer: Buffer, originalname: string, contentType: string }>, folder?: string): Promise<S3UploadResult[]> {
     try {
       const uploadPromises = files.map(file => 
@@ -223,6 +303,16 @@ export class S3Service implements S3ServiceInterface {
     } catch (error) {
       return false;
     }
+  }
+
+  /**
+   * Get the base URL for S3 bucket
+   * @returns Base URL for the bucket
+   */
+  getBaseUrl(): string {
+    return config.s3.endpoint 
+      ? `${config.s3.endpoint}/${this.bucket}`
+      : `https://${this.bucket}.s3.${config.s3.region}.amazonaws.com`;
   }
 }
 

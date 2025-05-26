@@ -1,6 +1,6 @@
-import { Button } from "../ui/button"
-import { Input } from "../ui/input"
-import { Label } from "../ui/label"
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 import {
   Sheet,
   SheetClose,
@@ -8,50 +8,62 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "../ui/sheet"
-import React from "react"
-import { Formik, Form, Field, ErrorMessage } from "formik"
-import { useInviteTeamMember } from "../../backend/teams.service"
-import { toast } from "sonner"
-import * as Yup from 'yup';
-import type { InviteUserRequest } from "../../backend/teams.service"
+} from "../ui/sheet";
+import React from "react";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import { useInviteTeamMember } from "../../backend/teams.service";
+import { toast } from "sonner";
+import * as Yup from "yup";
+import type { InviteUserRequest } from "../../backend/teams.service";
 
 const inviteSchema = Yup.object().shape({
   email: Yup.string()
-    .email('Invalid email format')
-    .required('Email is required'),
+    .email("Invalid email format")
+    .required("Email is required"),
   role: Yup.string()
-    .oneOf(['admin', 'editor'], 'Invalid role')
-    .required('Role is required')
+    .oneOf(["admin", "editor"], "Invalid role")
+    .required("Role is required"),
 });
 
 const initialValues: InviteUserRequest = {
   email: "",
-  role: "editor"
+  role: "editor",
 };
 
 export function InviteSheet({ children }: { children: React.ReactNode }) {
-  const { mutate: inviteTeamMember, isPending } = useInviteTeamMember()
-  const [open, setOpen] = React.useState(false)
+  const { mutate: inviteTeamMember, isPending } = useInviteTeamMember();
+  const [open, setOpen] = React.useState(false);
 
-  const handleInvite = async (values: InviteUserRequest, { resetForm }: any) => {
+  const handleInvite = async (
+    values: InviteUserRequest,
+    { resetForm }: any
+  ) => {
     inviteTeamMember(values, {
       onSuccess: () => {
-        toast.success("Invitation sent successfully")
-        resetForm()
-        setOpen(false)
-      }
-    })
-  }
+        toast.success("Invitation sent successfully");
+        resetForm();
+        setOpen(false);
+      },
+      onError: (error: any) => {
+        console.log("my error", error)
+        const message =
+          error?.response?.data?.message ||
+          error?.message ||
+          "Failed to send invitation";
+
+        toast.error(message);
+      },
+    });
+  };
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        {children}
-      </SheetTrigger>
+      <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent className="font-boogaloo dark:bg-[#0F1621] max-w-md w-full">
         <SheetHeader>
-          <SheetTitle className="text-xl font-normal tracking-wider mt-6">Share Admin Invite</SheetTitle>
+          <SheetTitle className="text-xl font-normal tracking-wider mt-6">
+            Share Admin Invite
+          </SheetTitle>
           <div className="border border-b-gray-200"></div>
         </SheetHeader>
         <Formik
@@ -62,7 +74,9 @@ export function InviteSheet({ children }: { children: React.ReactNode }) {
           {({ isSubmitting }) => (
             <Form className="grid gap-6 px-4">
               <div className="flex flex-col space-y-2">
-                <Label htmlFor="email" className="text-lg">User Email</Label>
+                <Label htmlFor="email" className="text-lg">
+                  User Email
+                </Label>
                 <Field
                   as={Input}
                   id="email"
@@ -78,7 +92,9 @@ export function InviteSheet({ children }: { children: React.ReactNode }) {
                 />
               </div>
               <div className="flex flex-col space-y-2">
-                <Label htmlFor="role" className="text-lg">Role</Label>
+                <Label htmlFor="role" className="text-lg">
+                  Role
+                </Label>
                 <Field
                   as="select"
                   id="role"
@@ -96,14 +112,19 @@ export function InviteSheet({ children }: { children: React.ReactNode }) {
               </div>
               <div className="flex gap-3 justify-end px-2">
                 <SheetClose asChild>
-                  <Button type="button" className="w-20 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-accent">Cancel</Button>
+                  <Button
+                    type="button"
+                    className="w-20 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-accent"
+                  >
+                    Cancel
+                  </Button>
                 </SheetClose>
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   className="w-22 h-12 bg-[#D946EF] dark:text-white hover:text-[#D946EF] hover:bg-[#F3E8FF]"
                   disabled={isSubmitting || isPending}
                 >
-                  {isSubmitting || isPending ? 'Sending...' : 'Send Invite'}
+                  {isSubmitting || isPending ? "Sending..." : "Send Invite"}
                 </Button>
               </div>
             </Form>
@@ -111,5 +132,5 @@ export function InviteSheet({ children }: { children: React.ReactNode }) {
         </Formik>
       </SheetContent>
     </Sheet>
-  )
+  );
 }

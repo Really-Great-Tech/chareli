@@ -154,24 +154,24 @@ export class OtpService implements OtpServiceInterface {
         smsSent = true;
       } else {
         try {
-          // Use Twilio API to send SMS
-          if (!config.twilio.accountSid || !config.twilio.authToken || !config.twilio.phoneNumber) {
-            throw new Error('Twilio credentials not configured');
+          // Use SMS service to send message
+          if (!config.smsService.providerId || !config.smsService.authToken || !config.smsService.fromNumber) {
+            throw new Error('SMS service credentials not configured');
           }
           
-          logger.info(`Sending OTP ${otp} to ${user.phoneNumber} via Twilio`);
+          logger.info(`Sending OTP ${otp} to ${user.phoneNumber} via SMS service`);
           
-          // Create Twilio client and send message
-          const client = twilio(config.twilio.accountSid, config.twilio.authToken);
+          // Create SMS client and send message
+          const client = twilio(config.smsService.providerId, config.smsService.authToken);
           await client.messages.create({
             body: `Your verification code is: ${otp}`,
-            from: config.twilio.phoneNumber,
+            from: config.smsService.fromNumber,
             to: user.phoneNumber
           });
           
           smsSent = true;
         } catch (error) {
-          logger.error('Failed to send OTP via Twilio:', error);
+          logger.error('Failed to send OTP via SMS service:', error);
         }
       }
     }

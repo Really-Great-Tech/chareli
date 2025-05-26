@@ -32,7 +32,7 @@ export const AppRoutes = () => {
           <Route index element={<Home />} />
           <Route path="about" element={<About />} />
           <Route path="categories" element={<Categories />} />
-          <Route path="gameplay" element={<GamePlay />} />
+          <Route path="gameplay/:gameId" element={<GamePlay />} />
 
 
           <Route path="*" element={<ErrorPage />} />
@@ -53,7 +53,7 @@ export const AppRoutes = () => {
             <Route path="team" element={<TeamManagement />} />
             <Route path="analytics" element={<Analytics />} />
             <Route path="config" element={<Configuration />} />
-            <Route path="view-game" element={<ViewGame />} />
+            <Route path="view-game/:gameId" element={<ViewGame />} />
 
             {/* settings */}
             <Route path="settings" element={<Settings />} />

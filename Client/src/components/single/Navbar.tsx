@@ -4,6 +4,7 @@ import { Button } from '../../components/ui/button';
 import { StatsModal } from '../modals/StatsModal';
 import { ProfileModal } from '../modals/ProfileModal';
 import { useAuth } from '../../context/AuthContext';
+import { useTrackSignupClick } from '../../backend/signup.analytics.service';
 
 import sun from '../../assets/sun.svg';
 import moon from '../../assets/moon.svg';
@@ -15,7 +16,8 @@ import { LoginModal } from '../modals/LoginModal';
 
 
 const Navbar: React.FC = () => {
-  const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const { isAuthenticated, isAdmin, logout } = useAuth();
+  const { mutate: trackSignup } = useTrackSignupClick();
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedMode = localStorage.getItem('darkMode');
     return savedMode ? JSON.parse(savedMode) : false;
@@ -106,7 +108,10 @@ const Navbar: React.FC = () => {
               Log in  
             </Button>
             <Button
-              onClick={() => setIsSignUpModalOpen(true)}
+              onClick={() => {
+                trackSignup({ type: 'navbar' });
+                setIsSignUpModalOpen(true);
+              }}
               className="bg-transparent border border-[#C026D3] dark:border-purple-400 text-[#C026D3] dark:text-purple-300 text-lg hover:bg-accent hover:text-[#C026D3]">
               Sign up
             </Button>

@@ -18,30 +18,38 @@ const startServer = async () => {
   try {
     // Initialize Sentry (will only be active in production)
     initializeSentry(app);
-    
+
     logger.info('Initializing database connection...');
     try {
       await initializeDatabase();
-      
+
       // Initialize superadmin account
       logger.info('Initializing superadmin account...');
       await authService.initializeSuperadmin();
-      
+
       // Initialize scheduled jobs
       initializeScheduledJobs();
     } catch (dbError) {
       if (config.env === 'development') {
-        logger.warn('Failed to connect to database in development mode, continuing without database connection');
-        logger.warn('You can still access the Swagger documentation at http://localhost:5000/api-docs');
+        logger.warn(
+          'Failed to connect to database in development mode, continuing without database connection'
+        );
+        logger.warn(
+          'You can still access the Swagger documentation at http://localhost:5000/api-docs'
+        );
       } else {
         throw dbError;
       }
     }
 
-    const server = app.listen(config.port, () => {
-      logger.info(`Server running in ${config.env} mode on port ${config.port}`);
+    const server = app.listen(config.port, '0.0.0.0', () => {
+      logger.info(
+        `Server running in ${config.env} mode on port ${config.port}`
+      );
       logger.info(`API available at http://localhost:${config.port}/api`);
-      logger.info(`API documentation available at http://localhost:${config.port}/api-docs`);
+      logger.info(
+        `API documentation available at http://localhost:${config.port}/api-docs`
+      );
     });
 
     // Handle unhandled promise rejections
@@ -49,10 +57,10 @@ const startServer = async () => {
       logger.error('UNHANDLED REJECTION! Shutting down...');
       logger.error(`${err.name}: ${err.message}`);
       logger.error(err.stack || 'No stack trace available');
-      
+
       // Report to Sentry in production
       captureException(err);
-      
+
       server.close(() => {
         process.exit(1);
       });
@@ -63,10 +71,10 @@ const startServer = async () => {
       logger.error('UNCAUGHT EXCEPTION! Shutting down...');
       logger.error(`${err.name}: ${err.message}`);
       logger.error(err.stack || 'No stack trace available');
-      
+
       // Report to Sentry in production
       captureException(err);
-      
+
       process.exit(1);
     });
 
@@ -79,13 +87,15 @@ const startServer = async () => {
     });
   } catch (error) {
     logger.error('Failed to start server:');
-    logger.error(error instanceof Error ? error.stack || error.message : String(error));
-    
+    logger.error(
+      error instanceof Error ? error.stack || error.message : String(error)
+    );
+
     // Report to Sentry in production
     if (error instanceof Error) {
       captureException(error);
     }
-    
+
     process.exit(1);
   }
 };

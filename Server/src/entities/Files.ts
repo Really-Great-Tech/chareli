@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
 
 @Entity('files')
 export class File {
@@ -12,7 +12,7 @@ export class File {
   s3Url: string;  
 
   @Column()
-  type: string; 
+  type: string;
 
   @CreateDateColumn()
   createdAt: Date;

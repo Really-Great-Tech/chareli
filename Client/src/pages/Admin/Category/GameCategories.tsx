@@ -7,31 +7,33 @@ import { useCategories, useDeleteCategory } from "../../../backend/category.serv
 import { useGames } from "../../../backend/games.service";
 import { DeleteConfirmationModal } from "../../../components/modals/DeleteConfirmationModal";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
-import { BackendRoute } from "../../../backend/constants";
 
 export default function GameCategories() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-
-  const queryClient = useQueryClient();
   const { data: categories, isLoading: loadingCategories } = useCategories();
   const { data: games, isLoading: loadingGames } = useGames();
-  
+  const { mutateAsync: deleteCategory, isPending: issDeletingCategory } = useDeleteCategory();
   const isLoading = loadingCategories || loadingGames;
-  const deleteCategory = useDeleteCategory();
+  
 
   const handleDelete = async () => {
     if (!selectedCategoryId) return;
     try {
-      await deleteCategory.mutateAsync(selectedCategoryId);
-      queryClient.invalidateQueries({ queryKey: [BackendRoute.CATEGORIES] });
+      await deleteCategory(selectedCategoryId);
       toast.success("Category deleted successfully");
       setShowDeleteModal(false);
+      setSelectedCategoryId(null);
+      setEditOpen(false);
     } catch (error: any) {
-      toast.error("Failed to delete category");
+       const errorMessage =
+      error?.response?.data?.error?.message ||
+      error?.response?.data?.message ||
+      error.message ||
+      "Failed to delete category";
+      toast.error(errorMessage);
     }
   };
 
@@ -49,7 +51,12 @@ export default function GameCategories() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {isLoading ? (
           <div className="col-span-full text-center py-8">Loading...</div>
-        ) : categories?.map((cat) => (
+        ) : !categories?.length ? (
+          <div className="col-span-full text-center py-12">
+            <p className="text-xl font-boogaloo text-[#475568] dark:text-white mb-2">No categories found</p>
+            <p className="text-sm text-[#475568] dark:text-white">Click "Create New Category" to add your first category</p>
+          </div>
+        ) : categories.map((cat) => (
           <div
             key={cat.name}
             className="bg-[#F1F5F9] rounded-2xl p-6 shadow flex flex-col gap-2 relative min-h-[120px] dark:bg-[#121C2D]"
@@ -83,7 +90,7 @@ export default function GameCategories() {
               {cat.description || 'No description'}
             </p>
             <span className="text-[#D946EF] font-bold text-sm shadow-none tracking-wider">
-              {games?.filter(game => game.categoryId === cat.id).length || 0} games
+              {(games as any)?.filter((game: any) => game.categoryId === cat.id).length || 0} games
             </span>
           </div>
         ))}
@@ -92,12 +99,12 @@ export default function GameCategories() {
         open={showDeleteModal}
         onOpenChange={setShowDeleteModal}
         onConfirm={handleDelete}
-        isDeleting={deleteCategory.isPending}
+        isDeleting={issDeletingCategory}
         title="Are you sure you want to Delete Category?"
         description="This action cannot be reversed"
       />
       <CreateCategory open={createOpen} onOpenChange={setCreateOpen} />
-      {selectedCategoryId && (
+      {editOpen && selectedCategoryId && (
         <EditCategory 
           open={editOpen} 
           onOpenChange={setEditOpen} 

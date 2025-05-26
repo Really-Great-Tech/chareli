@@ -58,10 +58,49 @@ export interface CreateGameDto {
 export interface UpdateGameDto extends Partial<CreateGameDto> {}
 
 // These types represent the actual API response structure
-export interface GameResponse extends Omit<Game, 'thumbnailFile' | 'gameFile'> {
-  thumbnailFile?: FileMetadata;
-  gameFile?: FileMetadata;
+export interface PaginatedResponse<T> {
+  success: boolean;
+  count: number;
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  data: T[];
 }
+
+export interface GameFile {
+  id: string;
+  s3Key: string;
+  s3Url: string;
+  type: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SimilarGame {
+  id: string;
+  title: string;
+  thumbnailFile?: GameFile;
+}
+
+export interface GameData {
+  id: string;
+  title: string;
+  description?: string;
+  thumbnailFile?: GameFile;
+  gameFile?: GameFile;
+  status: GameStatus;
+  config: number;
+  categoryId?: string;
+  category?: Category;
+  createdById?: string;
+  createdBy?: User;
+  createdAt: string;
+  updatedAt: string;
+  similarGames?: SimilarGame[];
+}
+
+export interface GameResponse extends GameData {}
 export interface User {
   id: string;
   firstName: string;
@@ -112,4 +151,25 @@ export interface ChangePasswordData {
   id: string;
   oldPassword: string;
   password: string;
+}
+
+export interface CreateAnalyticsData {
+  gameId?: string;
+  activityType: string;
+  startTime?: Date;
+  endTime?: Date;
+  sessionCount?: number;
+}
+
+export interface Analytics {
+  id: string;
+  userId: string;
+  gameId?: string;
+  activityType: string;
+  startTime?: Date;
+  endTime?: Date;
+  duration?: number;
+  sessionCount?: number;
+  createdAt: string;
+  updatedAt: string;
 }

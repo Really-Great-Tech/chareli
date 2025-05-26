@@ -25,4 +25,25 @@ export const BackendRoute = {
   GAME_BY_ID: '/api/games/:id',
   CATEGORIES: '/api/categories',
   CATEGORY_BY_ID: '/api/categories/:id',
+  
+  // Analytics Routes
+  ANALYTICS: '/api/analytics',
+  ANALYTICS_BY_ID: '/api/analytics/:id',
+
+  // Admin Dashboard Routes
+  ADMIN_DASHBOARD: '/api/admin/dashboard',
+  ADMIN_GAMES: '/api/admin/games',
+  ADMIN_USERS_ANALYTICS: '/api/admin/users-analytics',
+  ADMIN_USER_ANALYTICS: '/api/admin/users/:id/analytics',
+  ADMIN_GAMES_ANALYTICS: '/api/admin/games-analytics',
+  ADMIN_GAME_ANALYTICS: '/api/admin/games/:id/analytics',
+  ADMIN_USER_ACTIVITY: '/api/admin/user-activity-log',
+  ADMIN_CHECK_INACTIVE: '/api/admin/check-inactive-users',
+  
+  // User Stats Route
+  USER_STATS: '/api/users/me/stats',
+
+  // Signup Analytics Routes
+  SIGNUP_ANALYTICS_CLICK: '/api/signup-analytics/click',
+  SIGNUP_ANALYTICS_DATA: '/api/signup-analytics/data',
 } as const;

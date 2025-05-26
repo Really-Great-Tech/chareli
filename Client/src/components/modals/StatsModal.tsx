@@ -49,7 +49,7 @@ export function StatsModal({ open, onClose }: StatsModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <CustomDialogContent className="bg-white dark:bg-[#18192b] rounded-2xl shadow-lg p-8 max-w-[90vw] w-[800px] border-none">
+      <CustomDialogContent className="bg-white dark:bg-[#18192b] rounded-2xl shadow-lg p-8 max-w-[90vw] w-[800px] border-none font-boogaloo tracking-wider">
         {/* Close Button */}
         <button
           className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#C026D3] flex items-center justify-center shadow-lg hover:bg-[#a21caf] transition-colors"
@@ -61,7 +61,7 @@ export function StatsModal({ open, onClose }: StatsModalProps) {
         </button>
         
         {/* Header */}
-        <h2 className="text-4xl font-bold text-center mb-8 text-[#C026D3]">User Stats</h2>
+        <h2 className="text-4xl font-bold text-center mb-8 text-[#C026D3] font-boogaloo">User Stats</h2>
         
         {/* Scrollable Content */}
         <div className="max-h-[70vh] overflow-y-auto overflow-x-hidden scrollbar-hide w-full">

@@ -27,7 +27,7 @@ const PopularSection = () => {
     };
 
     return (
-        <div className="p-6 max-w-[1440px] mx-auto">
+        <div className="p-4">
             <div className="flex items-center justify-between mb-8">
                 <h1 className="text-[#D946EF] text-4xl font-boogaloo tracking-wide">Popular</h1>
                 <div className="relative w-[400px]">     

@@ -25,9 +25,10 @@ interface Config {
     password: string;
   };
   smsService: {
-    providerId: string;
-    authToken: string;
-    fromNumber: string;
+    region: string;
+    accessKeyId: string;
+    secretAccessKey: string;
+    senderName: string;
   };
   email: {
     service: string;
@@ -61,12 +62,6 @@ interface Config {
   };
 }
 
-console.log({
-  keyPairId: process.env.CLOUDFRONT_KEY_PAIR_ID || '',
-    privateKey: process.env.CLOUDFRONT_PRIVATE_KEY || '',
-    cookieExpiration: 86400, // 1 day in seconds
-})
-
 const config: Config = {
   env: process.env.NODE_ENV || 'development',
   port: parseInt(process.env.PORT || '5000', 10),
@@ -88,9 +83,10 @@ const config: Config = {
     password: process.env.SUPERADMIN_PASSWORD || 'Admin123!',
   },
   smsService: {
-    providerId: process.env.SMS_PROVIDER_ID || '',
-    authToken: process.env.SMS_AUTH_TOKEN || '',
-    fromNumber: process.env.SMS_FROM_NUMBER || '',
+    region: process.env.AWS_REGION || 'us-east-1',
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+    senderName: process.env.AWS_SNS_SENDER_NAME || 'Chareli',
   },
   email: {
     service: process.env.EMAIL_SERVICE || '',

@@ -40,14 +40,7 @@ export class S3Service implements S3ServiceInterface {
     this.bucket = config.s3.bucket;
   }
 
-  /**
-   * Upload a single file to S3
-   * @param file Buffer containing the file data
-   * @param originalname Original filename
-   * @param contentType MIME type of the file
-   * @param folder Optional folder path within the bucket
-   * @returns Object containing the S3 key and URL
-   */
+  
   async uploadFile(file: Buffer, originalname: string, contentType: string, folder?: string): Promise<S3UploadResult> {
     try {
       // For game files, preserve the original path structure
@@ -91,17 +84,7 @@ export class S3Service implements S3ServiceInterface {
     }
   }
 
-  /**
-   * Upload multiple files to S3
-   * @param files Array of file objects containing buffer, originalname, and contentType
-   * @param folder Optional folder path within the bucket
-   * @returns Array of objects containing the S3 keys and URLs
-   */
-  /**
-   * Upload an entire directory to S3
-   * @param dirPath Local directory path
-   * @param s3Prefix S3 key prefix (folder path)
-   */
+  
   async uploadDirectory(dirPath: string, s3Prefix: string): Promise<void> {
     try {
       const files = await fs.readdir(dirPath, { withFileTypes: true });
@@ -181,11 +164,6 @@ export class S3Service implements S3ServiceInterface {
     }
   }
 
-  /**
-   * Delete a file from S3
-   * @param key S3 key of the file to delete
-   * @returns Boolean indicating success
-   */
   async deleteFile(key: string): Promise<boolean> {
     try {
       const command = new DeleteObjectCommand({
@@ -201,11 +179,7 @@ export class S3Service implements S3ServiceInterface {
     }
   }
 
-  /**
-   * Get a file from S3
-   * @param key S3 key of the file to get
-   * @returns Buffer containing the file data
-   */
+
   async getFile(key: string): Promise<Buffer> {
     try {
       const command = new GetObjectCommand({
@@ -231,13 +205,7 @@ export class S3Service implements S3ServiceInterface {
     }
   }
 
-  /**
-   * Generate a signed URL for getting or putting a file
-   * @param key S3 key of the file
-   * @param operation 'get' or 'put'
-   * @param expiresIn Expiration time in seconds
-   * @returns Signed URL
-   */
+
   async getSignedUrl(key: string, operation: 'get' | 'put', expiresIn: number = config.s3.signedUrlExpiration): Promise<string> {
     try {
       let command;
@@ -261,13 +229,7 @@ export class S3Service implements S3ServiceInterface {
     }
   }
 
-  /**
-   * Generate a presigned post for browser uploads
-   * @param key S3 key for the file
-   * @param contentType MIME type of the file
-   * @param expiresIn Expiration time in seconds
-   * @returns Object containing the URL and form fields
-   */
+
   async generatePresignedPost(key: string, contentType: string, expiresIn: number = config.s3.signedUrlExpiration): Promise<{ url: string, fields: Record<string, string> }> {
     try {
       // For simplicity, we'll just return a signed PUT URL
@@ -286,11 +248,6 @@ export class S3Service implements S3ServiceInterface {
     }
   }
 
-  /**
-   * Check if a file exists in S3
-   * @param key S3 key of the file
-   * @returns Boolean indicating if the file exists
-   */
   async fileExists(key: string): Promise<boolean> {
     try {
       const command = new HeadObjectCommand({
@@ -305,10 +262,7 @@ export class S3Service implements S3ServiceInterface {
     }
   }
 
-  /**
-   * Get the base URL for S3 bucket
-   * @returns Base URL for the bucket
-   */
+
   getBaseUrl(): string {
     return config.s3.endpoint 
       ? `${config.s3.endpoint}/${this.bucket}`
@@ -316,5 +270,5 @@ export class S3Service implements S3ServiceInterface {
   }
 }
 
-// Singleton instance
+
 export const s3Service = new S3Service();

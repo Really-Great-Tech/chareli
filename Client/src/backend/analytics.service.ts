@@ -338,3 +338,13 @@ export const useCurrentUserStats = () => {
     refetchOnWindowFocus: false,
   });
 };
+export const useGamesWithPopularity = () => {
+  return useQuery({
+    queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS_POPULARITY],
+    queryFn: async () => {
+      const response = await backendService.get(BackendRoute.ADMIN_GAMES_ANALYTICS_POPULARITY);
+      return response;
+    },
+    refetchOnWindowFocus: false,
+  });
+};

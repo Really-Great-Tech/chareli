@@ -1,133 +1,12 @@
-import { useState, useMemo } from "react";
+import { PopUpSheet } from "../../../components/single/PopUp-Sheet";
+import click from '../../../assets/click.svg'
 
-// UI Components
 import { Card } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../../components/ui/table";
 import { PopUpSheet } from "../../../components/single/PopUp-Sheet";
 import { AcceptInvitationModal } from "../../../components/modals/AdminModals/AcceptInvitationModal";
-import PieChart from "../../../components/charts/piechart";
-
-// Icons
-import { FaRegClock, FaRegStar } from "react-icons/fa";
-import { FaRegUser } from "react-icons/fa6";
-import { IoGameControllerOutline, IoHourglassOutline } from "react-icons/io5";
-import { HiOutlineUsers, HiMiniArrowDownLeft, HiMiniArrowUpRight } from "react-icons/hi2";
-import { TbCalendarClock } from "react-icons/tb";
-
-// Assets
-import click from '../../../assets/click.svg';
-import gameImg from "../../../assets/gamesImg/1.svg";
-
-// Services & Utils
-import { useGamesAnalytics, useUsersAnalytics, type GameAnalytics } from "../../../backend/analytics.service";
-import { useSignupAnalyticsData } from "../../../backend/signup.analytics.service";
-
-interface UserAnalytics {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  isActive: boolean;
-  isVerified: boolean;
-  lastLoggedIn: string;
-  createdAt: string;
-  updatedAt: string;
-  role: {
-    id: string;
-    name: string;
-    description: string;
-    createdAt: string;
-    updatedAt: string;
-  };
-  analytics: {
-    totalGamesPlayed: number;
-    totalSessionCount: number;
-    totalTimePlayed: number;
-    mostPlayedGame: {
-      gameId?: string;
-      gameTitle?: string;
-      sessionCount?: number;
-    };
-  };
-}
-import { formatTime } from "../../../utils/main";
-// import LineChart from "../../../components/charts/LineChart";
-
-const cardData = [
-  {
-    title: "Total Users",
-    value: "389",
-    icon: <FaRegUser size={32} />,
-    change: "+9%",
-    changeType: "up",
-    description: "Over the last 24 hours",
-    color: "text-[#D946EF] dark:text-[#F0ABFC]",
-  },
-  {
-    title: "Registered Users",
-    value: "456",
-    icon: <HiOutlineUsers size={32} />,
-    change: "+7%",
-    changeType: "up",
-    description: "Over the last 24 hours",
-    color: "text-[#D946EF] dark:text-[#F0ABFC]",
-  },
-  {
-    title: "Total Games",
-    value: "200",
-    icon: <IoGameControllerOutline size={32} />,
-    change: "-10%",
-    changeType: "down",
-    description: "Over the last 24 hours",
-    color: "text-[#D946EF] dark:text-[#F0ABFC]",
-  },
-  {
-    title: "Sessions",
-    value: "100",
-    icon: <TbCalendarClock size={36} />,
-    change: "+9%",
-    changeType: "up",
-    description: "Over the last 24 hours",
-    color: "text-[#D946EF] dark:text-[#F0ABFC]",
-  },
-  {
-    title: "Time played",
-    value: "600 minutes",
-    icon: <FaRegClock size={32} className="dark:text-white" />,
-    change: "+9%",
-    changeType: "up",
-    description: "Over the last 24 hours",
-    color: "text-[#D946EF] dark:text-[#F0ABFC]",
-  },
-  {
-    title: "Most Played",
-    value: "War shooting",
-    icon: <FaRegStar size={32} />,
-    change: "+2%",
-    changeType: "up",
-    description: "Over the last 24 hours",
-    color: "text-[#D946EF] dark:text-[#F0ABFC]",
-  },
-  {
-    title: "User Retention",
-    value: "43%",
-    icon: <TbCalendarClock size={36} />,
-    change: "-4%",
-    changeType: "down",
-    description: "Over the last 24 hours",
-    color: "text-[#D946EF] dark:text-[#F0ABFC]",
-  },
-  {
-    title: "Avg. Session Duration",
-    value: "12 min 5s",
-    icon: <IoHourglassOutline size={32} />,
-    change: "+1.3min",
-    changeType: "up",
-    description: "Over the last 24 hours",
-    color: "text-[#D946EF] dark:text-[#F0ABFC]",
-  },
-];
+import StatsCard from "./StatsCard";
 
 export default function Home() {
 
@@ -178,47 +57,12 @@ export default function Home() {
   const gamesToShow = getGamesForPage(currentPage);
   return (
     <div>
-      {/* <div className="px-6 pb-3">
-        <Button className="bg-[#D946EF] text-white" onClick={() => setIsAcceptInviteOpen(true)}>Invite</Button>
-      </div> */}
-      <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-6">
-        {cardData.map((card, idx) => (
-          <div
-            key={idx}
-            className="dark:bg-[#334154] bg-[#F1F5F9] rounded-xl p-4 flex flex-col gap-2"
-          >
-            <div className="tracking-widest">
-
-              {/* top */}
-              <div className="flex justify-between mb-6">
-                <div className="">
-                  <span className="font-semibold text-[#64748A] dark:text-white text-base">{card.title}</span>
-                  <div className={`font-bold text-xl ${card.color}`}>{card.value}</div>
-                </div>
-
-                <span className="text-3xl text-[#64748A] dark:text-white">{card.icon}</span>
-              </div>
-
-              {/* bottom */}
-              <div className="flex md:flex-1 justify-between items-center pr-2">
-
-                <div className={`flex flex-row gap-1 items-center text-[14px] ${card.changeType === "up" ? "text-white bg-[#D946EF] pl-1 pr-1 pt-1 pb-1 rounded-lg dark:bg-[#64748A]" : "text-white bg-[#D946EF] dark:bg-[#64748A] pl-2 pr-2 pt-1 pb-1 rounded-lg"
-                  }`}>
-                  {card.changeType === "up" ? <HiMiniArrowUpRight /> : <HiMiniArrowDownLeft />}
-                  <span
-                    className={``}
-                  >
-                    {card.change}
-                  </span>
-                </div>
-
-                <span className="text-gray-400 text-[10px] font-pincuk dark:text-white">{card.description}</span>
-              </div>
-            </div>
-          </div>
-        ))}
+      <div className="px-6 pb-3">
+      </div>
+      <div className="px-6">
+        <StatsCard />
         {/* pop up */}
-        <div className="col-span-1 md:col-span-2 lg:col-span-4">
+        <div className="col-span-1 md:col-span-2 lg:col-span-4 my-6">
           <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
             <div className="justify-between items-center flex p-3">
               <p className="text-3xl dark:text-[#D946EF]">Dynamic Popup System</p>

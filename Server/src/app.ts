@@ -11,7 +11,7 @@ import { sentryRequestHandler, sentryTracingHandler, sentryErrorHandler } from '
 import logger from './utils/logger';
 import { specs } from './config/swagger';
 import config from './config/config';
-import { cloudFrontService } from './services/cloudfront.service';
+// import { cloudFrontService } from './services/cloudfront.service';
 
 const app: Express = express();
 
@@ -67,16 +67,16 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
 
 
 
-async function testSignedUrl() {
-   const s3Key = 'games/200274ce-df18-4160-96c1-09efe2e71cd8/glass-city/index.html';
+// async function testSignedUrl() {
+//    const s3Key = 'games/200274ce-df18-4160-96c1-09efe2e71cd8/glass-city/index.html';
 
-  const signedUrl = cloudFrontService.transformS3KeyToCloudFront(s3Key);
+//   const signedUrl = cloudFrontService.transformS3KeyToCloudFront(s3Key);
 
-  console.log('Generated Signed URL:');
-  console.log(signedUrl);
-}
+//   console.log('Generated Signed URL:');
+//   console.log(signedUrl);
+// }
 
-testSignedUrl();
+// testSignedUrl();
 
 
 

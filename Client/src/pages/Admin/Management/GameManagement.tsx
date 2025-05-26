@@ -20,8 +20,8 @@ import { CreateGameSheet } from "../../../components/single/CreateGame-Sheet";
 import { useNavigate } from "react-router-dom";
 import { EditSheet } from "../../../components/single/Edit-Sheet";
 import { cn } from "../../../lib/utils";
-import gameImg from "../../../assets/gamesImg/1.svg";
 import { formatTime } from "../../../utils/main";
+import GameThumbnail from "../Analytics/GameThumbnail";
 
 const pageSize = 10;
 
@@ -148,10 +148,9 @@ export default function GameManagement() {
                   )}
                 >
                   <td className="px-4 py-3 flex items-center gap-3">
-                    <img
-                      src={(game.thumbnailFile as any)?.url || gameImg}
+                    <GameThumbnail
+                      src={(game.thumbnailFile as any)?.url || ""}
                       alt={game.title}
-                      className="w-12 h-12 rounded-lg object-cover"
                     />
                     <span className="text-lg font-light">{game.title}</span>
                   </td>

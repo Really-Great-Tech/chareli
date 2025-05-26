@@ -1,21 +1,57 @@
-import { FaRegClock, FaRegStar } from "react-icons/fa";
-import { FaRegUser } from "react-icons/fa6";
-import { IoGameControllerOutline } from "react-icons/io5";
-import { IoHourglassOutline } from "react-icons/io5";
-import { PopUpSheet } from "../../../components/single/PopUp-Sheet";
+import { useState, useMemo } from "react";
 
-
-import click from '../../../assets/click.svg'
-import { HiOutlineUsers } from "react-icons/hi2";
-import { TbCalendarClock } from "react-icons/tb";
-
+// UI Components
 import { Card } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
-import PieChart from "../../../components/charts/piechart";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../../components/ui/table";
-import React, { useState } from "react";
+import { PopUpSheet } from "../../../components/single/PopUp-Sheet";
 import { AcceptInvitationModal } from "../../../components/modals/AdminModals/AcceptInvitationModal";
-import { HiMiniArrowDownLeft, HiMiniArrowUpRight } from "react-icons/hi2";
+import PieChart from "../../../components/charts/piechart";
+
+// Icons
+import { FaRegClock, FaRegStar } from "react-icons/fa";
+import { FaRegUser } from "react-icons/fa6";
+import { IoGameControllerOutline, IoHourglassOutline } from "react-icons/io5";
+import { HiOutlineUsers, HiMiniArrowDownLeft, HiMiniArrowUpRight } from "react-icons/hi2";
+import { TbCalendarClock } from "react-icons/tb";
+
+// Assets
+import click from '../../../assets/click.svg';
+import gameImg from "../../../assets/gamesImg/1.svg";
+
+// Services & Utils
+import { useGamesAnalytics, useUsersAnalytics, type GameAnalytics } from "../../../backend/analytics.service";
+import { useSignupAnalyticsData } from "../../../backend/signup.analytics.service";
+
+interface UserAnalytics {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  isActive: boolean;
+  isVerified: boolean;
+  lastLoggedIn: string;
+  createdAt: string;
+  updatedAt: string;
+  role: {
+    id: string;
+    name: string;
+    description: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+  analytics: {
+    totalGamesPlayed: number;
+    totalSessionCount: number;
+    totalTimePlayed: number;
+    mostPlayedGame: {
+      gameId?: string;
+      gameTitle?: string;
+      sessionCount?: number;
+    };
+  };
+}
+import { formatTime } from "../../../utils/main";
 // import LineChart from "../../../components/charts/LineChart";
 
 const cardData = [
@@ -97,14 +133,35 @@ export default function Home() {
 
   const [isAcceptInviteOpen, setIsAcceptInviteOpen] = useState(false);
 
-  // Mock data for 20 games
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const allGames = Array.from({ length: 20 }, (_, _idx) => ({
-    name: "War Shooting",
-    plays: 289,
-    minutes: 400,
-    img: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=facearea&w=48&h=48"
-  }));
+  const { data: gamesWithAnalytics, isLoading: gamesLoading } = useGamesAnalytics();
+  const { data: usersWithAnalytics, isLoading: usersLoading } = useUsersAnalytics();
+  const [userPage, setUserPage] = useState(1);
+  const usersPerPage = 5;
+
+  // Sort users by lastLoggedIn (most recent first)
+  const allUsers = useMemo<UserAnalytics[]>(() => {
+    if (!usersWithAnalytics) return [];
+    return [...usersWithAnalytics].sort((a, b) => 
+      new Date(b.lastLoggedIn).getTime() - new Date(a.lastLoggedIn).getTime()
+    );
+  }, [usersWithAnalytics]);
+
+  const getUsersForPage = (page: number) => {
+    const startIdx = (page - 1) * usersPerPage;
+    const endIdx = startIdx + usersPerPage;
+    return allUsers.slice(startIdx, endIdx);
+  };
+
+  const usersToShow = getUsersForPage(userPage);
+  const totalUserPages = Math.ceil(allUsers.length / usersPerPage);
+
+  // Sort games by total sessions (most played first)
+  const allGames = useMemo<GameAnalytics[]>(() => {
+    if (!gamesWithAnalytics) return [];
+    return [...gamesWithAnalytics].sort((a, b) => 
+      (b.analytics?.totalSessions || 0) - (a.analytics?.totalSessions || 0)
+    );
+  }, [gamesWithAnalytics]);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -121,9 +178,9 @@ export default function Home() {
   const gamesToShow = getGamesForPage(currentPage);
   return (
     <div>
-      <div className="px-6 pb-3">
+      {/* <div className="px-6 pb-3">
         <Button className="bg-[#D946EF] text-white" onClick={() => setIsAcceptInviteOpen(true)}>Invite</Button>
-      </div>
+      </div> */}
       <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-6">
         {cardData.map((card, idx) => (
           <div
@@ -197,8 +254,8 @@ export default function Home() {
                     <img src={click} alt="click" className="w-10 h-10 dark:text-white" />
                     <p className="text-lg text-[#64748A] dark:text-white">Total clicks on Sign-up form</p>
                   </div>
-
-                  <PieChart />
+                  
+                  <SignupClickInsights />
                 </div>
               </div>
             </Card>
@@ -221,24 +278,28 @@ export default function Home() {
                   <TableRow className="text-xl text-[]">
                     <TableHead>Game</TableHead>
                     <TableHead>Total Plays</TableHead>
-                    <TableHead>Minutes played</TableHead>
+                    <TableHead>Minutes played</TableHead>  
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {gamesToShow.map((game, idx) => (
+                  {gamesLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-center">Loading...</TableCell>
+                    </TableRow>
+                  ) : gamesToShow.map((game, idx) => (
                     <TableRow key={idx}>
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <img
-                            src={game.img}
-                            alt="game"
+            src={game.thumbnailFile?.url || gameImg}
+                            alt={game.title}
                             className="w-12 h-12 rounded-lg object-cover"
                           />
-                          <span className="font-semibold text-lg">{game.name}</span>
+                          <span className="font-semibold text-lg">{game.title}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="font-sans">{game.plays}</TableCell>
-                      <TableCell className="font-sans">{game.minutes}</TableCell>
+                      <TableCell className="font-sans">{game.analytics?.totalSessions || 0}</TableCell>
+                      <TableCell className="font-sans">{formatTime(game.analytics?.totalPlayTime || 0)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -280,28 +341,7 @@ export default function Home() {
             </div>
             {/* table */}
             <div className="px-4 pb-4">
-              {/** Pagination logic for users */}
-              {(() => {
-                // Mock user data: 20 users for 4 pages
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const allUsers = Array.from({ length: 20 }, (_, _idx) => ({
-                  name: "John Doe",
-                  email: "john@email.com",
-                  registration: "12/08/2025",
-                  games: 34,
-                  time: "120 minutes",
-                  sessions: 20,
-                  lastLogin: "16:59"
-                }));
-                const usersPerPage = 5;
-                // eslint-disable-next-line react-hooks/rules-of-hooks
-                const [userPage, setUserPage] = React.useState(1);
-                const totalUserPages = 4; // Only 4 pages
-                const startIdx = (userPage - 1) * usersPerPage;
-                const endIdx = startIdx + usersPerPage;
-                const usersToShow = allUsers.slice(startIdx, endIdx);
-
-                return (
+              {/* Recent User Activity Table */}
                   <>
                     <Table>
                       <TableHeader>
@@ -316,19 +356,25 @@ export default function Home() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {usersToShow.map((user, idx) => (
+                        {usersLoading ? (
+                          <TableRow>
+                            <TableCell colSpan={7} className="text-center">Loading...</TableCell>
+                          </TableRow>
+                        ) : usersToShow.map((user, idx) => (
                           <TableRow key={idx} className="font-sans">
-                            <TableCell>{user.name}</TableCell>
+                            <TableCell>{`${user.firstName} ${user.lastName}`}</TableCell>
                             <TableCell>{user.email}</TableCell>
-                            <TableCell>{user.registration}</TableCell>
-                            <TableCell>{user.games}</TableCell>
-                            <TableCell>{user.time}</TableCell>
-                            <TableCell>{user.sessions}</TableCell>
+                            <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+                            <TableCell>{user.analytics.totalGamesPlayed}</TableCell>
+                            <TableCell>{formatTime(user.analytics.totalTimePlayed)}</TableCell>
+                            <TableCell>{user.analytics.totalSessionCount}</TableCell>
                             <TableCell>
                               <span className="flex items-center gap-2">
                                 <div className="bg-[#94A3B7] p-2 rounded-lg">
                                   <span className="inline-block w-2 h-2 rounded-full bg-red-500" />
-                                  <span className="rounded px-2 py-1 text-white font-semibold text-sm">{user.lastLogin}</span>
+                                  <span className="rounded px-2 py-1 text-white font-semibold text-sm">
+                                    {new Date(user.lastLoggedIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  </span>
                                 </div>
                               </span>
                             </TableCell>
@@ -338,7 +384,7 @@ export default function Home() {
                     </Table>
                     <div className="flex justify-between items-center mt-4">
                       <span className="text-sm">
-                        Showing {startIdx + 1}-{Math.min(endIdx, allUsers.length)} from {allUsers.length} data
+                        Showing {(userPage - 1) * usersPerPage + 1}-{Math.min(userPage * usersPerPage, allUsers.length)} from {allUsers.length} data
                       </span>
                       <div className="flex items-center gap-2 rounded-full space-x-4 border border-[#D946EF] dark:text-white">
                         {Array.from({ length: totalUserPages }, (_, i) => (
@@ -353,8 +399,6 @@ export default function Home() {
                       </div>
                     </div>
                   </>
-                );
-              })()}
             </div>
           </Card>
         </div>
@@ -363,4 +407,29 @@ export default function Home() {
       <AcceptInvitationModal open={isAcceptInviteOpen} onOpenChange={setIsAcceptInviteOpen} isExistingUser={true} />
     </div>
   );
+}
+
+// Separate component for signup click insights
+function SignupClickInsights() {
+  const { data: signupAnalytics, isLoading: analyticsLoading } = useSignupAnalyticsData();
+  const { data: usersWithAnalytics, isLoading: usersLoading } = useUsersAnalytics();
+  
+  if (analyticsLoading || usersLoading) {
+    return <div className="text-center py-4">Loading...</div>;
+  }
+  
+  if (!signupAnalytics || !usersWithAnalytics) {
+    return <div className="text-center py-4">No data available</div>;
+  }
+
+  // Total registered users is the verified count
+  const verifiedCount = usersWithAnalytics.length;
+  const didntRegisterCount = signupAnalytics.totalClicks - verifiedCount;
+
+  const chartData = [
+    { name: "Didn't register", value: didntRegisterCount, fill: "#F3C7FA" },
+    { name: "Verified users", value: verifiedCount, fill: "#D24CFB" }
+  ];
+
+  return <PieChart data={chartData} />;
 }

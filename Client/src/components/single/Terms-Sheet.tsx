@@ -8,17 +8,61 @@ import {
   SheetHeader,
   SheetTitle,
 } from '../ui/sheet';
+import { useCreateSystemConfig } from '../../backend/configuration.service';
+import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
+import { BackendRoute } from '../../backend/constants';
+import { useState } from 'react';
 
 interface TermsSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  profile: {
-    oldpassword: string;
-    newpassword: string;
-  };
 }
 
 export function TermsSheet({ open, onOpenChange }: TermsSheetProps) {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const queryClient = useQueryClient();
+  const createConfig = useCreateSystemConfig();
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Check file type
+      if (!file.type.match('application/pdf|application/msword|application/vnd.openxmlformats-officedocument.wordprocessingml.document')) {
+        toast.error('Please upload a PDF or Word document');
+        return;
+      }
+      // Check file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('File size should not exceed 5MB');
+        return;
+      }
+      setSelectedFile(file);
+    }
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!selectedFile) {
+      toast.error('Please select a file');
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('key', 'terms');
+      formData.append('description', 'Terms of use document');
+
+      await createConfig.mutateAsync(formData);
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.SYSTEM_CONFIG, 'terms'] });
+      toast.success('Terms file uploaded successfully');
+      onOpenChange(false);
+    } catch (error) {
+      toast.error('Failed to upload terms file');
+    }
+  };
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="font-boogaloo dark:bg-[#0F1621] max-w-xl w-full">
@@ -28,14 +72,24 @@ export function TermsSheet({ open, onOpenChange }: TermsSheetProps) {
           </SheetTitle>
           <div className="border border-b-gray-200 mb-2"></div>
         </SheetHeader>
-        <form className="grid grid-cols-1 gap-6 pl-4 pr-4">
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-6 pl-4 pr-4">
           {/* Thumbnail Upload */}
           <div>
             <Label className="text-lg mb-2 block">Upload file</Label>
             <div className="flex items-center">
               <label className="w-40 h-38 flex flex-col items-center justify-center border border-[#CBD5E0] rounded-lg cursor-pointer hover:border-[#D946EF] transition">
                 <img src={uploadImg} alt="upload" className="dark:text-white" />
-                <input type="file" accept="image/*" className="hidden" />
+                <input 
+                  type="file" 
+                  accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
+                  className="hidden" 
+                  onChange={handleFileChange}
+                />
+                {selectedFile && (
+                  <span className="mt-2 text-sm text-gray-500 truncate max-w-[140px]">
+                    {selectedFile.name}
+                  </span>
+                )}
               </label>
             </div>
           </div>
@@ -49,14 +103,14 @@ export function TermsSheet({ open, onOpenChange }: TermsSheetProps) {
               Cancel
             </Button>
           </SheetClose>
-          <SheetClose asChild>
-            <Button
-              type="submit"
-              className="w-20 h-12 bg-[#D946EF] dark:text-white hover:text-[#D946EF] hover:bg-[#F3E8FF] shadow-none"
-            >
-              Add
-            </Button>
-          </SheetClose>
+          <Button
+            type="submit"
+            className="w-20 h-12 bg-[#D946EF] dark:text-white hover:text-[#D946EF] hover:bg-[#F3E8FF] shadow-none"
+            onClick={handleSubmit}
+            disabled={!selectedFile || createConfig.isPending}
+          >
+            {createConfig.isPending ? 'Uploading...' : 'Add'}
+          </Button>
         </div>
       </SheetContent>
     </Sheet>

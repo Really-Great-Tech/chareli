@@ -107,11 +107,7 @@ const Settings: React.FC = () => {
       />
       <TermsSheet 
         open={showTerms} 
-        onOpenChange={setShowTerms} 
-        profile={{
-          oldpassword: "",
-          newpassword: ""
-        }}
+        onOpenChange={setShowTerms}
       />
     </div>
   );

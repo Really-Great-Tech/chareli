@@ -266,6 +266,11 @@ export const getDashboardAnalytics = async (
       ? Math.max(Math.min(((currentAvgSessionDuration - previousAvgSessionDuration) / previousAvgSessionDuration) * 100, 100), -100)
       : 0;
 
+    const [adultsCount, minorsCount] = await Promise.all([
+      userRepository.count({ where: { isAdult: true } }),
+      userRepository.count({ where: { isAdult: false } }),
+    ]);
+
     res.status(200).json({
       success: true,
       data: {
@@ -279,6 +284,8 @@ export const getDashboardAnalytics = async (
         },
         activeUsers,
         inactiveUsers,
+        adultsCount,
+        minorsCount,
         totalGames: {
           current: currentTotalGames,
           percentageChange: Number(totalGamesPercentageChange.toFixed(2))

@@ -1,9 +1,31 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppDataSource } from '../config/database';
 import { SystemConfig } from '../entities/SystemConfig';
+import { File } from '../entities/Files';
 import { ApiError } from '../middlewares/errorHandler';
+import { s3Service } from '../services/s3.service';
+import multer from 'multer';
 
 const systemConfigRepository = AppDataSource.getRepository(SystemConfig);
+const fileRepository = AppDataSource.getRepository(File);
+
+// Configure multer for file uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter: (_req, file, cb) => {
+    if (file.mimetype.match('application/pdf|application/msword|application/vnd.openxmlformats-officedocument.wordprocessingml.document')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only PDF and Word documents are allowed'));
+    }
+  }
+});
+
+// Middleware to handle file uploads
+export const uploadTermsFile = upload.single('file');
 
 /**
  * @swagger
@@ -185,34 +207,85 @@ export const createSystemConfig = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
+  // Start a transaction
+  const queryRunner = AppDataSource.createQueryRunner();
+  await queryRunner.connect();
+  await queryRunner.startTransaction();
+
   try {
-    const { key, value, description } = req.body;
-    
+    const { key, description } = req.body;
+    const file = req.file;
+
+    if (key === 'terms' && !file) {
+      return next(ApiError.badRequest('File is required for terms configuration'));
+    }
+
     // Check if config with the same key already exists
     let config = await systemConfigRepository.findOne({
       where: { key }
     });
-    
+
     let isNewConfig = false;
-    
-    if (config) {
-      // Update existing config
-      config.value = value;
-      if (description !== undefined) {
-        config.description = description;
+
+    if (key === 'terms' && file) {
+      // Upload file to S3
+      const uploadResult = await s3Service.uploadFile(
+        file.buffer,
+        file.originalname,
+        file.mimetype,
+        'terms'
+      );
+
+      // Create file record
+      const fileRecord = await queryRunner.manager.create(File, {
+        s3Key: uploadResult.key,
+        type: 'terms'
+      });
+      await queryRunner.manager.save(fileRecord);
+
+      const value = {
+        fileId: fileRecord.id,
+        uploadedAt: new Date()
+      };
+
+      if (config) {
+        // Update existing config
+        config.value = value;
+        if (description !== undefined) {
+          config.description = description;
+        }
+      } else {
+        // Create new config
+        isNewConfig = true;
+        config = systemConfigRepository.create({
+          key,
+          value,
+          description
+        });
       }
     } else {
-      // Create new config
-      isNewConfig = true;
-      config = systemConfigRepository.create({
-        key,
-        value,
-        description
-      });
+      const value = req.body.value;
+      
+      if (config) {
+        // Update existing config
+        config.value = value;
+        if (description !== undefined) {
+          config.description = description;
+        }
+      } else {
+        // Create new config
+        isNewConfig = true;
+        config = systemConfigRepository.create({
+          key,
+          value,
+          description
+        });
+      }
     }
-    
-    await systemConfigRepository.save(config);
-    
+
+    await queryRunner.manager.save(config);
+    await queryRunner.commitTransaction();
+
     res.status(isNewConfig ? 201 : 200).json({
       success: true,
       message: isNewConfig ? 'Configuration created successfully' : 'Configuration updated successfully',

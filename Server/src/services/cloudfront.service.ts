@@ -1,10 +1,11 @@
 import { getSignedUrl } from '@aws-sdk/cloudfront-signer';
+import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 import config from '../config/config';
 import logger from '../utils/logger';
 
 export interface CloudFrontServiceInterface {
-  transformS3UrlToCloudFront(s3Url: string): string;
-  transformS3KeyToCloudFront(s3Key: string): string;
+  transformS3UrlToCloudFront(s3Url: string): Promise<string>;
+  transformS3KeyToCloudFront(s3Key: string): Promise<string>;
 }
 
 export class CloudFrontService implements CloudFrontServiceInterface {
@@ -12,14 +13,39 @@ export class CloudFrontService implements CloudFrontServiceInterface {
   private keyPairId: string;
   private privateKey: string;
 
+  private secretsManager: SecretsManagerClient;
+
   constructor() {
     this.distributionDomain = config.cloudfront.distributionDomain;
     this.keyPairId = config.cloudfront.keyPairId;
-    this.privateKey = config.cloudfront.privateKey
+    this.privateKey = '';
+    this.secretsManager = new SecretsManagerClient({ 
+      region: 'eu-central-1'
+    });
+    this.init().catch(error => {
+      logger.error('Failed to initialize CloudFront service:', error);
+    });
   }
 
+ private async init() {
+  try {
+    const command = new GetSecretValueCommand({
+      SecretId: "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/dev/cloudfront_private_key-0zHiFi"
+    });
+    const response = await this.secretsManager.send(command);
+
+    this.privateKey = response.SecretString || '';
+    if (!this.privateKey) {
+      throw new Error('Failed to retrieve CloudFront private key from Secrets Manager');
+    }
+  } catch (error) {
+    logger.error('Error fetching CloudFront private key from Secrets Manager:', error);
+    throw error;
+  }
+}
+
   
-  transformS3KeyToCloudFront(s3Key: string): string {
+  async transformS3KeyToCloudFront(s3Key: string): Promise<string> {
     try {
       if (!this.distributionDomain || !this.keyPairId || !this.privateKey) {
         logger.warn('CloudFront configuration not complete, generating S3 URL');
@@ -69,7 +95,7 @@ export class CloudFrontService implements CloudFrontServiceInterface {
   }
 
   
-  transformS3UrlToCloudFront(s3Url: string): string {
+  async transformS3UrlToCloudFront(s3Url: string): Promise<string> {
     try {
       if (!this.distributionDomain) {
         logger.warn('CloudFront distribution domain not configured, returning S3 URL');
@@ -101,7 +127,7 @@ export class CloudFrontService implements CloudFrontServiceInterface {
       }
 
       // Use the key transformation method
-      return this.transformS3KeyToCloudFront(s3Key);
+      return await this.transformS3KeyToCloudFront(s3Key);
     } catch (error) {
       logger.error('Error transforming S3 URL to CloudFront:', error);
       logger.warn(`Returning original S3 URL as fallback: ${s3Url}`);

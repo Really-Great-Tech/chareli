@@ -21,20 +21,20 @@ const fileRepository = AppDataSource.getRepository(File);
 /**
  * Transform game data to include CloudFront URLs
  */
-const transformGameWithCloudFrontUrls = (game: any) => {
+const transformGameWithCloudFrontUrls = async (game: any) => {
   const transformedGame = { ...game };
   
   if (game.thumbnailFile && game.thumbnailFile.s3Key) {
     transformedGame.thumbnailFile = {
       ...game.thumbnailFile,
-      url: cloudFrontService.transformS3KeyToCloudFront(game.thumbnailFile.s3Key)
+      url: await cloudFrontService.transformS3KeyToCloudFront(game.thumbnailFile.s3Key)
     };
   }
   
   if (game.gameFile && game.gameFile.s3Key) {
     transformedGame.gameFile = {
       ...game.gameFile,
-      url: cloudFrontService.transformS3KeyToCloudFront(game.gameFile.s3Key)
+      url: await cloudFrontService.transformS3KeyToCloudFront(game.gameFile.s3Key)
     };
   }
   
@@ -156,7 +156,7 @@ export const getAllGames = async (
     const games = await queryBuilder.getMany();
     
     // Transform games to include CloudFront URLs
-    const transformedGames = games.map(game => transformGameWithCloudFrontUrls(game));
+    const transformedGames = await Promise.all(games.map(game => transformGameWithCloudFrontUrls(game)));
     
     res.status(200).json({
       success: true,
@@ -267,8 +267,8 @@ export const getGameById = async (
     }
     
     // Transform game and similar games to include CloudFront URLs
-    const transformedGame = transformGameWithCloudFrontUrls(game);
-    const transformedSimilarGames = similarGames.map(transformGameWithCloudFrontUrls);
+    const transformedGame = await transformGameWithCloudFrontUrls(game);
+    const transformedSimilarGames = await Promise.all(similarGames.map(game => transformGameWithCloudFrontUrls(game)));
     
     res.status(200).json({
       success: true,
@@ -469,7 +469,7 @@ export const createGame = async (
       });
 
       // Transform game to include CloudFront URLs
-      const transformedGame = transformGameWithCloudFrontUrls(savedGame);
+      const transformedGame = await transformGameWithCloudFrontUrls(savedGame);
 
       res.status(201).json({
         success: true,
@@ -672,7 +672,7 @@ export const updateGame = async (
     });
     
     // Transform game to include CloudFront URLs
-    const transformedGame = transformGameWithCloudFrontUrls(updatedGame);
+    const transformedGame = await transformGameWithCloudFrontUrls(updatedGame);
     
     res.status(200).json({
       success: true,

@@ -57,7 +57,6 @@ interface Config {
   cloudfront: {
     distributionDomain: string;
     keyPairId: string;
-    privateKey: string;
     cookieExpiration: number;
   };
 }
@@ -115,7 +114,6 @@ const config: Config = {
   cloudfront: {
     distributionDomain: process.env.CLOUDFRONT_DISTRIBUTION_DOMAIN || '',
     keyPairId: process.env.CLOUDFRONT_KEY_PAIR_ID || '',
-    privateKey: process.env.CLOUDFRONT_PRIVATE_KEY || '',
     cookieExpiration: 86400, // 1 day in seconds
   }
 };

@@ -15,11 +15,11 @@ const fileRepository = AppDataSource.getRepository(File);
 /**
  * Transform file data to include CloudFront URLs
  */
-const transformFileWithCloudFrontUrl = (file: any) => {
+const transformFileWithCloudFrontUrl = async (file: any) => {
   const transformedFile = { ...file };
   
   if (file.s3Key) {
-    transformedFile.url = cloudFrontService.transformS3KeyToCloudFront(file.s3Key);
+    transformedFile.url = await cloudFrontService.transformS3KeyToCloudFront(file.s3Key);
   }
   
   return transformedFile;
@@ -110,7 +110,7 @@ export const getAllFiles = async (
     const files = await queryBuilder.getMany();
     
     // Transform files to include CloudFront URLs
-    const transformedFiles = files.map(transformFileWithCloudFrontUrl);
+    const transformedFiles = await Promise.all(files.map(file => transformFileWithCloudFrontUrl(file)));
     
     res.status(200).json({
       success: true,
@@ -166,7 +166,7 @@ export const getFileById = async (
     }
     
     // Transform file to include CloudFront URL
-    const transformedFile = transformFileWithCloudFrontUrl(file);
+    const transformedFile = await transformFileWithCloudFrontUrl(file);
     
     res.status(200).json({
       success: true,
@@ -271,7 +271,7 @@ export const createFile = async (
     }
     
     // Transform file to include CloudFront URL
-    const transformedFile = transformFileWithCloudFrontUrl(fileRecord);
+    const transformedFile = await transformFileWithCloudFrontUrl(fileRecord);
     
     res.status(201).json({
       success: true,
@@ -358,7 +358,7 @@ export const updateFile = async (
     await fileRepository.save(file);
     
     // Transform file to include CloudFront URL
-    const transformedFile = transformFileWithCloudFrontUrl(file);
+    const transformedFile = await transformFileWithCloudFrontUrl(file);
     
     res.status(200).json({
       success: true,

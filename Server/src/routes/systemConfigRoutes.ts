@@ -5,7 +5,8 @@ import {
   getFormattedSystemConfigs,
   createSystemConfig,
   updateSystemConfig,
-  deleteSystemConfig
+  deleteSystemConfig,
+  uploadTermsFile
 } from '../controllers/systemConfigController';
 import { authenticate, isAdmin } from '../middlewares/authMiddleware';
 import { validateBody, validateParams, validateQuery } from '../middlewares/validationMiddleware';
@@ -29,7 +30,17 @@ router.use(isAdmin);
 router.use(apiLimiter);
 
 router.get('/', validateQuery(systemConfigQuerySchema), getAllSystemConfigs);
-router.post('/', validateBody(createSystemConfigSchema), createSystemConfig);
+router.post('/', 
+  (req, res, next) => {
+    // Skip validation for file uploads
+    if (req.get('content-type')?.includes('multipart/form-data')) {
+      return next();
+    }
+    return validateBody(createSystemConfigSchema)(req, res, next);
+  },
+  uploadTermsFile,
+  createSystemConfig
+);
 router.put('/:key', validateParams(systemConfigKeyParamSchema), validateBody(updateSystemConfigSchema), updateSystemConfig);
 router.delete('/:key', validateParams(systemConfigKeyParamSchema), deleteSystemConfig);
 

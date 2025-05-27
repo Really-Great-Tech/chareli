@@ -47,4 +47,9 @@ export const BackendRoute = {
   // Signup Analytics Routes
   SIGNUP_ANALYTICS_CLICK: '/api/signup-analytics/click',
   SIGNUP_ANALYTICS_DATA: '/api/signup-analytics/data',
+
+  // System Config Routes
+  SYSTEM_CONFIG: '/api/system-configs',
+  SYSTEM_CONFIG_FORMATTED: '/api/system-configs/formatted',
+  SYSTEM_CONFIG_BY_KEY: '/api/system-configs/:key',
 } as const;

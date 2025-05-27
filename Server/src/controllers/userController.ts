@@ -133,13 +133,13 @@ export const getCurrentUserStats = async (
       .getRawMany();
 
     // Format the response
-    const formattedGames = gamesPlayed.map(game => ({
+    const formattedGames = await Promise.all(gamesPlayed.map(async game => ({
       gameId: game.gameId,
       title: game.title,
-      thumbnailUrl: game.thumbnailKey ? cloudFrontService.transformS3KeyToCloudFront(game.thumbnailKey) : null,
+      thumbnailUrl: game.thumbnailKey ? await cloudFrontService.transformS3KeyToCloudFront(game.thumbnailKey) : null,
       totalMinutes: Math.round((game.totalDuration || 0) / 60), // Convert seconds to minutes
       lastPlayed: game.lastPlayed
-    }));
+    })));
 
     // Calculate total minutes (convert from seconds)
     const totalMinutes = Math.round((totalTimeResult?.totalDuration || 0) / 60);

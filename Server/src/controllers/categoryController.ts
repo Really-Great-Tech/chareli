@@ -148,22 +148,22 @@ export const getCategoryById = async (
     // Transform game URLs in the category
     const transformedCategory = {
       ...category,
-      games: category.games.map(game => {
+      games: await Promise.all(category.games.map(async game => {
         const transformedGame: GameWithUrls = { ...game };
         if (game.thumbnailFile?.s3Key) {
           transformedGame.thumbnailFile = {
             ...game.thumbnailFile,
-            url: cloudFrontService.transformS3KeyToCloudFront(game.thumbnailFile.s3Key)
+            url: await cloudFrontService.transformS3KeyToCloudFront(game.thumbnailFile.s3Key)
           } as FileWithUrl;
         }
         if (game.gameFile?.s3Key) {
           transformedGame.gameFile = {
             ...game.gameFile,
-            url: cloudFrontService.transformS3KeyToCloudFront(game.gameFile.s3Key)
+            url: await cloudFrontService.transformS3KeyToCloudFront(game.gameFile.s3Key)
           } as FileWithUrl;
         }
         return transformedGame;
-      })
+      }))
     };
     
     res.status(200).json({

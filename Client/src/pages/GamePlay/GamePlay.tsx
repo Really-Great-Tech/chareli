@@ -25,7 +25,8 @@ export default function GamePlay() {
 
     console.log(isSignUpModalOpen)
 
-    console.log(game?.gameFile.url)
+    console.log("game file", game?.gameFile.url)
+    console.log("thumbnail file", game?.thumbnailFile.url)
 
 
     const [expanded, setExpanded] = useState(false);
@@ -148,7 +149,7 @@ export default function GamePlay() {
                         )}
                         <iframe
                             id="gameIframe"
-                            src={game.gameFile.url}
+                            src={`${game.gameFile.url}/index.html`}
                             className={`w-full ${expanded ? 'h-screen' : 'h-[80vh]'} rounded-2xl`}
                             style={{ display: 'block', background: 'transparent' }}
                             sandbox="allow-scripts allow-same-origin allow-forms allow-popups"

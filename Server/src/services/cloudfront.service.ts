@@ -22,27 +22,27 @@ export class CloudFrontService implements CloudFrontServiceInterface {
     this.secretsManager = new SecretsManagerClient({ 
       region: 'eu-central-1'
     });
-    this.init().catch(error => {
-      logger.error('Failed to initialize CloudFront service:', error);
-    });
+    // this.init().catch(error => {
+    //   logger.error('Failed to initialize CloudFront service:', error);
+    // });
   }
 
- private async init() {
-  try {
-    const command = new GetSecretValueCommand({
-      SecretId: "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/dev/cloudfront_private_key-0zHiFi"
-    });
-    const response = await this.secretsManager.send(command);
+//  private async init() {
+//   try {
+//     const command = new GetSecretValueCommand({
+//       SecretId: ""
+//     });
+//     const response = await this.secretsManager.send(command);
 
-    this.privateKey = response.SecretString || '';
-    if (!this.privateKey) {
-      throw new Error('Failed to retrieve CloudFront private key from Secrets Manager');
-    }
-  } catch (error) {
-    logger.error('Error fetching CloudFront private key from Secrets Manager:', error);
-    throw error;
-  }
-}
+//     this.privateKey = response.SecretString || '';
+//     if (!this.privateKey) {
+//       throw new Error('Failed to retrieve CloudFront private key from Secrets Manager');
+//     }
+//   } catch (error) {
+//     logger.error('Error fetching CloudFront private key from Secrets Manager:', error);
+//     throw error;
+//   }
+// }
 
   
   async transformS3KeyToCloudFront(s3Key: string): Promise<string> {

@@ -3,43 +3,21 @@ import { AppDataSource } from '../config/database';
 import { Game, GameStatus } from '../entities/Games';
 import { Category } from '../entities/Category';
 import { File } from '../entities/Files';
+import { Analytics } from '../entities/Analytics';
 import { ApiError } from '../middlewares/errorHandler';
 import { RoleType } from '../entities/Role';
 import { Not } from 'typeorm';
 import { s3Service } from '../services/s3.service';
-import { cloudFrontService } from '../services/cloudfront.service';
 import { zipService } from '../services/zip.service';
 import multer from 'multer';
 import logger from '../utils/logger';
 import { v4 as uuidv4 } from 'uuid';
-import * as path from 'path';
 
 const gameRepository = AppDataSource.getRepository(Game);
 const categoryRepository = AppDataSource.getRepository(Category);
 const fileRepository = AppDataSource.getRepository(File);
 
-/**
- * Transform game data to include CloudFront URLs
- */
-const transformGameWithCloudFrontUrls = async (game: any) => {
-  const transformedGame = { ...game };
-  
-  if (game.thumbnailFile && game.thumbnailFile.s3Key) {
-    transformedGame.thumbnailFile = {
-      ...game.thumbnailFile,
-      url: await cloudFrontService.transformS3KeyToCloudFront(game.thumbnailFile.s3Key)
-    };
-  }
-  
-  if (game.gameFile && game.gameFile.s3Key) {
-    transformedGame.gameFile = {
-      ...game.gameFile,
-      url: await cloudFrontService.transformS3KeyToCloudFront(game.gameFile.s3Key)
-    };
-  }
-  
-  return transformedGame;
-};
+
 
 /**
  * @swagger
@@ -109,34 +87,86 @@ export const getAllGames = async (
       categoryId, 
       status, 
       search,
-      createdById 
+      createdById,
+      filter
     } = req.query;
     
     const pageNumber = parseInt(page as string, 10);
     const limitNumber = parseInt(limit as string, 10);
     
-    const queryBuilder = gameRepository.createQueryBuilder('game')
+    let queryBuilder = gameRepository.createQueryBuilder('game')
       .leftJoinAndSelect('game.category', 'category')
       .leftJoinAndSelect('game.thumbnailFile', 'thumbnailFile')
       .leftJoinAndSelect('game.gameFile', 'gameFile')
       .leftJoinAndSelect('game.createdBy', 'createdBy');
+
+    // Handle special filters
+    if (filter === 'recently_added') {
+      // Get games from the last 7 days
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      queryBuilder.andWhere('game.createdAt >= :sevenDaysAgo', { sevenDaysAgo });
+    } else if (filter === 'popular') {
+      queryBuilder = gameRepository.createQueryBuilder('game')
+        .leftJoinAndSelect('game.category', 'category')
+        .leftJoinAndSelect('game.thumbnailFile', 'thumbnailFile')
+        .leftJoinAndSelect('game.gameFile', 'gameFile')
+        .leftJoinAndSelect('game.createdBy', 'createdBy')
+        .leftJoin('analytics', 'a', 'a.gameId = game.id')
+        .addSelect([
+          'COUNT(DISTINCT a.userId) as playerCount',
+          'SUM(a.duration) as totalPlayTime',
+          'COUNT(a.id) as sessionCount'
+        ])
+        .groupBy('game.id')
+        .addGroupBy('category.id')
+        .addGroupBy('thumbnailFile.id')
+        .addGroupBy('gameFile.id')
+        .addGroupBy('createdBy.id')
+        .orderBy('playerCount', 'DESC')
+        .addOrderBy('totalPlayTime', 'DESC')
+        .addOrderBy('sessionCount', 'DESC');
+    } else if (filter === 'recommended' && req.user?.userId) {
+      // First find user's most played category
+      const userTopCategory = await AppDataSource
+        .getRepository(Analytics)
+        .createQueryBuilder('analytics')
+        .select('g.categoryId', 'categoryId')
+        .innerJoin('games', 'g', 'analytics.gameId = g.id')
+        .where('analytics.userId = :userId', { userId: req.user.userId })
+        .groupBy('g.categoryId')
+        .orderBy('SUM(analytics.duration)', 'DESC')
+        .limit(1)
+        .getRawOne();
+
+      if (userTopCategory) {
+        queryBuilder
+          .where('game.categoryId = :topCategoryId', { topCategoryId: userTopCategory.categoryId })
+          .andWhere('game.id NOT IN ' +
+            AppDataSource.createQueryBuilder()
+              .select('DISTINCT a.gameId')
+              .from('analytics', 'a')
+              .where('a.userId = :userId', { userId: req.user.userId })
+              .getQuery()
+          )
+          .setParameter('userId', req.user.userId)
+          .orderBy('game.createdAt', 'DESC');
+      }
+    }
     
-    // Apply category filter if provided
+    // Apply standard filters
     if (categoryId) {
       queryBuilder.andWhere('game.categoryId = :categoryId', { categoryId });
     }
     
-    // Apply status filter if provided
     if (status) {
       queryBuilder.andWhere('game.status = :status', { status });
     }
     
-    // Apply creator filter if provided
     if (createdById) {
       queryBuilder.andWhere('game.createdById = :createdById', { createdById });
     }
     
-    // Apply search filter if provided
     if (search) {
       queryBuilder.andWhere(
         '(game.title ILIKE :search OR game.description ILIKE :search)',
@@ -154,18 +184,29 @@ export const getAllGames = async (
       .orderBy('game.createdAt', 'DESC');
     
     const games = await queryBuilder.getMany();
-    
-    // Transform games to include CloudFront URLs
-    const transformedGames = await Promise.all(games.map(game => transformGameWithCloudFrontUrls(game)));
+
+    // Transform game file and thumbnail URLs to direct S3 URLs
+    games.forEach(game => {
+      if (game.gameFile) {
+        const s3Key = game.gameFile.s3Key;
+        const baseUrl = s3Service.getBaseUrl();
+        game.gameFile.s3Key = `${baseUrl}/${s3Key}`;
+      }
+      if (game.thumbnailFile) {
+        const s3Key = game.thumbnailFile.s3Key;
+        const baseUrl = s3Service.getBaseUrl();
+        game.thumbnailFile.s3Key = `${baseUrl}/${s3Key}`;
+      }
+    });
     
     res.status(200).json({
       success: true,
-      count: transformedGames.length,
+      count: games.length,
       total,
       page: pageNumber,
       limit: limitNumber,
       totalPages: Math.ceil(total / limitNumber),
-      data: transformedGames,
+      data: games,
     });
   } catch (error) {
     next(error);
@@ -250,6 +291,18 @@ export const getGameById = async (
       return next(ApiError.notFound(`Game with id ${id} not found`));
     }
     
+    // Transform game file and thumbnail URLs to direct S3 URLs
+    if (game.gameFile) {
+      const s3Key = game.gameFile.s3Key;
+      const baseUrl = s3Service.getBaseUrl();
+      game.gameFile.s3Key = `${baseUrl}/${s3Key}`;
+    }
+    if (game.thumbnailFile) {
+      const s3Key = game.thumbnailFile.s3Key;
+      const baseUrl = s3Service.getBaseUrl();
+      game.thumbnailFile.s3Key = `${baseUrl}/${s3Key}`;
+    }
+
     // Find similar games (same category, different ID, active status)
     let similarGames: Game[] = [];
     
@@ -265,16 +318,12 @@ export const getGameById = async (
         order: { createdAt: 'DESC' } // Get the newest games first
       });
     }
-    
-    // Transform game and similar games to include CloudFront URLs
-    const transformedGame = await transformGameWithCloudFrontUrls(game);
-    const transformedSimilarGames = await Promise.all(similarGames.map(game => transformGameWithCloudFrontUrls(game)));
-    
+      
     res.status(200).json({
       success: true,
       data: {
-        ...transformedGame,
-        similarGames: transformedSimilarGames
+        ...game,
+        similarGames: similarGames
       }
     });
   } catch (error) {
@@ -468,12 +517,25 @@ export const createGame = async (
         relations: ['category', 'thumbnailFile', 'gameFile', 'createdBy']
       });
 
-      // Transform game to include CloudFront URLs
-      const transformedGame = await transformGameWithCloudFrontUrls(savedGame);
+      if (!savedGame) {
+        return next(ApiError.notFound(`Game with id ${game.id} not found`));
+      }
+
+      // Transform game file and thumbnail URLs to direct S3 URLs
+      if (savedGame.gameFile) {
+        const s3Key = savedGame.gameFile.s3Key;
+        const baseUrl = s3Service.getBaseUrl();
+        savedGame.gameFile.s3Key = `${baseUrl}/${s3Key}`;
+      }
+      if (savedGame.thumbnailFile) {
+        const s3Key = savedGame.thumbnailFile.s3Key;
+        const baseUrl = s3Service.getBaseUrl();
+        savedGame.thumbnailFile.s3Key = `${baseUrl}/${s3Key}`;
+      }
 
       res.status(201).json({
         success: true,
-        data: transformedGame,
+        data: savedGame,
       });
     } catch (error) {
       // Rollback transaction on error
@@ -666,18 +728,31 @@ export const updateGame = async (
     await queryRunner.commitTransaction();
     
     // Fetch the updated game with relations to return
-    const updatedGame = await gameRepository.findOne({
-      where: { id },
-      relations: ['category', 'thumbnailFile', 'gameFile', 'createdBy']
-    });
+      const updatedGame = await gameRepository.findOne({
+        where: { id },
+        relations: ['category', 'thumbnailFile', 'gameFile', 'createdBy']
+      });
+
+      if (!updatedGame) {
+        return next(ApiError.notFound(`Game with id ${id} not found`));
+      }
+
+      // Transform game file and thumbnail URLs to direct S3 URLs
+      if (updatedGame.gameFile) {
+        const s3Key = updatedGame.gameFile.s3Key;
+        const baseUrl = s3Service.getBaseUrl();
+        updatedGame.gameFile.s3Key = `${baseUrl}/${s3Key}`;
+      }
+      if (updatedGame.thumbnailFile) {
+        const s3Key = updatedGame.thumbnailFile.s3Key;
+        const baseUrl = s3Service.getBaseUrl();
+        updatedGame.thumbnailFile.s3Key = `${baseUrl}/${s3Key}`;
+      }
     
-    // Transform game to include CloudFront URLs
-    const transformedGame = await transformGameWithCloudFrontUrls(updatedGame);
-    
-    res.status(200).json({
-      success: true,
-      data: transformedGame,
-    });
+      res.status(200).json({
+        success: true,
+        data: updatedGame,
+      });
   } catch (error) {
     // Rollback transaction on error
     await queryRunner.rollbackTransaction();

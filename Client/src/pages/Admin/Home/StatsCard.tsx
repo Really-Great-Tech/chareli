@@ -8,13 +8,7 @@ import { HiMiniArrowDownLeft, HiMiniArrowUpRight } from "react-icons/hi2";
 import { useDashboardAnalytics } from "../../../backend/analytics.service";
 import { Card } from "../../../components/ui/card";
 
-function formatDuration(minutes: number) {
-  if (!minutes || isNaN(minutes)) return "0 min";
-  if (minutes < 60) return `${minutes} min`;
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-  return `${hours}h ${remainingMinutes}m`;
-}
+import { formatTime } from "../../../utils/main";
 
 export default function StatsCard() {
   const { data: dashboardAnalytics, isError, isLoading } = useDashboardAnalytics();
@@ -79,7 +73,7 @@ export default function StatsCard() {
     },
     {
       title: "Time played",
-      value: formatDuration(data.totalTimePlayed.current),
+      value: formatTime(data.totalTimePlayed.current),
       icon: <FaRegClock size={32} className="dark:text-white" />,
       change: `${data.totalTimePlayed.percentageChange}%`,
       changeType: data.totalTimePlayed.percentageChange >= 0 ? "up" : "down",
@@ -106,7 +100,7 @@ export default function StatsCard() {
     },
     {
       title: "Avg. Session Duration",
-      value: formatDuration(Math.round(data.avgSessionDuration.current / 60)), // Convert seconds to minutes
+      value: formatTime(data.avgSessionDuration.current),
       icon: <IoHourglassOutline size={32} />,
       change: `${data.avgSessionDuration.percentageChange}%`,
       changeType: data.avgSessionDuration.percentageChange >= 0 ? "up" : "down",

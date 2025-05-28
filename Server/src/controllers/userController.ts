@@ -8,7 +8,7 @@ import * as bcrypt from 'bcrypt';
 import { authService } from '../services/auth.service';
 import { OtpType } from '../entities/Otp';
 import { Not, IsNull } from 'typeorm';
-import { cloudFrontService } from '../services/cloudfront.service';
+import { s3Service } from '../services/s3.service';
 
 const userRepository = AppDataSource.getRepository(User);
 const roleRepository = AppDataSource.getRepository(Role);
@@ -136,18 +136,18 @@ export const getCurrentUserStats = async (
     const formattedGames = await Promise.all(gamesPlayed.map(async game => ({
       gameId: game.gameId,
       title: game.title,
-      thumbnailUrl: game.thumbnailKey ? await cloudFrontService.transformS3KeyToCloudFront(game.thumbnailKey) : null,
-      totalMinutes: Math.round((game.totalDuration || 0) / 60), // Convert seconds to minutes
+      thumbnailUrl: game.thumbnailKey ? `${s3Service.getBaseUrl()}/${game.thumbnailKey}` : null,
+      totalSeconds: game.totalDuration || 0,
       lastPlayed: game.lastPlayed
     })));
 
-    // Calculate total minutes (convert from seconds)
-    const totalMinutes = Math.round((totalTimeResult?.totalDuration || 0) / 60);
+    // Send total duration in seconds
+    const totalSeconds = totalTimeResult?.totalDuration || 0;
 
     res.status(200).json({
       success: true,
       data: {
-        totalMinutes,
+        totalSeconds,
         totalPlays: totalPlaysResult,
         gamesPlayed: formattedGames
       }

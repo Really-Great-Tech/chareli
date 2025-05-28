@@ -314,12 +314,12 @@ interface UserGameStats {
   gameId: string;
   title: string;
   thumbnailUrl: string;
-  totalMinutes: number;
+  totalSeconds: number;
   lastPlayed: Date;
 }
 
 interface UserStats {
-  totalMinutes: number;
+  totalSeconds: number;
   totalPlays: number;
   gamesPlayed: UserGameStats[];
 }

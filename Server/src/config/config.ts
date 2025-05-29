@@ -25,9 +25,10 @@ interface Config {
     password: string;
   };
   smsService: {
-    providerId: string;
-    authToken: string;
-    fromNumber: string;
+    region: string;
+    accessKeyId: string;
+    secretAccessKey: string;
+    senderName: string;
   };
   email: {
     service: string;
@@ -53,6 +54,11 @@ interface Config {
     forcePathStyle?: boolean;
     signedUrlExpiration: number;
   };
+  cloudfront: {
+    distributionDomain: string;
+    keyPairId: string;
+    cookieExpiration: number;
+  };
 }
 
 const config: Config = {
@@ -76,9 +82,10 @@ const config: Config = {
     password: process.env.SUPERADMIN_PASSWORD || 'Admin123!',
   },
   smsService: {
-    providerId: process.env.SMS_PROVIDER_ID || '',
-    authToken: process.env.SMS_AUTH_TOKEN || '',
-    fromNumber: process.env.SMS_FROM_NUMBER || '',
+    region: process.env.AWS_REGION || 'us-east-1',
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+    senderName: process.env.AWS_SNS_SENDER_NAME || 'Chareli',
   },
   email: {
     service: process.env.EMAIL_SERVICE || '',
@@ -103,6 +110,11 @@ const config: Config = {
     endpoint: process.env.AWS_S3_ENDPOINT,
     forcePathStyle: process.env.AWS_S3_FORCE_PATH_STYLE === 'true',
     signedUrlExpiration: parseInt(process.env.AWS_SIGNED_URL_EXPIRATION || '3600', 10),
+  },
+  cloudfront: {
+    distributionDomain: process.env.CLOUDFRONT_DISTRIBUTION_DOMAIN || '',
+    keyPairId: process.env.CLOUDFRONT_KEY_PAIR_ID || '',
+    cookieExpiration: 86400, // 1 day in seconds
   }
 };
 

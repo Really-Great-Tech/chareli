@@ -15,14 +15,18 @@ import {
 //   ChartLegend,
 //   ChartLegendContent,
 // } from "./chart"
-const chartData = [
-  { name: "Didn't register", value: 30, fill: "#F3C7FA" },
-  { name: "Verified users", value: 104, fill: "#D24CFB" },
-]
+interface ChartData {
+  name: string;
+  value: number;
+  fill: string;
+}
 
-const totalClicks = chartData.reduce((sum, entry) => sum + entry.value, 0)
+interface PieChartProps {
+  data: ChartData[];
+}
 
-export default function Component() {
+export default function Component({ data }: PieChartProps) {
+  const totalClicks = data.reduce((sum, entry) => sum + entry.value, 0);
   return (
     <Card className="flex flex-col shadow-none border border-none bg-[#F8FAFC] dark:bg-[#0F1221]">
       <CardHeader className="items-center pb-0">
@@ -30,7 +34,7 @@ export default function Component() {
       <CardContent className="flex-1 pb-0 flex flex-col items-center">
         <PieChart width={250} height={250}>
           <Pie
-            data={chartData}
+            data={data}
             dataKey="value"
             nameKey="name"
             cx="50%"
@@ -51,33 +55,20 @@ export default function Component() {
           Total Clicks = {totalClicks}
         </div>
         <div className="flex justify-center gap-8 mt-4">
-          <div className="flex items-center gap-2">
-            <span style={{
-              display: "inline-block",
-              width: 20,
-              height: 20,
-              background: "#F3C7FA",
-              borderRadius: 4,
-            }} />
-            {/* <span style={{ color: "#5B6B7A dark:text-white", fontSize: 18 }}>Didn&apos;t register = 30</span> */}
-            <span className="text-[#5B6B7A] dark:text-white text-[18px]">
-              Didn&apos;t register = 30
-            </span>
-
-          </div>
-          <div className="flex items-center gap-2">
-            <span style={{
-              display: "inline-block",
-              width: 20,
-              height: 20,
-              background: "#D24CFB",
-              borderRadius: 4,
-            }} />
-            {/* <span style={{ color: "#5B6B7A", fontSize: 18 }}>Verified users = 104</span> */}
-            <span className="text-[#5B6B7A] dark:text-white text-[18px]">
-              Didn&apos;t register = 104
-            </span>
-          </div>
+          {data.map((item, index) => (
+            <div key={index} className="flex items-center gap-2">
+              <span style={{
+                display: "inline-block",
+                width: 20,
+                height: 20,
+                background: item.fill,
+                borderRadius: 4,
+              }} />
+              <span className="text-[#5B6B7A] dark:text-white text-[18px]">
+                {item.name} = {item.value}
+              </span>
+            </div>
+          ))}
         </div>
       </CardContent>
     </Card>

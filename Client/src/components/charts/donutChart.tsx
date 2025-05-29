@@ -90,7 +90,7 @@ export function DonutChart() {
       </div>
 
       {/* Right side with legend */}
-      <div className="mt-12 flex flex-col space-y-4">
+      <div className="mt-12 flex flex-col space-y-4 font-boogaloo">
         <div className="text-xl text-gray-600 font-medium dark:text-white">
           Total number of registered users = {total}
         </div>
@@ -103,7 +103,7 @@ export function DonutChart() {
               onMouseEnter={() => setActiveIndex(index)}
             >
               <div className="w-5 h-5 mr-3" style={{ backgroundColor: index === 0 ? "#D946EF" : "#F5D0FE" }}></div>
-              <span className="text-lg text-gray-600 font-pincuk dark:text-white">
+              <span className="text-lg text-gray-600 dark:text-white">
                 {index === 0 ? "Active users" : "Non-active"} = {_entry.value}
               </span>
             </div>

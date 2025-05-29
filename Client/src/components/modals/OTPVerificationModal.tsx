@@ -13,6 +13,7 @@ import OTPInput from "react-otp-input";
 import { useAuth } from "../../context/AuthContext";
 import { useRequestOtp } from "../../backend/auth.service";
 import { toast } from "sonner";
+import { isValidRole } from "../../utils/main";
 
 interface OTPVerificationDialogProps {
   open: boolean;
@@ -58,8 +59,10 @@ export function OTPVerificationModal({
         onVerificationSuccess();
       }
 
+      const userRole = (user as any)?.data?.role.name
+
       setTimeout(() => {
-        if ((user as any)?.data?.isAdmin) {
+        if (isValidRole(userRole)) {
           navigate("/admin");
         } else {
           navigate("/");

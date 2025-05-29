@@ -8,6 +8,8 @@ import * as bcrypt from 'bcrypt';
 import { authService } from '../services/auth.service';
 import { OtpType } from '../entities/Otp';
 import { Not, IsNull } from 'typeorm';
+import { s3Service } from '../services/s3.service';
+import { getCountryFromIP } from './signupAnalyticsController';
 
 const userRepository = AppDataSource.getRepository(User);
 const roleRepository = AppDataSource.getRepository(Role);
@@ -119,7 +121,7 @@ export const getCurrentUserStats = async (
       .createQueryBuilder('analytics')
       .select('analytics.gameId', 'gameId')
       .addSelect('game.title', 'title')
-      .addSelect('thumbnailFile.s3Url', 'thumbnailUrl')
+      .addSelect('thumbnailFile.s3Key', 'thumbnailKey')
       .addSelect('SUM(analytics.duration)', 'totalDuration')
       .addSelect('MAX(analytics.startTime)', 'lastPlayed')
       .leftJoin('analytics.game', 'game')
@@ -127,26 +129,26 @@ export const getCurrentUserStats = async (
       .where('analytics.userId = :userId', { userId })
       .groupBy('analytics.gameId')
       .addGroupBy('game.title')
-      .addGroupBy('thumbnailFile.s3Url')
+      .addGroupBy('thumbnailFile.s3Key')
       .orderBy('"lastPlayed"', 'DESC')
       .getRawMany();
 
     // Format the response
-    const formattedGames = gamesPlayed.map(game => ({
+    const formattedGames = await Promise.all(gamesPlayed.map(async game => ({
       gameId: game.gameId,
       title: game.title,
-      thumbnailUrl: game.thumbnailUrl,
-      totalMinutes: Math.round((game.totalDuration || 0) / 60), // Convert seconds to minutes
+      thumbnailUrl: game.thumbnailKey ? `${s3Service.getBaseUrl()}/${game.thumbnailKey}` : null,
+      totalSeconds: game.totalDuration || 0,
       lastPlayed: game.lastPlayed
-    }));
+    })));
 
-    // Calculate total minutes (convert from seconds)
-    const totalMinutes = Math.round((totalTimeResult?.totalDuration || 0) / 60);
+    // Send total duration in seconds
+    const totalSeconds = totalTimeResult?.totalDuration || 0;
 
     res.status(200).json({
       success: true,
       data: {
-        totalMinutes,
+        totalSeconds,
         totalPlays: totalPlaysResult,
         gamesPlayed: formattedGames
       }
@@ -274,6 +276,15 @@ export const createUser = async (
       return next(ApiError.badRequest('All fields are required'));
     }
 
+    // Get IP address
+    const forwarded = req.headers['x-forwarded-for'];
+    const ipAddress = Array.isArray(forwarded)
+      ? forwarded[0]
+      : (forwarded || req.socket.remoteAddress || req.ip || '');
+
+    // Get country from IP
+    const country = await getCountryFromIP(ipAddress);
+
     // Check if user with email already exists
     const existingUser = await userRepository.findOne({
       where: { email },
@@ -307,7 +318,8 @@ export const createUser = async (
       isVerified: false,
       isActive: true,
       isAdult: isAdult || false,
-      hasAcceptedTerms
+      hasAcceptedTerms,
+      country: country || undefined
     });
 
     await userRepository.save(user);

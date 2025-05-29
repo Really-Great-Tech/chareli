@@ -11,6 +11,7 @@ import { sentryRequestHandler, sentryTracingHandler, sentryErrorHandler } from '
 import logger from './utils/logger';
 import { specs } from './config/swagger';
 import config from './config/config';
+// import { cloudFrontService } from './services/cloudfront.service';
 
 const app: Express = express();
 
@@ -19,8 +20,6 @@ app.use(requestLogger);
 
 // Initialize Sentry request handler (only in production)
 app.use(sentryRequestHandler());
-
-app.set('trust proxy', true);
 
 // Security middleware
 app.use(helmet()); // Adds various HTTP headers for security
@@ -61,6 +60,96 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
     docExpansion: 'none',
   },
 }));
+
+
+
+// test/cloudfront.test.ts
+
+
+
+// async function testSignedUrl() {
+//    const s3Key = 'games/200274ce-df18-4160-96c1-09efe2e71cd8/glass-city/index.html';
+
+//   const signedUrl = cloudFrontService.transformS3KeyToCloudFront(s3Key);
+
+//   console.log('Generated Signed URL:');
+//   console.log(signedUrl);
+// }
+
+// testSignedUrl();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // API Routes
 app.use('/api', routes);

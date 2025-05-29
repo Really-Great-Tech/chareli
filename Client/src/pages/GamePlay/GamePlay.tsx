@@ -25,6 +25,7 @@ export default function GamePlay() {
 
     console.log(isSignUpModalOpen)
 
+    console.log("game file", game)
 
     const [expanded, setExpanded] = useState(false);
     const [isGameLoading, setIsGameLoading] = useState(true);
@@ -133,7 +134,7 @@ export default function GamePlay() {
                         {error instanceof Error ? error.message : 'Error loading game'}
                     </span>
                 </div>
-            ) : game?.gameFile?.s3Url ? (
+            ) : game?.gameFile?.s3Key ? (
                 <>
                 <div className={`relative w-full ${expanded ? 'h-screen max-w-full fixed inset-0 z-40 bg-black bg-opacity-90' : 'max-w-full pl-6 pr-6'} mx-auto rounded-2xl border-4 border-purple-400`} style={{ background: '#18181b' }}>
                     <div className="relative">
@@ -146,7 +147,7 @@ export default function GamePlay() {
                         )}
                         <iframe
                             id="gameIframe"
-                            src={game.gameFile.s3Url}
+                            src={`${game.gameFile.s3Key}`}
                             className={`w-full ${expanded ? 'h-screen' : 'h-[80vh]'} rounded-2xl`}
                             style={{ display: 'block', background: 'transparent' }}
                             sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
@@ -192,7 +193,7 @@ export default function GamePlay() {
                                         {game.similarGames.map((similarGame: SimilarGame) => (
                                             <div key={similarGame.id} className="relative aspect-square">
                                                 <img 
-                                                    src={similarGame.thumbnailFile?.s3Url} 
+                                                    src={similarGame.thumbnailFile?.s3Key} 
                                                     alt={similarGame.title}
                                                     className="w-full h-full object-cover border-4 border-transparent hover:border-[#D946EF] hover:rounded-4xl box-border transition-transform duration-200 hover:scale-110"
                                                     onClick={() => navigate(`/gameplay/${similarGame.id}`)}

@@ -24,6 +24,9 @@ export class User {
   @Column({ nullable: true })
   fileId: string;
 
+  @Column({ nullable: true })
+  country: string;
+
   @ManyToOne(() => Role, { eager: true })
   @JoinColumn({ name: 'roleId' })
   role: Role;

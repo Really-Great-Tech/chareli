@@ -12,11 +12,7 @@ export interface ProcessedZip {
 }
 
 export class ZipService {
-  /**
-   * Process a zip file containing game files
-   * @param zipBuffer The zip file as a buffer
-   * @returns ProcessedZip object containing extracted folder path and index path
-   */
+ 
   async processGameZip(zipBuffer: Buffer): Promise<ProcessedZip> {
     // Create a unique temp directory for this upload
     const tempDir = path.join(os.tmpdir(), 'game-uploads', uuidv4());
@@ -50,11 +46,7 @@ export class ZipService {
     }
   }
 
-  /**
-   * Find index.html file recursively in directory
-   * @param dir Directory to search in
-   * @returns Full path to index.html if found, undefined otherwise
-   */
+
   private async findIndexHtml(dir: string): Promise<string | undefined> {
     const files = await fs.readdir(dir, { withFileTypes: true });
     
@@ -73,10 +65,6 @@ export class ZipService {
   }
   
   
-  /**
-   * Clean up temporary file
-   * @param filePath Path to file to delete
-   */
   private async cleanup(dirPath: string): Promise<void> {
     try {
       const files = await fs.readdir(dirPath, { withFileTypes: true });
@@ -98,5 +86,4 @@ export class ZipService {
   }
 }
 
-// Singleton instance
 export const zipService = new ZipService();

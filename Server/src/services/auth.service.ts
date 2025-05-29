@@ -39,7 +39,8 @@ export class AuthService {
     password: string,
     phoneNumber: string,
     isAdult: boolean = false,
-    hasAcceptedTerms: boolean = false
+    hasAcceptedTerms: boolean = false,
+    country?: string
   ): Promise<User> {
     // Check if user already exists
     // Get the player role
@@ -66,7 +67,8 @@ export class AuthService {
       isVerified: false,
       isActive: true,
       isAdult,
-      hasAcceptedTerms
+      hasAcceptedTerms,
+      country
     });
 
     await userRepository.save(user);
@@ -84,7 +86,8 @@ export class AuthService {
     password: string,
     phoneNumber: string,
     isAdult: boolean = false,
-    hasAcceptedTerms: boolean = false
+    hasAcceptedTerms: boolean = false,
+    country?: string
   ): Promise<User> {
     // Find the invitation
     const invitation = await invitationRepository.findOne({
@@ -119,7 +122,8 @@ export class AuthService {
       isVerified: false,
       isActive: true,
       isAdult,
-      hasAcceptedTerms
+      hasAcceptedTerms,
+      country
     });
 
     await userRepository.save(user);

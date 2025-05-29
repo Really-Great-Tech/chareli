@@ -2,6 +2,19 @@ import { Request, Response, NextFunction } from 'express';
 import { AppDataSource } from '../config/database';
 import { Category } from '../entities/Category';
 import { ApiError } from '../middlewares/errorHandler';
+import { File } from '../entities/Files';
+import { s3Service } from '../services/s3.service';
+
+// Extend File type to include url
+type FileWithUrl = File & { url?: string };
+type GameWithUrls = {
+  id: string;
+  title: string;
+  description?: string;
+  thumbnailFile?: FileWithUrl;
+  gameFile?: FileWithUrl;
+  [key: string]: any;
+};
 
 const categoryRepository = AppDataSource.getRepository(Category);
 
@@ -125,16 +138,38 @@ export const getCategoryById = async (
     
     const category = await categoryRepository.findOne({
       where: { id },
-      relations: ['games']
+      relations: ['games', 'games.thumbnailFile', 'games.gameFile']
     });
     
     if (!category) {
       return next(ApiError.notFound(`Category with id ${id} not found`));
     }
+
+    // Transform game URLs in the category
+    const transformedCategory = {
+      ...category,
+      games: await Promise.all(category.games.map(async game => {
+        const transformedGame: GameWithUrls = { ...game };
+        const baseUrl = s3Service.getBaseUrl();
+        if (game.thumbnailFile?.s3Key) {
+          transformedGame.thumbnailFile = {
+            ...game.thumbnailFile,
+            url: `${baseUrl}/${game.thumbnailFile.s3Key}`
+          } as FileWithUrl;
+        }
+        if (game.gameFile?.s3Key) {
+          transformedGame.gameFile = {
+            ...game.gameFile,
+            url: `${baseUrl}/${game.gameFile.s3Key}`
+          } as FileWithUrl;
+        }
+        return transformedGame;
+      }))
+    };
     
     res.status(200).json({
       success: true,
-      data: category,
+      data: transformedCategory,
     });
   } catch (error) {
     next(error);

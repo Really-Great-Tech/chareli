@@ -12,11 +12,14 @@ A production-ready Express.js backend with TypeScript, PostgreSQL, and TypeORM.
 - Production-ready setup
 - Swagger API documentation
 - Comprehensive logging system
+- CloudFront integration with signed cookies
 
 ## Prerequisites
 
 - Node.js (v14 or higher)
 - PostgreSQL database
+- AWS S3 bucket
+- AWS CloudFront distribution (optional, for enhanced performance and security)
 
 ## Getting Started
 
@@ -68,11 +71,42 @@ src/
 ├── routes/         # API routes
 │   ├── index.ts    # Main router
 │   └── userRoutes.ts # User routes
+├── services/       # Business logic services
+│   ├── s3.service.ts        # AWS S3 file operations
+│   └── cloudfront.service.ts # CloudFront signed cookies
 ├── utils/          # Utility functions
 │   └── logger.ts   # Winston logger configuration
 ├── app.ts          # Express app setup
 └── index.ts        # Entry point
 ```
+
+## CloudFront Integration
+
+This application supports CloudFront with signed cookies for secure file access. This provides:
+
+- **Better Performance**: CloudFront CDN delivers files faster globally
+- **Security**: Signed cookies control access to files
+- **Cost Efficiency**: Reduced S3 bandwidth costs
+- **Scalability**: CloudFront handles high traffic loads
+
+### How It Works
+
+1. **File Upload**: Games uploaded to S3, only S3 key stored in database
+2. **Game Request**: When users access `/games` or `/games/:id`:
+   - Backend checks for valid CloudFront cookies
+   - Sets new 1-day cookies if needed
+   - Returns CloudFront URLs generated from S3 keys
+3. **File Access**: Frontend uses CloudFront URLs, cookies authenticate access
+4. **Security**: Files protected by CloudFront signed cookies, 1-day expiration
+
+### CloudFront Setup
+
+1. Create CloudFront distribution pointing to your S3 bucket
+2. Configure trusted signers in CloudFront
+3. Generate CloudFront key pair
+4. Set environment variables (see below)
+
+The system gracefully falls back to S3 URLs if CloudFront is not configured.
 
 ## Logging System
 
@@ -150,17 +184,66 @@ http://localhost:5000/api-docs
 - `PUT /api/users/:id` - Update an existing user
 - `DELETE /api/users/:id` - Delete a user
 
+### Game Endpoints
+- `GET /api/games` - Get all games (with CloudFront URLs and cookies)
+- `GET /api/games/:id` - Get game by ID (with CloudFront URLs and cookies)
+- `POST /api/games` - Create a new game
+- `PUT /api/games/:id` - Update an existing game
+- `DELETE /api/games/:id` - Delete a game
+
 ## Environment Variables
 
 Create a `.env` file in the root directory with the following variables:
 
-```
+```env
+# Node environment
 NODE_ENV=development
 PORT=5000
+
+# Database configuration
 DB_HOST=localhost
 DB_PORT=5432
 DB_USERNAME=postgres
-DB_PASSWORD=postgres
+DB_PASSWORD=your_database_password
 DB_DATABASE=chareli_db
+
+# JWT configuration
 JWT_SECRET=your_jwt_secret_key_here
-JWT_EXPIRATION=1h
+JWT_EXPIRATION=2h
+JWT_REFRESH_SECRET=your_refresh_token_secret_here
+JWT_REFRESH_EXPIRATION=7d
+
+# AWS S3 Configuration
+AWS_REGION=us-east-1
+AWS_ACCESS_KEY_ID=your_aws_access_key_id
+AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key
+AWS_S3_BUCKET=your-bucket-name
+AWS_SIGNED_URL_EXPIRATION=3600
+
+# CloudFront Configuration (optional, for secure file access with cookies)
+CLOUDFRONT_DISTRIBUTION_DOMAIN=your-cloudfront-domain.cloudfront.net
+CLOUDFRONT_KEY_PAIR_ID=your_cloudfront_key_pair_id
+CLOUDFRONT_PRIVATE_KEY=-----BEGIN RSA PRIVATE KEY-----\nYour_CloudFront_Private_Key_Here\n-----END RSA PRIVATE KEY-----
+
+# Email service configuration
+EMAIL_SERVICE=gmail
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASSWORD=your_app_specific_password
+
+# Other configurations...
+```
+
+## File Storage Architecture
+
+The application uses a clean file storage architecture:
+
+- **Database**: Stores only S3 keys (file paths), not full URLs
+- **S3**: Stores actual files (games, thumbnails)
+- **CloudFront**: Serves files with signed cookie authentication
+- **Dynamic URLs**: CloudFront URLs generated from S3 keys when needed
+
+This approach provides:
+- **Flexibility**: Easy to switch between S3 and CloudFront
+- **Clean Database**: No hardcoded URLs in database
+- **Security**: Cookie-based file access control
+- **Performance**: CDN delivery for global users

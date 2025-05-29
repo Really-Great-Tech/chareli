@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCategories } from '../../backend/category.service';
 import { useGames } from '../../backend/games.service';
 import GamesSkeleton from '../../components/single/GamesSkeleton';
-import type { Category, GameResponse } from '../../backend/types';
+import type { Category } from '../../backend/types';
 
 const secondary = [
   "Recently Added", "Popular", "Recommended for you"
@@ -15,20 +15,19 @@ export default function Categories() {
   const [selectedSecondary, setSelectedSecondary] = useState<string | null>(null);
   
   const { data: categoriesData, isLoading: categoriesLoading, error: categoriesError } = useCategories();
-  const { data: gamesData, isLoading: gamesLoading, error: gamesError } = useGames();
-  const categories = (categoriesData || []) as Category[];
-  const games = gamesData || [];
-  
-  const filteredGames = (games as any).filter((game: GameResponse) => {
-    console.log('Filtering Game:', game);
-    const categoryMatch = selectedCategory ? game.categoryId === selectedCategory : true;
-    const secondaryMatch = selectedSecondary
-      ? (selectedSecondary === "Recently Added" 
-         ? new Date(game.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-         : false) // For now, only support "Recently Added" filter
-      : true;
-    return categoryMatch && secondaryMatch;
+  const { data: gamesData, isLoading: gamesLoading, error: gamesError } = useGames({
+    categoryId: selectedCategory || undefined,
+    filter: selectedSecondary ? 
+      selectedSecondary === "Recently Added" ? "recently_added" :
+      selectedSecondary === "Popular" ? "popular" :
+      selectedSecondary === "Recommended for you" ? "recommended" :
+      undefined
+    : undefined
   });
+
+  
+  const categories = (categoriesData || []) as Category[];
+  const games: any = gamesData || [];
 
   return (
     <div className="flex min-h-[calc(100vh-80px)] bg-white dark:bg-[#0f1221]">
@@ -95,13 +94,13 @@ export default function Categories() {
           <div className="text-center py-8 text-red-500">Error loading games</div>
         ) : (
           <div className="flex flex-col">
-            {filteredGames.length === 0 ? (
+            {games.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 No games found {selectedCategory ? "in this category" : selectedSecondary ? "for this filter" : ""}
               </div>
             ) : (
               <div className="grid gap-4 w-full grid-cols-3">
-              {filteredGames.map((game: any, index: number) => {
+              {games.map((game: any, index: number) => {
                 const spans = [1, 1.3, 1.1];
                 const spanIndex = index % spans.length;
                 const rowSpan = spans[spanIndex];
@@ -114,14 +113,8 @@ export default function Categories() {
                     onClick={() => navigate(`/gameplay/${game.id}`)}
                   >
                     <div className="relative h-full overflow-hidden rounded-[20px]">
-                    {/* Tag if Recently Added */}
-                    {new Date(game.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) && (
-                      <span className="absolute top-3 right-3 bg-[#94A3B7] text-xs font-semibold tracking-wide text-white px-3 py-1 rounded-lg shadow-md z-10">
-                        Recently Added
-                      </span>
-                    )}
                       <img 
-                        src={game.thumbnailFile?.url} 
+                        src={game.thumbnailFile?.s3Key} 
                         alt={game.title}
                         loading="lazy"
                         className="w-full h-full object-cover border-4 border-transparent group-hover:border-[#D946EF] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(217,70,239,0.3)]"

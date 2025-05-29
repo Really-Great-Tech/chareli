@@ -6,6 +6,7 @@ import { User } from '../entities/User';
 import { Analytics } from '../entities/Analytics';
 import { OtpType } from '../entities/Otp';
 import * as crypto from 'crypto';
+import { getCountryFromIP } from './signupAnalyticsController';
 
 // Section: Core Authentication
 // This controller handles core authentication functions like registration, login, and OTP verification
@@ -50,8 +51,8 @@ const analyticsRepository = AppDataSource.getRepository(Analytics);
  *         description: Internal server error
  */
 export const registerPlayer = async (
-  req: Request,
-  res: Response,
+  req: Request, 
+  res: Response, 
   next: NextFunction
 ): Promise<void> => {
   try {
@@ -62,6 +63,15 @@ export const registerPlayer = async (
       return next(ApiError.badRequest('All fields are required'));
     }
 
+    // Get IP address
+    const forwarded = req.headers['x-forwarded-for'];
+    const ipAddress = Array.isArray(forwarded)
+      ? forwarded[0]
+      : (forwarded || req.socket.remoteAddress || req.ip || '');
+
+    // Get country from IP
+    const country = await getCountryFromIP(ipAddress);
+
     // Register the user
     const user = await authService.registerPlayer(
       firstName,
@@ -70,7 +80,8 @@ export const registerPlayer = async (
       password,
       phoneNumber,
       isAdult || false,
-      hasAcceptedTerms
+      hasAcceptedTerms,
+      country || undefined
     );
 
     // Create analytics entry for signup
@@ -137,8 +148,8 @@ export const registerPlayer = async (
  *         description: Internal server error
  */
 export const registerFromInvitation = async (
-  req: Request,
-  res: Response,
+  req: Request, 
+  res: Response, 
   next: NextFunction
 ): Promise<void> => {
   try {
@@ -150,6 +161,15 @@ export const registerFromInvitation = async (
       return next(ApiError.badRequest('All fields are required'));
     }
 
+    // Get IP address
+    const forwarded = req.headers['x-forwarded-for'];
+    const ipAddress = Array.isArray(forwarded)
+      ? forwarded[0]
+      : (forwarded || req.socket.remoteAddress || req.ip || '');
+
+    // Get country from IP
+    const country = await getCountryFromIP(ipAddress);
+
     // Register the user
     const user = await authService.registerFromInvitation(
       token,
@@ -158,7 +178,8 @@ export const registerFromInvitation = async (
       password,
       phoneNumber,
       isAdult || false,
-      hasAcceptedTerms
+      hasAcceptedTerms,
+      country || undefined
     );
 
     // Create analytics entry for signup from invitation

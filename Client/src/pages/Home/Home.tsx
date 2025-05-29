@@ -6,6 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 
 function Home() {
   const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const { keepPlayingRedirect, setKeepPlayingRedirect } = useAuth();
 
   useEffect(() => {
@@ -25,8 +26,8 @@ function Home() {
 
   return (
     <div className='font-boogaloo'>
-      <PopularSection />
-      <AllGamesSection />
+      <PopularSection searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+      <AllGamesSection searchQuery={searchQuery} />
       <LoginModal 
         open={isSignUpModalOpen}
         onOpenChange={handleCloseSignUpModal}

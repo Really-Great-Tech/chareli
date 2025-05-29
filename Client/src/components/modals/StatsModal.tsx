@@ -5,6 +5,8 @@ import { LuGamepad2 } from "react-icons/lu";
 import statImg from '../../assets/stat-img.svg';
 import { useCurrentUserStats } from '../../backend/analytics.service';
 
+import { formatTime } from '../../utils/main';
+
 const formatRelativeTime = (date: Date) => {
   const now = new Date();
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
@@ -31,7 +33,7 @@ interface StatsModalProps {
 export function StatsModal({ open, onClose }: StatsModalProps) {
   const { data: stats, isLoading, isError } = useCurrentUserStats();
 
-  const totalMinutes = stats?.totalMinutes ?? 0;
+  const totalSeconds = stats?.totalSeconds ?? 0;
   const totalPlays = stats?.totalPlays ?? 0;
   const gamesPlayed = stats?.gamesPlayed ?? [];
 
@@ -80,7 +82,7 @@ export function StatsModal({ open, onClose }: StatsModalProps) {
                   <div className="ml-4">
                     <div className="dark:text-white text-[#0F1621] font-bold text-lg">Minutes Played</div>
                     <div className="dark:text-white text-[#0F1621] text-xl">
-                      {`${totalMinutes} minutes`}
+                      {formatTime(totalSeconds)}
                     </div>
                   </div>
                 </div>
@@ -133,7 +135,7 @@ export function StatsModal({ open, onClose }: StatsModalProps) {
                         />
                         <span className="font-bold">{game.title || "None"}</span>
                       </div>
-                      <div className="dark:text-[#bdbdbd] text-[#334154]">{game.totalMinutes || 0} minutes</div>
+                      <div className="dark:text-[#bdbdbd] text-[#334154]">{formatTime(game.totalSeconds || 0)}</div>
                       <div className="dark:text-[#bdbdbd] text-[#334154]">
                         {game.lastPlayed ? formatRelativeTime(new Date(game.lastPlayed)) : "Never played"}
                       </div>

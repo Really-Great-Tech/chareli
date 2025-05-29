@@ -6,12 +6,20 @@ import { useCategories } from "../../backend/category.service";
 import { useState } from "react";
 import GamesSkeleton from "./GamesSkeleton";
 
-const AllGamesSection = () => {
+interface AllGamesSectionProps {
+    searchQuery: string;
+}
+
+const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
     const navigate = useNavigate();
-    const { data: gamesData, isLoading: gamesLoading, error: gamesError } = useGames();
-    const { data: categoriesData, isLoading: categoriesLoading } = useCategories();
-    const games: any = gamesData || [];
     const [selectedCategory, setSelectedCategory] = useState("all");
+    const { data: categoriesData, isLoading: categoriesLoading } = useCategories();
+    const { data: gamesData, isLoading: gamesLoading, error: gamesError } = useGames({
+        categoryId: selectedCategory === "all" ? undefined : selectedCategory === "recent" ? undefined : selectedCategory,
+        filter: selectedCategory === "recent" ? "recently_added" : undefined,
+        status: "active",
+        search: searchQuery || undefined
+    });
 
     // Combine static filters with dynamic categories
     const allCategories = [
@@ -24,13 +32,7 @@ const AllGamesSection = () => {
         { id: "recent", name: "Recently Added", color: "#94A3B7" }
     ];
 
-    const filteredGames = games.filter((game: any) => {
-        if (selectedCategory === "all") return game.status === 'active';
-        if (selectedCategory === "recent") {
-            return game.status === 'active' && new Date(game.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-        }
-        return game.status === 'active' && game.categoryId === selectedCategory;
-    });
+    const games: any = gamesData || [];
 
     const handleGamePlay = (gameId: string) => {
         navigate(`/gameplay/${gameId}`);
@@ -64,7 +66,7 @@ const AllGamesSection = () => {
                         <GamesSkeleton count={9} showCategories={true} />
                     ) : gamesError ? (
                         <div className="text-center py-8 text-red-500">Error loading games</div>
-                    ) : filteredGames.length === 0 ? (
+                    ) : games.length === 0 ? (
                         <div className="text-center py-8 text-gray-500">
                             No games found for {selectedCategory === "all" ? "all categories" : 
                                               selectedCategory === "recent" ? "recently added" : 
@@ -72,7 +74,7 @@ const AllGamesSection = () => {
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-[150px]">
-                            {filteredGames.map((game: any, index: number) => {
+                            {games.map((game: any, index: number) => {
                                 // Alternate between different spans for subtle height variations
                                 const spans = [1, 1.3, 1.1]; // More subtle height differences
                                 const spanIndex = index % spans.length;
@@ -87,7 +89,7 @@ const AllGamesSection = () => {
                                     >
                                         <div className="relative h-full overflow-hidden rounded-[20px]">
                                             <img 
-                                                src={game.thumbnailFile?.url} 
+                                                src={game.thumbnailFile?.s3Key} 
                                                 alt={game.title}
                                                 loading="lazy"
                                                 className="w-full h-full object-cover border-4 border-transparent group-hover:border-[#D946EF] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(217,70,239,0.3)]"

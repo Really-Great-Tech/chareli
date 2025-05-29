@@ -129,8 +129,8 @@ export class CloudFrontService implements CloudFrontServiceInterface {
       // Use the key transformation method
       return await this.transformS3KeyToCloudFront(s3Key);
     } catch (error) {
-      logger.error('Error transforming S3 URL to CloudFront:', error);
-      logger.warn(`Returning original S3 URL as fallback: ${s3Url}`);
+      // logger.error('Error transforming S3 URL to CloudFront:', error);
+      // logger.warn(`Returning original S3 URL as fallback: ${s3Url}`);
       return s3Url; // Return original URL as fallback
     }
   }

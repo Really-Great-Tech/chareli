@@ -8,7 +8,8 @@ import * as bcrypt from 'bcrypt';
 import { authService } from '../services/auth.service';
 import { OtpType } from '../entities/Otp';
 import { Not, IsNull } from 'typeorm';
-import { cloudFrontService } from '../services/cloudfront.service';
+import { s3Service } from '../services/s3.service';
+import { getCountryFromIP } from './signupAnalyticsController';
 
 const userRepository = AppDataSource.getRepository(User);
 const roleRepository = AppDataSource.getRepository(Role);
@@ -136,18 +137,18 @@ export const getCurrentUserStats = async (
     const formattedGames = await Promise.all(gamesPlayed.map(async game => ({
       gameId: game.gameId,
       title: game.title,
-      thumbnailUrl: game.thumbnailKey ? await cloudFrontService.transformS3KeyToCloudFront(game.thumbnailKey) : null,
-      totalMinutes: Math.round((game.totalDuration || 0) / 60), // Convert seconds to minutes
+      thumbnailUrl: game.thumbnailKey ? `${s3Service.getBaseUrl()}/${game.thumbnailKey}` : null,
+      totalSeconds: game.totalDuration || 0,
       lastPlayed: game.lastPlayed
     })));
 
-    // Calculate total minutes (convert from seconds)
-    const totalMinutes = Math.round((totalTimeResult?.totalDuration || 0) / 60);
+    // Send total duration in seconds
+    const totalSeconds = totalTimeResult?.totalDuration || 0;
 
     res.status(200).json({
       success: true,
       data: {
-        totalMinutes,
+        totalSeconds,
         totalPlays: totalPlaysResult,
         gamesPlayed: formattedGames
       }
@@ -275,6 +276,15 @@ export const createUser = async (
       return next(ApiError.badRequest('All fields are required'));
     }
 
+    // Get IP address
+    const forwarded = req.headers['x-forwarded-for'];
+    const ipAddress = Array.isArray(forwarded)
+      ? forwarded[0]
+      : (forwarded || req.socket.remoteAddress || req.ip || '');
+
+    // Get country from IP
+    const country = await getCountryFromIP(ipAddress);
+
     // Check if user with email already exists
     const existingUser = await userRepository.findOne({
       where: { email },
@@ -308,7 +318,8 @@ export const createUser = async (
       isVerified: false,
       isActive: true,
       isAdult: isAdult || false,
-      hasAcceptedTerms
+      hasAcceptedTerms,
+      country: country || undefined
     });
 
     await userRepository.save(user);

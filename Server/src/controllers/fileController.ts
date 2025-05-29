@@ -4,7 +4,6 @@ import { File } from '../entities/Files';
 import { ApiError } from '../middlewares/errorHandler';
 import { v4 as uuidv4 } from 'uuid';
 import { s3Service } from '../services/s3.service';
-import { cloudFrontService } from '../services/cloudfront.service';
 import { zipService } from '../services/zip.service';
 import multer from 'multer';
 import logger from '../utils/logger';
@@ -13,13 +12,14 @@ import * as path from 'path';
 const fileRepository = AppDataSource.getRepository(File);
 
 /**
- * Transform file data to include CloudFront URLs
+ * Transform file data to include S3 URLs
  */
-const transformFileWithCloudFrontUrl = async (file: any) => {
+const transformFileWithS3Url = (file: any) => {
   const transformedFile = { ...file };
   
   if (file.s3Key) {
-    transformedFile.url = await cloudFrontService.transformS3KeyToCloudFront(file.s3Key);
+    const baseUrl = s3Service.getBaseUrl();
+    transformedFile.url = `${baseUrl}/${file.s3Key}`;
   }
   
   return transformedFile;
@@ -109,8 +109,8 @@ export const getAllFiles = async (
     
     const files = await queryBuilder.getMany();
     
-    // Transform files to include CloudFront URLs
-    const transformedFiles = await Promise.all(files.map(file => transformFileWithCloudFrontUrl(file)));
+    // Transform files to include S3 URLs
+    const transformedFiles = files.map(file => transformFileWithS3Url(file));
     
     res.status(200).json({
       success: true,
@@ -165,8 +165,8 @@ export const getFileById = async (
       return next(ApiError.notFound(`File with id ${id} not found`));
     }
     
-    // Transform file to include CloudFront URL
-    const transformedFile = await transformFileWithCloudFrontUrl(file);
+    // Transform file to include S3 URL
+    const transformedFile = transformFileWithS3Url(file);
     
     res.status(200).json({
       success: true,
@@ -270,8 +270,8 @@ export const createFile = async (
       await fileRepository.save(fileRecord);
     }
     
-    // Transform file to include CloudFront URL
-    const transformedFile = await transformFileWithCloudFrontUrl(fileRecord);
+    // Transform file to include S3 URL
+    const transformedFile = transformFileWithS3Url(fileRecord);
     
     res.status(201).json({
       success: true,
@@ -357,8 +357,8 @@ export const updateFile = async (
     
     await fileRepository.save(file);
     
-    // Transform file to include CloudFront URL
-    const transformedFile = await transformFileWithCloudFrontUrl(file);
+    // Transform file to include S3 URL
+    const transformedFile = transformFileWithS3Url(file);
     
     res.status(200).json({
       success: true,

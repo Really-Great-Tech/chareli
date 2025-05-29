@@ -3,7 +3,13 @@ import { backendService } from './api.service';
 import { BackendRoute } from './constants';
 import type { GameResponse, GameStatus, PaginatedResponse } from './types';
 
-export const useGames = (params?: { categoryId?: string; status?: GameStatus }) => {
+export const useGames = (params?: { 
+  categoryId?: string; 
+  status?: GameStatus; 
+  filter?: 'popular' | 'recommended' | 'recently_added';
+  search?: string;
+  limit?: number;
+}) => {
   return useQuery<PaginatedResponse<GameResponse>>({
     queryKey: [BackendRoute.GAMES, params],
     queryFn: async () => {

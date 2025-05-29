@@ -2,8 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import { AppDataSource } from '../config/database';
 import { Category } from '../entities/Category';
 import { ApiError } from '../middlewares/errorHandler';
-import { cloudFrontService } from '../services/cloudfront.service';
 import { File } from '../entities/Files';
+import { s3Service } from '../services/s3.service';
 
 // Extend File type to include url
 type FileWithUrl = File & { url?: string };
@@ -150,16 +150,17 @@ export const getCategoryById = async (
       ...category,
       games: await Promise.all(category.games.map(async game => {
         const transformedGame: GameWithUrls = { ...game };
+        const baseUrl = s3Service.getBaseUrl();
         if (game.thumbnailFile?.s3Key) {
           transformedGame.thumbnailFile = {
             ...game.thumbnailFile,
-            url: await cloudFrontService.transformS3KeyToCloudFront(game.thumbnailFile.s3Key)
+            url: `${baseUrl}/${game.thumbnailFile.s3Key}`
           } as FileWithUrl;
         }
         if (game.gameFile?.s3Key) {
           transformedGame.gameFile = {
             ...game.gameFile,
-            url: await cloudFrontService.transformS3KeyToCloudFront(game.gameFile.s3Key)
+            url: `${baseUrl}/${game.gameFile.s3Key}`
           } as FileWithUrl;
         }
         return transformedGame;

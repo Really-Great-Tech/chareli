@@ -2,6 +2,10 @@ import { Request, Response, NextFunction } from 'express';
 import { AppDataSource } from '../config/database';
 import { SignupAnalytics } from '../entities/SignupAnalytics';
 import { Between } from 'typeorm';
+import NodeCache from 'node-cache';
+
+// Initialize cache with 24h TTL
+const ipCache = new NodeCache({ stdTTL: 86400 });
 
 const signupAnalyticsRepository = AppDataSource.getRepository(SignupAnalytics);
 
@@ -39,35 +43,77 @@ function detectDeviceType(userAgent: string): string {
 }
 
 
-async function getCountryFromIP(ipAddress: string): Promise<string | null> {
+function isPrivateIP(ip: string): boolean {
+  return ip === '127.0.0.1' || 
+         ip === '::1' || 
+         ip === 'localhost' || 
+         ip.startsWith('192.168.') || 
+         ip.startsWith('10.') || 
+         ip.startsWith('172.16.');
+}
+
+export async function getCountryFromIP(ipAddress: string): Promise<string | null> {
   try {
-    // Ignore private/local IPs
-    if (
-      ipAddress === '127.0.0.1' || 
-      ipAddress === '::1' || 
-      ipAddress === 'localhost' || 
-      ipAddress.startsWith('192.168.') || 
-      ipAddress.startsWith('10.') || 
-      ipAddress.startsWith('172.16.')
-    ) {
+    // Check cache first
+    const cached = ipCache.get<string>(ipAddress);
+    if (cached) {
+      console.log('IP cache hit:', ipAddress);
+      return cached;
+    }
+
+    // Handle private/local IPs
+    if (isPrivateIP(ipAddress)) {
       return 'Local';
     }
 
-    const response = await fetch(`http://ip-api.com/json/${ipAddress}?fields=status,country,message`);
+    console.log('Fetching country for IP:', ipAddress);
+    const response = await fetch(`https://ipapi.co/${ipAddress}/json/`);
     const data = await response.json() as {
-      status: string;
-      country?: string;
-      message?: string;
+      error?: string;
+      country_name?: string;
     };
 
-    console.log('IP API response:', data); 
+    if (data.error) {
+      console.error('IP API error:', data.error);
+      return null;
+    }
 
-    return data.status === 'success' ? data.country || null : null;
+    // Cache successful results
+    if (data.country_name) {
+      ipCache.set(ipAddress, data.country_name);
+    }
+
+    return data.country_name || null;
   } catch (error) {
     console.error('Error getting country from IP:', error);
     return null;
   }
 }
+
+/**
+ * Test endpoint to verify IP country detection
+ */
+export const testIPCountry = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { ip } = req.params;
+    const country = await getCountryFromIP(ip);
+    
+    res.status(200).json({
+      success: true,
+      data: {
+        ip,
+        country,
+        cached: ipCache.has(ip)
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 
 /**

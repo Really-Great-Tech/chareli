@@ -136,15 +136,19 @@ export class AuthService {
   }
 
   
-  async login(email: string, password: string): Promise<User> {
+  async login(identifier: string, password: string): Promise<User> {
+    // Try to find user by email or phone number
     const user = await userRepository.findOne({
-      where: { email },
+      where: [
+        { email: identifier },
+        { phoneNumber: identifier }
+      ],
       select: ['id', 'email', 'password', 'firstName', 'lastName', 'phoneNumber', 'isActive', 'isVerified', 'roleId'],
       relations: ['role']
     });
 
     if (!user) {
-      throw new Error('Invalid email or password');
+      throw new Error('Invalid credentials');
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);

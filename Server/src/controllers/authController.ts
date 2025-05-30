@@ -241,13 +241,25 @@ export const login = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { email, password, otpType } = req.body;
+    const { email, phoneNumber, password, otpType } = req.body;
 
-    if (!email || !password) {
-      return next(ApiError.badRequest('Email and password are required'));
+    if (!password || (!email && !phoneNumber)) {
+      return next(ApiError.badRequest('Email/Phone number and password are required'));
     }
 
-    const user = await authService.login(email, password);
+    // Use the appropriate identifier based on what was provided
+    const identifier = email || phoneNumber;
+    const isEmail = !!email;
+
+    const user = await authService.login(identifier, password);
+
+    // Validate that the user has the contact method they're trying to use
+    if (isEmail && !user.email) {
+      return next(ApiError.badRequest('This account does not have an email address'));
+    }
+    if (!isEmail && !user.phoneNumber) {
+      return next(ApiError.badRequest('This account does not have a phone number'));
+    }
 
     const hasEmail = !!user.email;
     const hasPhone = !!user.phoneNumber;

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import type { FieldProps, FormikHelpers } from "formik";
+import type { LoginCredentials } from "../../backend/types";
 import * as Yup from "yup";
 import { useAuth } from "../../context/AuthContext";
 import { toast } from "sonner";
@@ -87,8 +88,17 @@ export function LoginModal({
   const handleLogin = async (values: LoginFormValues, actions: FormikHelpers<LoginFormValues>) => {
     try {
       setLoginError("");
-      const loginIdentifier = activeTab === 'email' ? values.email : values.phoneNumber;
-      const response: LoginResponse = await login(loginIdentifier || '', values.password);
+      const credentials: LoginCredentials = {
+        ...(activeTab === 'email' 
+          ? { email: values.email || '' }
+          : { phoneNumber: values.phoneNumber || '' }
+        ),
+        password: values.password,
+        otpType: activeTab === 'email' ? 'EMAIL' : 'SMS'
+      };
+
+      console.log('Login credentials:', credentials); // For debugging
+      const response: LoginResponse = await login(credentials);
       const { userId, hasEmail, hasPhone, phoneNumber, email } = response;
       
       setUserId(userId);

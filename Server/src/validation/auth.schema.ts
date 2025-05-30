@@ -6,10 +6,47 @@ import { OtpType } from '../entities/Otp';
  * Login schema validation
  */
 export const loginSchema = yup.object({
-  email: yup.string().email('Invalid email format').required('Email is required'),
+  email: yup.string().email('Invalid email format'),
+  phoneNumber: yup.string(),
   password: yup.string().required('Password is required'),
   otpType: yup.string().oneOf(Object.values(OtpType), 'Invalid OTP type')
-});
+}).test(
+  'require-login-field',
+  'Either email or phone number is required',
+  function(value) {
+    // Ensure at least one field is provided
+    if (!value.email && !value.phoneNumber) {
+      return this.createError({
+        message: 'Either email or phone number is required',
+        path: value.email === '' ? 'email' : 'phoneNumber' // Show error on the empty field
+      });
+    }
+    
+    // If email is provided, ensure it's valid
+    if (value.email) {
+      const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+      if (!emailRegex.test(value.email)) {
+        return this.createError({
+          message: 'Invalid email format',
+          path: 'email'
+        });
+      }
+    }
+    
+    // If phone number is provided, ensure it's valid
+    if (value.phoneNumber) {
+      const phoneRegex = /^\+[1-9]\d{1,14}$/;
+      if (!phoneRegex.test(value.phoneNumber)) {
+        return this.createError({
+          message: 'Invalid phone number format. Must start with + and contain 1-15 digits',
+          path: 'phoneNumber'
+        });
+      }
+    }
+    
+    return true;
+  }
+);
 
 /**
  * Player registration schema validation

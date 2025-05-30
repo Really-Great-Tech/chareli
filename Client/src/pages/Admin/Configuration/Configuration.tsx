@@ -4,32 +4,47 @@ import { Label } from '../../../components/ui/label';
 
 export default function Configuration() {
   // State for each option
-  const [emailAuth, setEmailAuth] = useState(true);
-  const [firstName, setFirstName] = useState(true);
-  const [lastName, setLastName] = useState(false);
-  const [otpAuth, setOtpAuth] = useState(false);
-  const [both, setBoth] = useState(false);
+  const [emailAuth, setEmailAuth] = useState<boolean>(true);
+  const [firstNameEmail, setFirstNameEmail] = useState<boolean>(true);
+  const [lastNameEmail, setLastNameEmail] = useState<boolean>(true);
+  const [smsAuth, setSmsAuth] = useState<boolean>(false);
+  const [firstNameSMS, setFirstNameSMS] = useState<boolean>(false);
+  const [lastNameSMS, setLastNameSMS] = useState<boolean>(false);
+  const [both, setBoth] = useState<boolean>(false);
 
   // Handlers for mutually exclusive options
   const handleEmailAuth = (checked: boolean) => {
     setEmailAuth(checked);
     if (checked) {
-      setOtpAuth(false);
+      setSmsAuth(false);
       setBoth(false);
     }
   };
-  const handleOtpAuth = (checked: boolean) => {
-    setOtpAuth(checked);
+
+  const handleSmsAuth = (checked: boolean) => {
+    setSmsAuth(checked);
     if (checked) {
       setEmailAuth(false);
       setBoth(false);
     }
   };
+
   const handleBoth = (checked: boolean) => {
     setBoth(checked);
     if (checked) {
+      setEmailAuth(true);
+      setFirstNameEmail(true);
+      setLastNameEmail(true);
+      setSmsAuth(true);
+      setFirstNameSMS(true);
+      setLastNameSMS(true);
+    } else {
       setEmailAuth(false);
-      setOtpAuth(false);
+      setFirstNameEmail(false);
+      setLastNameEmail(false);
+      setSmsAuth(false);
+      setFirstNameSMS(false);
+      setLastNameSMS(false);
     }
   };
 
@@ -39,56 +54,109 @@ export default function Configuration() {
   };
 
   return (
-    <div className="p-8 font-boogaloo text-[#121C2D] dark:text-white">
-      <h1 className="text-3xl text-[#D946EF] mb-6 font-boogaloo">User Sign Up Configuration</h1>
-      <div className="space-y-6">
+    <div className="p-4 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+      <h1 className="text-3xl text-[#D946EF] mb-4">User Sign Up Configuration</h1>
+      <div className="space-y-4">
         {/* Email Authentication Section */}
-        <div className="bg-[#f6f8fd] rounded-xl p-6 dark:bg-[#121C2D]">
+        <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
           <div className="flex items-center mb-2">
-            <Checkbox checked={emailAuth} onCheckedChange={handleEmailAuth} id="email-auth" color="#86198F"  />
-            <Label htmlFor="email-auth" className="ml-2 text-xl font-bold tracking-wider">Email Authentication</Label>
+            <Checkbox
+              checked={emailAuth}
+              onCheckedChange={handleEmailAuth}
+              id="email-auth"
+              color="#D946EF"
+            />
+            <Label htmlFor="email-auth" className="ml-2 text-lg font-medium text-black dark:text-white ">
+              Email Authentication
+            </Label>
           </div>
-          <div className="ml-8 space-y-2">
+          <div className="ml-6 space-y-2">
             <div className="flex items-center">
               <Checkbox
-                checked={firstName}
-                onCheckedChange={(checked) => setFirstName(Boolean(checked))}
-                id="first-name"
+                checked={firstNameEmail}
+                onCheckedChange={(checked) => setFirstNameEmail(checked as boolean)}
+                id="first-name-email"
                 disabled={!emailAuth}
-                color="#86198F"
+                color="#D946EF"
               />
-              <Label htmlFor="first-name" className="ml-2 text-lg">First Name</Label>
+              <Label htmlFor="first-name-email" className="ml-2 text-base">
+                First Name
+              </Label>
             </div>
             <div className="flex items-center">
               <Checkbox
-                checked={lastName}
-                onCheckedChange={(checked) => setLastName(Boolean(checked))}
-                id="last-name"
+                checked={lastNameEmail}
+                onCheckedChange={(checked) => setLastNameEmail(checked as boolean)}
+                id="last-name-email"
                 disabled={!emailAuth}
-                color="#86198F"
+                color="#D946EF"
               />
-              <Label htmlFor="last-name" className="ml-2 text-lg">Last Name</Label>
+              <Label htmlFor="last-name-email" className="ml-2 text-base">
+                Last Name
+              </Label>
             </div>
           </div>
         </div>
-        {/* OTP Authentication Section */}
-        <div className="bg-[#f6f8fd] rounded-xl p-6 dark:bg-[#121C2D]">
-          <div className="flex items-center">
-            <Checkbox checked={otpAuth} onCheckedChange={handleOtpAuth} id="otp-auth" color="#86198F" />
-            <Label htmlFor="otp-auth" className="ml-2 text-xl font-bold tracking-wider">OTP Authentication</Label>
+
+        {/* SMS Authentication Section */}
+        <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
+          <div className="flex items-center mb-2">
+            <Checkbox
+              checked={smsAuth}
+              onCheckedChange={handleSmsAuth}
+              id="sms-auth"
+              color="#D946EF"
+            />
+            <Label htmlFor="sms-auth" className="ml-2 text-lg font-medium text-black dark:text-white">
+              SMS Authentication
+            </Label>
+          </div>
+          <div className="ml-6 space-y-2">
+            <div className="flex items-center">
+              <Checkbox
+                checked={firstNameSMS}
+                onCheckedChange={(checked) => setFirstNameSMS(checked as boolean)}
+                id="first-name-sms"
+                disabled={!smsAuth}
+                color="#D946EF"
+              />
+              <Label htmlFor="first-name-sms" className="ml-2 text-base">
+                First Name
+              </Label>
+            </div>
+            <div className="flex items-center">
+              <Checkbox
+                checked={lastNameSMS}
+                onCheckedChange={(checked) => setLastNameSMS(checked as boolean)}
+                id="last-name-sms"
+                disabled={!smsAuth}
+                color="#D946EF"
+              />
+              <Label htmlFor="last-name-sms" className="ml-2 text-base">
+                Last Name
+              </Label>
+            </div>
           </div>
         </div>
+
         {/* Both Section */}
-        <div className="bg-[#f6f8fd] rounded-xl p-6 dark:bg-[#121C2D]">
+        <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
           <div className="flex items-center">
-            <Checkbox checked={both} onCheckedChange={handleBoth} id="both" color="#86198F" />
-            <Label htmlFor="both" className="ml-2 text-xl font-bold tracking-wider">Both</Label>
+            <Checkbox
+              checked={both}
+              onCheckedChange={handleBoth}
+              id="both"
+              color="#D946EF"
+            />
+            <Label htmlFor="both" className="ml-2 text-lg font-medium text-black dark:text-white">
+              Both
+            </Label>
           </div>
         </div>
       </div>
-      <div className="flex justify-end mt-8">
+      <div className="flex justify-end mt-4">
         <button
-          className="bg-[#D946EF] text-white px-6 py-2 rounded-lg shadow hover:bg-[#c026d3] transition"
+          className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
           onClick={handleSave}
         >
           Save Configuration

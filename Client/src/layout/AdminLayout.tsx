@@ -1,10 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
 import AdminNavbar from "../components/single/AdminNavbar";
-// import AdminSidebar from "../components/single/AdminSideBar";
 import { NavLink } from "react-router-dom";
-
-
 import { IoGameControllerOutline } from "react-icons/io5";
 import { FiHome } from "react-icons/fi";
 import { MdOutlineCategory } from "react-icons/md";
@@ -12,6 +9,7 @@ import { FaRegUser } from "react-icons/fa6";
 import { FaChartLine } from "react-icons/fa";
 import { SlEqualizer } from "react-icons/sl";
 import { RiTeamLine } from "react-icons/ri";
+import { IoChevronBackOutline, IoChevronForwardOutline } from "react-icons/io5";
 
 
 
@@ -52,16 +50,30 @@ const menuItems = [
 ];
 
 const AdminLayout: React.FC = () => {
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed(!isSidebarCollapsed);
+  };
+
   return (
     <div className="min-h-screen dark:bg-[#0f1221] text-white dark:text-gray-900 transition-colors duration-300">
-      <AdminNavbar />
-      <div className="flex">
-        <div>
-            {/* sidebar */}
-          <aside>
-            <div className="flex flex-col h-full w-60">
-              <nav className="">
-                <ul className="space-y-5 px-2">
+      {/* Fixed header */}
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <AdminNavbar />
+      </div>
+
+      <div className="flex pt-[73px]"> {/* Add padding-top to account for fixed header */}
+        {/* Fixed sidebar with overlay on mobile */}
+        <div className={`fixed h-[calc(100vh-73px)] z-30 transition-all duration-300 transform ${
+          isSidebarCollapsed 
+            ? '-translate-x-full lg:translate-x-0 w-16' 
+            : 'translate-x-0 w-60'
+        }`}>
+          <aside className="h-full bg-white/95 dark:bg-[#0f1221]/95 shadow-lg backdrop-blur-sm transition-colors duration-300">
+            <div className="flex flex-col h-full relative">
+              <nav className="flex-1">
+                <ul className="space-y-5 px-2 py-4">
                   {menuItems.map((item, index) => (
                     <li key={index}>
                       <NavLink
@@ -72,25 +84,38 @@ const AdminLayout: React.FC = () => {
                             isActive
                               ? "bg-[#D946EF] text-white"
                               : "hover:text-[#D946EF] hover:bg-[#F3E8FF] dark:text-white dark:hover:text-[#D946EF] text-[#121C2D]"
-                          }`
+                          } ${isSidebarCollapsed ? 'justify-center' : ''}`
                         }
                       >
-                        <span className="mr-3">{item.icon}</span>
-                        <span className="text-xl">{item.title}</span>
+                        <span className={isSidebarCollapsed ? '' : 'mr-3'}>{item.icon}</span>
+                        {!isSidebarCollapsed && <span className="text-xl">{item.title}</span>}
                       </NavLink>
                     </li>
                   ))}
                 </ul>
               </nav>
+              {/* Collapse toggle button */}
+              <div className="border-t border-gray-200 dark:border-gray-800 p-4">
+                <button
+                  onClick={toggleSidebar}
+                  className="absolute -right-4 bg-[#D946EF] dark:bg-[#D946EF] rounded-full p-1.5 text-white hover:bg-[#c026d3] dark:hover:bg-[#c026d3] shadow-lg transition-all duration-300"
+                  style={{ bottom: '20px' }}
+                >
+                  {isSidebarCollapsed ? 
+                    <IoChevronForwardOutline size={18} /> : 
+                    <IoChevronBackOutline size={18} />
+                  }
+                </button>
+              </div>
             </div>
           </aside>
         </div>
-        <main className="ml-6 flex-1 bg-white dark:bg-[#0f1221] min-h-screen">
-            {/* main content */}
-          {/* <div className="text-red-700">
-            Hello world
-        </div> */}
-          <Outlet />
+
+        {/* Main content with responsive margins */}
+        <main className={`flex-1 transition-all duration-300 ${isSidebarCollapsed ? 'lg:ml-16' : 'ml-0 lg:ml-60'} bg-white dark:bg-[#0f1221] min-h-[calc(100vh-73px)] overflow-y-auto relative`}>
+          <div className="p-6">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

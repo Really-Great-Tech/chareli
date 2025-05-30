@@ -243,11 +243,11 @@ export function SignUpModal({
                               borderRadius: "0.375rem 0 0 0.375rem" 
                             }}
                             dropdownStyle={{ 
-                              backgroundColor: "#fff", 
+                              backgroundColor: "#E2E8F0", 
                               color: "#000" 
                             }}
                             searchStyle={{ 
-                              backgroundColor: "#fff", 
+                              backgroundColor: "##E2E8F0", 
                               color: "#000" 
                             }}
                             enableAreaCodeStretch
@@ -406,10 +406,10 @@ export function SignUpModal({
             </Formik>
           </DialogDescription>
         </DialogHeader>
-        <p className="text-sm text-center text-black dark:text-white font-boogaloo">
+        <p className="text-sm text-center text-black dark:text-white font-pincuk">
           Already have an account?{" "}
           <span
-            className="underline text-[#C026D3] cursor-pointer"
+            className="underline text-[#C026D3] cursor-pointer font-boogaloo text-lg hover:underline"
             onClick={openLoginModal}
           >
             Login

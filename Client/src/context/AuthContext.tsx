@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { backendService } from '../backend/api.service';
-import type { User } from '../backend/types';
+import type { User, LoginCredentials } from '../backend/types';
 import { toast } from 'sonner';
 
 interface LoginResponse {
@@ -19,7 +19,7 @@ interface AuthContextType {
   isLoading: boolean;
   keepPlayingRedirect: boolean;
   setKeepPlayingRedirect: (value: boolean) => void;
-  login: (email: string, password: string, otpType?: 'SMS' | 'EMAIL' | 'BOTH') => Promise<LoginResponse>;
+  login: (credentials: LoginCredentials) => Promise<LoginResponse>;
   verifyOtp: (userId: string, otp: string) => Promise<User>;
   logout: () => void;
   refreshUser: () => Promise<User>;
@@ -62,10 +62,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const login = async (email: string, password: string, otpType: 'SMS' | 'EMAIL' | 'BOTH' = 'SMS'): Promise<LoginResponse> => {
-    const response = await backendService.post('/api/auth/login', { email, password, otpType });
+  const login = async (credentials: LoginCredentials): Promise<LoginResponse> => {
+    const response = await backendService.post('/api/auth/login', credentials);
     const { userId } = response.data;
-    const userEmail = response.data.email || email; 
+    const userEmail = response.data.email || credentials.email; 
     const phoneNumber = response.data.phoneNumber;
     const hasEmail = !!userEmail;
     const hasPhone = !!phoneNumber;
@@ -94,7 +94,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     toast.success('Logged out successfully');
   };
 
-  const isRoleIncluded = ['admin', 'superadmin'].includes(user?.role.name as any) || false;
+  const isRoleIncluded = ['admin', 'superadmin'].includes(user?.role.name || '') || false;
 
   return (
     <AuthContext.Provider

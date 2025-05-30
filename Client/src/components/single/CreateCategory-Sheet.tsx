@@ -1,4 +1,4 @@
-// import { useState } from "react";
+import { useRef } from "react";
 import {
   Sheet,
   SheetContent,
@@ -25,11 +25,12 @@ interface FormValues {
 }
 
 const validationSchema = Yup.object({
-  name: Yup.string().required('Name is required'),
-  description: Yup.string(),
+  name: Yup.string().required('Name is required').trim(),
+  description: Yup.string().trim(),
 });
 
 export function CreateCategory({ open, onOpenChange }: CreateCategoryProps) {
+  const formikRef = useRef<any>(null);
   const createCategory = useCreateCategory();
 
   const handleSubmit = async (values: FormValues, { setSubmitting, resetForm }: any) => {
@@ -51,7 +52,15 @@ export function CreateCategory({ open, onOpenChange }: CreateCategoryProps) {
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet 
+      open={open} 
+      onOpenChange={(open) => {
+        if (!open && formikRef.current) {
+          formikRef.current.resetForm();
+        }
+        onOpenChange(open);
+      }}
+    >
       <SheetContent 
         side="right" 
         className="sm:max-w-md w-[90vw] bg-white dark:bg-[#18192b] border-l border-gray-200 dark:border-gray-800"
@@ -64,8 +73,9 @@ export function CreateCategory({ open, onOpenChange }: CreateCategoryProps) {
           initialValues={initialValues}
           validationSchema={validationSchema}
           onSubmit={handleSubmit}
+          innerRef={formikRef}
         >
-          {({ isSubmitting }) => (
+          {({ isSubmitting, isValid, dirty }) => (
             <Form className="flex flex-col gap-6 mt-2 font-boogaloo px-3">
               <div>
                 <Label htmlFor="name" className="text-base mb-1">
@@ -101,6 +111,9 @@ export function CreateCategory({ open, onOpenChange }: CreateCategoryProps) {
                     type="button"
                     variant="outline"
                     className="dark:text-black dark:bg-white"
+                    onClick={() => {
+                      formikRef.current?.resetForm();
+                    }}
                   >
                     Cancel
                   </Button>
@@ -108,7 +121,7 @@ export function CreateCategory({ open, onOpenChange }: CreateCategoryProps) {
                 
                 <Button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !isValid || !dirty}
                   variant="default"
                   className="bg-[#D946EF] hover:bg-accent dark:text-white"
                 >

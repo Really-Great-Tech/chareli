@@ -1,45 +1,47 @@
 import { useState } from "react";
 import { IoChevronBack } from "react-icons/io5";
-import { useNavigate } from "react-router-dom";
-
-import profileImg from "../../assets/gamesImg/war.svg";
+import { useNavigate, useLocation } from "react-router-dom";
 import { LuGamepad2 } from "react-icons/lu";
 import { FiClock } from "react-icons/fi";
 import { TbCalendarClock } from "react-icons/tb";
-
-const dummyUser = {
-  name: "John Doe",
-  email: "killer1@gmail.com",
-  mobile: "+178904434355",
-  country: "USA",
-  role: "Admin",
-  lastLogin: "16:59",
-  avatar: "https://randomuser.me/api/portraits/men/1.jpg",
-  minutesPlayed: 1300,
-  gamesPlayed: 20,
-  sessions: 30,
-  games: Array(10).fill({
-    image: profileImg,
-    name: "War Shooting",
-    minutes: 400,
-  }),
-};
+import type { UserAnalytics } from "../../backend/analytics.service";
 
 const PAGE_SIZE = 5;
 
+interface Game {
+  name: string;
+  minutes: number;
+}
+
 const UserManagementView = () => {
-  const [page, setPage] = useState(1);
-
-  const paginatedGames = dummyUser.games.slice(
-    (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE
-  );
-
   const navigate = useNavigate();
+  const location = useLocation();
+  const [page, setPage] = useState(1);
+  
+  const userData = location.state?.user as UserAnalytics | undefined;
 
   const handleBack = () => {
     navigate("/admin/management");
   };
+
+  if (!userData) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-xl text-red-500">User data not found</div>
+      </div>
+    );
+  }
+
+  // Create games array from most played game
+  const games: Game[] = userData.analytics?.mostPlayedGame ? [{
+    name: userData.analytics.mostPlayedGame.gameTitle || 'Unknown Game',
+    minutes: Math.floor((userData.analytics.totalTimePlayed || 0) / 60),
+  }] : [];
+
+  const paginatedGames = games.slice(
+    (page - 1) * PAGE_SIZE,
+    page * PAGE_SIZE
+  );
 
   return (
     <div className="px-4">
@@ -56,33 +58,31 @@ const UserManagementView = () => {
         <div className="w-72 flex flex-col items-center">
           {/* Profile Card */}
           <div className="w-72 bg-[#F1F5F9] rounded-2xl p-6 flex flex-col items-center mb-8 dark:bg-[#121C2D]">
-            <img
-              src={dummyUser.avatar}
-              alt="avatar"
-              className="w-20 h-20 rounded-full"
-            />
+            {/* Default avatar since we don't have user avatars yet */}
+            <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center">
+              <span className="text-2xl text-gray-600">{userData.firstName[0]}{userData.lastName[0]}</span>
+            </div>
             <div className="flex gap-3 items-center mt-4">
               <h2 className="mb-0 text-xl font-bold text-[#121C2D] dark:text-white trackking-wide">
-                {dummyUser.name}
+                {`${userData.firstName} ${userData.lastName}`}
               </h2>
               <div className="flex items-center gap-2">
-                <span className="text-green-500 font-bold text-lg">●</span>
-                <span className="text-gray-700 text-sm dark:text-white">{dummyUser.role}</span>
+                <span className={`${userData.isActive ? 'text-green-500' : 'text-red-500'} font-bold text-lg`}>●</span>
+                <span className="text-gray-700 text-sm dark:text-white font-pincuk">{userData.role.name}</span>
               </div>
             </div>
             <div className="mt-2 text-sm text-gray-500 font-sans font-semibold dark:text-white mr-1 flex items-center gap-2">
               last login:{" "}
               <div className="flex items-center">
-              <span className="bg-indigo-100 px-2 py-0 rounded text-gray-700 dark:bg-[#94A3B7]">
-              <span className="text-yellow-500 font-bold text-lg">●</span>
-                {dummyUser.lastLogin}
-              </span>
+                <span className="bg-indigo-100 px-2 py-0 rounded text-gray-700 dark:bg-[#94A3B7] font-pincuk">
+                  <span className="text-yellow-500 font-bold text-lg">●</span>
+                  {userData.lastLoggedIn ? new Date(userData.lastLoggedIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Never'}
+                </span>
               </div>
             </div>
           </div>
           {/* Stats Cards */}
           <div className="space-y-3">
-
             <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl p-4 flex gap-4 w-72">
               <div className="bg-[#F0ABFC] rounded-full px-3 py-3 items-center">
                 <FiClock className="w-8 h-8  text-white dark:text-[#OF1621]" />
@@ -91,8 +91,8 @@ const UserManagementView = () => {
                 <span className="text-[#475568] text-lg font mb-1 dark:text-white">
                   Minutes Played
                 </span>
-                <span className="text-sm text-[#475568] font-sans dark:text-white">
-                  {dummyUser.minutesPlayed} minutes
+                <span className="text-sm text-[#475568] font-pincuk dark:text-white">
+                  {Math.floor((userData.analytics?.totalTimePlayed || 0) / 60)} minutes
                 </span>
               </div>
             </div>
@@ -104,8 +104,8 @@ const UserManagementView = () => {
                 <span className="text-[#475568] text-lg font mb-1 dark:text-white">
                   Total Plays
                 </span>
-                <span className="text-sm text-[#475568] font-sans dark:text-white">
-                  {dummyUser.gamesPlayed}
+                <span className="text-sm text-[#475568] font-pincuk dark:text-white">
+                  {userData.analytics?.totalGamesPlayed || 0}
                 </span>
               </div>
             </div>
@@ -117,12 +117,11 @@ const UserManagementView = () => {
                 <span className="text-[#475568] text-lg font mb-1 dark:text-white">
                   Sessions
                 </span>
-                <span className="text-sm text-[#475568] font-sans dark:text-white">
-                  {dummyUser.sessions}
+                <span className="text-sm text-[#475568] font-pincuk dark:text-white">
+                  {userData.analytics?.totalSessionCount || 0}
                 </span>
               </div>
             </div>
-            
           </div>
         </div>
         {/* RIGHT SIDE */}
@@ -132,20 +131,21 @@ const UserManagementView = () => {
             <h3 className="text-lg font-bold mb-4 text-[#121C2D] tracking-wide dark:text-white">Profile Details</h3>
             <div className="grid grid-cols-2 gap-y-6 gap-x-96 space-y-border-b dark:text-white">
               <div className="text-fuchsia-500  tracking-wide">Name</div>
-              <div className="text-[#334154] font-sans dark:text-white">{dummyUser.name}</div>
+              <div className="text-[#334154] font-pincuk dark:text-white">{`${userData.firstName} ${userData.lastName}`}</div>
               <div className="text-fuchsia-500  tracking-wide">Email</div>
-              <div className="text-[#334154] font-sans dark:text-white">{dummyUser.email}</div>
+              <div className="text-[#334154] font-pincuk dark:text-white">{userData.email}</div>
               <div className="text-fuchsia-500  tracking-wide">
                 Mobile number
               </div>
-              <div className="text-[#334154] font-sans dark:text-white">{dummyUser.mobile}</div>
-              <div className="text-fuchsia-500  tracking-wide">Country</div>
-              <div className="text-[#334154] font-sans dark:text-white">{dummyUser.country}</div>
+              <div className="text-[#334154] font-pincuk dark:text-white">{userData.phoneNumber || '-'}</div>
+              <div className="text-fuchsia-500  tracking-wide">
+                Country
+              </div>
+              <div className="text-[#334154] font-pincuk dark:text-white">{userData.country || '-'}</div>
             </div>
           </div>
           {/* Games */} 
           <div className="bg-[#f6f8fc] rounded-2xl p-6 dark:bg-[#121C2D]">
-            {/* <h3 className="text-lg font-bold mb-4">Games</h3> */}
             <table className="w-full border-collapse">
               <thead>
                 <tr>
@@ -154,17 +154,16 @@ const UserManagementView = () => {
                 </tr>
               </thead>
               <tbody>
-                {paginatedGames.map((game, idx) => (
+                {paginatedGames.map((game: Game, idx: number) => (
                   <tr key={idx} className="border-t border-gray-200">
                     <td className="flex items-center gap-3 py-2">
-                      <img
-                        src={game.image}
-                        alt="game"
-                        className="w-10 h-10 rounded-lg"
-                      />
+                      {/* Default game icon */}
+                      <div className="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center">
+                        <LuGamepad2 className="w-6 h-6 text-gray-400" />
+                      </div>
                       <span className="text-[#121C2D] text-lg tracking-wider dark:text-white">{game.name}</span>
                     </td>
-                    <td className="py-2 text-[#121C2D] text-lg tracking-wider font-sans dark:text-white">{game.minutes}</td>
+                    <td className="py-2 text-lg text-[#334154] font-pincuk dark:text-white">{game.minutes}</td>
                   </tr>
                 ))}
               </tbody>
@@ -172,13 +171,13 @@ const UserManagementView = () => {
             {/* Pagination */}
             <div className="flex justify-between items-center px-4 py-3 bg-[#F1F5F9] dark:bg-[#121C2D] rounded-b-xl ">
               <span className="text-sm text-[#121C2D] dark:text-white">
-                Showing {(page - 1) * PAGE_SIZE + 1}-{Math.min(page * PAGE_SIZE, dummyUser.games.length)} from {dummyUser.games.length} data
+                Showing {(page - 1) * PAGE_SIZE + 1}-{Math.min(page * PAGE_SIZE, games.length)} from {games.length} data
               </span>
               <div className="flex items-center gap-2 rounded-xl space-x-4 pr-1 pl-0.5 border border-[#D946EF] dark:text-white">
-                {Array.from({ length: Math.ceil(dummyUser.games.length / PAGE_SIZE) }, (_, i) => (
+                {Array.from({ length: Math.ceil(games.length / PAGE_SIZE) }, (_, i) => (
                   <button
                     key={i + 1}
-                    className={`w-7 h-7 rounded-full transition-colors  ${
+                    className={`w-7 h-7 rounded-full transition-colors ${
                       page === i + 1
                         ? "bg-[#D946EF] text-white dark:bg-gray-400"
                         : "bg-transparent text-[#D946EF] dark:text-gray-400 hover:bg-[#f3e8ff]"
@@ -190,10 +189,10 @@ const UserManagementView = () => {
                 ))}
               </div>
             </div>
-        </div>
           </div>
         </div>
       </div>
+    </div>
   );
 };
 

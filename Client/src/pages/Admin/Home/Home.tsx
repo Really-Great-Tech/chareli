@@ -1,64 +1,30 @@
 import click from '../../../assets/click.svg'
-
 import { Card } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../../components/ui/table";
 import { PopUpSheet } from "../../../components/single/PopUp-Sheet";
 import { AcceptInvitationModal } from "../../../components/modals/AdminModals/AcceptInvitationModal";
 import StatsCard from "./StatsCard";
 import PieChart from '../../../components/charts/piechart';
-import { useState, useMemo } from 'react';
-import { useGamesAnalytics, useUsersAnalytics, type GameAnalytics, type UserAnalytics } from '../../../backend/analytics.service';
+import { useState } from 'react';
 import { useSignupAnalyticsData } from '../../../backend/signup.analytics.service';
+import { useUsersAnalytics, useGamesAnalytics } from '../../../backend/analytics.service';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../../components/ui/table";
 import { formatTime } from '../../../utils/main';
 
 export default function Home() {
 
   const [isAcceptInviteOpen, setIsAcceptInviteOpen] = useState(false);
-
-  const { data: gamesWithAnalytics, isLoading: gamesLoading } = useGamesAnalytics();
-  const { data: usersWithAnalytics, isLoading: usersLoading } = useUsersAnalytics();
+  const [currentPage, setCurrentPage] = useState(1);
   const [userPage, setUserPage] = useState(1);
+  const gamesPerPage = 5;
   const usersPerPage = 5;
 
-  // Sort users by lastLoggedIn (most recent first)
-  const allUsers = useMemo<UserAnalytics[]>(() => {
-    if (!usersWithAnalytics) return [];
-    return [...usersWithAnalytics].sort((a, b) => 
-      new Date(b.lastLoggedIn).getTime() - new Date(a.lastLoggedIn).getTime()
-    );
-  }, [usersWithAnalytics]);
+  const { data: allGames = [], isLoading: gamesLoading } = useGamesAnalytics();
+  const { data: allUsers = [], isLoading: usersLoading } = useUsersAnalytics();
 
-  const getUsersForPage = (page: number) => {
-    const startIdx = (page - 1) * usersPerPage;
-    const endIdx = startIdx + usersPerPage;
-    return allUsers.slice(startIdx, endIdx);
-  };
-
-  const usersToShow = getUsersForPage(userPage);
+  const gamesToShow = allGames.slice((currentPage - 1) * gamesPerPage, currentPage * gamesPerPage);
+  const usersToShow = allUsers.slice((userPage - 1) * usersPerPage, userPage * usersPerPage);
   const totalUserPages = Math.ceil(allUsers.length / usersPerPage);
-
-  // Sort games by total sessions (most played first)
-  const allGames = useMemo<GameAnalytics[]>(() => {
-    if (!gamesWithAnalytics) return [];
-    return [...gamesWithAnalytics].sort((a, b) => 
-      (b.analytics?.totalSessions || 0) - (a.analytics?.totalSessions || 0)
-    );
-  }, [gamesWithAnalytics]);
-
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const gamesPerPage = 5;
-  // const totalPages = Math.ceil(allGames.length / gamesPerPage);
-
-  // For page 2, only show 2 games as requested
-  const getGamesForPage = (page: number) => {
-    const startIdx = (page - 1) * gamesPerPage;
-    const endIdx = startIdx + gamesPerPage;
-    return allGames.slice(startIdx, endIdx);
-  };
-
-  const gamesToShow = getGamesForPage(currentPage);
   return (
     <div>
       <div className="px-6 pb-3">
@@ -110,7 +76,6 @@ export default function Home() {
           </Card>
         </div>
 
-        {/* most played */}
         <div className="col-span-1 md:col-span-2 lg:col-span-4 mb-6">
           <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
 
@@ -160,7 +125,7 @@ export default function Home() {
                   {[1, 2, 3, 4].map((page) => (
                     <button
                       key={page}
-                      className={`w-10 h-10 rounded-full ${currentPage === page ? "bg-gray-300" : ""} text-balck`}
+                      className={`w-10 h-10 rounded-full ${currentPage === page ? "bg-gray-300" : ""} text-black`}
                       onClick={() => setCurrentPage(page)}
                     >
                       {page}
@@ -172,15 +137,6 @@ export default function Home() {
           </Card>
         </div>
 
-        {/* peak */}
-        {/* <div className="col-span-1 md:col-span-2 lg:col-span-4"> */}
-        {/* <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full"> */}
-        {/* content */}
-        {/* <LineChart/>
-        </Card>
-      </div> */}
-
-        {/* recent */}
         <div className="col-span-1 md:col-span-2 lg:col-span-4 mb-6">
           <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
             <div className="flex justify-between p-4 text-3xl">
@@ -221,7 +177,7 @@ export default function Home() {
                                 <div className="bg-[#94A3B7] p-2 rounded-lg">
                                   <span className="inline-block w-2 h-2 rounded-full bg-red-500" />
                                   <span className="rounded px-2 py-1 text-white font-semibold text-sm">
-                                    {new Date(user.lastLoggedIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    {user.lastLoggedIn ? new Date(user.lastLoggedIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Never'}
                                   </span>
                                 </div>
                               </span>

@@ -57,7 +57,7 @@ const AdminNavbar: React.FC = () => {
   };
 
   return (
-    <header className="flex justify-between p-4 items-center bg-white dark:bg-[#0f1221] transition-colors duration-300">
+    <header className="flex justify-between p-4 items-center bg-white dark:bg-[#0f1221] transition-colors duration-300 shadow-md">
       <div
         onClick={() => navigate('/')}
         className="text-2xl font-extrabold text-[#D946EF] dark:text-[#E879F9] cursor-pointer"

@@ -6,8 +6,16 @@ import click from '../../../assets/click.svg'
 import UserActivityLog from "./UserActivityLog";
 import GameActivity from "./GameActivity";
 import UserAgeBarChart from "../../../components/charts/barChart II";
+import { useDashboardAnalytics } from "../../../backend/analytics.service";
 
 export default function Analytics() {
+  const { data: dashboardData } = useDashboardAnalytics();
+  
+  console.log('Dashboard Data:', dashboardData);
+  const adultsCount = dashboardData?.adultsCount ?? 0;
+  const minorsCount = dashboardData?.minorsCount ?? 0;
+  const totalRegistered = adultsCount + minorsCount;
+  console.log('Age Counts:', { adultsCount, minorsCount, totalRegistered });
   return (
     <div>
       {/* donut chart */}
@@ -67,13 +75,16 @@ export default function Analytics() {
 
               <div className="">
               <div className="justify-start flex items-center gap-4">
-              <div className="flex gap-4"> 
-              <p className="font-bold text-3xl">124</p>
-              <p className="text-lg text-[#64748A] dark:text-white">Total clicks on Sign-up form</p>
+              <div className="flex gap-4 items-center"> 
+              <p className="font-bold text-3xl">{totalRegistered}</p>
+              <p className="text-lg text-[#64748A] dark:text-white">Total registered users</p>
               </div>
               </div>
 
-              <UserAgeBarChart/>
+              <UserAgeBarChart 
+                adultsCount={adultsCount}
+                minorsCount={minorsCount}
+              />
               </div>
             </div>
           </Card>

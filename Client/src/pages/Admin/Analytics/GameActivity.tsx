@@ -2,7 +2,9 @@ import { useState } from "react";
 import { Card } from "../../../components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../../components/ui/table";
 import { FaChevronUp, FaChevronDown } from "react-icons/fa6";
+import { RiGamepadLine } from "react-icons/ri";
 import { useGamesWithPopularity } from "../../../backend/analytics.service";
+import { NoResults } from "../../../components/single/NoResults";
 import GameThumbnail from "./GameThumbnail";
 
 export default function GameActivity() {
@@ -14,8 +16,28 @@ export default function GameActivity() {
   if (isLoading) {
     return (
       <div className="col-span-1 md:col-span-2 lg:col-span-4 mt-4">
-        <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
-          <div className="p-4">Loading game activity data...</div>
+        <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full pl-4">
+          <div className="justify-between items-center flex p-3">
+            <p className="text-3xl">Game Activity</p>
+          </div>
+          <Table>
+            <TableHeader>
+              <TableRow className="text-lg font-bold">
+                <TableHead>Game</TableHead>
+                <TableHead>Total Plays</TableHead>
+                <TableHead>Average Play Time</TableHead>
+                <TableHead>Game Status</TableHead>
+                <TableHead>Popularity</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-6 bg-[#F8FAFC] dark:bg-[#0F1221]">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D946EF] mx-auto"></div>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
         </Card>
       </div>
     );
@@ -24,8 +46,28 @@ export default function GameActivity() {
   if (isError) {
     return (
       <div className="col-span-1 md:col-span-2 lg:col-span-4 mt-4">
-        <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
-          <div className="p-4 text-red-500">Error loading game activity data</div>
+        <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full pl-4">
+          <div className="justify-between items-center flex p-3">
+            <p className="text-3xl">Game Activity</p>
+          </div>
+          <Table>
+            <TableHeader>
+              <TableRow className="text-lg font-bold">
+                <TableHead>Game</TableHead>
+                <TableHead>Total Plays</TableHead>
+                <TableHead>Average Play Time</TableHead>
+                <TableHead>Game Status</TableHead>
+                <TableHead>Popularity</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-6 bg-[#F8FAFC] dark:bg-[#0F1221]">
+                  <div className="text-red-500">Error loading game activity data</div>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
         </Card>
       </div>
     );
@@ -54,7 +96,17 @@ export default function GameActivity() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {gamesToShow.map((game: any) => (
+          {!gamesToShow.length ? (
+            <TableRow>
+              <TableCell colSpan={5} className="text-center py-6 bg-[#F8FAFC] dark:bg-[#0F1221]">
+                <NoResults 
+                  title="No game activity"
+                  message="There are no game activity records to display at this time."
+                  icon={<RiGamepadLine className="w-12 h-12 text-gray-400" />}
+                />
+              </TableCell>
+            </TableRow>
+          ) : gamesToShow.map((game: any) => (
               <TableRow key={game.id} className="font-pincuk">
                 <TableCell>
                   <div className="flex items-center gap-3">
@@ -88,22 +140,24 @@ export default function GameActivity() {
             ))}
           </TableBody>
         </Table>
-        <div className="flex justify-between items-center mt-4 pr-4">
-          <span className="text-sm">
-            Showing {startIdx + 1}-{Math.min(endIdx, allGames.length)} from {allGames.length} data
-          </span>
-          <div className="flex items-center gap-2 rounded-xl space-x-4 pr-1 pl-0.5 border border-[#D946EF] dark:text-white">
-            {Array.from({ length: totalGamePages }, (_, i) => (
-              <button
-                key={i + 1}
-                className={`w-7 h-7 rounded-full ${gamePage === i + 1 ? "bg-[#D946EF] text-white dark:bg-gray-400" : "bg-transparent text-[#D946EF] dark:text-gray-400 hover:bg-[#f3e8ff]"}`}
-                onClick={() => setGamePage(i + 1)}
-              >
-                {i + 1}
-              </button>
-            ))}
+        {gamesToShow.length > 0 && (
+          <div className="flex justify-between items-center mt-4 pr-4">
+            <span className="text-sm">
+              Showing {startIdx + 1}-{Math.min(endIdx, allGames.length)} from {allGames.length} data
+            </span>
+            <div className="flex items-center gap-2 rounded-xl space-x-4 pr-1 pl-0.5 border border-[#D946EF] dark:text-white">
+              {Array.from({ length: totalGamePages }, (_, i) => (
+                <button
+                  key={i + 1}
+                  className={`w-7 h-7 rounded-full ${gamePage === i + 1 ? "bg-[#D946EF] text-white dark:bg-gray-400" : "bg-transparent text-[#D946EF] dark:text-gray-400 hover:bg-[#f3e8ff]"}`}
+                  onClick={() => setGamePage(i + 1)}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </Card>
     </div>
   );

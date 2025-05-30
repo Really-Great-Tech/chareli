@@ -34,7 +34,7 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
                 </button>
                 {/* Profile Header */}
                 <div className='justify-center text-center text-[#C026D3] mb-8 text-3xl'>
-                    <h1 className=''>Profile</h1>
+                    <h1 className='font-boogaloo'>Profile</h1>
                 </div>
                 <div className="flex items-center mb-2">
 
@@ -50,7 +50,7 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
                     <div className="text-3xl font-extrabold font-boogaloo dark:text-[#D946EF] text-[#0F1621] mb-1">
                         {user ? `${user.firstName} ${user.lastName}` : 'Guest User'}
                     </div>
-                    <div className="dark:text-white text-[#0F1621] font-thin text-base font-pincuk">
+                    <div className="dark:text-white text-[#0F1621] font-thin text-base">
                         {user?.email || 'Not logged in'}
                     </div>
                     </div>
@@ -81,7 +81,7 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
                       className="w-24 mt-2 py-2 rounded-lg bg-[#EF4444] hover:bg-[#dc2626] text-white tracking-wider text-lg transition-colors"
                       onClick={handleLogout}
                   >
-                    <div className='flex gap-2 items-center px-2'>
+                    <div className='flex gap-2 items-center px-2 font-boogaloo'>
                         Logout
                         <TbLogout className="w-8 h-8" />
                     </div>

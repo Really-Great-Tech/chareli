@@ -55,7 +55,7 @@ export interface CreateGameDto {
   categoryId?: string;
 }
 
-export interface UpdateGameDto extends Partial<CreateGameDto> {}
+export type UpdateGameDto = Partial<CreateGameDto>;
 
 // These types represent the actual API response structure
 export interface PaginatedResponse<T> {
@@ -100,7 +100,7 @@ export interface GameData {
   similarGames?: SimilarGame[];
 }
 
-export interface GameResponse extends GameData {}
+export type GameResponse = GameData;
 export interface User {
   id: string;
   firstName: string;
@@ -116,7 +116,8 @@ export interface User {
 }
 
 export interface LoginCredentials {
-  email: string;
+  email?: string;
+  phoneNumber?: string;
   password: string;
   otpType?: 'SMS' | 'EMAIL' | 'BOTH';
 }

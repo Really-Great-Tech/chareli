@@ -92,20 +92,42 @@ export const useDeleteAnalytics = () => {
 
 // Admin Dashboard Types
 interface DashboardAnalytics {
-  totalUsers: number;
-  totalRegisteredUsers: number;
+  totalUsers: {
+    current: string;
+    percentageChange: number;
+  };
+  totalRegisteredUsers: {
+    current: number;
+    percentageChange: number;
+  };
   activeUsers: number;
   inactiveUsers: number;
-  totalGames: number;
-  totalSessions: number;
-  totalTimePlayed: number;
+  adultsCount: number;
+  minorsCount: number;
+  totalGames: {
+    current: number;
+    percentageChange: number;
+  };
+  totalSessions: {
+    current: number;
+    percentageChange: number;
+  };
+  totalTimePlayed: {
+    current: number;
+    percentageChange: number;
+  };
   mostPopularGame: {
     id: string;
     title: string;
     thumbnailUrl: string | null;
     sessionCount: number;
+    percentageChange: number;
   } | null;
-  avgSessionDuration: number;
+  avgSessionDuration: {
+    current: number;
+    percentageChange: number;
+  };
+  retentionRate: number;
 }
 
 export interface UserAnalytics {
@@ -114,6 +136,7 @@ export interface UserAnalytics {
   lastName: string;
   email: string;
   phoneNumber: string;
+  country: string;
   isActive: boolean;
   isVerified: boolean;
   lastLoggedIn: string;
@@ -167,7 +190,7 @@ interface UserActivityLog {
   username: string;
   action: string;
   timestamp: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, string | number | boolean>;
 }
 
 /**
@@ -179,6 +202,7 @@ export const useDashboardAnalytics = () => {
     queryKey: [BackendRoute.ADMIN_DASHBOARD],
     queryFn: async () => {
       const response = await backendService.get(BackendRoute.ADMIN_DASHBOARD);
+      console.log('API Response:', response.data);
       return response.data;
     },
     refetchOnWindowFocus: false,

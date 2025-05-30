@@ -18,7 +18,7 @@ export function NoResults({
   return (
     <div className={cn(
       "flex flex-col items-center justify-center py-12 px-4",
-      "bg-[#F1F5F9] dark:bg-[#121C2D] rounded-lg",
+      "bg-transparent",
       className
     )}>
       <div className="mb-4">

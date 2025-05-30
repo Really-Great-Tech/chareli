@@ -60,7 +60,7 @@ export class CloudFrontService implements CloudFrontServiceInterface {
         .startsWith('/') ? s3Key.substring(1) : s3Key;
       
       // Ensure the path is properly encoded
-      const encodedKey = encodeURIComponent(normalizedS3Key)
+      const encodedKey = encodeURIComponent(normalizedS3Key) 
         .replace(/%2F/g, '/'); // Keep forward slashes for readability
       
       const cloudfrontUrl = `https://${this.distributionDomain}/${encodedKey}`;

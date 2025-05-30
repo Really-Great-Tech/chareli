@@ -146,8 +146,8 @@ export default function Home() {
                           <span className="font-semibold text-lg">{game.title}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="font-sans">{game.analytics?.totalSessions || 0}</TableCell>
-                      <TableCell className="font-sans">{formatTime(game.analytics?.totalPlayTime || 0)}</TableCell>
+                      <TableCell className="font-pincuk">{game.analytics?.totalSessions || 0}</TableCell>
+                      <TableCell className="font-pincuk">{formatTime(game.analytics?.totalPlayTime || 0)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -209,7 +209,7 @@ export default function Home() {
                             <TableCell colSpan={7} className="text-center">Loading...</TableCell>
                           </TableRow>
                         ) : usersToShow.map((user, idx) => (
-                          <TableRow key={idx} className="font-sans">
+                          <TableRow key={idx} className="font-pincuk">
                             <TableCell>{`${user.firstName} ${user.lastName}`}</TableCell>
                             <TableCell>{user.email}</TableCell>
                             <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>

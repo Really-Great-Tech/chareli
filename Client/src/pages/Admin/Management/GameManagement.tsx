@@ -41,7 +41,7 @@ export default function GameManagement() {
   const deleteGame = useDeleteGame();
 
   // Apply filters
-  const filteredGames = gamesWithAnalytics?.filter((game) => {
+  const filteredGames = (gamesWithAnalytics ?? []).filter((game) => {
     if (filters?.categoryId && game.category?.id !== filters.categoryId)
       return false;
     if (filters?.status && game.status !== filters.status) return false;
@@ -75,7 +75,7 @@ export default function GameManagement() {
     }
   };
 
-  const totalGames = filteredGames?.length || 0;
+  const totalGames = filteredGames.length;
   const totalPages = Math.ceil(totalGames / pageSize);
 
   return (
@@ -120,7 +120,7 @@ export default function GameManagement() {
                   Loading...
                 </td>
               </tr>
-            ) : !filteredGames?.length ? (
+            ) : !filteredGames.length ? (
               <tr>
                 <td colSpan={5}>
                   <NoResults
@@ -216,7 +216,7 @@ export default function GameManagement() {
           </tbody>
         </table>
         {/* Pagination */}
-        {filteredGames?.length > 0 && (
+        {filteredGames.length > 0 && (
           <div className="flex justify-between items-center px-4 py-3 bg-[#F1F5F9] dark:bg-[#18192b] rounded-b-xl ">
             <span className="text-sm">
               Showing {(page - 1) * pageSize + 1}-

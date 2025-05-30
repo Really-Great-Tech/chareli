@@ -67,7 +67,7 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
                     ) : gamesError ? (
                         <div className="text-center py-8 text-red-500">Error loading games</div>
                     ) : games.length === 0 ? (
-                        <div className="text-center py-8 text-gray-500">
+                        <div className="text-center py-8 min-h-[60vh] flex items-center justify-center text-gray-500">
                             No games found for {selectedCategory === "all" ? "all categories" : 
                                               selectedCategory === "recent" ? "recently added" : 
                                               allCategories.find(cat => cat.id === selectedCategory)?.name || "this category"}

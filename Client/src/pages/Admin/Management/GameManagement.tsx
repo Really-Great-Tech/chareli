@@ -216,27 +216,29 @@ export default function GameManagement() {
           </tbody>
         </table>
         {/* Pagination */}
-        <div className="flex justify-between items-center px-4 py-3 bg-[#F1F5F9] dark:bg-[#18192b] rounded-b-xl ">
-          <span className="text-sm">
-            Showing {(page - 1) * pageSize + 1}-
-            {Math.min(page * pageSize, totalGames)} from {totalGames} data
-          </span>
-          <div className="flex items-center gap-2 rounded-xl space-x-4 pr-1 pl-0.5 border border-[#D946EF] dark:text-white">
-            {Array.from({ length: totalPages }, (_, i) => (
-              <button
-                key={i + 1}
-                className={`w-7 h-7 rounded-full transition-colors  ${
-                  page === i + 1
-                    ? "bg-[#D946EF] text-white dark:bg-gray-400"
-                    : "bg-transparent text-[#D946EF] dark:text-gray-400 hover:bg-[#f3e8ff]"
-                }`}
-                onClick={() => setPage(i + 1)}
-              >
-                {i + 1}
-              </button>
-            ))}
+        {filteredGames?.length > 0 && (
+          <div className="flex justify-between items-center px-4 py-3 bg-[#F1F5F9] dark:bg-[#18192b] rounded-b-xl ">
+            <span className="text-sm">
+              Showing {(page - 1) * pageSize + 1}-
+              {Math.min(page * pageSize, totalGames)} from {totalGames} data
+            </span>
+            <div className="flex items-center gap-2 rounded-xl space-x-4 pr-1 pl-0.5 border border-[#D946EF] dark:text-white">
+              {Array.from({ length: totalPages }, (_, i) => (
+                <button
+                  key={i + 1}
+                  className={`w-7 h-7 rounded-full transition-colors  ${
+                    page === i + 1
+                      ? "bg-[#D946EF] text-white dark:bg-gray-400"
+                      : "bg-transparent text-[#D946EF] dark:text-gray-400 hover:bg-[#f3e8ff]"
+                  }`}
+                  onClick={() => setPage(i + 1)}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </Card>
       
       {editOpen && selectedGameId && (

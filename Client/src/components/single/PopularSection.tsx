@@ -45,7 +45,7 @@ const PopularSection = ({ searchQuery, setSearchQuery }: PopularSectionProps) =>
                     {isLoading && <GamesSkeleton count={4} />}
                     {error && <div className="text-center py-8 text-red-500">Error loading games</div>}
                     {!isLoading && !error && games.length === 0 && (
-                        <div className="text-center py-8 text-gray-500">
+                        <div className="text-center py-8 min-h-[40vh] flex items-center justify-center text-gray-500">
                             No popular games found {searchQuery ? `for "${searchQuery}"` : ""}
                         </div>
                     )}

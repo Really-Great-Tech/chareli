@@ -461,8 +461,8 @@ export const getUserActivityLog = async (
       });
       
       // Default values
-      let activity = 'No activity';
-      let gameTitle = 'None';
+      let activity = '';
+      let gameTitle = '';
       let gameStartTime: Date | null = null;
       let gameEndTime: Date | null = null;
       

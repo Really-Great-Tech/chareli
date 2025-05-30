@@ -31,6 +31,7 @@ const initialValues: InviteUserRequest = {
 };
 
 export function InviteSheet({ children }: { children: React.ReactNode }) {
+  const formikRef = React.useRef<any>(null);
   const { mutate: inviteTeamMember, isPending } = useInviteTeamMember();
   const [open, setOpen] = React.useState(false);
 
@@ -57,7 +58,15 @@ export function InviteSheet({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet 
+      open={open} 
+      onOpenChange={(newOpen) => {
+        if (!newOpen && formikRef.current) {
+          formikRef.current.resetForm();
+        }
+        setOpen(newOpen);
+      }}
+    >
       <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent className="font-boogaloo dark:bg-[#0F1621] max-w-md w-full">
         <SheetHeader>
@@ -70,8 +79,9 @@ export function InviteSheet({ children }: { children: React.ReactNode }) {
           initialValues={initialValues}
           validationSchema={inviteSchema}
           onSubmit={handleInvite}
+          innerRef={formikRef}
         >
-          {({ isSubmitting }) => (
+          {({ isSubmitting, isValid, dirty }) => (
             <Form className="grid gap-6 px-4">
               <div className="flex flex-col space-y-2">
                 <Label htmlFor="email" className="text-lg">
@@ -115,6 +125,7 @@ export function InviteSheet({ children }: { children: React.ReactNode }) {
                   <Button
                     type="button"
                     className="w-20 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-accent"
+                    onClick={() => formikRef.current?.resetForm()}
                   >
                     Cancel
                   </Button>
@@ -122,7 +133,7 @@ export function InviteSheet({ children }: { children: React.ReactNode }) {
                 <Button
                   type="submit"
                   className="w-22 h-12 bg-[#D946EF] dark:text-white hover:text-[#D946EF] hover:bg-[#F3E8FF]"
-                  disabled={isSubmitting || isPending}
+                  disabled={isSubmitting || isPending || !isValid || !dirty}
                 >
                   {isSubmitting || isPending ? "Sending..." : "Send Invite"}
                 </Button>

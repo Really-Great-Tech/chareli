@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { Button } from '../ui/button';
@@ -28,14 +28,24 @@ interface FormValues {
 
 // Validation schema
 const validationSchema = Yup.object({
-  title: Yup.string().required('Title is required'),
-  description: Yup.string(),
+  title: Yup.string().required('Title is required').trim(),
+  description: Yup.string().required('Description is required').trim(),
   config: Yup.number()
     .required('Config is required')
     .min(0, 'Config must be a positive number'),
   categoryId: Yup.string().required('Category is required'),
-  thumbnailFile: Yup.mixed<File>(),
-  gameFile: Yup.mixed<File>(),
+  thumbnailFile: Yup.mixed<File>()
+    .required('Thumbnail image is required')
+    .test('fileType', 'Only image files are allowed', (value) => {
+      if (!value) return false;
+      return value instanceof File && value.type.startsWith('image/');
+    }),
+  gameFile: Yup.mixed<File>()
+    .required('Game file is required')
+    .test('fileType', 'Only ZIP files are allowed', (value) => {
+      if (!value) return false;
+      return value instanceof File && value.name.toLowerCase().endsWith('.zip');
+    }),
 });
 
 // Initial values
@@ -53,6 +63,7 @@ export function CreateGameSheet({
   children: React.ReactNode;
   onOpenChange?: (open: boolean) => void;
 }) {
+  const formikRef = useRef<any>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const [gameFileName, setGameFileName] = useState<string | null>(null);
   const createGame = useCreateGame();
@@ -89,7 +100,14 @@ export function CreateGameSheet({
   };
 
   return (
-    <Sheet>
+    <Sheet onOpenChange={(open) => {
+      if (!open && formikRef.current) {
+        formikRef.current.resetForm();
+        setThumbnailPreview(null);
+        setGameFileName(null);
+      }
+      onOpenChange?.(open);
+    }}>
       <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent className="font-boogaloo dark:bg-[#0F1621] max-w-xl w-full overflow-y-auto">
         <SheetHeader>
@@ -102,8 +120,9 @@ export function CreateGameSheet({
           initialValues={initialValues}
           validationSchema={validationSchema}
           onSubmit={handleSubmit}
+          innerRef={formikRef}
         >
-          {({ setFieldValue, isSubmitting }) => (
+          {({ setFieldValue, isSubmitting, isValid, dirty }) => (
             <Form className="grid grid-cols-1 gap-6 pl-4 pr-4">
               {/* Thumbnail Upload */}
               <div>
@@ -281,13 +300,18 @@ export function CreateGameSheet({
                   <Button
                     type="button"
                     className="w-24 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-accent"
+                    onClick={() => {
+                      formikRef.current?.resetForm();
+                      setThumbnailPreview(null);
+                      setGameFileName(null);
+                    }}
                   >
                     Cancel
                   </Button>
                 </SheetClose>
                 <Button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !isValid || !dirty}
                   className="w-24 h-12 bg-[#D946EF] dark:text-white hover:text-[#D946EF] hover:bg-[#F3E8FF]"
                 >
                   {isSubmitting ? 'Creating...' : 'Create'}

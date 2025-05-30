@@ -6,9 +6,8 @@ import { OtpType } from '../entities/Otp';
  * Login schema validation
  */
 export const loginSchema = yup.object({
-  email: yup.string().email('Invalid email format').required('Email is required'),
-  password: yup.string().required('Password is required'),
-  otpType: yup.string().oneOf(Object.values(OtpType), 'Invalid OTP type')
+  identifier: yup.string().required('Email or phone number is required'),
+  password: yup.string().required('Password is required')
 });
 
 /**

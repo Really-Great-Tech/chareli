@@ -136,20 +136,23 @@ export class AuthService {
   }
 
   
-  async login(email: string, password: string): Promise<User> {
+  async login(identifier: string, password: string): Promise<User> {
+    // Detect if it's email or phone based on format
+    const isEmail = identifier.includes('@');
+    
     const user = await userRepository.findOne({
-      where: { email },
+      where: isEmail ? { email: identifier } : { phoneNumber: identifier },
       select: ['id', 'email', 'password', 'firstName', 'lastName', 'phoneNumber', 'isActive', 'isVerified', 'roleId'],
       relations: ['role']
     });
 
     if (!user) {
-      throw new Error('Invalid email or password');
+      throw new Error('Invalid credentials');
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      throw new Error('Invalid email or password');
+      throw new Error('Invalid credentials');
     }
 
     // If user was inactive due to inactivity, reactivate them

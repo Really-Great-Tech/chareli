@@ -7,7 +7,9 @@ import {
   refreshToken,
   forgotPassword,
   verifyResetToken,
-  resetPassword,
+  resetPasswordEmail,
+  resetPasswordPhone,
+  forgotPasswordPhone,
   requestOtp
 } from '../controllers/authController';
 import {
@@ -64,7 +66,7 @@ router.post(
   resetPasswordFromInvitation
 );
 
-// Password reset routes
+// Email-based password reset routes
 router.post('/forgot-password', authLimiter, validateBody(forgotPasswordSchema), forgotPassword);
 router.get('/reset-password/:token', validateParams(yup.object({ token: yup.string().required('Token is required') })), verifyResetToken);
 router.post(
@@ -72,7 +74,23 @@ router.post(
   authLimiter,
   validateParams(yup.object({ token: yup.string().required('Token is required') })),
   validateBody(resetPasswordSchema),
-  resetPassword
+  resetPasswordEmail
+);
+
+// Phone-based password reset routes
+router.post('/forgot-password/phone', authLimiter, validateBody(yup.object({
+  phoneNumber: yup.string().required('Phone number is required')
+})), forgotPasswordPhone);
+
+router.post(
+  '/reset-password/phone',
+  authLimiter,
+  validateBody(yup.object({
+    userId: yup.string().uuid('Invalid user ID').required('User ID is required'),
+    password: yup.string().min(8, 'Password must be at least 8 characters').required('Password is required'),
+    confirmPassword: yup.string().oneOf([yup.ref('password')], 'Passwords must match').required('Confirm password is required')
+  })),
+  resetPasswordPhone
 );
 
 // Protected routes

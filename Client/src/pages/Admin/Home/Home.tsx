@@ -7,13 +7,24 @@ import StatsCard from "./StatsCard";
 import PieChart from '../../../components/charts/piechart';
 import { useState } from 'react';
 import { useSignupAnalyticsData } from '../../../backend/signup.analytics.service';
-import { useUsersAnalytics } from '../../../backend/analytics.service';
-import { MostPlayedGames } from './MostPlayedGames';
-import { RecentUserActivity } from './RecentUserActivity';
+import { useUsersAnalytics, useGamesAnalytics } from '../../../backend/analytics.service';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../../components/ui/table";
+import { formatTime } from '../../../utils/main';
 
 export default function Home() {
 
   const [isAcceptInviteOpen, setIsAcceptInviteOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [userPage, setUserPage] = useState(1);
+  const gamesPerPage = 5;
+  const usersPerPage = 5;
+
+  const { data: allGames = [], isLoading: gamesLoading } = useGamesAnalytics();
+  const { data: allUsers = [], isLoading: usersLoading } = useUsersAnalytics();
+
+  const gamesToShow = allGames.slice((currentPage - 1) * gamesPerPage, currentPage * gamesPerPage);
+  const usersToShow = allUsers.slice((userPage - 1) * usersPerPage, userPage * usersPerPage);
+  const totalUserPages = Math.ceil(allUsers.length / usersPerPage);
   return (
     <div>
       <div className="px-6 pb-3">
@@ -114,7 +125,7 @@ export default function Home() {
                   {[1, 2, 3, 4].map((page) => (
                     <button
                       key={page}
-                      className={`w-10 h-10 rounded-full ${currentPage === page ? "bg-gray-300" : ""} text-balck`}
+                      className={`w-10 h-10 rounded-full ${currentPage === page ? "bg-gray-300" : ""} text-black`}
                       onClick={() => setCurrentPage(page)}
                     >
                       {page}
@@ -166,7 +177,7 @@ export default function Home() {
                                 <div className="bg-[#94A3B7] p-2 rounded-lg">
                                   <span className="inline-block w-2 h-2 rounded-full bg-red-500" />
                                   <span className="rounded px-2 py-1 text-white font-semibold text-sm">
-                                    {new Date(user.lastLoggedIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    {user.lastLoggedIn ? new Date(user.lastLoggedIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Never'}
                                   </span>
                                 </div>
                               </span>

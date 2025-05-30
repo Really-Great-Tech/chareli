@@ -169,7 +169,6 @@ export default function UserActivityLog() {
             </div>
           )}
           </div>
-        </div>
       </Card>
     </div>
   );

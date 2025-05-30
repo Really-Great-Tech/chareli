@@ -1,64 +1,19 @@
 import click from '../../../assets/click.svg'
-
 import { Card } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../../components/ui/table";
 import { PopUpSheet } from "../../../components/single/PopUp-Sheet";
 import { AcceptInvitationModal } from "../../../components/modals/AdminModals/AcceptInvitationModal";
 import StatsCard from "./StatsCard";
 import PieChart from '../../../components/charts/piechart';
-import { useState, useMemo } from 'react';
-import { useGamesAnalytics, useUsersAnalytics, type GameAnalytics, type UserAnalytics } from '../../../backend/analytics.service';
+import { useState } from 'react';
 import { useSignupAnalyticsData } from '../../../backend/signup.analytics.service';
-import { formatTime } from '../../../utils/main';
+import { useUsersAnalytics } from '../../../backend/analytics.service';
+import { MostPlayedGames } from './MostPlayedGames';
+import { RecentUserActivity } from './RecentUserActivity';
 
 export default function Home() {
 
   const [isAcceptInviteOpen, setIsAcceptInviteOpen] = useState(false);
-
-  const { data: gamesWithAnalytics, isLoading: gamesLoading } = useGamesAnalytics();
-  const { data: usersWithAnalytics, isLoading: usersLoading } = useUsersAnalytics();
-  const [userPage, setUserPage] = useState(1);
-  const usersPerPage = 5;
-
-  // Sort users by lastLoggedIn (most recent first)
-  const allUsers = useMemo<UserAnalytics[]>(() => {
-    if (!usersWithAnalytics) return [];
-    return [...usersWithAnalytics].sort((a, b) => 
-      new Date(b.lastLoggedIn).getTime() - new Date(a.lastLoggedIn).getTime()
-    );
-  }, [usersWithAnalytics]);
-
-  const getUsersForPage = (page: number) => {
-    const startIdx = (page - 1) * usersPerPage;
-    const endIdx = startIdx + usersPerPage;
-    return allUsers.slice(startIdx, endIdx);
-  };
-
-  const usersToShow = getUsersForPage(userPage);
-  const totalUserPages = Math.ceil(allUsers.length / usersPerPage);
-
-  // Sort games by total sessions (most played first)
-  const allGames = useMemo<GameAnalytics[]>(() => {
-    if (!gamesWithAnalytics) return [];
-    return [...gamesWithAnalytics].sort((a, b) => 
-      (b.analytics?.totalSessions || 0) - (a.analytics?.totalSessions || 0)
-    );
-  }, [gamesWithAnalytics]);
-
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const gamesPerPage = 5;
-  // const totalPages = Math.ceil(allGames.length / gamesPerPage);
-
-  // For page 2, only show 2 games as requested
-  const getGamesForPage = (page: number) => {
-    const startIdx = (page - 1) * gamesPerPage;
-    const endIdx = startIdx + gamesPerPage;
-    return allGames.slice(startIdx, endIdx);
-  };
-
-  const gamesToShow = getGamesForPage(currentPage);
   return (
     <div>
       <div className="px-6 pb-3">
@@ -110,7 +65,6 @@ export default function Home() {
           </Card>
         </div>
 
-        {/* most played */}
         <div className="col-span-1 md:col-span-2 lg:col-span-4 mb-6">
           <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
 
@@ -146,8 +100,8 @@ export default function Home() {
                           <span className="font-semibold text-lg">{game.title}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="font-pincuk">{game.analytics?.totalSessions || 0}</TableCell>
-                      <TableCell className="font-pincuk">{formatTime(game.analytics?.totalPlayTime || 0)}</TableCell>
+                      <TableCell className="font-sans">{game.analytics?.totalSessions || 0}</TableCell>
+                      <TableCell className="font-sans">{formatTime(game.analytics?.totalPlayTime || 0)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -172,15 +126,6 @@ export default function Home() {
           </Card>
         </div>
 
-        {/* peak */}
-        {/* <div className="col-span-1 md:col-span-2 lg:col-span-4"> */}
-        {/* <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full"> */}
-        {/* content */}
-        {/* <LineChart/>
-        </Card>
-      </div> */}
-
-        {/* recent */}
         <div className="col-span-1 md:col-span-2 lg:col-span-4 mb-6">
           <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
             <div className="flex justify-between p-4 text-3xl">
@@ -209,7 +154,7 @@ export default function Home() {
                             <TableCell colSpan={7} className="text-center">Loading...</TableCell>
                           </TableRow>
                         ) : usersToShow.map((user, idx) => (
-                          <TableRow key={idx} className="font-pincuk">
+                          <TableRow key={idx} className="font-sans">
                             <TableCell>{`${user.firstName} ${user.lastName}`}</TableCell>
                             <TableCell>{user.email}</TableCell>
                             <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>

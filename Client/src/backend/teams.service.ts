@@ -22,20 +22,20 @@ export interface RegisterFromInvitationRequest {
   email: string;
 }
 
-interface Invitation {
-  id: string;
-  email: string;
-  role: {
-    name: string;
-  };
-  invitedBy: {
-    firstName: string;
-    lastName: string;
-  };
-  isAccepted: boolean;
-  expiresAt: string;
-  createdAt: string;
-}
+// interface Invitation {
+//   id: string;
+//   email: string;
+//   role: {
+//     name: string;
+//   };
+//   invitedBy: {
+//     firstName: string;
+//     lastName: string;
+//   };
+//   isAccepted: boolean;
+//   expiresAt: string;
+//   createdAt: string;
+// }
 
 interface InviteUserResponse {
   success: boolean;
@@ -48,11 +48,11 @@ interface InviteUserResponse {
   };
 }
 
-interface InvitationsResponse {
-  success: boolean;
-  count: number;
-  data: Invitation[];
-}
+// interface InvitationsResponse {
+//   success: boolean;
+//   count: number;
+//   data: Invitation[];
+// }
 
 interface VerifyInvitationResponse {
   success: boolean;
@@ -69,11 +69,11 @@ interface VerifyInvitationResponse {
  * @returns Query result with invitations data
  */
 export const useTeamInvitations = () => {
-  return useQuery<InvitationsResponse>({
+  return useQuery({
     queryKey: [BackendRoute.AUTH_INVITATIONS],
     queryFn: async () => {
       const response = await backendService.get(BackendRoute.AUTH_INVITATIONS);
-      return response.data;
+      return response;
     },
     refetchOnWindowFocus: false,
   });

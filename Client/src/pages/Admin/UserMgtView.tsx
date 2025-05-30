@@ -67,13 +67,13 @@ const UserManagementView = () => {
               </h2>
               <div className="flex items-center gap-2">
                 <span className="text-green-500 font-bold text-lg">●</span>
-                <span className="text-gray-700 text-sm dark:text-white">{dummyUser.role}</span>
+                <span className="text-gray-700 text-sm dark:text-white font-pincuk">{dummyUser.role}</span>
               </div>
             </div>
             <div className="mt-2 text-sm text-gray-500 font-sans font-semibold dark:text-white mr-1 flex items-center gap-2">
               last login:{" "}
               <div className="flex items-center">
-              <span className="bg-indigo-100 px-2 py-0 rounded text-gray-700 dark:bg-[#94A3B7]">
+              <span className="bg-indigo-100 px-2 py-0 rounded text-gray-700 dark:bg-[#94A3B7] font-pincuk">
               <span className="text-yellow-500 font-bold text-lg">●</span>
                 {dummyUser.lastLogin}
               </span>
@@ -91,7 +91,7 @@ const UserManagementView = () => {
                 <span className="text-[#475568] text-lg font mb-1 dark:text-white">
                   Minutes Played
                 </span>
-                <span className="text-sm text-[#475568] font-sans dark:text-white">
+                <span className="text-sm text-[#475568] font-pincuk dark:text-white">
                   {dummyUser.minutesPlayed} minutes
                 </span>
               </div>
@@ -104,7 +104,7 @@ const UserManagementView = () => {
                 <span className="text-[#475568] text-lg font mb-1 dark:text-white">
                   Total Plays
                 </span>
-                <span className="text-sm text-[#475568] font-sans dark:text-white">
+                <span className="text-sm text-[#475568] font-pincuk dark:text-white">
                   {dummyUser.gamesPlayed}
                 </span>
               </div>
@@ -117,7 +117,7 @@ const UserManagementView = () => {
                 <span className="text-[#475568] text-lg font mb-1 dark:text-white">
                   Sessions
                 </span>
-                <span className="text-sm text-[#475568] font-sans dark:text-white">
+                <span className="text-sm text-[#475568] font-pincuk dark:text-white">
                   {dummyUser.sessions}
                 </span>
               </div>
@@ -132,20 +132,19 @@ const UserManagementView = () => {
             <h3 className="text-lg font-bold mb-4 text-[#121C2D] tracking-wide dark:text-white">Profile Details</h3>
             <div className="grid grid-cols-2 gap-y-6 gap-x-96 space-y-border-b dark:text-white">
               <div className="text-fuchsia-500  tracking-wide">Name</div>
-              <div className="text-[#334154] font-sans dark:text-white">{dummyUser.name}</div>
+              <div className="text-[#334154] font-pincuk dark:text-white">{dummyUser.name}</div>
               <div className="text-fuchsia-500  tracking-wide">Email</div>
-              <div className="text-[#334154] font-sans dark:text-white">{dummyUser.email}</div>
+              <div className="text-[#334154] font-pincuk dark:text-white">{dummyUser.email}</div>
               <div className="text-fuchsia-500  tracking-wide">
                 Mobile number
               </div>
-              <div className="text-[#334154] font-sans dark:text-white">{dummyUser.mobile}</div>
+              <div className="text-[#334154] font-pincuk dark:text-white">{dummyUser.mobile}</div>
               <div className="text-fuchsia-500  tracking-wide">Country</div>
-              <div className="text-[#334154] font-sans dark:text-white">{dummyUser.country}</div>
+              <div className="text-[#334154] font-pincuk dark:text-white">{dummyUser.country}</div>
             </div>
           </div>
           {/* Games */} 
           <div className="bg-[#f6f8fc] rounded-2xl p-6 dark:bg-[#121C2D]">
-            {/* <h3 className="text-lg font-bold mb-4">Games</h3> */}
             <table className="w-full border-collapse">
               <thead>
                 <tr>
@@ -164,7 +163,7 @@ const UserManagementView = () => {
                       />
                       <span className="text-[#121C2D] text-lg tracking-wider dark:text-white">{game.name}</span>
                     </td>
-                    <td className="py-2 text-[#121C2D] text-lg tracking-wider font-sans dark:text-white">{game.minutes}</td>
+                    <td className="py-2 text-lg  text-[#334154] font-pincuk dark:text-white">{game.minutes}</td>
                   </tr>
                 ))}
               </tbody>

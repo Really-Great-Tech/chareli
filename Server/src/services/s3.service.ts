@@ -1,10 +1,38 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
+import { 
+  S3Client, 
+  PutObjectCommand, 
+  DeleteObjectCommand, 
+  GetObjectCommand, 
+  HeadObjectCommand,
+  S3ServiceException 
+} from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import config from '../config/config';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import { promises as fs } from 'fs';
 import logger from '../utils/logger';
+
+class S3Error extends Error {
+  public code?: string;
+  public originalError?: Error;
+  public operation: string;
+  public key?: string;
+
+  constructor(message: string, options: {
+    code?: string;
+    originalError?: Error;
+    operation: string;
+    key?: string;
+  }) {
+    super(message);
+    this.name = 'S3Error';
+    this.code = options.code;
+    this.originalError = options.originalError;
+    this.operation = options.operation;
+    this.key = options.key;
+  }
+}
 
 export interface S3UploadResult {
   key: string;
@@ -29,15 +57,15 @@ export class S3Service implements S3ServiceInterface {
 
   constructor() {
     this.s3Client = new S3Client({
-      region: config.s3.region,
+      region: "eu-central-1",
       credentials: {
-        accessKeyId: config.s3.accessKeyId,
-        secretAccessKey: config.s3.secretAccessKey,
+        accessKeyId: "AKIAU2CFV3CEC25FE4J2",
+        secretAccessKey: "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",
       },
       endpoint: config.s3.endpoint,
       forcePathStyle: config.s3.forcePathStyle
     });
-    this.bucket = config.s3.bucket;
+    this.bucket = "chareli-games-dev-ea15b364";
   }
 
   
@@ -79,8 +107,33 @@ export class S3Service implements S3ServiceInterface {
         size: file.length
       };
     } catch (error) {
-      logger.error('Error uploading file to S3:', error);
-      throw new Error('Failed to upload file to S3');
+      logger.error('Error uploading file to S3:', {
+        error,
+        originalname,
+        folder,
+        bucket: this.bucket
+      });
+
+      if (error instanceof S3ServiceException) {
+        throw new S3Error(
+          `S3 upload failed: ${error.message}`, 
+          {
+            code: error.$metadata.httpStatusCode?.toString() || error.name,
+            originalError: error,
+            operation: 'uploadFile',
+            key: folder ? `${folder}/${originalname}` : originalname
+          }
+        );
+      }
+
+      throw new S3Error(
+        'Failed to upload file to S3',
+        {
+          originalError: error as Error,
+          operation: 'uploadFile',
+          key: folder ? `${folder}/${originalname}` : originalname
+        }
+      );
     }
   }
 
@@ -146,8 +199,33 @@ export class S3Service implements S3ServiceInterface {
         }
       }
     } catch (error) {
-      logger.error('Error uploading directory to S3:', error);
-      throw new Error('Failed to upload directory to S3');
+      logger.error('Error uploading directory to S3:', {
+        error,
+        dirPath,
+        s3Prefix,
+        bucket: this.bucket
+      });
+
+      if (error instanceof S3ServiceException) {
+        throw new S3Error(
+          `S3 directory upload failed: ${error.message}`,
+          {
+            code: error.$metadata.httpStatusCode?.toString() || error.name,
+            originalError: error,
+            operation: 'uploadDirectory',
+            key: s3Prefix
+          }
+        );
+      }
+
+      throw new S3Error(
+        'Failed to upload directory to S3',
+        {
+          originalError: error as Error,
+          operation: 'uploadDirectory',
+          key: s3Prefix
+        }
+      );
     }
   }
 
@@ -159,8 +237,33 @@ export class S3Service implements S3ServiceInterface {
       
       return Promise.all(uploadPromises);
     } catch (error) {
-      logger.error('Error uploading multiple files to S3:', error);
-      throw new Error('Failed to upload multiple files to S3');
+      logger.error('Error uploading multiple files to S3:', {
+        error,
+        filesCount: files.length,
+        folder,
+        bucket: this.bucket
+      });
+
+      if (error instanceof S3ServiceException) {
+        throw new S3Error(
+          `S3 batch upload failed: ${error.message}`,
+          {
+            code: error.$metadata.httpStatusCode?.toString() || error.name,
+            originalError: error,
+            operation: 'uploadFiles',
+            key: folder
+          }
+        );
+      }
+
+      throw new S3Error(
+        'Failed to upload multiple files to S3',
+        {
+          originalError: error as Error,
+          operation: 'uploadFiles',
+          key: folder
+        }
+      );
     }
   }
 
@@ -174,8 +277,32 @@ export class S3Service implements S3ServiceInterface {
       await this.s3Client.send(command);
       return true;
     } catch (error) {
-      logger.error('Error deleting file from S3:', error);
-      throw new Error('Failed to delete file from S3');
+      logger.error('Error deleting file from S3:', {
+        error,
+        key,
+        bucket: this.bucket
+      });
+
+      if (error instanceof S3ServiceException) {
+        throw new S3Error(
+          `S3 delete failed: ${error.message}`,
+          {
+            code: error.$metadata.httpStatusCode?.toString() || error.name,
+            originalError: error,
+            operation: 'deleteFile',
+            key
+          }
+        );
+      }
+
+      throw new S3Error(
+        'Failed to delete file from S3',
+        {
+          originalError: error as Error,
+          operation: 'deleteFile',
+          key
+        }
+      );
     }
   }
 
@@ -200,8 +327,32 @@ export class S3Service implements S3ServiceInterface {
       
       return Buffer.concat(chunks);
     } catch (error) {
-      logger.error('Error getting file from S3:', error);
-      throw new Error('Failed to get file from S3');
+      logger.error('Error getting file from S3:', {
+        error,
+        key,
+        bucket: this.bucket
+      });
+
+      if (error instanceof S3ServiceException) {
+        throw new S3Error(
+          `S3 get failed: ${error.message}`,
+          {
+            code: error.$metadata.httpStatusCode?.toString() || error.name,
+            originalError: error,
+            operation: 'getFile',
+            key
+          }
+        );
+      }
+
+      throw new S3Error(
+        'Failed to get file from S3',
+        {
+          originalError: error as Error,
+          operation: 'getFile',
+          key
+        }
+      );
     }
   }
 
@@ -224,8 +375,33 @@ export class S3Service implements S3ServiceInterface {
       
       return getSignedUrl(this.s3Client, command, { expiresIn });
     } catch (error) {
-      logger.error('Error generating signed URL:', error);
-      throw new Error('Failed to generate signed URL');
+      logger.error('Error generating signed URL:', {
+        error,
+        key,
+        operation,
+        bucket: this.bucket
+      });
+
+      if (error instanceof S3ServiceException) {
+        throw new S3Error(
+          `Failed to generate signed URL: ${error.message}`,
+          {
+            code: error.$metadata.httpStatusCode?.toString() || error.name,
+            originalError: error,
+            operation: 'getSignedUrl',
+            key
+          }
+        );
+      }
+
+      throw new S3Error(
+        'Failed to generate signed URL',
+        {
+          originalError: error as Error,
+          operation: 'getSignedUrl',
+          key
+        }
+      );
     }
   }
 
@@ -243,8 +419,33 @@ export class S3Service implements S3ServiceInterface {
         }
       };
     } catch (error) {
-      logger.error('Error generating presigned post:', error);
-      throw new Error('Failed to generate presigned post');
+      logger.error('Error generating presigned post:', {
+        error,
+        key,
+        contentType,
+        bucket: this.bucket
+      });
+
+      if (error instanceof S3ServiceException) {
+        throw new S3Error(
+          `Failed to generate presigned post: ${error.message}`,
+          {
+            code: error.$metadata.httpStatusCode?.toString() || error.name,
+            originalError: error,
+            operation: 'generatePresignedPost',
+            key
+          }
+        );
+      }
+
+      throw new S3Error(
+        'Failed to generate presigned post',
+        {
+          originalError: error as Error,
+          operation: 'generatePresignedPost',
+          key
+        }
+      );
     }
   }
 
@@ -258,7 +459,27 @@ export class S3Service implements S3ServiceInterface {
       await this.s3Client.send(command);
       return true;
     } catch (error) {
-      return false;
+      if (error instanceof S3ServiceException && error.$metadata.httpStatusCode === 404) {
+        return false;
+      }
+      
+      logger.error('Error checking if file exists in S3:', {
+        error,
+        key,
+        bucket: this.bucket
+      });
+
+      throw new S3Error(
+        'Failed to check if file exists in S3',
+        {
+          code: error instanceof S3ServiceException ? 
+            error.$metadata.httpStatusCode?.toString() || error.name : 
+            undefined,
+          originalError: error as Error,
+          operation: 'fileExists',
+          key
+        }
+      );
     }
   }
 

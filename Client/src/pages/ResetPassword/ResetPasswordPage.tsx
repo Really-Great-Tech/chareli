@@ -24,15 +24,16 @@ const initialValues = {
 };
 
 export function ResetPasswordPage() {
-  const { token } = useParams<{ token: string }>();
+  const { token, userId } = useParams<{ token?: string; userId?: string }>();
+  const isPhoneFlow = !!userId;
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isTokenValid, setIsTokenValid] = useState(false);
   const [isTokenChecking, setIsTokenChecking] = useState(true); // Start with true to show loading state
   const [isSuccess, setIsSuccess] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const resetPassword = useResetPassword();
   const navigate = useNavigate();
+  const resetPassword = useResetPassword();
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
   const toggleConfirmPasswordVisibility = () => setShowConfirmPassword(!showConfirmPassword);
@@ -40,10 +41,16 @@ export function ResetPasswordPage() {
   // Use a ref to track if we've already verified the token
   const hasVerifiedToken = useRef(false);
 
-
   useEffect(() => {
-    if (!token) {
+    if (!token && !userId) {
       navigate("/");
+      return;
+    }
+
+    if (isPhoneFlow) {
+      // For phone flow, we don't need to verify anything since OTP was already verified
+      setIsTokenValid(true);
+      setIsTokenChecking(false);
       return;
     }
 
@@ -67,13 +74,14 @@ export function ResetPasswordPage() {
       
       verifyTokenDirectly();
     }
-  }, [token, navigate]);
+  }, [token, userId, navigate, isPhoneFlow]);
 
 
   const handleSubmit = async (values: typeof initialValues) => {
     try {
       await resetPassword.mutateAsync({
-        token: token || "",
+        token: isPhoneFlow ? undefined : token,
+        userId: isPhoneFlow ? userId : undefined,
         password: values.password,
         confirmPassword: values.confirmPassword,
       });
@@ -114,13 +122,15 @@ export function ResetPasswordPage() {
           <div className="flex flex-col items-center justify-center py-8">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#E328AF]"></div>
             <p className="mt-4 text-sm text-black dark:text-white font-pincuk">
-              Verifying your reset token...
+              {isPhoneFlow ? "Preparing reset form..." : "Verifying your reset token..."}
             </p>
           </div>
         ) : !isTokenValid ? (
           <div className="space-y-4 py-4">
             <p className="text-sm text-center text-black dark:text-white font-pincuk">
-              The password reset link is invalid or has expired.
+              {isPhoneFlow 
+                ? "Unable to process your password reset request."
+                : "The password reset link is invalid or has expired."}
             </p>
             <p className="text-sm text-center text-black dark:text-white font-pincuk">
               Please request a new password reset link.
@@ -245,13 +255,22 @@ export function ResetPasswordPage() {
                     className="text-red-500 text-xs mt-1 font-pincuk"
                   />
                 </div>
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-boogaloo"
-                >
-                  {isSubmitting ? "Resetting..." : "Reset Password"}
-                </Button>
+                <div className="space-y-2">
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-boogaloo"
+                  >
+                    {isSubmitting ? "Resetting..." : "Reset Password"}
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => navigate("/")}
+                    className="w-full bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-black dark:text-white border border-gray-300 dark:border-gray-700 font-boogaloo"
+                  >
+                    Return to Home
+                  </Button>
+                </div>
               </Form>
             )}
           </Formik>

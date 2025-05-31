@@ -116,10 +116,8 @@ export interface User {
 }
 
 export interface LoginCredentials {
-  email?: string;
-  phoneNumber?: string;
+  identifier: string;
   password: string;
-  otpType?: 'SMS' | 'EMAIL' | 'BOTH';
 }
 
 export interface OtpVerification {

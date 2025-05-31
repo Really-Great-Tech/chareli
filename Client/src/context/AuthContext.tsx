@@ -10,6 +10,13 @@ interface LoginResponse {
   hasPhone: boolean;
   email?: string;
   phoneNumber?: string;
+  requiresOtp: boolean;
+  otpType?: 'EMAIL' | 'SMS' | 'BOTH';
+  message: string;
+  tokens?: {
+    accessToken: string;
+    refreshToken: string;
+  };
 }
 
 interface AuthContextType {
@@ -64,18 +71,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (credentials: LoginCredentials): Promise<LoginResponse> => {
     const response = await backendService.post('/api/auth/login', credentials);
-    const { userId } = response.data;
-    const userEmail = response.data.email || credentials.email; 
-    const phoneNumber = response.data.phoneNumber;
-    const hasEmail = !!userEmail;
-    const hasPhone = !!phoneNumber;
+    const { 
+      userId, 
+      email, 
+      phoneNumber, 
+      requiresOtp, 
+      otpType, 
+      tokens, 
+    } = response.data;
+
+    //forto display mesage from backend
+    const message = (response as any)?.message
+
+    // If tokens are provided (no OTP case), save them and refresh user
+    if (tokens) {
+      localStorage.setItem('token', tokens.accessToken);
+      localStorage.setItem('refreshToken', tokens.refreshToken);
+      await refreshUser();
+    }
     
     return { 
-      userId, 
-      hasEmail, 
-      hasPhone,
-      email: userEmail,
-      phoneNumber
+      userId,
+      hasEmail: !!email,
+      hasPhone: !!phoneNumber,
+      email,
+      phoneNumber,
+      requiresOtp,
+      otpType,
+      tokens,
+      message
     };
   };
 

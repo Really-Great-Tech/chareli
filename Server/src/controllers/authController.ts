@@ -264,11 +264,13 @@ export const login = async (
         await authService.sendOtp(user, OtpType.BOTH);
         res.status(200).json({
           success: true,
-          message: 'Login successful. Please verify with OTP sent to your email and phone.',
+          message: `Login successful. Please verify with OTP sent to ${user.email} and ${user.phoneNumber}.`,
           data: {
             userId: user.id,
             requiresOtp: true,
-            otpType: OtpType.BOTH
+            otpType: OtpType.BOTH,
+            email: user.email,
+            phoneNumber: user.phoneNumber
           }
         });
         return;
@@ -283,7 +285,9 @@ export const login = async (
           data: {
             userId: user.id,
             requiresOtp: false,
-            tokens
+            tokens,
+            email: user.email,
+            phoneNumber: user.phoneNumber
           }
         });
         return;
@@ -293,11 +297,12 @@ export const login = async (
         await authService.sendOtp(user, OtpType.EMAIL);
         res.status(200).json({
           success: true,
-          message: 'Login successful. Please verify with OTP sent to your email.',
+          message: `Login successful. Please verify with OTP sent to ${user.email}.`,
           data: {
             userId: user.id,
             requiresOtp: true,
-            otpType: OtpType.EMAIL
+            otpType: OtpType.EMAIL,
+            email: user.email
           }
         });
         return;
@@ -307,11 +312,12 @@ export const login = async (
         await authService.sendOtp(user, OtpType.SMS);
         res.status(200).json({
           success: true,
-          message: 'Login successful. Please verify with OTP sent to your phone.',
+          message: `Login successful. Please verify with OTP sent to ${user.phoneNumber}.`,
           data: {
             userId: user.id,
             requiresOtp: true,
-            otpType: OtpType.SMS
+            otpType: OtpType.SMS,
+            phoneNumber: user.phoneNumber
           }
         });
         return;
@@ -672,51 +678,14 @@ export const forgotPasswordPhone = async (
  *       500:
  *         description: Internal server error
  */
-export const resetPasswordPhone = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    const { userId, password, confirmPassword } = req.body;
-
-    // Validate required fields
-    if (!userId || !password || !confirmPassword) {
-      return next(ApiError.badRequest('All fields are required'));
-    }
-
-    // Validate password match
-    if (password !== confirmPassword) {
-      return next(ApiError.badRequest('Passwords do not match'));
-    }
-
-    // Find the user
-    const user = await userRepository.findOne({ where: { id: userId } });
-    if (!user) {
-      return next(ApiError.notFound('User not found'));
-    }
-
-    // Hash and update password
-    user.password = await bcrypt.hash(password, 10);
-    await userRepository.save(user);
-
-    res.status(200).json({
-      success: true,
-      message: 'Password reset successful. You can now log in with your new password.'
-    });
-  } catch (error) {
-    next(error instanceof Error ? ApiError.badRequest(error.message) : error);
-  }
-};
-
-export const resetPasswordEmail = async (
+export const resetPassword = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
     const { token } = req.params;
-    const { password, confirmPassword } = req.body;
+    const { userId, password, confirmPassword } = req.body;
 
     // Validate required fields
     if (!password || !confirmPassword) {
@@ -728,8 +697,28 @@ export const resetPasswordEmail = async (
       return next(ApiError.badRequest('Passwords do not match'));
     }
 
-    // Reset password
-    await authService.resetPassword(token, password);
+    let user;
+    if (token) {
+      // Email flow - verify token and get user
+      user = await authService.verifyResetToken(token);
+    } else if (userId) {
+      // Phone flow - get user directly (OTP already verified)
+      user = await userRepository.findOne({ where: { id: userId } });
+      if (!user) {
+        return next(ApiError.notFound('User not found'));
+      }
+    } else {
+      return next(ApiError.badRequest('Token or userId is required'));
+    }
+
+    // Hash and update password
+    user.password = await bcrypt.hash(password, 10);
+    if (token) {
+      // Clear reset token if email flow
+      user.resetToken = '';
+      user.resetTokenExpiry = new Date(0);
+    }
+    await userRepository.save(user);
 
     res.status(200).json({
       success: true,

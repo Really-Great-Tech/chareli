@@ -271,11 +271,6 @@ export const createUser = async (
   try {
     const { firstName, lastName, email, password, phoneNumber, isAdult, hasAcceptedTerms } = req.body;
 
-    // Validate required fields including terms acceptance
-    if (!firstName || !lastName || !email || !password || !hasAcceptedTerms) {
-      return next(ApiError.badRequest('All fields are required'));
-    }
-
     // Get IP address
     const forwarded = req.headers['x-forwarded-for'];
     const ipAddress = Array.isArray(forwarded)
@@ -285,13 +280,15 @@ export const createUser = async (
     // Get country from IP
     const country = await getCountryFromIP(ipAddress);
 
-    // Check if user with email already exists
-    const existingUser = await userRepository.findOne({
-      where: { email },
-    });
+    // Check if user with email already exists (only if email is provided)
+    if (email) {
+      const existingUser = await userRepository.findOne({
+        where: { email },
+      });
 
-    if (existingUser) {
-      return next(ApiError.badRequest('An account with this email already exists'));
+      if (existingUser) {
+        return next(ApiError.badRequest('An account with this email already exists'));
+      }
     }
 
     // Get the role

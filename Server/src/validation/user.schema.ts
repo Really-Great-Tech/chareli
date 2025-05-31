@@ -3,11 +3,13 @@ import { RoleType } from '../entities/Role';
 
 /**
  * Create user schema validation
+ * Frontend handles field requirements based on auth config
  */
 export const createUserSchema = yup.object({
-  firstName: yup.string().trim().required('First name is required'),
-  lastName: yup.string().trim().required('Last name is required'),
-  email: yup.string().email('Invalid email format').required('Email is required'),
+  email: yup.string().email('Invalid email format').optional(),
+  phoneNumber: yup.string().optional(),
+  firstName: yup.string().optional(),
+  lastName: yup.string().optional(),
   password: yup.string()
     .min(8, 'Password must be at least 8 characters')
     .matches(/[A-Z]/, 'Password must contain at least one uppercase letter')
@@ -15,8 +17,7 @@ export const createUserSchema = yup.object({
     .matches(/[0-9]/, 'Password must contain at least one number')
     .matches(/[^A-Za-z0-9]/, 'Password must contain at least one special character')
     .required('Password is required'),
-  phoneNumber: yup.string().required('Phone number is required'),
-  fileId: yup.string().uuid('Invalid file ID'),
+  fileId: yup.string().uuid('Invalid file ID').optional(),
   isAdult: yup.boolean().default(false),
   hasAcceptedTerms: yup.boolean().default(false)
 });

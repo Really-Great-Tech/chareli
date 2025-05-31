@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Checkbox } from '../../../components/ui/checkbox';
 import { Label } from '../../../components/ui/label';
-import { useCreateSystemConfig } from '../../../backend/configuration.service';
+import { useCreateSystemConfig, useSystemConfigByKey } from '../../../backend/configuration.service';
 import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
 
 interface AuthMethodSettings {
   enabled: boolean;
@@ -35,7 +36,16 @@ export default function Configuration() {
     }
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { mutateAsync: createConfig } = useCreateSystemConfig();
+  const { data: configData, isLoading: isLoadingConfig } = useSystemConfigByKey('authentication_settings');
+
+  // Load initial configuration
+  useEffect(() => {
+    if (configData?.value?.settings) {
+      setAuthSettings(configData.value.settings);
+    }
+  }, [configData]);
 
   const handleEmailAuth = (checked: boolean) => {
     setAuthSettings({
@@ -132,6 +142,7 @@ export default function Configuration() {
   };
 
   const handleSave = async () => {
+    setIsSubmitting(true);
     try {
       await createConfig({
         key: 'authentication_settings',
@@ -142,11 +153,18 @@ export default function Configuration() {
       toast.success('Authentication settings saved successfully!');
     } catch (error) {
       toast.error('Failed to save authentication settings');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="p-4 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+    <div className="p-4 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 relative">
+      {isLoadingConfig && (
+        <div className="absolute inset-0 bg-white/50 dark:bg-gray-900/50 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+        </div>
+      )}
       <h1 className="text-3xl text-[#D946EF] mb-4">User Sign Up Configuration</h1>
       <div className="space-y-4">
         {/* Email Authentication Section */}
@@ -250,10 +268,18 @@ export default function Configuration() {
       </div>
       <div className="flex justify-end mt-4">
         <button
-          className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
+          className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           onClick={handleSave}
+          disabled={isSubmitting || isLoadingConfig}
         >
-          Save Configuration
+          {isSubmitting ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            'Save Configuration'
+          )}
         </button>
       </div>
     </div>

@@ -26,9 +26,9 @@ const PopularSection = ({ searchQuery, setSearchQuery }: PopularSectionProps) =>
 
     return (
         <div className="p-4">
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
                 <h1 className="text-[#D946EF] text-4xl font-boogaloo tracking-wide">Popular</h1>
-                <div className="relative w-[400px]">     
+                <div className="relative w-full md:w-[400px]">     
                     <IoIosSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#64748A] text-xl pointer-events-none" />
                     <Input 
                         className="pl-12 w-full h-12 rounded-2xl text-[#64748A] tracking-wider border-2 border-[#D946EF] focus:border-[#D946EF] focus:outline-none shadow-[0_0_8px_rgba(217,70,239,0.2)] 
@@ -50,9 +50,9 @@ const PopularSection = ({ searchQuery, setSearchQuery }: PopularSectionProps) =>
                         </div>
                     )}
                     {!isLoading && !error && games.length > 0 && (
-                        <div className="grid gap-[10px] w-full grid-cols-[repeat(auto-fit,minmax(268.8px,1fr))]">
+                        <div className="grid gap-[10px] w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 justify-items-center">
                             {games.map((game: any) => (
-                                <div key={game.id} className="relative p-[10px] group cursor-pointer">
+                                <div key={game.id} className="relative p-[10px] group cursor-pointer w-full max-w-[320px]">
                                     <img 
                                         src={game.thumbnailFile?.s3Key} 
                                         alt={game.title}

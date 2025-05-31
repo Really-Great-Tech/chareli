@@ -5,9 +5,10 @@ import { useAuth } from '../../context/AuthContext';
 interface KeepPlayingModalProps {
   open: boolean;
   openSignUpModal: () => void;
+  isGameLoading?: boolean;
 }
 
-export default function KeepPlayingModal({ open }: KeepPlayingModalProps) {
+export default function KeepPlayingModal({ open, isGameLoading }: KeepPlayingModalProps) {
   const { mutate: trackSignup } = useTrackSignupClick();
   const navigate = useNavigate();
   const { setKeepPlayingRedirect } = useAuth();
@@ -18,7 +19,7 @@ export default function KeepPlayingModal({ open }: KeepPlayingModalProps) {
     navigate('/');
   };
 
-  if (!open) return null;
+  if (!open || isGameLoading) return null;
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50">
       <div className="relative bg-white dark:bg-[#475568] rounded-2xl shadow-xl p-12 min-w-[450px] max-w-[90vw] border-4 border-[#C026D3]">

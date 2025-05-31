@@ -48,7 +48,30 @@ export const useCreateAnalytics = () => {
       return response.data;
     },
     onSuccess: () => {
+      // Invalidate all analytics-related queries
       queryClient.invalidateQueries({ queryKey: [BackendRoute.ANALYTICS] });
+      
+      // Invalidate user stats
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.USER_STATS] });
+      
+      // Invalidate admin dashboard analytics
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_DASHBOARD] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_USERS_ANALYTICS] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_USER_ACTIVITY] });
+      
+      // Invalidate specific user and game analytics
+      queryClient.invalidateQueries({ 
+        queryKey: [BackendRoute.ADMIN_USER_ANALYTICS],
+        exact: false // Invalidate all user analytics queries
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: [BackendRoute.ADMIN_GAME_ANALYTICS],
+        exact: false // Invalidate all game analytics queries
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS_POPULARITY]
+      });
     },
   });
 };
@@ -66,8 +89,31 @@ export const useUpdateAnalytics = () => {
       return response.data;
     },
     onSuccess: (_, variables) => {
+      // Invalidate all analytics-related queries
       queryClient.invalidateQueries({ queryKey: [BackendRoute.ANALYTICS] });
       queryClient.invalidateQueries({ queryKey: [BackendRoute.ANALYTICS, variables.id] });
+      
+      // Invalidate user stats
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.USER_STATS] });
+      
+      // Invalidate admin dashboard analytics
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_DASHBOARD] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_USERS_ANALYTICS] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_USER_ACTIVITY] });
+      
+      // Invalidate specific user and game analytics
+      queryClient.invalidateQueries({ 
+        queryKey: [BackendRoute.ADMIN_USER_ANALYTICS],
+        exact: false // Invalidate all user analytics queries
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: [BackendRoute.ADMIN_GAME_ANALYTICS],
+        exact: false // Invalidate all game analytics queries
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS_POPULARITY]
+      });
     },
   });
 };
@@ -85,7 +131,30 @@ export const useDeleteAnalytics = () => {
       return response.data;
     },
     onSuccess: () => {
+      // Invalidate all analytics-related queries
       queryClient.invalidateQueries({ queryKey: [BackendRoute.ANALYTICS] });
+      
+      // Invalidate user stats
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.USER_STATS] });
+      
+      // Invalidate admin dashboard analytics
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_DASHBOARD] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_USERS_ANALYTICS] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_USER_ACTIVITY] });
+      
+      // Invalidate specific user and game analytics
+      queryClient.invalidateQueries({ 
+        queryKey: [BackendRoute.ADMIN_USER_ANALYTICS],
+        exact: false // Invalidate all user analytics queries
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: [BackendRoute.ADMIN_GAME_ANALYTICS],
+        exact: false // Invalidate all game analytics queries
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS_POPULARITY]
+      });
     },
   });
 };
@@ -136,6 +205,7 @@ export interface UserAnalytics {
   lastName: string;
   email: string;
   phoneNumber: string;
+  country: string;
   isActive: boolean;
   isVerified: boolean;
   lastLoggedIn: string;
@@ -189,7 +259,7 @@ interface UserActivityLog {
   username: string;
   action: string;
   timestamp: Date;
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, string | number | boolean>;
 }
 
 /**

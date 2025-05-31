@@ -8,7 +8,6 @@ import type {
   AuthTokens, 
   RegistrationData,
   ForgotPasswordData,
-  ResetPasswordData
 } from './types';
 
 
@@ -36,6 +35,14 @@ export const useVerifyOtp = () => {
       localStorage.setItem('refreshToken', data.refreshToken);
     
       queryClient.invalidateQueries({ queryKey: [BackendRoute.AUTH_ME] });
+    },
+  });
+};
+
+export const useVerifyResetOtp = () => {
+  return useMutation({
+    mutationFn: async ({ userId, otp }: { userId: string; otp: string }) => {
+      return backendService.post(BackendRoute.AUTH_VERIFY_OTP, { userId, otp });
     },
   });
 };
@@ -109,6 +116,14 @@ export const useForgotPassword = () => {
   });
 };
 
+export const useForgotPasswordPhone = () => {
+  return useMutation({
+    mutationFn: async (phoneNumber: string) => {
+      return backendService.post(BackendRoute.AUTH_FORGOT_PASSWORD + '/phone', { phoneNumber });
+    },
+  });
+};
+
 
 export const useVerifyResetToken = () => {
   return useMutation({
@@ -129,8 +144,14 @@ export const useVerifyResetToken = () => {
 
 export const useResetPassword = () => {
   return useMutation({
-    mutationFn: async ({ token, password, confirmPassword }: ResetPasswordData) => {
-      return backendService.post(`${BackendRoute.AUTH_RESET_PASSWORD}/${token}`, { password, confirmPassword });
+    mutationFn: async ({ token, userId, password, confirmPassword }: { token?: string; userId?: string; password: string; confirmPassword: string }) => {
+      if (token) {
+        // Email flow - use token in URL
+        return backendService.post(`${BackendRoute.AUTH_RESET_PASSWORD}/${token}`, { password, confirmPassword });
+      } else {
+        // Phone flow - use userId in body
+        return backendService.post(BackendRoute.AUTH_RESET_PASSWORD, { userId, password, confirmPassword });
+      }
     },
   });
 };

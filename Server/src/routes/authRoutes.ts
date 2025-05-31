@@ -8,6 +8,7 @@ import {
   forgotPassword,
   verifyResetToken,
   resetPassword,
+  forgotPasswordPhone,
   requestOtp
 } from '../controllers/authController';
 import {
@@ -64,13 +65,26 @@ router.post(
   resetPasswordFromInvitation
 );
 
-// Password reset routes
+// Email-based password reset routes
 router.post('/forgot-password', authLimiter, validateBody(forgotPasswordSchema), forgotPassword);
 router.get('/reset-password/:token', validateParams(yup.object({ token: yup.string().required('Token is required') })), verifyResetToken);
+// Password reset routes (supports both email and phone)
+router.post('/forgot-password/phone', authLimiter, validateBody(yup.object({
+  phoneNumber: yup.string().required('Phone number is required')
+})), forgotPasswordPhone);
+
+// Email-based reset (with token)
 router.post(
   '/reset-password/:token',
   authLimiter,
-  validateParams(yup.object({ token: yup.string().required('Token is required') })),
+  validateBody(resetPasswordSchema),
+  resetPassword
+);
+
+// Phone-based reset (no token)
+router.post(
+  '/reset-password',
+  authLimiter,
   validateBody(resetPasswordSchema),
   resetPassword
 );

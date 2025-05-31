@@ -58,7 +58,6 @@ export default function UserManagement() {
 
   
 
-
   // Filter users based on criteria
   const filteredUsers = users?.filter(user => {
     if (filters.registrationDates.startDate && new Date(user.createdAt) < new Date(filters.registrationDates.startDate)) return false;
@@ -70,11 +69,6 @@ export default function UserManagement() {
     if (filters.gameTitle && user.analytics?.mostPlayedGame?.gameTitle !== filters.gameTitle) return false;
     return true;
   });
-
-
-
-
-
 
 
   return (
@@ -145,10 +139,10 @@ export default function UserManagement() {
                       {filteredUsers && filteredUsers.slice((page - 1) * usersPerPage, page * usersPerPage).map((user, idx) => (
                         <TableRow
                           key={idx}
-                          className="font-sans cursor-pointer hover:bg-[#f3e8ff] dark:hover:bg-[#23243a]"
-                          onClick={() => navigate(`/admin/management/${user.id}`)}
+                          className="font-pincuk cursor-pointer hover:bg-[#f3e8ff] dark:hover:bg-[#23243a]"
+                          onClick={() => navigate(`/admin/management/${user.id}`, { state: { user } })}
                         >
-                          <TableCell>{`${user.firstName} ${user.lastName}`}</TableCell>
+                          <TableCell>{`${user.firstName || ""} ${user.lastName || ""}`}</TableCell>
                           <TableCell>{user.email || '-'}</TableCell>
                           <TableCell>{user.phoneNumber || '-'}</TableCell>
                           <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>

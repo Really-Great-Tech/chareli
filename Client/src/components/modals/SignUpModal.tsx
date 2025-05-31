@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useCreateUser } from "../../backend/user.service";
 import { useTrackSignupClick } from "../../backend/signup.analytics.service";
+import { useSystemConfigByKey } from "../../backend/configuration.service";
 import { toast } from "sonner";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import type { FormikHelpers, FieldProps } from "formik";
@@ -26,32 +27,101 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { TbUser } from "react-icons/tb";
 import { AiOutlineMail } from "react-icons/ai";
 
-// Validation schema
-const validationSchema = Yup.object({
-  firstName: Yup.string().required("First name is required"),
-  lastName: Yup.string().required("Last name is required"),
-  email: Yup.string()
-    .email("Invalid email address")
-    .required("Email is required"),
-  phoneNumber: Yup.string().required("Phone number is required"),
-  password: passwordSchema,
-  confirmPassword: confirmPasswordSchema,
-  ageConfirm: Yup.boolean().default(false),
-  terms: Yup.boolean()
-    .oneOf([true], "You must accept the terms of use")
-    .required("You must accept the terms of use"),
-});
+const getAuthFields = (config?: { value?: { settings: any } }) => {
+  // Default state when no config or invalid config
+  const defaultFields = { 
+    showAll: true,
+    showEmail: true,
+    showPhone: true,
+    firstName: true,
+    lastName: true
+  };
 
-// Initial values
-const initialValues = {
-  firstName: "",
-  lastName: "",
-  email: "",
-  phoneNumber: "",
-  password: "",
-  confirmPassword: "",
-  ageConfirm: false,
-  terms: false,
+  if (!config?.value?.settings) return defaultFields;
+
+  const { both, email, sms } = config.value.settings;
+
+  // Guard against undefined settings
+  if (!both || !email || !sms) return defaultFields;
+  
+  if (both.enabled) {
+    return { 
+      showAll: false,
+      showEmail: true, 
+      showPhone: true,
+      firstName: true,
+      lastName: true
+    };
+  }
+  
+  if (email.enabled) {
+    return { 
+      showAll: false,
+      showEmail: true, 
+      showPhone: false,
+      firstName: !!email.firstName,
+      lastName: !!email.lastName 
+    };
+  }
+  
+  if (sms.enabled) {
+    return { 
+      showAll: false,
+      showEmail: false,
+      showPhone: true,
+      firstName: !!sms.firstName,
+      lastName: !!sms.lastName 
+    };
+  }
+  
+  return defaultFields;
+};
+
+const getValidationSchema = (config?: { value?: { settings: any } }) => {
+  const fields = getAuthFields(config);
+  const schema: any = {
+    password: passwordSchema,
+    confirmPassword: confirmPasswordSchema,
+    ageConfirm: Yup.boolean().default(false),
+    terms: Yup.boolean()
+      .oneOf([true], "You must accept the terms of use")
+      .required("You must accept the terms of use")
+  };
+
+  if (fields.showAll || fields.showEmail) {
+    schema.email = Yup.string().email("Invalid email address").required("Email is required");
+  }
+
+  if (fields.showAll || fields.showPhone) {
+    schema.phoneNumber = Yup.string().required("Phone number is required");
+  }
+
+  if (fields.firstName) {
+    schema.firstName = Yup.string().required("First name is required");
+  }
+
+  if (fields.lastName) {
+    schema.lastName = Yup.string().required("Last name is required");
+  }
+
+  return Yup.object(schema);
+};
+
+const getInitialValues = (config?: { value?: { settings: any } }) => {
+  const fields = getAuthFields(config);
+  const values: any = {
+    password: "",
+    confirmPassword: "",
+    ageConfirm: false,
+    terms: false
+  };
+
+  if (fields.showAll || fields.showEmail) values.email = "";
+  if (fields.showAll || fields.showPhone) values.phoneNumber = "";
+  if (fields.firstName) values.firstName = "";
+  if (fields.lastName) values.lastName = "";
+
+  return values;
 };
 
 interface SignUpDialogProps {
@@ -69,16 +139,20 @@ export function SignUpModal({
   openLoginModal,
 }: SignUpDialogProps) {
   const [showPassword, setShowPassword] = useState(false);
+  const { data: config } = useSystemConfigByKey('authentication_settings');
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
   const toggleConfirmPasswordVisibility = () =>
     setShowConfirmPassword(!showConfirmPassword);
 
+
+  console.log("config", config)
+
   const createUser = useCreateUser();
   const { mutate: trackSignup } = useTrackSignupClick();
 
-  const handleSignUp = async (values: typeof initialValues, actions: FormikHelpers<typeof initialValues>) => {
+  const handleSignUp = async (values: ReturnType<typeof getInitialValues>, actions: FormikHelpers<ReturnType<typeof getInitialValues>>) => {
     try {
       // Track the final signup button click
       trackSignup({ type: 'signup-modal' });
@@ -124,8 +198,8 @@ export function SignUpModal({
           </DialogTitle>
           <DialogDescription className="text-center">
             <Formik
-              initialValues={initialValues}
-              validationSchema={validationSchema}
+              initialValues={getInitialValues(config)}
+              validationSchema={getValidationSchema(config)}
               onSubmit={handleSignUp}
               validateOnMount={false}
               validateOnChange={false}
@@ -133,140 +207,163 @@ export function SignUpModal({
             >
               {({ isSubmitting}) => (
                 <Form className="space-y-1">
-                  <div className="flex space-x-4">
-                    <div className="flex-1 relative">
-                      <Label
-                        htmlFor="firstName"
-                        className="font-boogaloo text-base text-black dark:text-white"
-                      >
-                        First Name
-                      </Label>
-                      <div className="relative">
-                        <TbUser
-                          size={15}
-                          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                        />
-                        <Field
-                          as={Input}
-                          id="firstName"
-                          name="firstName"
-                          placeholder="Enter First Name"
-                          className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-pincuk text-[11px] font-normal h-[48px]"
-                        />
-                      </div>
-                      <ErrorMessage
-                        name="firstName"
-                        component="div"
-                        className="text-red-500 text-xs mt-1 font-pincuk"
-                      />
-                    </div>
-                    <div className="flex-1 relative">
-                      <Label
-                        htmlFor="lastName"
-                        className="font-boogaloo text-base text-black dark:text-white"
-                      >
-                        Last Name
-                      </Label>
-                      <div className="relative">
-                        <TbUser
-                          size={15}
-                          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                        />
-                        <Field
-                          as={Input}
-                          id="lastName"
-                          name="lastName"
-                          placeholder="Enter Last Name"
-                          className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-pincuk text-[11px] font-normal h-[48px]"
-                        />
-                      </div>
-                      <ErrorMessage
-                        name="lastName"
-                        component="div"
-                        className="text-red-500 text-xs mt-1 font-pincuk"
-                      />
-                    </div>
-                  </div>
-                  <div className="relative">
-                    <Label
-                      htmlFor="email"
-                      className="font-boogaloo text-base text-black dark:text-white"
-                    >
-                      E-Mail
-                    </Label>
-                    <div className="relative">
-                      <AiOutlineMail
-                        size={15}
-                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                      />
-                      <Field
-                        as={Input}
-                        id="email"
-                        name="email"
-                        placeholder="Enter Email"
-                        className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-pincuk text-[11px] font-normal h-[48px]"
-                      />
-                    </div>
-                    <ErrorMessage
-                      name="email"
-                      component="div"
-                      className="text-red-500 text-xs mt-1 font-pincuk"
-                    />
-                  </div>
-                  <div className="relative">
-                    <Label
-                      htmlFor="phoneNumber"
-                      className="font-boogaloo text-base text-black dark:text-white"
-                    >
-                      Phone Number
-                    </Label>
-                    <Field name="phoneNumber">
-                      {({ field, form }: FieldProps) => (
-                        <div className="w-full mt-1">
-                          <PhoneInput
-                            country="us"
-                            value={field.value}
-                            onChange={(value) => form.setFieldValue('phoneNumber', formatPhoneNumber(value))}
-                            inputStyle={{ 
-                              width: "100%", 
-                              height: "48px", 
-                              backgroundColor: "#E2E8F0", 
-                              border: "0", 
-                              borderRadius: "0.375rem", 
-                              fontFamily: "pincuk", 
-                              fontSize: "11px" 
-                            }}
-                            containerClass="dark:bg-[#191c2b]"
-                            buttonStyle={{ 
-                              backgroundColor: "#E2E8F0", 
-                              border: "0", 
-                              borderRadius: "0.375rem 0 0 0.375rem" 
-                            }}
-                            dropdownStyle={{ 
-                              backgroundColor: "#fff", 
-                              color: "#000" 
-                            }}
-                            searchStyle={{ 
-                              backgroundColor: "#fff", 
-                              color: "#000" 
-                            }}
-                            enableAreaCodeStretch
-                            autoFormat
-                            enableSearch
-                            disableSearchIcon
-                            autocompleteSearch
-                            countryCodeEditable={false}
-                          />
-                        </div>
-                      )}
-                    </Field>
-                    <ErrorMessage
-                      name="phoneNumber"
-                      component="div"
-                      className="text-red-500 text-xs mt-1 font-pincuk"
-                    />
-                  </div>
-                  <div className="relative">
+                  {/* Authentication Fields */}
+                  {(() => {
+                    const fields = getAuthFields(config);
+                    return (
+                      <>
+                        {(fields.showAll || fields.showEmail) && (
+                          <div className="relative">
+                            <Label
+                              htmlFor="email"
+                              className="font-boogaloo text-base text-black dark:text-white"
+                            >
+                              E-Mail
+                            </Label>
+                            <div className="relative">
+                              <AiOutlineMail
+                                size={15}
+                                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                              />
+                              <Field
+                                as={Input}
+                                id="email"
+                                name="email"
+                                placeholder="Enter Email"
+                                className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-pincuk text-[11px] font-normal h-[48px]"
+                              />
+                            </div>
+                            <ErrorMessage
+                              name="email"
+                              component="div"
+                              className="text-red-500 text-xs mt-1 font-pincuk"
+                            />
+                          </div>
+                        )}
+
+                        {(fields.showAll || fields.showPhone) && (
+                          <div className="relative">
+                            <Label
+                              htmlFor="phoneNumber"
+                              className="font-boogaloo text-base text-black dark:text-white"
+                            >
+                              Phone Number
+                            </Label>
+                            <Field name="phoneNumber">
+                              {({ field, form }: FieldProps) => (
+                                <div className="w-full mt-1">
+                                  <PhoneInput
+                                    country="us"
+                                    value={field.value}
+                                    onChange={(value) => form.setFieldValue('phoneNumber', formatPhoneNumber(value))}
+                                    inputStyle={{ 
+                                      width: "100%", 
+                                      height: "48px", 
+                                      backgroundColor: "#E2E8F0", 
+                                      border: "0", 
+                                      borderRadius: "0.375rem", 
+                                      fontFamily: "pincuk", 
+                                      fontSize: "11px" 
+                                    }}
+                                    containerClass="dark:bg-[#191c2b]"
+                                    buttonStyle={{ 
+                                      backgroundColor: "#E2E8F0", 
+                                      border: "0", 
+                                      borderRadius: "0.375rem 0 0 0.375rem" 
+                                    }}
+                                    dropdownStyle={{ 
+                                      backgroundColor: "#E2E8F0", 
+                                      color: "#000" 
+                                    }}
+                                    searchStyle={{ 
+                                      backgroundColor: "##E2E8F0", 
+                                      color: "#000" 
+                                    }}
+                                    enableAreaCodeStretch
+                                    autoFormat
+                                    enableSearch
+                                    disableSearchIcon
+                                    autocompleteSearch
+                                    countryCodeEditable={false}
+                                  />
+                                </div>
+                              )}
+                            </Field>
+                            <ErrorMessage
+                              name="phoneNumber"
+                              component="div"
+                              className="text-red-500 text-xs mt-1 font-pincuk"
+                            />
+                          </div>
+                        )}
+
+                        {/* Name Fields */}
+                        {(fields.firstName || fields.lastName) && (
+                          <div className="flex space-x-4 mt-4">
+                            {fields.firstName && (
+                              <div className="flex-1 relative">
+                                <Label
+                                  htmlFor="firstName"
+                                  className="font-boogaloo text-base text-black dark:text-white"
+                                >
+                                  First Name
+                                </Label>
+                                <div className="relative">
+                                  <TbUser
+                                    size={15}
+                                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                                  />
+                                  <Field
+                                    as={Input}
+                                    id="firstName"
+                                    name="firstName"
+                                    placeholder="Enter First Name"
+                                    className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-pincuk text-[11px] font-normal h-[48px]"
+                                  />
+                                </div>
+                                <ErrorMessage
+                                  name="firstName"
+                                  component="div"
+                                  className="text-red-500 text-xs mt-1 font-pincuk"
+                                />
+                              </div>
+                            )}
+                            {fields.lastName && (
+                              <div className="flex-1 relative">
+                                <Label
+                                  htmlFor="lastName"
+                                  className="font-boogaloo text-base text-black dark:text-white"
+                                >
+                                  Last Name
+                                </Label>
+                                <div className="relative">
+                                  <TbUser
+                                    size={15}
+                                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                                  />
+                                  <Field
+                                    as={Input}
+                                    id="lastName"
+                                    name="lastName"
+                                    placeholder="Enter Last Name"
+                                    className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-pincuk text-[11px] font-normal h-[48px]"
+                                  />
+                                </div>
+                                <ErrorMessage
+                                  name="lastName"
+                                  component="div"
+                                  className="text-red-500 text-xs mt-1 font-pincuk"
+                                />
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
+
+                  {/* Password Fields */}
+                  <div className="relative mt-4">
                     <Label
                       htmlFor="password"
                       className="font-boogaloo text-base text-black dark:text-white"
@@ -303,7 +400,7 @@ export function SignUpModal({
                       className="text-red-500 text-xs mt-1 font-pincuk"
                     />
                   </div>
-                  <div className="relative">
+                  <div className="relative mt-4">
                     <Label
                       htmlFor="confirmPassword"
                       className="font-boogaloo text-base text-black dark:text-white"
@@ -406,10 +503,10 @@ export function SignUpModal({
             </Formik>
           </DialogDescription>
         </DialogHeader>
-        <p className="text-sm text-center text-black dark:text-white font-boogaloo">
+        <p className="text-sm text-center text-black dark:text-white font-pincuk">
           Already have an account?{" "}
           <span
-            className="underline text-[#C026D3] cursor-pointer"
+            className="underline text-[#C026D3] cursor-pointer font-boogaloo text-lg hover:underline"
             onClick={openLoginModal}
           >
             Login

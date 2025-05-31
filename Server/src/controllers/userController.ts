@@ -93,11 +93,19 @@ export const getCurrentUserStats = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    // Get user ID from authenticated user
+    // If user is not authenticated, send default stats
     if (!req.user || !req.user.userId) {
-      return next(ApiError.unauthorized('User not authenticated'));
+      res.status(200).json({
+        success: true,
+        data: {
+          totalSeconds: 0,
+          totalPlays: 0,
+          gamesPlayed: []
+        }
+      });
+      return;
     }
-    
+
     const userId = req.user.userId;
 
     // Get total minutes played
@@ -126,7 +134,7 @@ export const getCurrentUserStats = async (
       .addSelect('MAX(analytics.startTime)', 'lastPlayed')
       .leftJoin('analytics.game', 'game')
       .leftJoin('game.thumbnailFile', 'thumbnailFile')
-      .where('analytics.userId = :userId', { userId })
+      .where('analytics.userId = :userId AND analytics.gameId IS NOT NULL', { userId })
       .groupBy('analytics.gameId')
       .addGroupBy('game.title')
       .addGroupBy('thumbnailFile.s3Key')
@@ -271,11 +279,6 @@ export const createUser = async (
   try {
     const { firstName, lastName, email, password, phoneNumber, isAdult, hasAcceptedTerms } = req.body;
 
-    // Validate required fields including terms acceptance
-    if (!firstName || !lastName || !email || !password || !hasAcceptedTerms) {
-      return next(ApiError.badRequest('All fields are required'));
-    }
-
     // Get IP address
     const forwarded = req.headers['x-forwarded-for'];
     const ipAddress = Array.isArray(forwarded)
@@ -285,13 +288,15 @@ export const createUser = async (
     // Get country from IP
     const country = await getCountryFromIP(ipAddress);
 
-    // Check if user with email already exists
-    const existingUser = await userRepository.findOne({
-      where: { email },
-    });
+    // Check if user with email already exists (only if email is provided)
+    if (email) {
+      const existingUser = await userRepository.findOne({
+        where: { email },
+      });
 
-    if (existingUser) {
-      return next(ApiError.badRequest('An account with this email already exists'));
+      if (existingUser) {
+        return next(ApiError.badRequest('An account with this email already exists'));
+      }
     }
 
     // Get the role

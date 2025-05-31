@@ -1,25 +1,24 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
-import type { FormikHelpers } from "formik";
+import type { FieldProps, FormikHelpers } from "formik";
+import type { LoginCredentials } from "../../backend/types";
 import * as Yup from "yup";
 import { useAuth } from "../../context/AuthContext";
 import { toast } from "sonner";
 import { ForgotPasswordModal } from "./ForgotPasswordModal";
-import {
-  Dialog,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "../../components/ui/dialog";
+import { Dialog, DialogHeader, DialogTitle } from "../../components/ui/dialog";
 import { CustomDialogContent } from "../ui/custom-dialog-content";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { AiOutlineMail } from "react-icons/ai";
-import { OTPPlatformModal } from "./OTPPlatformModal";
 import { OTPVerificationModal } from "./OTPVerificationModal";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
+import "../../styles/phone-input.css";
+import { useNavigate } from "react-router-dom";
 
 interface LoginDialogProps {
   open: boolean;
@@ -29,19 +28,44 @@ interface LoginDialogProps {
 }
 
 interface LoginFormValues {
-  email: string;
+  email?: string;
+  phoneNumber?: string;
   password: string;
 }
 
-const validationSchema = Yup.object({
+interface LoginResponse {
+  userId: string;
+  hasEmail: boolean;
+  hasPhone: boolean;
+  phoneNumber?: string;
+  email?: string;
+  requiresOtp: boolean;
+  otpType?: "EMAIL" | "SMS" | "BOTH";
+  message: string;
+  tokens?: {
+    accessToken: string;
+    refreshToken: string;
+  };
+}
+
+const emailValidationSchema = Yup.object({
   email: Yup.string()
     .email("Invalid email address")
     .required("Email is required"),
   password: Yup.string().required("Password is required"),
 });
 
-const getInitialValues = (defaultEmail?: string): LoginFormValues => ({
-  email: defaultEmail || "",
+const phoneValidationSchema = Yup.object({
+  phoneNumber: Yup.string().required("Phone number is required"),
+  password: Yup.string().required("Password is required"),
+});
+
+const getInitialValues = (
+  defaultEmail?: string,
+  isEmailTab = true
+): LoginFormValues => ({
+  email: isEmailTab ? defaultEmail || "" : undefined,
+  phoneNumber: isEmailTab ? undefined : "",
   password: "",
 });
 
@@ -52,45 +76,50 @@ export function LoginModal({
   defaultEmail,
 }: LoginDialogProps) {
   const [showPassword, setShowPassword] = useState(false);
-  const [isOTPPlatformModalOpen, setIsOTPPlatformModalOpen] = useState(false);
-  const [userId, setUserId] = useState("");
-  const [userEmail, setUserEmail] = useState("");
-  const [userPhone, setUserPhone] = useState("");
-  const [hasBothContactMethods, setHasBothContactMethods] = useState(false);
+  const [loginResponse, setLoginResponse] = useState<LoginResponse | null>(null);
   const [isOTPVerificationModalOpen, setIsOTPVerificationModalOpen] = useState(false);
-  const [selectedOtpType, setSelectedOtpType] = useState<'EMAIL' | 'SMS'>('EMAIL');
   const [loginError, setLoginError] = useState("");
   const [isForgotPasswordModalOpen, setIsForgotPasswordModalOpen] = useState(false);
-  const { login } = useAuth();
+  const [activeTab, setActiveTab] = useState<"email" | "phone">("email");
+  const [shouldRedirect, setShouldRedirect] = useState(false);
+  const { login, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
-  console.log(hasBothContactMethods)
-  
-  const handleLogin = async (values: LoginFormValues, actions: FormikHelpers<LoginFormValues>) => {
+  // Watch for authentication state changes
+  useEffect(() => {
+    if (shouldRedirect && isAuthenticated) {
+      navigate("/");
+      setShouldRedirect(false);
+    }
+  }, [shouldRedirect, isAuthenticated, navigate]);
+
+  const handleLogin = async (
+    values: LoginFormValues,
+    actions: FormikHelpers<LoginFormValues>
+  ) => {
     try {
       setLoginError("");
-      const response = await login(values.email, values.password);
-      const { userId, hasEmail, hasPhone, phoneNumber, email: userEmail } = response;
-      
-      setUserId(userId);
-      setUserEmail(userEmail || values.email);
-      setUserPhone(phoneNumber || '');
-      setHasBothContactMethods(hasEmail && hasPhone);
-      
-      // Determine the OTP type based on available contact methods
-      if (!hasEmail && hasPhone) {
-        setSelectedOtpType('SMS');
-      } else {
-        setSelectedOtpType('EMAIL');
-      }
-      
-      if (hasEmail && hasPhone) {
-        setIsOTPPlatformModalOpen(true);
-      } else {
+      const credentials: LoginCredentials = {
+        identifier: activeTab === "email" ? values.email! : values.phoneNumber!,
+        password: values.password,
+      };
+
+      const response: LoginResponse = await login(credentials);
+      setLoginResponse(response);
+      setLoginError(""); 
+
+      if (response.requiresOtp) {
+        // Show OTP verification modal and info message
         setIsOTPVerificationModalOpen(true);
+        onOpenChange(false);
+        toast.info(response.message);
+      } else {
+        // No OTP required, show success and redirect
+        toast.success(response.message);
+        setShouldRedirect(true);
+        onOpenChange(false);
       }
-  
-      onOpenChange(false);
     } catch (error: any) {
       if (error.response?.data?.message) {
         setLoginError(error.response.data.message);
@@ -106,7 +135,8 @@ export function LoginModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <CustomDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221]">
+      <CustomDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221] p-0">
+        {/* Custom Close Button */}
         <button
           className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#C026D3] flex items-center justify-center shadow-lg hover:bg-[#a21caf] transition-colors"
           onClick={() => onOpenChange(false)}
@@ -115,137 +145,221 @@ export function LoginModal({
         >
           <span className="text-white text-2xl font-bold">×</span>
         </button>
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-[#E328AF] text-center font-boogaloo">
+        <DialogHeader className="mb-4">
+          <DialogTitle className="text-3xl font-bold text-[#E328AF] text-center font-boogaloo py-4">
             Login
           </DialogTitle>
-          <DialogDescription className="text-center">
-            <Formik
-              initialValues={getInitialValues(defaultEmail)}
-              validationSchema={validationSchema}
-              onSubmit={handleLogin}
-            >
-              {({ isSubmitting }) => (
-                <Form className="space-y-4">
+          <div className="flex font-boogaloo text-xl tracking-wide">
+            <div className="px-6 flex w-full border-b">
+              <button
+                className={`flex-1 py-2 font-semibold ${
+                  activeTab === "email"
+                    ? "text-[#E328AF] border-b-2 border-[#E328AF]"
+                    : "text-gray-500"
+                }`}
+                onClick={() => setActiveTab("email")}
+              >
+                Email
+              </button>
+              <button
+                className={`flex-1 py-2 font-semibold ${
+                  activeTab === "phone"
+                    ? "text-[#E328AF] border-b-2 border-[#E328AF]"
+                    : "text-gray-500"
+                }`}
+                onClick={() => setActiveTab("phone")}
+              >
+                Phone Number
+              </button>
+            </div>
+          </div>
+        </DialogHeader>
+
+        <div className="px-6 pb-6">
+          <Formik
+            initialValues={getInitialValues(
+              defaultEmail,
+              activeTab === "email"
+            )}
+            validationSchema={
+              activeTab === "email"
+                ? emailValidationSchema
+                : phoneValidationSchema
+            }
+            onSubmit={handleLogin}
+            enableReinitialize
+          >
+            {({ isSubmitting }) => (
+              <Form className="space-y-4">
+                <div className="space-y-1">
+                  <Label
+                    htmlFor={activeTab === "email" ? "email" : "phoneNumber"}
+                    className="font-boogaloo text-base text-black dark:text-white"
+                  >
+                    {activeTab === "email" ? "Email" : "Phone Number"}
+                  </Label>
                   <div className="relative">
-                    <Label
-                      htmlFor="email"
-                      className="font-boogaloo text-base text-black dark:text-white"
-                    >
-                      Email
-                    </Label>
-                    <div className="relative">
+                    {activeTab === "email" && (
                       <AiOutlineMail
                         size={15}
                         className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 z-10"
                       />
-                      <Field
-                        as={Input}
-                        id="email"
-                        name="email"
-                        placeholder="email"
-                        className="mt-1 bg-[#E2E8F0] dark:bg-[#191c2b] border-0 pl-10 font-pincuk text-[11px] font-normal h-[48px]"
-                      />
-                    </div>
-                    <ErrorMessage
-                      name="email"
-                      component="div"
-                      className="text-red-500 text-xs mt-1 font-pincuk"
-                    />
-                  </div>
-                  <div className="relative">
-                    <Label
-                      htmlFor="password"
-                      className="font-boogaloo text-base text-black dark:text-white"
-                    >
-                      Password
-                    </Label>
-                    <div className="relative">
-                      <button
-                        type="button"
-                        onClick={togglePasswordVisibility}
-                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 z-10"
-                        aria-label={
-                          showPassword ? "Hide password" : "Show password"
-                        }
-                      >
-                        {showPassword ? (
-                          <FaEyeSlash size={15} />
-                        ) : (
-                          <FaEye size={15} />
+                    )}
+                    {activeTab === "phone" ? (
+                      <Field name="phoneNumber">
+                        {({ field, form }: FieldProps) => (
+                          <PhoneInput
+                            country={"us"}
+                            value={field.value}
+                            onChange={(value) =>
+                              form.setFieldValue("phoneNumber", `+${value}`)
+                            }
+                            inputProps={
+                              {
+                                // className: 'w-full rounded-md',
+                              }
+                            }
+                            inputStyle={{
+                              width: "100%",
+                              height: "48px",
+                              backgroundColor: "#E2E8F0",
+                              border: "0",
+                              borderRadius: "0.375rem",
+                              fontFamily: "pincuk",
+                              fontSize: "11px",
+                            }}
+                            containerClass="dark:bg-[#191c2b]"
+                            buttonStyle={{
+                              backgroundColor: "#E2E8F0",
+                              border: "0",
+                              borderRadius: "0.375rem 0 0 0.375rem",
+                            }}
+                            dropdownStyle={{
+                              backgroundColor: "#E2E8F0",
+                              color: "#000",
+                            }}
+                            searchStyle={{
+                              backgroundColor: "#E2E8F0",
+                              color: "#000",
+                            }}
+                            enableAreaCodeStretch
+                            autoFormat
+                            enableSearch
+                            disableSearchIcon
+                            autocompleteSearch
+                            countryCodeEditable={false}
+                          />
                         )}
-                      </button>
+                      </Field>
+                    ) : (
                       <Field
                         as={Input}
-                        id="password"
-                        name="password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="password"
-                        className="mt-1 bg-[#E2E8F0] dark:bg-[#191c2b] border-0 pl-10 pr-10 font-pincuk text-[11px] font-normal h-[48px]"
+                        id={activeTab === "email" ? "email" : "phoneNumber"}
+                        name={activeTab === "email" ? "email" : "phoneNumber"}
+                        placeholder={
+                          activeTab === "email"
+                            ? "Enter your email"
+                            : "Enter your phone number"
+                        }
+                        className={`mt-1 bg-[#E2E8F0] border-0 pl-10 font-pincuk text-[11px] font-normal h-[48px] ${
+                          activeTab === "email" ? "pl-10" : ""
+                        }`}
                       />
-                    </div>
-                    <ErrorMessage
+                    )}
+                  </div>
+                  <ErrorMessage
+                    name={activeTab === "email" ? "email" : "phoneNumber"}
+                    component="div"
+                    className="text-red-500 text-xs"
+                  />
+                </div>
+                <div className="relative">
+                  <Label
+                    htmlFor="password"
+                    className="font-boogaloo text-base text-black dark:text-white"
+                  >
+                    Password
+                  </Label>
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={togglePasswordVisibility}
+                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 z-10"
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
+                    >
+                      {showPassword ? (
+                        <FaEyeSlash size={15} />
+                      ) : (
+                        <FaEye size={15} />
+                      )}
+                    </button>
+                    <Field
+                      as={Input}
+                      id="password"
                       name="password"
-                      component="div"
-                      className="text-red-500 text-xs mt-1 font-pincuk"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="password"
+                      className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-pincuk text-[11px] font-normal h-[48px]"
                     />
                   </div>
-                  {loginError && (
-                    <div className="text-red-500 text-xs font-pincuk text-center">
-                      {loginError}
-                    </div>
-                  )}
-                  <div className="text-right">
-                    <span
-                      className="text-xs text-[#C026D3] cursor-pointer font-pincuk"
-                      onClick={() => {
-                        onOpenChange(false);
-                        setIsForgotPasswordModalOpen(true);
-                      }}
-                      data-forgot-password-trigger
-                    >
-                      Forgot Password?
-                    </span>
+                  <ErrorMessage
+                    name="password"
+                    component="div"
+                    className="text-red-500 text-xs mt-1 font-pincuk"
+                  />
+                </div>
+                {loginError && (
+                  <div className="text-red-500 text-xs font-pincuk text-center">
+                    {loginError}
                   </div>
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-boogaloo"
+                )}
+                <div className="text-right">
+                  <span
+                    className="text-[#C026D3] cursor-pointer font-boogaloo text-lg hover:underline"
+                    onClick={() => {
+                      onOpenChange(false);
+                      setIsForgotPasswordModalOpen(true);
+                    }}
+                    data-forgot-password-trigger
                   >
-                    Login
-                  </Button>
-                </Form>
-              )}
-            </Formik>
-          </DialogDescription>
-        </DialogHeader>
-        <p className="text-sm text-center text-black dark:text-white font-pincuk">
-          Don't have an account?
-          <span
-            className="underline text-[#C026D3] cursor-pointer"
-            onClick={openSignUpModal}
-          >
-            Sign Up
-          </span>
-        </p>
+                    Forgot Password?
+                  </span>
+                </div>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-boogaloo"
+                >
+                  Login
+                </Button>
+                <p className="text-sm text-center text-black dark:text-white font-pincuk">
+                  Don't have an account?{" "}
+                  <span
+                    className="text-[#C026D3] cursor-pointer hover:underline text-lg font-boogaloo"
+                    onClick={openSignUpModal}
+                  >
+                    Sign Up
+                  </span>
+                </p>
+              </Form>
+            )}
+          </Formik>
+        </div>
       </CustomDialogContent>
-      {/* Show OTPPlatformModal if user has both email and phone */}
-      <OTPPlatformModal
-        open={isOTPPlatformModalOpen}
-        onOpenChange={setIsOTPPlatformModalOpen}
-        userId={userId}
-        email={userEmail}
-        phone={userPhone}
-      />
-      
       <OTPVerificationModal
         open={isOTPVerificationModalOpen}
         onOpenChange={setIsOTPVerificationModalOpen}
-        userId={userId}
-        contactMethod={selectedOtpType === 'EMAIL' ? userEmail : userPhone}
-        otpType={selectedOtpType}
+        userId={loginResponse?.userId || ""}
+        contactMethod={
+          loginResponse?.otpType === "BOTH" && loginResponse?.email && loginResponse?.phoneNumber
+            ? `${loginResponse.email} and ${loginResponse.phoneNumber}`
+            : loginResponse?.email || loginResponse?.phoneNumber || ""
+        }
+        otpType={loginResponse?.otpType}
       />
-      
+
       <ForgotPasswordModal
         open={isForgotPasswordModalOpen}
         onOpenChange={setIsForgotPasswordModalOpen}

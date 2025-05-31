@@ -1,6 +1,5 @@
 import { Dialog } from "../ui/dialog";
 import { CustomDialogContent } from "../ui/custom-dialog-content";
-import profileImg from '../../assets/profileModal-Img.svg';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
@@ -40,10 +39,10 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
 
                     <div>
                     <img
-                        src={profileImg}
+                        src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y"
                         alt="Profile"
-                        className="w-20 h-20 rounded-full object-cover mb-2"
-                        />
+                        className="w-20 h-20 rounded-full object-cover mb-2 border-2 border-[#D946EF]"
+                    />
                     </div>
 
                     <div className='ml-4'>

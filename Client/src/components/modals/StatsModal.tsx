@@ -1,7 +1,8 @@
 import { Dialog } from "../ui/dialog";
 import { CustomDialogContent } from "../ui/custom-dialog-content";
-import { FiClock } from "react-icons/fi";
+import { FiClock, FiInfo } from "react-icons/fi";
 import { LuGamepad2 } from "react-icons/lu";
+import { BsController } from "react-icons/bs";
 import statImg from '../../assets/stat-img.svg';
 import { useCurrentUserStats } from '../../backend/analytics.service';
 
@@ -33,9 +34,7 @@ interface StatsModalProps {
 export function StatsModal({ open, onClose }: StatsModalProps) {
   const { data: stats, isLoading, isError } = useCurrentUserStats();
 
-  const totalSeconds = stats?.totalSeconds ?? 0;
-  const totalPlays = stats?.totalPlays ?? 0;
-  const gamesPlayed = stats?.gamesPlayed ?? [];
+  console.log("stats", stats)
 
   if (isError) {
     return (
@@ -73,6 +72,20 @@ export function StatsModal({ open, onClose }: StatsModalProps) {
               <div className="w-full text-center py-4">
                 <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#C026D3] border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" />
               </div>
+            ) : !stats ? (
+              <div className="w-full text-center py-8">
+                <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-xl p-8">
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="bg-[#E879F9] rounded-full p-4">
+                      <BsController className="w-8 h-8 text-white" />
+                    </div>
+                    <h3 className="text-2xl font-bold dark:text-white text-[#0F1621]">No Game Stats Yet</h3>
+                    <p className="text-center dark:text-[#bdbdbd] text-[#334154] max-w-md">
+                      Start playing games to see your statistics here! Your gaming journey begins with your first play.
+                    </p>
+                  </div>
+                </div>
+              </div>
             ) : (
               <>
                 <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-xl p-6 w-full flex items-start">
@@ -82,7 +95,7 @@ export function StatsModal({ open, onClose }: StatsModalProps) {
                   <div className="ml-4">
                     <div className="dark:text-white text-[#0F1621] font-bold text-lg">Minutes Played</div>
                     <div className="dark:text-white text-[#0F1621] text-xl">
-                      {formatTime(totalSeconds)}
+                      {formatTime(stats.totalSeconds || 0)}
                     </div>
                   </div>
                 </div>
@@ -94,7 +107,7 @@ export function StatsModal({ open, onClose }: StatsModalProps) {
                     <span className="dark:text-white text-[#0F1621] font-bold text-lg tracking-widest mb-2">Total Plays</span>
                     <div className=''>
                       <span className="dark:text-white text-[#0F1621] text-xl font-thin mt-1 font-sans">
-                        {totalPlays}
+                        {stats.totalPlays || 0}
                       </span>
                     </div>
                   </div>
@@ -108,7 +121,7 @@ export function StatsModal({ open, onClose }: StatsModalProps) {
             <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-xl p-6 text-center">
               <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#C026D3] border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" />
             </div>
-          ) : (
+          ) : !stats ? null : (
             <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-xl p-6">
               <h3 className="text-3xl font-bold mb-6 text-[#C026D3]">Games Played</h3>
               
@@ -118,26 +131,35 @@ export function StatsModal({ open, onClose }: StatsModalProps) {
                 <div className="text-xl font-bold dark:text-white text-[#0F1621]">Last Played</div>
               </div>
               
-              {gamesPlayed.length === 0 ? (
-                <div className="text-center py-8 dark:text-[#bdbdbd] text-[#334154]">No games played yet</div>
+              {!stats.gamesPlayed || stats.gamesPlayed.length === 0 || !stats.gamesPlayed.some(game => game && game.gameId && game.title) ? (
+                <div className="text-center py-8">
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="bg-[#E879F9] rounded-full p-3">
+                      <FiInfo className="w-6 h-6 text-white" />
+                    </div>
+                    <p className="dark:text-[#bdbdbd] text-[#334154]">
+                      You haven't played any games yet. Jump into a game to start tracking your progress!
+                    </p>
+                  </div>
+                </div>
               ) : (
                 <div className="divide-y divide-[#35364d]">
-                  {gamesPlayed.map((game) => (
+                  {stats.gamesPlayed.map((game) => (
                     <div key={game.gameId} className="py-4 grid grid-cols-3 gap-4 items-center">
                       <div className="flex items-center">
                         <img 
                           src={game.thumbnailUrl || statImg} 
-                          alt={game.title || "Unknown Game"} 
+                          alt={game.title || "Game"} 
                           className="w-12 h-12 rounded-lg mr-3" 
                           onError={(e) => {
                             e.currentTarget.src = statImg;
                           }}
                         />
-                        <span className="font-bold">{game.title || "None"}</span>
+                        <span className="font-bold">{game.title}</span>
                       </div>
                       <div className="dark:text-[#bdbdbd] text-[#334154]">{formatTime(game.totalSeconds || 0)}</div>
                       <div className="dark:text-[#bdbdbd] text-[#334154]">
-                        {game.lastPlayed ? formatRelativeTime(new Date(game.lastPlayed)) : "Never played"}
+                        {game.lastPlayed ? formatRelativeTime(new Date(game.lastPlayed)) : "-"}
                       </div>
                     </div>
                   ))}

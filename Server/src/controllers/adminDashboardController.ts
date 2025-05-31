@@ -925,7 +925,7 @@ export const getUserAnalyticsById = async (
       .groupBy('analytics.gameId')
       .addGroupBy('game.title')
       .addGroupBy('thumbnailFile.s3Key')
-      .orderBy('lastPlayed', 'DESC')
+      .orderBy('MAX(analytics.startTime)', 'DESC')
       .getRawMany();
 
     // Format the game activity data

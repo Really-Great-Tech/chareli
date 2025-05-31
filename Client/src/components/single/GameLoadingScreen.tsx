@@ -19,27 +19,31 @@ const GameLoadingScreen = ({ game, progress, onProgress }: GameLoadingScreenProp
     const [showSlowLoadMessage, setShowSlowLoadMessage] = useState(false);
 
     useEffect(() => {
-        // Start progress simulation if progress is less than 90
-        if (progress < 90) {
-            const interval = setInterval(() => {
-                const nextProgress = progress + Math.random() * 15;
-                if (nextProgress < 90) {
+        let progressInterval: NodeJS.Timeout;
+        let slowLoadTimeout: NodeJS.Timeout;
+
+        // Fast progress simulation
+        if (progress < 100) {
+            progressInterval = setInterval(() => {
+                const increment = 5; // Smaller increment for slower progress
+                const nextProgress = progress + increment;
+                
+                if (nextProgress < 100) {
                     onProgress(nextProgress);
                 } else {
-                    clearInterval(interval);
+                    clearInterval(progressInterval);
                 }
-            }, 500);
-
-            return () => clearInterval(interval);
+            }, 750); // Longer intervals for 15 second total loading
         }
 
         // Show slow load message after 10 seconds
-        const slowLoadTimeout = setTimeout(() => {
+        slowLoadTimeout = setTimeout(() => {
             setShowSlowLoadMessage(true);
         }, 10000);
 
         return () => {
-            clearTimeout(slowLoadTimeout);
+            if (progressInterval) clearInterval(progressInterval);
+            if (slowLoadTimeout) clearTimeout(slowLoadTimeout);
         };
     }, [progress, onProgress]);
 

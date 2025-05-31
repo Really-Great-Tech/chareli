@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { FaChevronRight } from "react-icons/fa";
 import { FaRegUser } from "react-icons/fa6";
 import { MdLockOutline } from "react-icons/md";
-import { AiOutlineSafety } from "react-icons/ai";
 import { IoDocumentTextOutline } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import ChangePasswordSheet from "../../components/single/ChangePassword-Sheet";
@@ -11,14 +10,7 @@ import { TermsSheet } from "../../components/single/Terms-Sheet";
 const Settings: React.FC = () => {
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
-  const [wafEnabled, setWafEnabled] = useState(false);
   const navigate = useNavigate();
-
-  // Placeholder for future WAF implementation
-  const handleWafToggle = () => {
-    setWafEnabled(!wafEnabled);
-    // TODO: Implement WAF toggle functionality
-  };
 
   const settings = [
     {
@@ -40,13 +32,6 @@ const Settings: React.FC = () => {
       },
     },
     {
-      icon: <AiOutlineSafety size={16} />,
-      title: "WAF (Two-Factor Auth / Web App Firewall) + TFA to admin",
-      description: "Manage",
-      isSwitch: true,
-      onClick: handleWafToggle,
-    },
-    {
       icon: <IoDocumentTextOutline size={16} />,
       title: "Accept Terms of Use",
       description: "Upload",
@@ -64,7 +49,8 @@ const Settings: React.FC = () => {
         {settings.map((item, _idx) => (
           <div
             key={item.title}
-            className="bg-[#F5F7FB] dark:bg-[#181B2A] rounded-2xl px-6 py-6 flex items-center justify-between hover:bg-gray-200"
+            onClick={item.onClick}
+            className="bg-[#F5F7FB] dark:bg-[#181B2A] rounded-2xl px-6 py-6 flex items-center justify-between hover:bg-gray-200 cursor-pointer"
           >
             <div className="flex items-center gap-4">
               <div className="bg-[#F0ABFC] flex items-center justify-center rounded-full w-12 h-12 text-2xl text-white">
@@ -75,29 +61,7 @@ const Settings: React.FC = () => {
                 <div className="text-gray-500 text-sm font-pincuk dark:text-white">{item.description}</div>
               </div>
             </div>
-            {item.isSwitch ? (
-              <button
-                type="button"
-                aria-pressed={wafEnabled}
-                onClick={item.onClick}
-                className={`relative w-14 h-8 rounded-full transition-colors duration-200 focus:outline-none ${
-                  wafEnabled ? "bg-[#344054]" : "bg-gray-200"
-                }`}
-              >
-                <span
-                  className={`absolute top-1 left-1 w-6 h-6 rounded-full bg-white shadow transition-transform duration-200 ${
-                    wafEnabled ? "translate-x-6" : ""
-                  }`}
-                />
-              </button>
-            ) : (
-              <button
-                onClick={item.onClick}
-                className="text-[#C77DFF] font-bold text-2xl hover:text-[#a259d9] transition-colors"
-              >
-                <FaChevronRight className="text-gray-900 dark:text-white"/>
-              </button>
-            )}
+            <FaChevronRight className="text-gray-900 dark:text-white"/>
           </div>
         ))}
       </div>

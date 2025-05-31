@@ -3,6 +3,33 @@ import { authService, TokenPayload } from '../services/auth.service';
 import { ApiError } from './errorHandler';
 import { RoleType } from '../entities/Role';
 
+/**
+ * Middleware to optionally verify JWT token and attach user to request
+ * Does not require authentication, but will set user if valid token is provided
+ */
+export const optionalAuthenticate = (req: Request, res: Response, next: NextFunction) => {
+  try {
+    // Get token from Authorization header
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return next(); // Continue without authentication
+    }
+
+    const token = authHeader.split(' ')[1];
+    if (!token) {
+      return next(); // Continue without authentication
+    }
+
+    // Verify token and attach user if valid
+    const decoded = authService.verifyToken(token);
+    req.user = decoded;
+    next();
+  } catch (error) {
+    // If token is invalid, continue without authentication
+    next();
+  }
+};
+
 // Extend Express Request interface to include user property
 declare global {
   namespace Express {

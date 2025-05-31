@@ -1,6 +1,5 @@
 import { CiEdit } from "react-icons/ci";
 import { Button } from "../../components/ui/button";
-import gameImg from "@/assets/gamesImg/1.svg";
 import { IoChevronBack } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import EditProfileSheet from "../../components/single/EditProfile-Sheet";
@@ -46,9 +45,9 @@ export default function ViewProfile() {
         <div className="flex flex-col items-center">
           <div className="w-96 bg-[#f6f8fc] rounded-2xl p-6 flex flex-col items-center mb-8 dark:bg-[#334154]">
             <img
-              src={gameImg}
-              alt="avatar"
-              className="w-20 h-20 rounded-full"
+              src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y"
+              alt="Profile"
+              className="w-20 h-20 rounded-full border-2 border-[#D946EF]"
             />
             <div className="flex gap-3 items-center mt-4">
               <h2 className="mb-0 text-xl font-semibold text-[#121C2D] dark:text-white tracking-wider">

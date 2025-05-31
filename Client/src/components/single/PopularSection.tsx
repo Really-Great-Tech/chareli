@@ -50,9 +50,9 @@ const PopularSection = ({ searchQuery, setSearchQuery }: PopularSectionProps) =>
                         </div>
                     )}
                     {!isLoading && !error && games.length > 0 && (
-                        <div className="grid gap-[10px] w-full grid-cols-[repeat(auto-fit,minmax(268.8px,1fr))]">
+                        <div className="grid gap-[10px] w-full grid-cols-4 justify-items-center">
                             {games.map((game: any) => (
-                                <div key={game.id} className="relative p-[10px] group cursor-pointer">
+                                <div key={game.id} className="relative p-[10px] group cursor-pointer w-[320px]">
                                     <img 
                                         src={game.thumbnailFile?.s3Key} 
                                         alt={game.title}

@@ -16,16 +16,11 @@ export default function GamePlay() {
     const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
     const { data: game, isLoading, error } = useGameById(gameId || '');
     const { mutate: createAnalytics } = useCreateAnalytics();
-    // const { mutate: updateAnalytics } = useUpdateAnalytics();
     const analyticsIdRef = useRef<string | null>(null);
     
     const handleOpenSignUpModal = () => {
         setIsSignUpModalOpen(true);
     };
-
-    console.log(isSignUpModalOpen)
-
-    console.log("game file", game)
 
     const [expanded, setExpanded] = useState(false);
     const [isGameLoading, setIsGameLoading] = useState(true);
@@ -33,14 +28,29 @@ export default function GamePlay() {
     const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
     const { isAuthenticated } = useAuth();
 
-    console.log(timeRemaining)
-
+    // Simple loading timeout
     useEffect(() => {
-        if (game && !isAuthenticated && game.config > 0) {
+        if (game?.gameFile?.s3Key) {
+            // Show loading for 15 seconds then display game
+            const timer = setTimeout(() => {
+                setIsGameLoading(false);
+                setLoadProgress(100);
+            }, 15000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [game]);
+
+    // Timer for non-authenticated users - starts after game is loaded
+    useEffect(() => {
+        let timer: NodeJS.Timeout;
+
+        if (game && !isAuthenticated && game.config > 0 && !isGameLoading) {
+            // Only start timer after game is fully loaded
             setIsModalOpen(false);
             setTimeRemaining(game.config * 60);
             
-            const timer = setInterval(() => {
+            timer = setInterval(() => {
                 setTimeRemaining(prev => {
                     if (prev === null || prev <= 0) {
                         clearInterval(timer);
@@ -50,13 +60,15 @@ export default function GamePlay() {
                     return prev - 1;
                 });
             }, 1000);
+        }
 
-            return () => {
+        return () => {
+            if (timer) {
                 clearInterval(timer);
                 setIsModalOpen(false);
-            };
-        }
-    }, [game, isAuthenticated]);
+            }
+        };
+    }, [game, isAuthenticated, isGameLoading]);
 
     // Create analytics record when game starts
     useEffect(() => {
@@ -146,7 +158,6 @@ export default function GamePlay() {
                             />
                         )}
                         <iframe
-                            id="gameIframe"
                             src={`${game.gameFile.s3Key}`}
                             className={`w-full ${expanded ? 'h-screen' : 'h-[80vh]'} rounded-2xl`}
                             style={{ display: 'block', background: 'transparent' }}
@@ -154,13 +165,13 @@ export default function GamePlay() {
                             title={game.title}
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             onLoad={() => {
-                                setIsGameLoading(false);
                                 setLoadProgress(100);
                             }}
                         />
                         <KeepPlayingModal 
                             open={isModalOpen}
                             openSignUpModal={handleOpenSignUpModal}
+                            isGameLoading={isGameLoading}
                         />
                     </div>
                     <div className="absolute bottom-0 left-0 w-full flex items-center justify-between px-6 py-2 bg-[#2d0036] rounded-b-2xl border-t border-purple-400">
@@ -188,14 +199,14 @@ export default function GamePlay() {
                         <div>
                             <div className="flex items-center justify-between mb-4"></div>
                             <div className="">
-                                <Card className="border-hidden shadow-none p-0 mb-12 dark:bg-[#0f1221]">
-                                    <div className="grid gap-1 w-full grid-cols-[repeat(auto-fit,minmax(150px,1fr))]">
+                                <Card className="border-hidden shadow-none p-0 mb-12 dark:bg-[#0f1221] max-w-[1000px] mx-auto">
+                                    <div className="flex flex-wrap justify-center gap-6 w-full">
                                         {game.similarGames.map((similarGame: SimilarGame) => (
-                                            <div key={similarGame.id} className="relative aspect-square">
+                                            <div key={similarGame.id} className="w-[180px] aspect-square">
                                                 <img 
                                                     src={similarGame.thumbnailFile?.s3Key} 
                                                     alt={similarGame.title}
-                                                    className="w-full h-full object-cover border-4 border-transparent hover:border-[#D946EF] hover:rounded-4xl box-border transition-transform duration-200 hover:scale-110"
+                                                    className="w-full h-full object-cover border-4 border-transparent hover:border-[#D946EF] hover:rounded-4xl box-border transition-transform duration-200 hover:scale-110 cursor-pointer"
                                                     onClick={() => navigate(`/gameplay/${similarGame.id}`)}
                                                 />
                                             </div>
@@ -212,11 +223,6 @@ export default function GamePlay() {
                     <span className="text-xl">Game not found or no game file available</span>
                 </div>
             )}
-            {/* <LoginModal 
-                open={isSignUpModalOpen}
-                onOpenChange={handleCloseSignUpModal}
-                openSignUpModal={handleOpenSignUpModal}
-            /> */}
         </div>
     );
 }

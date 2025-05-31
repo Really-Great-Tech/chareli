@@ -56,7 +56,7 @@ export default function ViewGame() {
             className="w-28 h-28 rounded-full object-cover mb-4" 
           />
           <div className="flex gap-2 items-center">
-          <h2 className="text-xl font-bold font-boogaloo mb-2 text-[#121C2D] tracking-wider dark:text-white">{(game as any).game?.title || "N/A"}</h2>
+          <h2 className="text-xl font-bold font-boogaloo mb-2 text-[#121C2D] tracking-wider dark:text-white">{(game as any).game?.title || "-"}</h2>
           <span className={`inline-flex items-center gap-2 px-3 py-1 rounded text-sm font-pincuk mb-2 ${(game as any).game?.status === "active" ? "bg-[#D946EF]/20 dark:bg-[#E879F9] text-[#121C2D]" : "bg-[#CBD5E0] text-[#121C2D]"}`}>
             <span className={`w-2 h-2 rounded inline-block ${(game as any).game?.status === "active" ? "bg-[#419E6A]" : "bg-red-500"}`}></span>
             {(game as any).game?.status === "active" ? "Active" : "Inactive"}
@@ -89,16 +89,16 @@ export default function ViewGame() {
         <div className="flex-1 flex flex-col gap-6">
           <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl p-6">
             <h3 className="text-xl font-bold mb-2 text-[#475568] tracking-wider dark:text-white">Overview</h3>
-            <p className="text-[#475568] text-sm whitespace-pre-line dark:text-white tracking-wider font-pincuk">{(game as any).game?.description || "N/A"}</p>
+            <p className="text-[#475568] text-sm whitespace-pre-line dark:text-white tracking-wider font-pincuk">{(game as any).game?.description || "-"}</p>
           </div>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl p-4 flex-1">
               <h4 className="font-bold mb-1 text-[#475568] tracking-wider text-lg dark:text-white">Game Category</h4>
-              <p className="text-sm text-[#475568] dark:text-white tracking-wider font-pincuk">{(game as any).game?.category?.name || "N/A"}</p>
+              <p className="text-sm text-[#475568] dark:text-white tracking-wider font-pincuk">{(game as any).game?.category?.name || "-"}</p>
             </div>
             <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl p-4 flex-1">
               <h4 className="font-bold mb-1 text-[#475568] dark:text-white">Game Code</h4>
-              <a href={game?.code || "#"} className="text-[#475568] text-sm underline dark:text-white tracking-wider font-pincuk" target="_blank" rel="noopener noreferrer">{game?.code || "N/A"}</a>
+              <a href={game?.code || "#"} className="text-[#475568] text-sm underline dark:text-white tracking-wider font-pincuk" target="_blank" rel="noopener noreferrer">{game?.code || ""}</a>
             </div>
           </div>
           <div>
@@ -112,7 +112,7 @@ export default function ViewGame() {
               </div>
               <div className="flex flex-col justify-start"> 
               <span className="text-[#475568] text-lg font mb-1 dark:text-white">Minutes Played</span>
-              <span className="text-sm text-[#475568] font-sans dark:text-white">{game?.analytics?.totalPlayTime ?? "N/A"} minutes</span>
+              <span className="text-sm text-[#475568] font-sans dark:text-white">{game?.analytics?.totalPlayTime ?? "-"} minutes</span>
               </div>
             </div>
             <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl p-4 flex gap-4">
@@ -121,7 +121,7 @@ export default function ViewGame() {
               </div>
               <div className="flex flex-col justify-start">
               <span className="text-[#475568] text-lg font mb-1 dark:text-white">Total Plays</span>
-              <span className="text-sm text-[#475568] font-sans dark:text-white">{game?.analytics?.uniquePlayers ?? "N/A"}</span>
+              <span className="text-sm text-[#475568] font-sans dark:text-white">{game?.analytics?.uniquePlayers ?? "-"}</span>
               </div>
             </div>
             <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl p-4 flex-1 flex gap-4">
@@ -130,7 +130,7 @@ export default function ViewGame() {
                </div>
              <div className="flex flex-col justify-start">
               <span className="text-[#475568] text-lg font mb-1 dark:text-white">Sessions</span>
-              <span className="text-sm text-[#475568] font-sans dark:text-white">{game?.analytics?.totalSessions ?? "N/A"}</span>
+              <span className="text-sm text-[#475568] font-sans dark:text-white">{game?.analytics?.totalSessions ?? "-"}</span>
              </div>
             </div>
 

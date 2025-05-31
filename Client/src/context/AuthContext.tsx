@@ -3,6 +3,8 @@ import type { ReactNode } from 'react';
 import { backendService } from '../backend/api.service';
 import type { User, LoginCredentials } from '../backend/types';
 import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
+import { BackendRoute } from '../backend/constants';
 
 interface LoginResponse {
   userId: string;
@@ -38,6 +40,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [keepPlayingRedirect, setKeepPlayingRedirect] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -88,6 +91,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       localStorage.setItem('token', tokens.accessToken);
       localStorage.setItem('refreshToken', tokens.refreshToken);
       await refreshUser();
+      // Invalidate stats to trigger a refetch
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.USER_STATS] });
     }
     
     return { 
@@ -108,7 +113,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { accessToken, refreshToken } = response.data;
     localStorage.setItem('token', accessToken);
     localStorage.setItem('refreshToken', refreshToken);
-    return await refreshUser();
+    const userData = await refreshUser();
+    // Invalidate stats to trigger a refetch
+    queryClient.invalidateQueries({ queryKey: [BackendRoute.USER_STATS] });
+    return userData;
   };
 
   const logout = () => {

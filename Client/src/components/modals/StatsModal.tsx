@@ -34,6 +34,8 @@ interface StatsModalProps {
 export function StatsModal({ open, onClose }: StatsModalProps) {
   const { data: stats, isLoading, isError } = useCurrentUserStats();
 
+  console.log("stats", stats)
+
   if (isError) {
     return (
       <Dialog open={open} onOpenChange={onClose}>

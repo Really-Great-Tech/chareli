@@ -93,11 +93,19 @@ export const getCurrentUserStats = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    // Get user ID from authenticated user
+    // If user is not authenticated, send default stats
     if (!req.user || !req.user.userId) {
-      return next(ApiError.unauthorized('User not authenticated'));
+      res.status(200).json({
+        success: true,
+        data: {
+          totalSeconds: 0,
+          totalPlays: 0,
+          gamesPlayed: []
+        }
+      });
+      return;
     }
-    
+
     const userId = req.user.userId;
 
     // Get total minutes played
@@ -126,7 +134,7 @@ export const getCurrentUserStats = async (
       .addSelect('MAX(analytics.startTime)', 'lastPlayed')
       .leftJoin('analytics.game', 'game')
       .leftJoin('game.thumbnailFile', 'thumbnailFile')
-      .where('analytics.userId = :userId', { userId })
+      .where('analytics.userId = :userId AND analytics.gameId IS NOT NULL', { userId })
       .groupBy('analytics.gameId')
       .addGroupBy('game.title')
       .addGroupBy('thumbnailFile.s3Key')

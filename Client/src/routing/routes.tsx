@@ -39,7 +39,10 @@ export const AppRoutes = () => {
         </Route>
       </Route>
 
-        <Route path="reset-password/:token" element={<ResetPasswordPage />} />
+        <Route path="reset-password">
+          <Route path=":token" element={<ResetPasswordPage />} />
+          <Route path="phone/:userId" element={<ResetPasswordPage />} />
+        </Route>
         <Route path="register-invitation/:token" element={<RegisterInvitationPage />} />
 
         <Route path="admin/" element={<ProtectedRoute requireAdmin={true} />}>

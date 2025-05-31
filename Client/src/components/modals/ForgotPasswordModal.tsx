@@ -1,8 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Formik, Form, Field, ErrorMessage } from "formik";
-import type { FormikHelpers } from "formik";
+import type { FieldProps, FormikHelpers } from "formik";
 import * as Yup from "yup";
-import { useForgotPassword } from "../../backend/auth.service";
+import { useForgotPassword, useForgotPasswordPhone } from "../../backend/auth.service";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -15,6 +16,10 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { AiOutlineMail } from "react-icons/ai";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
+import "../../styles/phone-input.css";
+import { ResetPasswordOTPModal } from "./ResetPasswordOTPModal";
 
 interface ForgotPasswordModalProps {
   open: boolean;
@@ -22,45 +27,90 @@ interface ForgotPasswordModalProps {
   openLoginModal: () => void;
 }
 
-// Validation schema
-const validationSchema = Yup.object({
+// Validation schemas
+const emailValidationSchema = Yup.object({
   email: Yup.string()
     .email("Invalid email address")
     .required("Email is required"),
 });
 
+const phoneValidationSchema = Yup.object({
+  phoneNumber: Yup.string()
+    .required("Phone number is required"),
+});
+
+interface FormValues {
+  email: string | undefined;
+  phoneNumber: string | undefined;
+}
+
 // Initial values
-const initialValues = {
-  email: "",
-};
+const getInitialValues = (isEmailTab = true): FormValues => ({
+  email: isEmailTab ? "" : undefined,
+  phoneNumber: isEmailTab ? undefined : "",
+});
 
 export function ForgotPasswordModal({
   open,
   onOpenChange,
   openLoginModal,
 }: ForgotPasswordModalProps) {
+  const [activeTab, setActiveTab] = useState<"email" | "phone">("email");
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [submittedEmail, setSubmittedEmail] = useState("");
+  const [submittedContact, setSubmittedContact] = useState("");
+  const [isOTPVerificationModalOpen, setIsOTPVerificationModalOpen] = useState(false);
+  const [userId, setUserId] = useState("");
   const forgotPassword = useForgotPassword();
+  const forgotPasswordPhone = useForgotPasswordPhone();
 
   const handleSubmit = async (
-    values: typeof initialValues,
-    actions: FormikHelpers<typeof initialValues>
+    values: FormValues,
+    actions: FormikHelpers<FormValues>
   ) => {
     try {
-      await forgotPassword.mutateAsync(values.email);
-      setSubmittedEmail(values.email);
-      setIsSubmitted(true);
-      toast.success("Password reset instructions sent to your email");
-    } catch (error: any) {
-      console.error("Forgot password error:", error);
-      // We don't show specific errors to prevent email enumeration
-      toast.success("If your email exists in our system, you will receive password reset instructions");
-      setSubmittedEmail(values.email);
-      setIsSubmitted(true);
+      if (activeTab === "email") {
+        try {
+          await forgotPassword.mutateAsync(values.email!);
+        } catch (error) {
+          console.log(error)
+        }
+        setSubmittedContact(values.email!);
+        setIsSubmitted(true);
+        toast.success("If your email exists in our system, you will receive password reset instructions");
+      } else {
+        try {
+          const response = await forgotPasswordPhone.mutateAsync(values.phoneNumber!);
+          setSubmittedContact(values.phoneNumber!);
+
+          if (response.data?.userId) {
+            // Valid phone number - show OTP verification
+            setUserId(response.data.userId);
+            onOpenChange(false)
+            setIsOTPVerificationModalOpen(true);
+            setIsSubmitted(false); // Ensure submitted state is false to show the form
+            toast.success("Reset code sent to your phone number");
+          } else {
+            // Invalid phone number - show generic message
+            setIsSubmitted(true);
+            toast.success("If your phone number exists in our system, you will receive a reset code shortly");
+          }
+        } catch (error) {
+          toast.error("An error occurred. Please try again later.");
+          setIsSubmitted(true); // Show the error state
+        }
+      }
     } finally {
       actions.setSubmitting(false);
     }
+  };
+
+  const navigate = useNavigate();
+
+  const handleVerificationSuccess = () => {
+    setIsOTPVerificationModalOpen(false);
+    onOpenChange(false); 
+    navigate(`/reset-password/phone/${userId}`);
+    toast.success("OTP verified successfully. You can now reset your password.");
   };
 
   const handleBackToLogin = () => {
@@ -70,7 +120,8 @@ export function ForgotPasswordModal({
 
   const resetForm = () => {
     setIsSubmitted(false);
-    setSubmittedEmail("");
+    setSubmittedContact("");
+    setUserId("");
   };
 
   return (
@@ -94,19 +145,45 @@ export function ForgotPasswordModal({
         </button>
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-[#E328AF] text-center font-boogaloo">
-            {isSubmitted ? "Check Your Email" : "Forgot Password"}
+            {isSubmitted ? (activeTab === "email" ? "Check Your Email" : "Password Reset") : "Forgot Password"}
           </DialogTitle>
+          <div className="flex font-boogaloo text-xl tracking-wide">
+            <div className="px-6 flex w-full border-b">
+              <button
+                className={`flex-1 py-2 font-semibold ${
+                  activeTab === "email"
+                    ? "text-[#E328AF] border-b-2 border-[#E328AF]"
+                    : "text-gray-500"
+                }`}
+                onClick={() => setActiveTab("email")}
+              >
+                Email
+              </button>
+              <button
+                className={`flex-1 py-2 font-semibold ${
+                  activeTab === "phone"
+                    ? "text-[#E328AF] border-b-2 border-[#E328AF]"
+                    : "text-gray-500"
+                }`}
+                onClick={() => setActiveTab("phone")}
+              >
+                Phone Number
+              </button>
+            </div>
+          </div>
           <DialogDescription className="text-center">
-            {isSubmitted ? (
+            {(isSubmitted && !isOTPVerificationModalOpen) || (activeTab === "email" && isSubmitted) ? (
               <div className="space-y-4">
                 <p className="text-sm text-center text-black dark:text-white font-pincuk">
-                  We've sent password reset instructions to:
-                </p>
-                <p className="text-md font-semibold text-center text-black dark:text-white">
-                  {submittedEmail}
-                </p>
-                <p className="text-sm text-center text-black dark:text-white font-pincuk">
-                  Please check your email and follow the instructions to reset your password.
+                  We've sent {activeTab === "email" ? "password reset instructions" : "a reset code"} to:
+                  <p className="text-md font-semibold text-center text-black dark:text-white mt-2">
+                    {submittedContact}
+                  </p>
+                  <p className="text-sm text-center text-black dark:text-white font-pincuk mt-2">
+                    {activeTab === "email" 
+                      ? "Please check your email and follow the instructions to reset your password."
+                      : "If this phone number exists in our system, you will receive a reset code shortly."}
+                  </p>
                 </p>
                 <div className="flex flex-col space-y-2 mt-4">
                   <Button
@@ -114,7 +191,7 @@ export function ForgotPasswordModal({
                     onClick={resetForm}
                     className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-boogaloo"
                   >
-                    Try Another Email
+                    {activeTab === "email" ? "Try Another Email" : "Try Another Number"}
                   </Button>
                   <Button
                     type="button"
@@ -127,37 +204,85 @@ export function ForgotPasswordModal({
               </div>
             ) : (
               <Formik
-                initialValues={initialValues}
-                validationSchema={validationSchema}
+                initialValues={getInitialValues(activeTab === "email")}
+                validationSchema={activeTab === "email" ? emailValidationSchema : phoneValidationSchema}
                 onSubmit={handleSubmit}
+                enableReinitialize
               >
                 {({ isSubmitting }) => (
                   <Form className="space-y-4">
                     <p className="text-sm text-center text-black dark:text-white font-pincuk mb-4">
-                      Enter your email address and we'll send you instructions to reset your password.
+                      {activeTab === "email" 
+                        ? "Enter your email address and we'll send you instructions to reset your password."
+                        : "Enter your phone number and we'll send you a code to reset your password."}
                     </p>
                     <div className="relative">
                       <Label
-                        htmlFor="email"
+                        htmlFor={activeTab === "email" ? "email" : "phoneNumber"}
                         className="font-boogaloo text-base text-black dark:text-white"
                       >
-                        Email
+                        {activeTab === "email" ? "Email" : "Phone Number"}
                       </Label>
                       <div className="relative">
-                        <AiOutlineMail
-                          size={15}
-                          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 z-10"
-                        />
-                        <Field
-                          as={Input}
-                          id="email"
-                          name="email"
-                          placeholder="email"
-                          className="mt-1 bg-[#E2E8F0] dark:bg-[#191c2b] border-0 pl-10 font-pincuk text-[11px] font-normal h-[48px]"
-                        />
+                        {activeTab === "email" ? (
+                          <>
+                            <AiOutlineMail
+                              size={15}
+                              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 z-10"
+                            />
+                            <Field
+                              as={Input}
+                              id="email"
+                              name="email"
+                              placeholder="email"
+                              className="mt-1 bg-[#E2E8F0] dark:bg-[#191c2b] border-0 pl-10 font-pincuk text-[11px] font-normal h-[48px]"
+                            />
+                          </>
+                        ) : (
+                          <Field name="phoneNumber">
+                            {({ field, form }: FieldProps) => (
+                              <PhoneInput
+                                country={"us"}
+                                value={field.value}
+                                onChange={(value) =>
+                                  form.setFieldValue("phoneNumber", `+${value}`)
+                                }
+                                inputStyle={{
+                                  width: "100%",
+                                  height: "48px",
+                                  backgroundColor: "#E2E8F0",
+                                  border: "0",
+                                  borderRadius: "0.375rem",
+                                  fontFamily: "pincuk",
+                                  fontSize: "11px",
+                                }}
+                                containerClass="dark:bg-[#191c2b]"
+                                buttonStyle={{
+                                  backgroundColor: "#E2E8F0",
+                                  border: "0",
+                                  borderRadius: "0.375rem 0 0 0.375rem",
+                                }}
+                                dropdownStyle={{
+                                  backgroundColor: "#E2E8F0",
+                                  color: "#000",
+                                }}
+                                searchStyle={{
+                                  backgroundColor: "#E2E8F0",
+                                  color: "#000",
+                                }}
+                                enableAreaCodeStretch
+                                autoFormat
+                                enableSearch
+                                disableSearchIcon
+                                autocompleteSearch
+                                countryCodeEditable={false}
+                              />
+                            )}
+                          </Field>
+                        )}
                       </div>
                       <ErrorMessage
-                        name="email"
+                        name={activeTab === "email" ? "email" : "phoneNumber"}
                         component="div"
                         className="text-red-500 text-xs mt-1 font-pincuk"
                       />
@@ -183,6 +308,14 @@ export function ForgotPasswordModal({
           </DialogDescription>
         </DialogHeader>
       </CustomDialogContent>
+
+      <ResetPasswordOTPModal
+        open={isOTPVerificationModalOpen}
+        onOpenChange={setIsOTPVerificationModalOpen}
+        userId={userId}
+        contactMethod={submittedContact}
+        onVerificationSuccess={handleVerificationSuccess}
+      />
     </Dialog>
   );
 }

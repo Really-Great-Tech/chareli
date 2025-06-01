@@ -182,7 +182,7 @@ export function SignUpModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <CustomDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221]">
+      <CustomDialogContent className="w-[95%] max-w-[425px] p-4 sm:p-6 dark:bg-[#0F1221]">
         {/* Custom Close Button */}
         <button
           className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#C026D3] flex items-center justify-center shadow-lg hover:bg-[#a21caf] transition-colors"
@@ -193,7 +193,7 @@ export function SignUpModal({
           <span className="text-white text-2xl font-bold">×</span>
         </button>
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-[#E328AF] text-center font-boogaloo">
+          <DialogTitle className="text-xl sm:text-2xl font-bold text-[#E328AF] text-center font-boogaloo">
             Sign Up
           </DialogTitle>
           <DialogDescription className="text-center">
@@ -299,9 +299,9 @@ export function SignUpModal({
 
                         {/* Name Fields */}
                         {(fields.firstName || fields.lastName) && (
-                          <div className="flex space-x-4 mt-4">
+                          <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0 mt-4">
                             {fields.firstName && (
-                              <div className="flex-1 relative">
+                              <div className="w-full sm:flex-1 relative">
                                 <Label
                                   htmlFor="firstName"
                                   className="font-boogaloo text-base text-black dark:text-white"
@@ -329,7 +329,7 @@ export function SignUpModal({
                               </div>
                             )}
                             {fields.lastName && (
-                              <div className="flex-1 relative">
+                              <div className="w-full sm:flex-1 relative">
                                 <Label
                                   htmlFor="lastName"
                                   className="font-boogaloo text-base text-black dark:text-white"
@@ -437,7 +437,7 @@ export function SignUpModal({
                       className="text-red-500 text-xs mt-1 font-pincuk"
                     />
                   </div>
-                  <div className="my-5 flex flex-col gap-3">
+                    <div className="my-4 sm:my-5 flex flex-col gap-2 sm:gap-3">
                     <div className="flex items-center space-x-2">
                       <Field name="ageConfirm">
                         {({ field, form }: FieldProps) => (
@@ -454,7 +454,7 @@ export function SignUpModal({
                       </Field>
                       <Label
                         htmlFor="ageConfirm"
-                        className="font-boogaloo text-black dark:text-white cursor-pointer"
+                        className="font-boogaloo text-sm sm:text-base text-black dark:text-white cursor-pointer"
                       >
                         Confirm age 18+
                       </Label>
@@ -480,7 +480,7 @@ export function SignUpModal({
                       </Field>
                       <Label
                         htmlFor="terms"
-                        className="font-boogaloo text-black dark:text-white cursor-pointer"
+                        className="font-boogaloo text-sm sm:text-base text-black dark:text-white cursor-pointer"
                       >
                         Accept Terms of Use
                       </Label>
@@ -494,7 +494,7 @@ export function SignUpModal({
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-boogaloo"
+                    className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-boogaloo text-base sm:text-lg py-2 sm:py-3"
                   >
                     {isSubmitting ? "Creating Account..." : "Sign Up"}
                   </Button>
@@ -503,10 +503,10 @@ export function SignUpModal({
             </Formik>
           </DialogDescription>
         </DialogHeader>
-        <p className="text-sm text-center text-black dark:text-white font-pincuk">
+        <p className="text-xs sm:text-sm text-center text-black dark:text-white font-pincuk mt-4">
           Already have an account?{" "}
           <span
-            className="underline text-[#C026D3] cursor-pointer font-boogaloo text-lg hover:underline"
+            className="underline text-[#C026D3] cursor-pointer font-boogaloo text-base sm:text-lg hover:underline"
             onClick={openLoginModal}
           >
             Login

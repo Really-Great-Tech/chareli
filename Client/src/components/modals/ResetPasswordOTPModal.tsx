@@ -77,9 +77,9 @@ export function ResetPasswordOTPModal({
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221]">
+      <AlertDialogContent className="w-[95%] max-w-[425px] p-4 sm:p-6 dark:bg-[#0F1221]">
         <AlertDialogHeader className="text-center">
-          <AlertDialogTitle className="text-2xl font-bold dark:text-white text-black font-boogaloo">
+          <AlertDialogTitle className="text-xl sm:text-2xl font-bold dark:text-white text-black font-boogaloo">
             Reset Password Verification
           </AlertDialogTitle>
           <AlertDialogDescription className="dark:text-white text-black font-pincuk text-xs mt-1">
@@ -92,10 +92,10 @@ export function ResetPasswordOTPModal({
             onChange={setOtp}
             numInputs={6}
             renderInput={(props) => (
-              <div className="px-2 py-2 border-2 border-[#E328AF] mx-1 rounded-lg">
+              <div className="px-1 sm:px-2 py-1 sm:py-2 border-2 border-[#E328AF] mx-1 rounded-lg">
                 <input
                   {...props}
-                  className="w-12 h-12 text-center bg-transparent rounded-none dark:text-white text-black font-pincuk text-2xl font-bold mx-1 focus:outline-none focus:ring-0"
+                  className="w-8 sm:w-12 h-8 sm:h-12 text-center bg-transparent rounded-none dark:text-white text-black font-pincuk text-lg sm:text-2xl font-bold focus:outline-none focus:ring-0"
                 />
               </div>
             )}
@@ -116,16 +116,16 @@ export function ResetPasswordOTPModal({
         <Button
           onClick={handleVerify}
           disabled={isVerifying || otp.length !== 6}
-          className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-boogaloo"
+          className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-boogaloo text-base sm:text-lg py-2 sm:py-3"
         >
           {isVerifying ? "Verifying..." : "Verify"}
         </Button>
-        <p className="text-sm text-center text-black dark:text-white font-pincuk mt-2">
+        <p className="text-xs sm:text-sm text-center text-black dark:text-white font-pincuk mt-4">
           Didn't receive a code?{" "}
           <button
             onClick={handleResendOtp}
             disabled={requestOtp.isPending}
-            className="underline text-[#C026D3] cursor-pointer"
+            className="underline text-[#C026D3] cursor-pointer hover:text-[#db2ee8] transition-colors"
           >
             {requestOtp.isPending ? "Sending..." : "Resend"}
           </button>

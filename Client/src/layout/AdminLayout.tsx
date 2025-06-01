@@ -112,7 +112,14 @@ const AdminLayout: React.FC = () => {
         </div>
 
         {/* Main content with responsive margins */}
-        <main className={`flex-1 transition-all duration-300 ${isSidebarCollapsed ? 'lg:ml-16' : 'ml-0 lg:ml-60'} bg-white dark:bg-[#0f1221] min-h-[calc(100vh-73px)] overflow-y-auto relative`}>
+        <main 
+          className={`flex-1 transition-all duration-300 ${isSidebarCollapsed ? 'lg:ml-16' : 'ml-0 lg:ml-60'} bg-white dark:bg-[#0f1221] min-h-[calc(100vh-73px)] overflow-y-auto relative`}
+          onClick={() => {
+            if (!isSidebarCollapsed && window.innerWidth < 1024) {
+              setIsSidebarCollapsed(true);
+            }
+          }}
+        >
           <div className="p-6">
             <Outlet />
           </div>

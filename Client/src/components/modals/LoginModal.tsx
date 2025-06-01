@@ -135,7 +135,7 @@ export function LoginModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <CustomDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221] p-0">
+      <CustomDialogContent className="w-[95%] max-w-[425px] dark:bg-[#0F1221] p-0">
         {/* Custom Close Button */}
         <button
           className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#C026D3] flex items-center justify-center shadow-lg hover:bg-[#a21caf] transition-colors"
@@ -146,10 +146,10 @@ export function LoginModal({
           <span className="text-white text-2xl font-bold">×</span>
         </button>
         <DialogHeader className="mb-4">
-          <DialogTitle className="text-3xl font-bold text-[#E328AF] text-center font-boogaloo py-4">
+          <DialogTitle className="text-2xl sm:text-3xl font-bold text-[#E328AF] text-center font-boogaloo py-3 sm:py-4">
             Login
           </DialogTitle>
-          <div className="flex font-boogaloo text-xl tracking-wide">
+          <div className="flex font-boogaloo text-lg sm:text-xl tracking-wide">
             <div className="px-6 flex w-full border-b">
               <button
                 className={`flex-1 py-2 font-semibold ${
@@ -175,7 +175,7 @@ export function LoginModal({
           </div>
         </DialogHeader>
 
-        <div className="px-6 pb-6">
+        <div className="px-4 sm:px-6 pb-4 sm:pb-6">
           <Formik
             initialValues={getInitialValues(
               defaultEmail,
@@ -194,7 +194,7 @@ export function LoginModal({
                 <div className="space-y-1">
                   <Label
                     htmlFor={activeTab === "email" ? "email" : "phoneNumber"}
-                    className="font-boogaloo text-base text-black dark:text-white"
+                    className="font-boogaloo text-sm sm:text-base text-black dark:text-white"
                   >
                     {activeTab === "email" ? "Email" : "Phone Number"}
                   </Label>
@@ -317,7 +317,7 @@ export function LoginModal({
                 )}
                 <div className="text-right">
                   <span
-                    className="text-[#C026D3] cursor-pointer font-boogaloo text-lg hover:underline"
+                    className="text-[#C026D3] cursor-pointer font-boogaloo text-base sm:text-lg hover:underline"
                     onClick={() => {
                       onOpenChange(false);
                       setIsForgotPasswordModalOpen(true);
@@ -330,14 +330,14 @@ export function LoginModal({
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-boogaloo"
+                  className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-boogaloo text-base sm:text-lg py-2 sm:py-3"
                 >
                   Login
                 </Button>
-                <p className="text-sm text-center text-black dark:text-white font-pincuk">
+                <p className="text-xs sm:text-sm text-center text-black dark:text-white font-pincuk mt-4">
                   Don't have an account?{" "}
                   <span
-                    className="text-[#C026D3] cursor-pointer hover:underline text-lg font-boogaloo"
+                    className="text-[#C026D3] cursor-pointer hover:underline text-base sm:text-lg font-boogaloo"
                     onClick={openSignUpModal}
                   >
                     Sign Up

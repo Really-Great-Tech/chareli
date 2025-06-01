@@ -134,7 +134,7 @@ export function ForgotPasswordModal({
         onOpenChange(newOpen);
       }}
     >
-      <CustomDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221]">
+      <CustomDialogContent className="w-[95%] max-w-[425px] p-4 sm:p-6 dark:bg-[#0F1221]">
         <button
           className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#C026D3] flex items-center justify-center shadow-lg hover:bg-[#a21caf] transition-colors"
           onClick={() => onOpenChange(false)}
@@ -144,10 +144,10 @@ export function ForgotPasswordModal({
           <span className="text-white text-2xl font-bold">×</span>
         </button>
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-[#E328AF] text-center font-boogaloo">
+          <DialogTitle className="text-xl sm:text-2xl font-bold text-[#E328AF] text-center font-boogaloo">
             {isSubmitted ? (activeTab === "email" ? "Check Your Email" : "Password Reset") : "Forgot Password"}
           </DialogTitle>
-          <div className="flex font-boogaloo text-xl tracking-wide">
+          <div className="flex font-boogaloo text-lg sm:text-xl tracking-wide">
             <div className="px-6 flex w-full border-b">
               <button
                 className={`flex-1 py-2 font-semibold ${
@@ -174,12 +174,12 @@ export function ForgotPasswordModal({
           <DialogDescription className="text-center">
             {(isSubmitted && !isOTPVerificationModalOpen) || (activeTab === "email" && isSubmitted) ? (
               <div className="space-y-4">
-                <p className="text-sm text-center text-black dark:text-white font-pincuk">
+                <p className="text-xs sm:text-sm text-center text-black dark:text-white font-pincuk">
                   We've sent {activeTab === "email" ? "password reset instructions" : "a reset code"} to:
-                  <p className="text-md font-semibold text-center text-black dark:text-white mt-2">
+                  <p className="text-sm sm:text-md font-semibold text-center text-black dark:text-white mt-2">
                     {submittedContact}
                   </p>
-                  <p className="text-sm text-center text-black dark:text-white font-pincuk mt-2">
+                  <p className="text-xs sm:text-sm text-center text-black dark:text-white font-pincuk mt-2">
                     {activeTab === "email" 
                       ? "Please check your email and follow the instructions to reset your password."
                       : "If this phone number exists in our system, you will receive a reset code shortly."}
@@ -189,14 +189,14 @@ export function ForgotPasswordModal({
                   <Button
                     type="button"
                     onClick={resetForm}
-                    className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-boogaloo"
+                    className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-boogaloo text-base sm:text-lg py-2 sm:py-3"
                   >
                     {activeTab === "email" ? "Try Another Email" : "Try Another Number"}
                   </Button>
                   <Button
                     type="button"
                     onClick={handleBackToLogin}
-                    className="w-full bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-black dark:text-white border border-gray-300 dark:border-gray-700 font-boogaloo"
+                    className="w-full bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-black dark:text-white border border-gray-300 dark:border-gray-700 font-boogaloo text-base sm:text-lg py-2 sm:py-3"
                   >
                     Back to Login
                   </Button>
@@ -211,7 +211,7 @@ export function ForgotPasswordModal({
               >
                 {({ isSubmitting }) => (
                   <Form className="space-y-4">
-                    <p className="text-sm text-center text-black dark:text-white font-pincuk mb-4">
+                    <p className="text-xs sm:text-sm text-center text-black dark:text-white font-pincuk mb-4">
                       {activeTab === "email" 
                         ? "Enter your email address and we'll send you instructions to reset your password."
                         : "Enter your phone number and we'll send you a code to reset your password."}
@@ -219,7 +219,7 @@ export function ForgotPasswordModal({
                     <div className="relative">
                       <Label
                         htmlFor={activeTab === "email" ? "email" : "phoneNumber"}
-                        className="font-boogaloo text-base text-black dark:text-white"
+                        className="font-boogaloo text-sm sm:text-base text-black dark:text-white"
                       >
                         {activeTab === "email" ? "Email" : "Phone Number"}
                       </Label>
@@ -290,14 +290,14 @@ export function ForgotPasswordModal({
                     <Button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-boogaloo"
+                      className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-boogaloo text-base sm:text-lg py-2 sm:py-3"
                     >
                       {isSubmitting ? "Sending..." : "Send Reset Instructions"}
                     </Button>
                     <Button
                       type="button"
                       onClick={handleBackToLogin}
-                      className="w-full bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-black dark:text-white border border-gray-300 dark:border-gray-700 font-boogaloo"
+                      className="w-full bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-black dark:text-white border border-gray-300 dark:border-gray-700 font-boogaloo text-base sm:text-lg py-2 sm:py-3"
                     >
                       Back to Login
                     </Button>

@@ -500,7 +500,7 @@ export const getUserActivityLog = async (
       
       return {
         userId: user.id,
-        name: `${user.firstName} ${user.lastName}`,
+        name: `${user.firstName || ""} ${user.lastName || ""}`,
         userStatus: user.isActive ? 'Online' : 'Offline',
         activity: activity,
         lastGamePlayed: gameTitle,

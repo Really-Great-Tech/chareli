@@ -99,7 +99,7 @@ export default function UserActivityLog() {
               </TableRow>
             ) : activitiesToShow.map((row: any, idx) => (
                 <TableRow key={idx} className="font-pincuk">
-                  <TableCell>{row.name}</TableCell>
+                  <TableCell>{row.name?.trim() ? row.name : "-"}</TableCell>
                   <TableCell>
                     <span
                       className={`flex items-center gap-3 px-2 py-1 rounded-lg font-pincuk text-sm ${

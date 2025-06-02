@@ -66,7 +66,7 @@ export function RecentUserActivity() {
             ) : (
               usersToShow.map((user, idx) => (
                 <TableRow key={idx} className="font-sans">
-                  <TableCell>{`${user.firstName} ${user.lastName}`}</TableCell>
+                  <TableCell>{`${user.firstName || ""} ${user.lastName || ""}`}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
                   <TableCell>{user.analytics.totalGamesPlayed}</TableCell>

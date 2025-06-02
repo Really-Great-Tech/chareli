@@ -136,7 +136,7 @@ export default function TeamManagement() {
                 className="border-t border-[#d8d9da] text-md font-pincuk"
               >
                 <td className="py-6 text-[#121C2D] dark:text-white">
-                  {member.firstName} {member.lastName}
+                  {member.firstName || ""} {member.lastName || ""}
                 </td>
                 <td className="py-6 text-[#121C2D] dark:text-white">{member.email}</td>
                 <td className="py-6">
@@ -193,7 +193,7 @@ export default function TeamManagement() {
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D946EF] mx-auto"></div>
                   </td>
                 </tr>
-              ) : !invitationsData?.data?.length ? (
+              ) : !invitationsData?.data?.filter((invitation: any) => !invitation.isAccepted)?.length ? (
                 <tr>
                   <td colSpan={6} className="text-center py-6">
                     <NoResults 
@@ -204,7 +204,7 @@ export default function TeamManagement() {
                   </td>
                 </tr>
               ) : (
-                invitationsData.data.map((invitation: any) => (
+                invitationsData.data.filter((invitation: any) => !invitation.isAccepted).map((invitation: any) => (
                   <tr
                     key={invitation.id}
                     className="border-t border-[#d8d9da] text-md font-pincuk"

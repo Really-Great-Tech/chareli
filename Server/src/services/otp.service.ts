@@ -129,19 +129,21 @@ export class OtpService implements OtpServiceInterface {
         throw new Error('User does not have an email address');
       }
 
-      if (config.env === 'development') {
-        // In development mode, just log the OTP
-        logger.info(`DEVELOPMENT MODE: OTP for ${user.email} is ${otp}`);
-        console.log(`DEVELOPMENT MODE: OTP for ${user.email} is ${otp}`);
-        emailSent = true;
-      } else {
-        try {
+      try {
           await emailService.sendOtpEmail(user.email, otp);
           emailSent = true;
         } catch (error) {
           logger.error('Failed to send OTP via email:', error);
-        }
       }
+
+      // if (config.env === 'development') {
+      //   // In development mode, just log the OTP
+      //   logger.info(`DEVELOPMENT MODE: OTP for ${user.email} is ${otp}`);
+      //   console.log(`DEVELOPMENT MODE: OTP for ${user.email} is ${otp}`);
+      //   emailSent = true;
+      // } else {
+        
+      // }
     }
 
     // Send via SMS if type is SMS or BOTH

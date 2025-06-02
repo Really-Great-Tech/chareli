@@ -1,5 +1,6 @@
-// import React from 'react';
+import { useState } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
+import type { FieldProps } from 'formik';
 import * as Yup from 'yup';
 import { Input } from '../../components/ui/input';
 import { Button } from '../../components/ui/button';
@@ -9,6 +10,7 @@ import { passwordSchema, confirmPasswordSchema } from '../../validation/password
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import '../../styles/phone-input.css';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 interface RegisterFormProps {
   email: string;
@@ -32,8 +34,16 @@ interface FormValues {
   phoneNumber: string;
 }
 
+// Format phone number
+const formatPhoneNumber = (value?: string) => (value ? `+${value}` : value);
+
 export function RegisterForm({ email, token, onSuccess }: RegisterFormProps) {
   const { mutate: register, isPending } = useRegisterFromInvitation();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const togglePasswordVisibility = () => setShowPassword(!showPassword);
+  const toggleConfirmPasswordVisibility = () => setShowConfirmPassword(!showConfirmPassword);
 
   const initialValues: FormValues = {
     firstName: '',
@@ -64,7 +74,7 @@ export function RegisterForm({ email, token, onSuccess }: RegisterFormProps) {
       validationSchema={validationSchema}
       onSubmit={handleSubmit}
     >
-      {({ isSubmitting, setFieldValue, values }) => (
+      {({ isSubmitting}) => (
         <Form className="space-y-6">
           <div>
             <Label htmlFor="email">Email</Label>
@@ -111,13 +121,46 @@ export function RegisterForm({ email, token, onSuccess }: RegisterFormProps) {
 
           <div>
             <Label htmlFor="phoneNumber">Phone Number</Label>
-            <PhoneInput
-              country={'us'}
-              value={values.phoneNumber}
-              onChange={(phone) => setFieldValue('phoneNumber', phone)}
-              inputClass="!w-full !h-10 !text-base"
-              containerClass="!w-full"
-            />
+            <Field name="phoneNumber">
+              {({ field, form }: FieldProps) => (
+                <div className="w-full mt-1">
+                  <PhoneInput
+                    country="us"
+                    value={field.value}
+                    onChange={(value) => form.setFieldValue('phoneNumber', formatPhoneNumber(value))}
+                    inputStyle={{ 
+                      width: "100%", 
+                      height: "48px", 
+                      backgroundColor: "#E2E8F0", 
+                      border: "0", 
+                      borderRadius: "0.375rem", 
+                      fontFamily: "pincuk", 
+                      fontSize: "11px" 
+                    }}
+                    containerClass="dark:bg-[#191c2b]"
+                    buttonStyle={{ 
+                      backgroundColor: "#E2E8F0", 
+                      border: "0", 
+                      borderRadius: "0.375rem 0 0 0.375rem" 
+                    }}
+                    dropdownStyle={{ 
+                      backgroundColor: "#E2E8F0", 
+                      color: "#000" 
+                    }}
+                    searchStyle={{ 
+                      backgroundColor: "#E2E8F0", 
+                      color: "#000" 
+                    }}
+                    enableAreaCodeStretch
+                    autoFormat
+                    enableSearch
+                    disableSearchIcon
+                    autocompleteSearch
+                    countryCodeEditable={false}
+                  />
+                </div>
+              )}
+            </Field>
             <ErrorMessage
               name="phoneNumber"
               component="div"
@@ -127,13 +170,27 @@ export function RegisterForm({ email, token, onSuccess }: RegisterFormProps) {
 
           <div>
             <Label htmlFor="password">Password</Label>
-            <Field
-              as={Input}
-              id="password"
-              name="password"
-              type="password"
-              className="mt-1 w-full"
-            />
+            <div className="relative">
+              <button
+                type="button"
+                onClick={togglePasswordVisibility}
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 z-10"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <FaEyeSlash size={15} />
+                ) : (
+                  <FaEye size={15} />
+                )}
+              </button>
+              <Field
+                as={Input}
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                className="mt-1 w-full pl-10"
+              />
+            </div>
             <ErrorMessage
               name="password"
               component="div"
@@ -143,13 +200,27 @@ export function RegisterForm({ email, token, onSuccess }: RegisterFormProps) {
 
           <div>
             <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <Field
-              as={Input}
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              className="mt-1 w-full"
-            />
+            <div className="relative">
+              <button
+                type="button"
+                onClick={toggleConfirmPasswordVisibility}
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 z-10"
+                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+              >
+                {showConfirmPassword ? (
+                  <FaEyeSlash size={15} />
+                ) : (
+                  <FaEye size={15} />
+                )}
+              </button>
+              <Field
+                as={Input}
+                id="confirmPassword"
+                name="confirmPassword"
+                type={showConfirmPassword ? "text" : "password"}
+                className="mt-1 w-full pl-10"
+              />
+            </div>
             <ErrorMessage
               name="confirmPassword"
               component="div"

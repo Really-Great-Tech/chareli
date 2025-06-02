@@ -71,6 +71,30 @@ export const getAllSystemConfigs = async (
     
     const configs = await queryBuilder.getMany();
     
+    // Process file-based configs
+    for (const config of configs) {
+      if (config.key === 'terms' && config.value?.fileId) {
+        const file = await fileRepository.findOne({
+          where: { id: config.value.fileId }
+        });
+        
+        if (file) {
+          // Transform S3 key to full URL
+          const baseUrl = s3Service.getBaseUrl();
+          const fileWithUrl = {
+            ...file,
+            s3Key: `${baseUrl}/${file.s3Key}`
+          };
+          
+          // Add file data to config value
+          config.value = {
+            ...config.value,
+            file: fileWithUrl
+          };
+        }
+      }
+    }
+    
     res.status(200).json({
       success: true,
       count: configs.length,
@@ -119,6 +143,28 @@ export const getSystemConfigByKey = async (
       return next(ApiError.notFound(`Configuration with key ${key} not found`));
     }
     
+    // Handle file-based configs (like 'terms')
+    if (key === 'terms' && config.value?.fileId) {
+      const file = await fileRepository.findOne({
+        where: { id: config.value.fileId }
+      });
+      
+      if (file) {
+        // Transform S3 key to full URL
+        const baseUrl = s3Service.getBaseUrl();
+        const fileWithUrl = {
+          ...file,
+          s3Key: `${baseUrl}/${file.s3Key}`
+        };
+        
+        // Add file data to config value
+        config.value = {
+          ...config.value,
+          file: fileWithUrl
+        };
+      }
+    }
+    
     res.status(200).json({
       success: true,
       data: config,
@@ -153,6 +199,30 @@ export const getFormattedSystemConfigs = async (
       acc[config.key] = config.value;
       return acc;
     }, {});
+    
+    // Process file-based configs for formatted response
+    for (const config of configs) {
+      if (config.key === 'terms' && config.value?.fileId) {
+        const file = await fileRepository.findOne({
+          where: { id: config.value.fileId }
+        });
+        
+        if (file) {
+          // Transform S3 key to full URL
+          const baseUrl = s3Service.getBaseUrl();
+          const fileWithUrl = {
+            ...file,
+            s3Key: `${baseUrl}/${file.s3Key}`
+          };
+          
+          // Add file data to formatted config
+          formattedConfigs[config.key] = {
+            ...config.value,
+            file: fileWithUrl
+          };
+        }
+      }
+    }
     
     res.status(200).json({
       success: true,
@@ -286,13 +356,42 @@ export const createSystemConfig = async (
     await queryRunner.manager.save(config);
     await queryRunner.commitTransaction();
 
+    // Fetch the saved config with file data if applicable
+    const savedConfig = await systemConfigRepository.findOne({
+      where: { key: config.key }
+    });
+
+    if (savedConfig && key === 'terms' && savedConfig.value?.fileId) {
+      const file = await fileRepository.findOne({
+        where: { id: savedConfig.value.fileId }
+      });
+      
+      if (file) {
+        // Transform S3 key to full URL
+        const baseUrl = s3Service.getBaseUrl();
+        const fileWithUrl = {
+          ...file,
+          s3Key: `${baseUrl}/${file.s3Key}`
+        };
+        
+        // Add file data to config value
+        savedConfig.value = {
+          ...savedConfig.value,
+          file: fileWithUrl
+        };
+      }
+    }
+
     res.status(isNewConfig ? 201 : 200).json({
       success: true,
       message: isNewConfig ? 'Configuration created successfully' : 'Configuration updated successfully',
-      data: config,
+      data: savedConfig || config,
     });
   } catch (error) {
+    await queryRunner.rollbackTransaction();
     next(error);
+  } finally {
+    await queryRunner.release();
   }
 };
 
@@ -363,6 +462,28 @@ export const updateSystemConfig = async (
     }
     
     await systemConfigRepository.save(config);
+    
+    // Handle file-based configs for response
+    if (key === 'terms' && config.value?.fileId) {
+      const file = await fileRepository.findOne({
+        where: { id: config.value.fileId }
+      });
+      
+      if (file) {
+        // Transform S3 key to full URL
+        const baseUrl = s3Service.getBaseUrl();
+        const fileWithUrl = {
+          ...file,
+          s3Key: `${baseUrl}/${file.s3Key}`
+        };
+        
+        // Add file data to config value
+        config.value = {
+          ...config.value,
+          file: fileWithUrl
+        };
+      }
+    }
     
     res.status(200).json({
       success: true,

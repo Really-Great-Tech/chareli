@@ -261,14 +261,14 @@ export const login = async (
     try {
       // Determine authentication flow based on config
       if (settings?.both?.enabled) {
-        await authService.sendOtp(user, OtpType.BOTH);
+        const otpResult = await authService.sendOtp(user, OtpType.BOTH);
         res.status(200).json({
           success: true,
-          message: `Login successful. Please verify with OTP sent to ${user.email} and ${user.phoneNumber}.`,
+          message: `Login successful. ${otpResult.message}`,
           data: {
             userId: user.id,
             requiresOtp: true,
-            otpType: OtpType.BOTH,
+            otpType: otpResult.actualType,
             email: user.email,
             phoneNumber: user.phoneNumber
           }
@@ -294,29 +294,31 @@ export const login = async (
       }
 
       if (settings?.email?.enabled) {
-        await authService.sendOtp(user, OtpType.EMAIL);
+        const otpResult = await authService.sendOtp(user, OtpType.EMAIL);
         res.status(200).json({
           success: true,
-          message: `Login successful. Please verify with OTP sent to ${user.email}.`,
+          message: `Login successful. ${otpResult.message}`,
           data: {
             userId: user.id,
             requiresOtp: true,
-            otpType: OtpType.EMAIL,
-            email: user.email
+            otpType: otpResult.actualType,
+            email: user.email,
+            phoneNumber: user.phoneNumber
           }
         });
         return;
       }
 
       if (settings?.sms?.enabled) {
-        await authService.sendOtp(user, OtpType.SMS);
+        const otpResult = await authService.sendOtp(user, OtpType.SMS);
         res.status(200).json({
           success: true,
-          message: `Login successful. Please verify with OTP sent to ${user.phoneNumber}.`,
+          message: `Login successful. ${otpResult.message}`,
           data: {
             userId: user.id,
             requiresOtp: true,
-            otpType: OtpType.SMS,
+            otpType: otpResult.actualType,
+            email: user.email,
             phoneNumber: user.phoneNumber
           }
         });
@@ -324,10 +326,10 @@ export const login = async (
       }
     } catch (error) {
       if (error instanceof Error) {
-        if (error.message.includes('does not have a phone number')) {
-          return next(ApiError.badRequest('User does not have a phone number for SMS OTP'));
-        } else if (error.message.includes('does not have an email address')) {
-          return next(ApiError.badRequest('User does not have an email address for EMAIL OTP'));
+        if (error.message.includes('does not have a phone number or email address')) {
+          return next(ApiError.badRequest('User does not have any contact information (phone number or email address) for OTP verification'));
+        } else if (error.message.includes('does not have an email address or phone number')) {
+          return next(ApiError.badRequest('User does not have any contact information (email address or phone number) for OTP verification'));
         }
       }
       throw error;
@@ -775,22 +777,15 @@ export const requestOtp = async (
       return next(ApiError.notFound('User not found'));
     }
 
-    // Validate OTP type based on user's contact info
-    if (otpType === OtpType.EMAIL && !user.email) {
-      return next(ApiError.badRequest('User does not have an email address'));
-    }
-    if (otpType === OtpType.SMS && !user.phoneNumber) {
-      return next(ApiError.badRequest('User does not have a phone number'));
-    }
-
-    // Send OTP
-    await authService.sendOtp(user, otpType);
+    // Send OTP with fallback handling
+    const otpResult = await authService.sendOtp(user, otpType);
 
     res.status(200).json({
       success: true,
-      message: `OTP sent successfully to ${otpType === OtpType.EMAIL ? 'email' : otpType === OtpType.SMS ? 'phone' : 'email and phone'}.`,
+      message: otpResult.message,
       data: {
-        userId: user.id
+        userId: user.id,
+        actualType: otpResult.actualType
       }
     });
   } catch (error) {

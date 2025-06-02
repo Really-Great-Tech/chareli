@@ -28,6 +28,12 @@ export interface AuthTokens {
   refreshToken: string;
 }
 
+export interface OtpResult {
+  success: boolean;
+  actualType: OtpType;
+  message: string;
+}
+
 export class AuthService {
   /**
    * Register a new user (only available for players)
@@ -168,21 +174,68 @@ export class AuthService {
     return user;
   }
 
-  async sendOtp(user: User, type: OtpType = OtpType.SMS): Promise<boolean> {
-    if (type === OtpType.SMS || type === OtpType.BOTH) {
+  async sendOtp(user: User, type: OtpType = OtpType.SMS): Promise<OtpResult> {
+    let actualType = type;
+    let fallbackUsed = false;
+
+    // Determine the best available method based on user's contact info
+    if (type === OtpType.SMS && !user.phoneNumber) {
+      if (user.email) {
+        actualType = OtpType.EMAIL;
+        fallbackUsed = true;
+        logger.info(`User ${user.id} has no phone number, falling back to email OTP`);
+      } else {
+        throw new Error('User does not have a phone number or email address for OTP');
+      }
+    }
+
+    if (type === OtpType.EMAIL && !user.email) {
+      if (user.phoneNumber) {
+        actualType = OtpType.SMS;
+        fallbackUsed = true;
+        logger.info(`User ${user.id} has no email address, falling back to SMS OTP`);
+      } else {
+        throw new Error('User does not have an email address or phone number for OTP');
+      }
+    }
+
+    if (type === OtpType.BOTH) {
+      // For BOTH type, send to whatever is available
+      if (!user.phoneNumber && !user.email) {
+        throw new Error('User does not have a phone number or email address for OTP');
+      }
       if (!user.phoneNumber) {
-        throw new Error('User does not have a phone number');
+        actualType = OtpType.EMAIL;
+        fallbackUsed = true;
+        logger.info(`User ${user.id} has no phone number, sending email OTP only`);
+      } else if (!user.email) {
+        actualType = OtpType.SMS;
+        fallbackUsed = true;
+        logger.info(`User ${user.id} has no email address, sending SMS OTP only`);
       }
     }
 
-    if (type === OtpType.EMAIL || type === OtpType.BOTH) {
-      if (!user.email) {
-        throw new Error('User does not have an email address');
+    const otp = await otpService.generateOtp(user.id, actualType);
+    const success = await otpService.sendOtp(user.id, otp, actualType);
+    
+    let message = '';
+    if (fallbackUsed) {
+      if (actualType === OtpType.EMAIL) {
+        message = `OTP sent to your email address (${user.email})`;
+      } else if (actualType === OtpType.SMS) {
+        message = `OTP sent to your phone number (${user.phoneNumber})`;
+      }
+    } else {
+      if (actualType === OtpType.EMAIL) {
+        message = `OTP sent to your email address (${user.email}).`;
+      } else if (actualType === OtpType.SMS) {
+        message = `OTP sent to your phone number (${user.phoneNumber}).`;
+      } else if (actualType === OtpType.BOTH) {
+        message = `OTP sent to both your email (${user.email}) and phone (${user.phoneNumber}).`;
       }
     }
 
-    const otp = await otpService.generateOtp(user.id, type);
-    return otpService.sendOtp(user.id, otp, type);
+    return { success, actualType, message };
   }
 
   
@@ -305,7 +358,7 @@ export class AuthService {
     await invitationRepository.save(invitation);
 
     // Generate invitation link - point to frontend route
-    const frontendUrl = config.env === 'development' ? 'http://localhost:5173' : '';
+    const frontendUrl = config.env === 'https://dev.chareli.reallygreattech.com';
     const invitationLink = `${frontendUrl}/register-invitation/${token}`;
 
     // Send invitation email
@@ -342,7 +395,8 @@ export class AuthService {
     await userRepository.save(user);
     
     // Generate reset link - point to frontend route instead of API endpoint
-    const frontendUrl = config.env === 'development' ? 'http://localhost:5173' : '';
+    // const frontendUrl = config.env === 'development' ? 'http://localhost:5173' : '';
+    const frontendUrl = 'https://dev.chareli.reallygreattech.com';
     const resetLink = `${frontendUrl}/reset-password/${resetToken}`;
     
     try {

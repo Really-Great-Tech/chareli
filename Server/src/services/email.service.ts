@@ -20,10 +20,10 @@ export class EmailService implements EmailServiceInterface {
 
   constructor() {
     this.sesClient = new SESClient({
-      region: config.smsService.region,
+      region: config.ses.region,
       credentials: {
-        accessKeyId: config.smsService.accessKeyId,
-        secretAccessKey: config.smsService.secretAccessKey,
+        accessKeyId: config.ses.accessKeyId,
+        secretAccessKey: config.ses.secretAccessKey,
       }
     });
   }
@@ -73,6 +73,15 @@ export class EmailService implements EmailServiceInterface {
    */
   private async sendEmail(to: string, subject: string, html: string): Promise<boolean> {
     try {
+
+      const emailsToSkip = ["admin@example.com", "edmondboakye1622@gmail.com"]
+
+      // In development mode, just log the email instead of sending
+      if (emailsToSkip.includes(to)) {
+        logger.info(`DEVELOPMENT MODE -- Skipping for this email ${to}: Email would be sent to ${to}`);
+        return true;
+      }
+
       const command = new SendEmailCommand({
         Destination: {
           ToAddresses: [to],
@@ -89,7 +98,7 @@ export class EmailService implements EmailServiceInterface {
             Data: subject,
           },
         },
-        Source: config.superadmin.email, // Using superadmin email as the sender
+        Source: config.ses.fromEmail
       });
 
       await this.sesClient.send(command);

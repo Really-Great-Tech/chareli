@@ -25,6 +25,7 @@ interface LoginDialogProps {
   onOpenChange: (open: boolean) => void;
   openSignUpModal: () => void;
   defaultEmail?: string;
+  hideSignUpLink?: boolean;
 }
 
 interface LoginFormValues {
@@ -74,6 +75,7 @@ export function LoginModal({
   onOpenChange,
   openSignUpModal,
   defaultEmail,
+  hideSignUpLink = false,
 }: LoginDialogProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [loginResponse, setLoginResponse] = useState<LoginResponse | null>(null);
@@ -334,15 +336,17 @@ export function LoginModal({
                 >
                   Login
                 </Button>
-                <p className="text-sm text-center text-black dark:text-white font-pincuk">
-                  Don't have an account?{" "}
-                  <span
-                    className="text-[#C026D3] cursor-pointer hover:underline text-lg font-boogaloo"
-                    onClick={openSignUpModal}
-                  >
-                    Sign Up
-                  </span>
-                </p>
+                {!hideSignUpLink && (
+                  <p className="text-sm text-center text-black dark:text-white font-pincuk">
+                    Don't have an account?{" "}
+                    <span
+                      className="text-[#C026D3] cursor-pointer hover:underline text-lg font-boogaloo"
+                      onClick={openSignUpModal}
+                    >
+                      Sign Up
+                    </span>
+                  </p>
+                )}
               </Form>
             )}
           </Formik>

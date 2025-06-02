@@ -172,3 +172,42 @@ export interface Analytics {
   createdAt: string;
   updatedAt: string;
 }
+
+// New upload flow types
+export interface PresignedUrlRequest {
+  files: Array<{
+    path: string;
+    contentType: string;
+    size: number;
+  }>;
+  thumbnail: {
+    name: string;
+    contentType: string;
+    size: number;
+  };
+}
+
+export interface PresignedUrlResponse {
+  gameId: string;
+  gameFiles: Array<{
+    path: string;
+    uploadUrl: string;
+    s3Key: string;
+  }>;
+  thumbnail: {
+    uploadUrl: string;
+    s3Key: string;
+  };
+  indexFileKey: string;
+}
+
+export interface CreateGameFromUploadRequest {
+  gameId: string;
+  title: string;
+  description?: string;
+  categoryId?: string;
+  status?: GameStatus;
+  config?: number;
+  thumbnailS3Key: string;
+  gameFileS3Key: string;
+}

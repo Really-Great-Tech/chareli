@@ -49,7 +49,6 @@ export interface S3ServiceInterface {
   getFile(key: string): Promise<Buffer>;
   getSignedUrl(key: string, operation: 'get' | 'put', expiresIn?: number): Promise<string>;
   generatePresignedPost(key: string, contentType: string, expiresIn?: number): Promise<{ url: string, fields: Record<string, string> }>;
-  generateMultiplePresignedUrls(files: Array<{ path: string; contentType: string; folder?: string }>, gameId: string): Promise<Array<{ path: string; uploadUrl: string; s3Key: string }>>;
 }
 
 export class S3Service implements S3ServiceInterface {
@@ -58,15 +57,15 @@ export class S3Service implements S3ServiceInterface {
 
   constructor() {
     this.s3Client = new S3Client({
-      region: "us-east-1",
+      region: "eu-central-1",
       credentials: {
-        accessKeyId: "AKIA6QVRLFIS27XEVCM4",
-        secretAccessKey: "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",
+        accessKeyId: "AKIAU2CFV3CEC25FE4J2",
+        secretAccessKey: "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",
       },
       endpoint: config.s3.endpoint,
       forcePathStyle: config.s3.forcePathStyle
     });
-    this.bucket = "online-news-aggregator";
+    this.bucket = "chareli-games-dev-ea15b364";
   }
 
   
@@ -445,59 +444,6 @@ export class S3Service implements S3ServiceInterface {
           originalError: error as Error,
           operation: 'generatePresignedPost',
           key
-        }
-      );
-    }
-  }
-
-  async generateMultiplePresignedUrls(
-    files: Array<{ path: string; contentType: string; folder?: string }>,
-    gameId: string
-  ): Promise<Array<{ path: string; uploadUrl: string; s3Key: string }>> {
-    try {
-      const presignedUrls = await Promise.all(
-        files.map(async (file) => {
-          const s3Key = file.folder 
-            ? `${file.folder}/${gameId}/${file.path}`
-            : `games/${gameId}/${file.path}`;
-          
-          const uploadUrl = await this.getSignedUrl(s3Key, 'put');
-          
-          return {
-            path: file.path,
-            uploadUrl,
-            s3Key
-          };
-        })
-      );
-      
-      return presignedUrls;
-    } catch (error) {
-      logger.error('Error generating multiple presigned URLs:', {
-        error,
-        gameId,
-        filesCount: files.length,
-        bucket: this.bucket
-      });
-
-      if (error instanceof S3ServiceException) {
-        throw new S3Error(
-          `Failed to generate multiple presigned URLs: ${error.message}`,
-          {
-            code: error.$metadata.httpStatusCode?.toString() || error.name,
-            originalError: error,
-            operation: 'generateMultiplePresignedUrls',
-            key: gameId
-          }
-        );
-      }
-
-      throw new S3Error(
-        'Failed to generate multiple presigned URLs',
-        {
-          originalError: error as Error,
-          operation: 'generateMultiplePresignedUrls',
-          key: gameId
         }
       );
     }

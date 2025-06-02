@@ -23,6 +23,10 @@ export const BackendRoute = {
   AUTH_REVOKE_ROLE: '/api/auth/revoke-role/:id',
   GAMES: '/api/games',
   GAME_BY_ID: '/api/games/:id',
+  
+  // Upload Routes
+  UPLOAD_PRESIGNED_URLS: '/api/upload/presigned-urls',
+  UPLOAD_CREATE_GAME: '/api/upload/create-game',
   CATEGORIES: '/api/categories',
   CATEGORY_BY_ID: '/api/categories/:id',
   

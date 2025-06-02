@@ -43,8 +43,8 @@ app.use((req, res, next) => {
 });
 
 // Body parsing middleware
-app.use(express.json()); // Parse JSON bodies
-app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
+app.use(express.json({ limit: '50mb' })); // Parse JSON bodies with 50MB limit
+app.use(express.urlencoded({ extended: true, limit: '50mb' })); // Parse URL-encoded bodies with 50MB limit
 
 // Input sanitization middleware
 app.use(sanitizeInput);

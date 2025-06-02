@@ -4,8 +4,9 @@ import * as Yup from 'yup';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
+import { Progress } from '../ui/progress';
 import uploadImg from '../../assets/fetch-upload.svg';
-import { useCreateGame } from '../../backend/games.service';
+import { useGameUpload } from '../../backend/upload.service';
 import { useCategories } from '../../backend/category.service';
 import { toast } from 'sonner';
 import {
@@ -66,35 +67,54 @@ export function CreateGameSheet({
   const formikRef = useRef<any>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const [gameFileName, setGameFileName] = useState<string | null>(null);
-  const createGame = useCreateGame();
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [uploadStage, setUploadStage] = useState<string>('');
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  
+  const { uploadGame } = useGameUpload();
   const { data: categories } = useCategories();
+
   const handleSubmit = async (
     values: FormValues,
     { setSubmitting, resetForm }: any
   ) => {
+    if (!values.thumbnailFile || !values.gameFile) {
+      toast.error('Please select both thumbnail and game files');
+      return;
+    }
+
     try {
-      const formData = new FormData();
-      formData.append('title', values.title);
-      formData.append('description', values.description);
-      formData.append('config', String(values.config));
-      formData.append('categoryId', values.categoryId);
+      setIsUploading(true);
+      setUploadProgress(0);
+      setUploadStage('Starting upload...');
 
-      if (values.thumbnailFile) {
-        formData.append('thumbnailFile', values.thumbnailFile);
-      }
-      if (values.gameFile) {
-        formData.append('gameFile', values.gameFile);
-      }
+      await uploadGame(
+        {
+          title: values.title,
+          description: values.description,
+          categoryId: values.categoryId,
+          config: values.config,
+          thumbnailFile: values.thumbnailFile,
+          gameFile: values.gameFile,
+        },
+        (stage: string, progress: number) => {
+          setUploadStage(stage);
+          setUploadProgress(progress);
+        }
+      );
 
-      await createGame.mutateAsync(formData);
       toast.success('Game created successfully!');
       resetForm();
       setThumbnailPreview(null);
       setGameFileName(null);
+      setUploadProgress(0);
+      setUploadStage('');
       onOpenChange?.(false);
-    } catch (error) {
-      toast.error('Failed to create game');
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast.error(error?.message || 'Failed to create game');
     } finally {
+      setIsUploading(false);
       setSubmitting(false);
     }
   };
@@ -105,6 +125,9 @@ export function CreateGameSheet({
         formikRef.current.resetForm();
         setThumbnailPreview(null);
         setGameFileName(null);
+        setUploadProgress(0);
+        setUploadStage('');
+        setIsUploading(false);
       }
       onOpenChange?.(open);
     }}>
@@ -116,6 +139,22 @@ export function CreateGameSheet({
           </SheetTitle>
           <div className="border border-b-gray-200 mb-2"></div>
         </SheetHeader>
+        
+        {/* Upload Progress */}
+        {isUploading && (
+          <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <div className="mb-2">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {uploadStage}
+              </span>
+            </div>
+            <Progress value={uploadProgress} className="w-full" />
+            <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              {Math.round(uploadProgress)}% complete
+            </div>
+          </div>
+        )}
+
         <Formik
           initialValues={initialValues}
           validationSchema={validationSchema}
@@ -146,6 +185,7 @@ export function CreateGameSheet({
                       type="file"
                       accept="image/*"
                       className="hidden"
+                      disabled={isUploading}
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
@@ -179,6 +219,7 @@ export function CreateGameSheet({
                   as={Input}
                   id="title"
                   name="title"
+                  disabled={isUploading}
                   className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white bg-[#F1F5F9] dark:bg-[#121C2D] px-3 text-gray-700 focus:border-[#D946EF] focus:outline-none font-pincuk text-sm"
                   placeholder="Enter game title"
                 />
@@ -201,6 +242,7 @@ export function CreateGameSheet({
                   as="textarea"
                   id="description"
                   name="description"
+                  disabled={isUploading}
                   className="w-full min-h-[80px] rounded-md border border-[#CBD5E0] dark:text-white dark:bg-[#121C2D] bg-[#F1F5F9] px-3 py-2 font-pincuk text-sm text-gray-700 focus:border-[#D946EF] focus:outline-none resize-none"
                   placeholder="Description"
                 />
@@ -221,6 +263,7 @@ export function CreateGameSheet({
                       type="file"
                       accept=".zip"
                       className="hidden"
+                      disabled={isUploading}
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
@@ -255,6 +298,7 @@ export function CreateGameSheet({
                   as="select"
                   id="categoryId"
                   name="categoryId"
+                  disabled={isUploading}
                   className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white dark:bg-[#121C2D] bg-[#F1F5F9] px-3 font-pincuk text-sm text-gray-700 focus:border-[#D946EF] focus:outline-none"
                 >
                   <option value="">Select category</option>
@@ -285,6 +329,7 @@ export function CreateGameSheet({
                   id="config"
                   name="config"
                   min="0"
+                  disabled={isUploading}
                   className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white dark:bg-[#121C2D] bg-[#F1F5F9] px-3 font-pincuk text-sm text-gray-700 focus:border-[#D946EF] focus:outline-none"
                   placeholder="Enter config number"
                 />
@@ -299,11 +344,14 @@ export function CreateGameSheet({
                 <SheetClose asChild>
                   <Button
                     type="button"
+                    disabled={isUploading}
                     className="w-24 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-accent"
                     onClick={() => {
                       formikRef.current?.resetForm();
                       setThumbnailPreview(null);
                       setGameFileName(null);
+                      setUploadProgress(0);
+                      setUploadStage('');
                     }}
                   >
                     Cancel
@@ -311,10 +359,10 @@ export function CreateGameSheet({
                 </SheetClose>
                 <Button
                   type="submit"
-                  disabled={isSubmitting || !isValid || !dirty}
+                  disabled={isSubmitting || isUploading || !isValid || !dirty}
                   className="w-24 h-12 bg-[#D946EF] dark:text-white hover:text-[#D946EF] hover:bg-[#F3E8FF]"
                 >
-                  {isSubmitting ? 'Creating...' : 'Create'}
+                  {isUploading ? 'Uploading...' : isSubmitting ? 'Creating...' : 'Create'}
                 </Button>
               </div>
             </Form>

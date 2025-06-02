@@ -6,6 +6,10 @@ import { validationResult } from 'express-validator';
  * Prevents XSS attacks and other injection attacks
  */
 export const sanitizeInput = (req: Request, _res: Response, next: NextFunction) => {
+  // Skip sanitization for upload endpoints to preserve file paths
+  if (req.path.includes('/upload/')) {
+    return next();
+  }
   // Sanitize request body
   if (req.body) {
     Object.keys(req.body).forEach(key => {

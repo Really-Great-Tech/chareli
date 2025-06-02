@@ -13,6 +13,45 @@ import multer from 'multer';
 import logger from '../utils/logger';
 import { v4 as uuidv4 } from 'uuid';
 
+// Interfaces for new upload flow
+export interface PresignedUrlRequest {
+  files: Array<{
+    path: string;
+    contentType: string;
+    size: number;
+  }>;
+  thumbnail: {
+    name: string;
+    contentType: string;
+    size: number;
+  };
+}
+
+export interface PresignedUrlResponse {
+  gameId: string;
+  gameFiles: Array<{
+    path: string;
+    uploadUrl: string;
+    s3Key: string;
+  }>;
+  thumbnail: {
+    uploadUrl: string;
+    s3Key: string;
+  };
+  indexFileKey: string;
+}
+
+export interface CreateGameFromUploadRequest {
+  gameId: string;
+  title: string;
+  description?: string;
+  categoryId?: string;
+  status?: GameStatus;
+  config?: number;
+  thumbnailS3Key: string;
+  gameFileS3Key: string;
+}
+
 const gameRepository = AppDataSource.getRepository(Game);
 const categoryRepository = AppDataSource.getRepository(Category);
 const fileRepository = AppDataSource.getRepository(File);

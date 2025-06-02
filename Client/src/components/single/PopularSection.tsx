@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { useGames } from "../../backend/games.service";
 import GamesSkeleton from "./GamesSkeleton";
 
+import emptyGameImg from "../../assets/empty-game.png";
+
 interface PopularSectionProps {
     searchQuery: string;
     setSearchQuery: (query: string) => void;
@@ -45,7 +47,8 @@ const PopularSection = ({ searchQuery, setSearchQuery }: PopularSectionProps) =>
                     {isLoading && <GamesSkeleton count={4} />}
                     {error && <div className="text-center py-8 text-red-500">Error loading games</div>}
                     {!isLoading && !error && games.length === 0 && (
-                        <div className="text-center py-8 min-h-[40vh] flex items-center justify-center text-gray-500">
+                         <div className="text-center py-8 min-h-[60vh] flex flex-col items-center justify-center gap-4 text-[#C026D3] text-4xl">
+                            <img src={emptyGameImg} alt="No games" className="w-80 h-80 object-contain" />
                             No popular games found {searchQuery ? `for "${searchQuery}"` : ""}
                         </div>
                     )}

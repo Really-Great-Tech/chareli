@@ -5,6 +5,8 @@ import { useGames } from '../../backend/games.service';
 import GamesSkeleton from '../../components/single/GamesSkeleton';
 import type { Category } from '../../backend/types';
 
+import emptyGameImg from "../../assets/empty-game.png";
+
 const secondary = [
   "Recently Added", "Popular", "Recommended for you"
 ];
@@ -95,7 +97,8 @@ export default function Categories() {
         ) : (
           <div className="flex flex-col">
             {games.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 min-h-[60vh] flex flex-col items-center justify-center gap-4 text-[#C026D3] text-4xl">
+                  <img src={emptyGameImg} alt="No games" className="w-80 h-80 object-contain" />
                 No games found {selectedCategory ? "in this category" : selectedSecondary ? "for this filter" : ""}
               </div>
             ) : (

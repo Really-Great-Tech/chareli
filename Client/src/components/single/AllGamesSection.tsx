@@ -6,6 +6,8 @@ import { useCategories } from "../../backend/category.service";
 import { useState } from "react";
 import GamesSkeleton from "./GamesSkeleton";
 
+import emptyGameImg from "../../assets/empty-game.png";
+
 interface AllGamesSectionProps {
     searchQuery: string;
 }
@@ -67,7 +69,8 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
                     ) : gamesError ? (
                         <div className="text-center py-8 text-red-500">Error loading games</div>
                     ) : games.length === 0 ? (
-                        <div className="text-center py-8 min-h-[60vh] flex items-center justify-center text-gray-500">
+                        <div className="text-center py-8 min-h-[60vh] flex flex-col items-center justify-center gap-4 text-[#C026D3] text-4xl">
+                            <img src={emptyGameImg} alt="No games" className="w-80 h-80 object-contain" />
                             No games found for {selectedCategory === "all" ? "all categories" : 
                                               selectedCategory === "recent" ? "recently added" : 
                                               allCategories.find(cat => cat.id === selectedCategory)?.name || "this category"}

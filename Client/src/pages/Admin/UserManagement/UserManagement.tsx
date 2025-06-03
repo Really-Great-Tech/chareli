@@ -4,7 +4,7 @@ import { Card } from "../../../components/ui/card";
 import { UserManagementFilterSheet } from '../../../components/single/UserMgtFilter-Sheet';
 import { Button } from '../../../components/ui/button';
 import { RiEqualizer2Line } from 'react-icons/ri';
-import { PiExportBold } from "react-icons/pi";
+import ExportModal from "../../../components/modals/AdminModals/ExportModal";
 import { useNavigate } from "react-router-dom";
 import { useUsersAnalytics, useGamesAnalytics } from '../../../backend/analytics.service';
 import type { FilterState, GameAnalytics } from '../../../backend/analytics.service';
@@ -83,7 +83,7 @@ export default function UserManagement() {
           >
             <Button
               variant="outline"
-              className="border-[#475568] text-[#475568] flex items-center gap-2 dark:text-white py-6"
+              className="border-[#475568] text-[#475568] flex items-center gap-2 dark:text-white py-5"
             >
               Filter
               <div className='text-[#D946EF] bg-[#FAE8FF] px-3 py-1 rounded-full'>
@@ -96,10 +96,11 @@ export default function UserManagement() {
               <RiEqualizer2Line size={32} />
             </Button>
           </UserManagementFilterSheet>
-            <Button className="bg-[#D946EF] text-white hover:bg-[#c026d3] tracking-wider py-6">
-              Export
-              <PiExportBold className='w-6 h-6 text-xl'/>
-            </Button>
+            <ExportModal 
+              data={filteredUsers || []}
+              title="Export User Data"
+              description="Choose the format you'd like to export your user data"
+            />
         </div>
       </div>
       <div className="col-span-1 md:col-span-2 lg:col-span-4">
@@ -139,15 +140,15 @@ export default function UserManagement() {
                       {filteredUsers && filteredUsers.slice((page - 1) * usersPerPage, page * usersPerPage).map((user, idx) => (
                         <TableRow
                           key={idx}
-                          className="font-pincuk text-lg tracking-wider cursor-pointer hover:bg-[#f3e8ff] dark:hover:bg-[#23243a]"
+                          className="font-pincuk text-md tracking-wider cursor-pointer hover:bg-[#f3e8ff] dark:hover:bg-[#23243a]"
                           onClick={() => navigate(`/admin/management/${user.id}`, { state: { user } })}
                         >
-                          <TableCell>{`${user.firstName || ""} ${user.lastName || ""}`}</TableCell>
-                          <TableCell>{user.email || '-'}</TableCell>
-                          <TableCell>{user.phoneNumber || '-'}</TableCell>
+                          <TableCell className="text-lg">{`${user.firstName || ""} ${user.lastName || ""}`}</TableCell>
+                          <TableCell className="text-lg">{user.email || '-'}</TableCell>
+                          <TableCell className="">{user.phoneNumber || '-'}</TableCell>
                           <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
                           <TableCell>{user.analytics?.totalGamesPlayed || 0}</TableCell>
-                          <TableCell>{formatTime(user.analytics?.totalTimePlayed || 0)}</TableCell>
+                          <TableCell className="text-lg">{formatTime(user.analytics?.totalTimePlayed || 0)}</TableCell>
                           <TableCell>{user.analytics?.totalSessionCount || 0}</TableCell>
                           <TableCell>
                             <span className="flex items-center gap-2">

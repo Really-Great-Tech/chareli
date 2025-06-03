@@ -136,7 +136,7 @@ export default function StatsCard() {
                 {card.changeType === "up" ? <HiMiniArrowUpRight /> : <HiMiniArrowDownLeft />}
                 <span>{card.change}</span>
               </div>
-              <span className="text-gray-400 text-[10px] font-pincuk text-lg tracking-wider dark:text-white">{card.description}</span>
+              <span className="text-gray-400 text-[13px] font-pincuk text-xl tracking-wider dark:text-white">{card.description}</span>
             </div>
           </div>
         </div>

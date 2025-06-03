@@ -72,7 +72,7 @@ const UserManagementView = () => {
               </h2>
               <div className="flex items-center gap-2 flex-shrink-0">
                 <span className={`${response.user.isActive ? 'text-green-500' : 'text-red-500'} font-bold text-lg`}>●</span>
-                <span className="text-gray-700  dark:text-white font-pincuk textxgl tracking-wider">{response.user.role.name}</span>
+                <span className="text-gray-700  dark:text-white font-pincuk text-lg tracking-wider">{response.user.role.name}</span>
               </div>
             </div>
             <div className="mt-2 text-sm text-gray-500 font-sans font-semibold dark:text-white flex flex-col sm:flex-row items-center gap-2 text-center sm:text-left">
@@ -179,7 +179,7 @@ const UserManagementView = () => {
                         </div>
                         <span className="text-[#121C2D] text-lg tracking-wider dark:text-white">{game.gameTitle || 'Unknown Game'}</span>
                       </td>
-                      <td className="py-2 text-[#334154] font-pincuk text-xl tracking-wider dark:text-white">{formatTime(game.totalPlayTime || 0)}</td>
+                      <td className="py-2 text-lg text-[#334154] font-pincuk tracking-wider dark:text-white">{formatTime(game.totalPlayTime || 0)}</td>
                     </tr>
                   ))
                 )}

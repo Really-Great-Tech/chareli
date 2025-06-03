@@ -28,12 +28,7 @@ export default function GameCategories() {
       setSelectedCategoryId(null);
       setEditOpen(false);
     } catch (error: any) {
-       const errorMessage =
-      error?.response?.data?.error?.message ||
-      error?.response?.data?.message ||
-      error.message ||
-      "Failed to delete category";
-      toast.error(errorMessage);
+       console.log(error)
     }
   };
 

@@ -32,7 +32,7 @@ router.get('/', isAdmin, validateQuery(analyticsQuerySchema), getAllAnalytics);
 router.get('/:id', isAdmin, validateParams(analyticsIdParamSchema), getAnalyticsById);
 
 // Update analytics entry - admin only
-router.put('/:id', isAdmin, validateParams(analyticsIdParamSchema), validateBody(updateAnalyticsSchema), updateAnalytics);
+router.put('/:id', validateParams(analyticsIdParamSchema), validateBody(updateAnalyticsSchema), updateAnalytics);
 
 // Delete analytics entry - admin only
 // Update analytics end time - accessible by all authenticated users

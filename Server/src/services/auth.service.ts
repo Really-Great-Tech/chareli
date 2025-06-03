@@ -324,10 +324,30 @@ export class AuthService {
     }
 
     // Check for pending invitation
-    const existingInvitation = await invitationRepository.findOne({ where: { email } });
+    const existingInvitation = await invitationRepository.findOne({ 
+      where: { 
+        email,
+        isAccepted: false,
+        expiresAt: MoreThan(new Date())
+      } 
+    });
     if (existingInvitation) {
-      throw new Error('Invitation for this email already exists');
+      throw new Error('Active invitation for this email already exists');
     }
+
+    // Clean up old invitations for this email (expired or accepted)
+    await invitationRepository.delete({
+      email,
+      isAccepted: true
+    });
+    
+    // Delete expired invitations
+    await invitationRepository.createQueryBuilder()
+      .delete()
+      .from(Invitation)
+      .where('email = :email', { email })
+      .andWhere('expiresAt <= :now', { now: new Date() })
+      .execute();
 
     const role = await roleRepository.findOne({ where: { name: roleName } });
     if (!role) {
@@ -358,7 +378,8 @@ export class AuthService {
     await invitationRepository.save(invitation);
 
     // Generate invitation link - point to frontend route
-    const frontendUrl = config.env === 'https://dev.chareli.reallygreattech.com';
+    const frontendUrl = 'https://dev.chareli.reallygreattech.com';
+    // const frontendUrl = config.env === 'development' ? 'http://localhost:5173' : '';
     const invitationLink = `${frontendUrl}/register-invitation/${token}`;
 
     // Send invitation email
@@ -368,6 +389,54 @@ export class AuthService {
   }
 
  
+  /**
+   * Change a user's role directly
+   */
+  async changeUserRole(
+    userId: string,
+    newRoleName: RoleType,
+    changedById: string
+  ): Promise<User> {
+    // Find the user
+    const user = await userRepository.findOne({
+      where: { id: userId },
+      relations: ['role']
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Check if user already has this role
+    if (user.role.name === newRoleName) {
+      throw new Error('User already has this role');
+    }
+
+    // Find the new role
+    const newRole = await roleRepository.findOne({ where: { name: newRoleName } });
+    if (!newRole) {
+      throw new Error(`Role ${newRoleName} not found`);
+    }
+
+    // Find the person making the change
+    const changer = await userRepository.findOne({ where: { id: changedById } });
+    if (!changer) {
+      throw new Error('User making the change not found');
+    }
+
+    const oldRoleName = user.role.name;
+    
+    // Update user's role
+    user.role = newRole;
+    user.roleId = newRole.id;
+    await userRepository.save(user);
+
+    // Send email notification about role change
+    await emailService.sendRoleChangedEmail(user.email, oldRoleName, newRoleName);
+
+    return user;
+  }
+
   async requestPasswordReset(email: string): Promise<boolean> {
     // Find the user
     const user = await userRepository.findOne({ where: { email } });

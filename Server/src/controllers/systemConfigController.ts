@@ -140,8 +140,11 @@ export const getSystemConfigByKey = async (
     });
     
     if (!config) {
-      return next(ApiError.notFound(`Configuration with key ${key} not found`));
+      console.warn(`Config for key '${key}' not found.`);
+      res.status(200).json({ success: false, message: 'No config found.' });
+      return;
     }
+
     
     // Handle file-based configs (like 'terms')
     if (key === 'terms' && config.value?.fileId) {

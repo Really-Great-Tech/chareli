@@ -8,6 +8,7 @@ import { RiTeamLine } from 'react-icons/ri';
 import { toast } from "sonner";
 import type { User } from "../../../backend/types";
 import { format } from "date-fns";
+import { getErrorMessage } from "../../../utils/errorHandling";
 
 export default function TeamManagement() {
   const [activeTab, setActiveTab] = useState<'members' | 'invitations'>('members');
@@ -36,7 +37,12 @@ export default function TeamManagement() {
       setIsConfirmOpen(false);
       setSelectedUser(null);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to revoke role');
+      const { message, type } = getErrorMessage(error, 'Failed to revoke role');
+      if (type === 'warning') {
+        toast.warning(message);
+      } else {
+        toast.error(message);
+      }
     }
   };
 
@@ -54,7 +60,12 @@ export default function TeamManagement() {
       setIsDeleteInviteConfirmOpen(false);
       setSelectedInvitationId(null);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to delete invitation');
+      const { message, type } = getErrorMessage(error, 'Failed to delete invitation');
+      if (type === 'warning') {
+        toast.warning(message);
+      } else {
+        toast.error(message);
+      }
     }
   };
 

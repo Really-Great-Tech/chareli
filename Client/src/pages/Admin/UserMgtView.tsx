@@ -179,7 +179,7 @@ const UserManagementView = () => {
                         </div>
                         <span className="text-[#121C2D] text-lg tracking-wider dark:text-white">{game.gameTitle || 'Unknown Game'}</span>
                       </td>
-                      <td className="py-2 text-lg text-[#334154] font-pincuk text-xl tracking-wider dark:text-white">{formatTime(game.totalPlayTime || 0)}</td>
+                      <td className="py-2 text-[#334154] font-pincuk text-xl tracking-wider dark:text-white">{formatTime(game.totalPlayTime || 0)}</td>
                     </tr>
                   ))
                 )}

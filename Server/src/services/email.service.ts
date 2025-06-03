@@ -5,7 +5,7 @@ import { invitationEmailTemplate } from '../templates/emails/invitation.template
 import { welcomeEmailTemplate } from '../templates/emails/welcome.template';
 import { resetPasswordEmailTemplate } from '../templates/emails/reset.template';
 import { otpEmailTemplate } from '../templates/emails/otp.template';
-import { roleRevokedEmailTemplate } from '../templates/emails/role.template';
+import { roleRevokedEmailTemplate, roleChangedEmailTemplate } from '../templates/emails/role.template';
 
 export interface EmailServiceInterface {
   sendInvitationEmail(email: string, invitationLink: string, role: string): Promise<boolean>;
@@ -13,6 +13,7 @@ export interface EmailServiceInterface {
   sendPasswordResetEmail(email: string, resetLink: string): Promise<boolean>;
   sendOtpEmail(email: string, otp: string): Promise<boolean>;
   sendRoleRevokedEmail(email: string, oldRole: string): Promise<boolean>;
+  sendRoleChangedEmail(email: string, oldRole: string, newRole: string): Promise<boolean>;
 }
 
 export class EmailService implements EmailServiceInterface {
@@ -66,6 +67,14 @@ export class EmailService implements EmailServiceInterface {
   async sendRoleRevokedEmail(email: string, oldRole: string): Promise<boolean> {
     const html = roleRevokedEmailTemplate(oldRole);
     return this.sendEmail(email, 'Your Role Has Been Changed', html);
+  }
+
+  /**
+   * Send email notification when a user's role is changed
+   */
+  async sendRoleChangedEmail(email: string, oldRole: string, newRole: string): Promise<boolean> {
+    const html = roleChangedEmailTemplate(oldRole, newRole);
+    return this.sendEmail(email, 'Your Role Has Been Updated', html);
   }
 
   /**

@@ -743,7 +743,7 @@ export const getGameAnalyticsById = async (
     // Check if game exists
     const game = await gameRepository.findOne({
       where: { id },
-      relations: ['category', 'thumbnailFile', 'createdBy']
+      relations: ['category', 'thumbnailFile', 'createdBy', 'gameFile']
     });
     
     if (!game) {
@@ -833,6 +833,10 @@ export const getGameAnalyticsById = async (
       thumbnailFile: game.thumbnailFile ? {
         ...game.thumbnailFile,
         url: game.thumbnailFile.s3Key ? `${s3Service.getBaseUrl()}/${game.thumbnailFile.s3Key}` : null
+      } : null,
+      gameFile: game.gameFile ? {
+        ...game.gameFile,
+        url: game.gameFile.s3Key ? `${s3Service.getBaseUrl()}/${game.gameFile.s3Key}` : null
       } : null
     };
 

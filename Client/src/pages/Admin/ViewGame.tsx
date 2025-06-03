@@ -12,9 +12,9 @@ import { useGameAnalyticsById } from "../../backend/analytics.service";
 import { useToggleGameStatus, useDeleteGame } from "../../backend/games.service";
 import { toast } from "sonner";
 import { DeleteConfirmationModal } from "../../components/modals/DeleteConfirmationModal";
+import { ToggleGameStatusModal } from "../../components/modals/ToggleGameStatusModal";
 import { useState } from "react";
 import { EditSheet } from "../../components/single/Edit-Sheet";
-import { XIcon } from "lucide-react";
 import { formatTime } from "../../utils/main";
 
 export default function ViewGame() {
@@ -77,7 +77,7 @@ export default function ViewGame() {
               className="flex items-center justify-center gap-2 w-full bg-[#D946EF] text-white tracking-wider hover:bg-[#c026d3]"
               onClick={() => setShowDisableModal(true)}
             >
-              {game?.status === "active" ? "Disable" : "Enable"} <IoEyeOutline />
+              {(game as any).game?.status === "active" ? "Disable" : "Enable"} <IoEyeOutline />
             </Button>
             <Button className="flex items-center justify-center gap-2 w-full bg-[#EF4444] text-white tracking-wider hover:bg-[#dc2626]"
               onClick={() => setShowDeleteModal(true)}
@@ -99,7 +99,7 @@ export default function ViewGame() {
             </div>
             <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl p-4 flex-1">
               <h4 className="font-bold mb-1 text-[#475568] dark:text-white">Game Code</h4>
-              <a href={game?.code || "#"} className="text-[#475568]  underline dark:text-white  font-pincuk text-lg tracking-wider" target="_blank" rel="noopener noreferrer">{game?.code || ""}</a>
+              <a href={(game as any).game?.gameFile?.url || "#"} className="text-[#475568]  underline dark:text-white  font-pincuk text-lg tracking-wider" target="_blank" rel="noopener noreferrer">{(game as any).game?.gameFile?.url || "#"}</a>
             </div>
           </div>
           <div>
@@ -138,50 +138,27 @@ export default function ViewGame() {
           </div>
         </div>
       </div>
-      {/* Disable Modal */}
-      {showDisableModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
-          <div className="dark:bg-[#232B3B] bg-white rounded-2xl p-8 relative w-[90vw] max-w-md" style={{ boxShadow: "0 2px 4px 2px #e879f9" }}>
-            <button
-              className="absolute -top-4 -right-4 rounded-full bg-[#C026D3] w-10 h-10 flex items-center justify-center text-white"
-              onClick={() => setShowDisableModal(false)}
-            >
-              <XIcon className="w-6 h-6" />
-            </button>
-            <h2 className="text-2xl font-boogaloo dark:text-white mb-2 text-[#121C2D]">
-              Are you sure you want to {game?.status === "active" ? "disable" : "enable"} this game?
-            </h2>
-            <p className="dark:text-[#CBD5E0] mb-8 text-[#121C2D] font-pincuk text-xl tracking-wider">
-              {game?.status === "active" 
-                ? "Players will not be able to access this game until you enable it again."
-                : "Players will be able to access this game once enabled."
-              }
-            </p>
-            <div className="flex gap-4 justify-end">
-              <button
-                className="dark:bg-white text-[#232B3B] px-3 py-2 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0]"
-                onClick={() => setShowDisableModal(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="bg-[#D946EF] text-white px-3 py-2 rounded-lg tracking-wider"
-                onClick={async () => {
-                  try {
-                    await toggleStatus.mutateAsync(gameId || '');
-                    toast.success(`Game ${game?.status === "active" ? "disabled" : "enabled"} successfully`);
-                    setShowDisableModal(false);
-                  } catch (error) {
-                    toast.error("Failed to update game status");
-                  }
-                }}
-              >
-                {game?.status === "active" ? "Disable" : "Enable"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
+      {/* Toggle Game Status Modal */}
+      <ToggleGameStatusModal
+        open={showDisableModal}
+        onOpenChange={setShowDisableModal}
+        gameStatus={(game as any)?.game?.status || 'disabled'}
+        gameTitle={(game as any)?.game?.title || 'this game'}
+        isToggling={toggleStatus.isPending}
+        onConfirm={async () => {
+          try {
+            await toggleStatus.mutateAsync({
+              gameId: gameId || '',
+              currentStatus: (game as any)?.game?.status || 'disabled'
+            });
+            toast.success(`Game ${(game as any)?.game?.status === "active" ? "disabled" : "enabled"} successfully`);
+            setShowDisableModal(false);
+          } catch (error) {
+            toast.error("Failed to update game status");
+          }
+        }}
+      />
 
       {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal

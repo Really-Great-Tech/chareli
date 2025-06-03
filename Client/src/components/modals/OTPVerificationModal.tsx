@@ -98,11 +98,20 @@ export function OTPVerificationModal({
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="max-w-[90vw] sm:max-w-[425px] p-4 sm:p-6 dark:bg-[#0F1221] rounded-xl">
+        {/* Custom Close Button */}
+        <button
+          className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#C026D3] flex items-center justify-center shadow-lg hover:bg-[#a21caf] transition-colors"
+          onClick={() => onOpenChange(false)}
+          aria-label="Close"
+          style={{ border: "none" }}
+        >
+          <span className="text-white text-2xl font-bold">×</span>
+        </button>
         <AlertDialogHeader>
           <AlertDialogTitle className="text-xl sm:text-2xl font-bold dark:text-white text-black font-boogaloo">
             OTP Verification
           </AlertDialogTitle>
-          <AlertDialogDescription className="dark:text-white text-black font-pincuk text-xs sm:text-sm mt-1">
+          <AlertDialogDescription className="dark:text-white text-black font-boogaloo text-md tracking-wider sm:text-sm mt-1">
             Enter the verification code we just sent to{" "}
             {otpType === "BOTH" ? "both " : ""}
             {contactMethod}
@@ -128,8 +137,9 @@ export function OTPVerificationModal({
         </div>
         {error && (
           <div
-            className={`text-xs sm:text-sm text-center font-pincuk mt-2 sm:mt-3 ${error.includes("resent") ? "text-green-500" : "text-red-500"
-              }`}
+            className={`text-xs sm:text-sm text-center font-pincuk mt-2 sm:mt-3 ${
+              error.includes("resent") ? "text-green-500" : "text-red-500"
+            }`}
           >
             {error}
           </div>
@@ -141,12 +151,12 @@ export function OTPVerificationModal({
         >
           {isVerifying ? "Verifying..." : "Verify"}
         </Button>
-        <p className="text-xs sm:text-sm text-center text-black dark:text-white font-pincuk mt-2 sm:mt-3">
+        <p className="text-xs sm:text-sm text-center text-black dark:text-white font-boogaloo mt-2 sm:mt-3">
           Didn't receive a code?{" "}
           <button
             onClick={handleResendOtp}
             disabled={requestOtp.isPending}
-            className="underline text-[#C026D3] cursor-pointer"
+            className="underline text-[#C026D3] cursor-pointer text-lg"
           >
             {requestOtp.isPending ? "Sending..." : "Resend"}
           </button>

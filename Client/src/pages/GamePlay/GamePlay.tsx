@@ -247,12 +247,12 @@ export default function GamePlay() {
 
           {/* Similar Games section */}
           {!expanded && game.similarGames && game.similarGames.length > 0 && (
-            <div className="bg-[#18181b] mt-4 rounded-2xl border-4 border-purple-400 p-4">
+            <div className="bg-[#18181b] mt-4 rounded-2xl p-4">
               <h2 className="text-2xl font-semibold text-white mb-4 px-4">
                 Similar Games
               </h2>
-              <Card className="border-hidden shadow-none p-4 bg-transparent max-w-[1000px] mx-auto">
-                <div className="flex flex-wrap justify-center gap-6 w-full">
+              <Card className="border-hidden shadow-none p-4 bg-transparent max-w-[1000px]">
+                <div className="flex flex-wrap justify-start gap-6 w-full">
                   {game.similarGames.map((similarGame: SimilarGame) => (
                     <div
                       key={similarGame.id}

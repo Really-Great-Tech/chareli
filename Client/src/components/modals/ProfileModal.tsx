@@ -47,10 +47,10 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
 
                     <div className='ml-4'>
                     <div className="text-3xl font-extrabold font-boogaloo dark:text-[#D946EF] text-[#0F1621] mb-1">
-                        {user ? `${user.firstName} ${user.lastName}` : 'Guest User'}
+                        {user ? `${user.firstName || '' } ${user.lastName || ''}` : 'Guest User'}
                     </div>
                     <div className="dark:text-white text-[#0F1621] font-pincuk text-xl tracking-wider">
-                        {user?.email || 'Not logged in'}
+                        {user?.email || ''}
                     </div>
                     </div>
                 </div>
@@ -59,7 +59,7 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
                     <div className="flex justify-between py-2 border-b border-t border-[#CBD5E0] dark:border-[#475568] items-center mb-8">
                         <span className="dark:text-[#D946EF] font-boogaloo text-xl mt-4 mb-8">Name</span>
                         <span className="dark:text-white font-pincuk text-xl tracking-wider mt-4 mb-8">
-                            {user ? `${user.firstName} ${user.lastName}` : 'Guest User'}
+                            {user ? `${user.firstName || ''} ${user.lastName || ''}` : 'Guest User'}
                         </span>
                     </div>
                     <div className="flex justify-between py-2 border-b border-[#CBD5E0] dark:border-[#475568] items-center">

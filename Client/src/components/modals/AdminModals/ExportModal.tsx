@@ -16,6 +16,10 @@ import { Download, FileSpreadsheet, FileJson, File } from "lucide-react";
 import * as XLSX from "xlsx";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import type { TDocumentDefinitions } from "pdfmake/interfaces";
+
+// We'll load pdfMake dynamically to avoid font loading issues
+let pdfMake: any;
 
 interface ExportModalProps {
   data: any[];
@@ -135,25 +139,142 @@ const ExportModal = ({
         return;
       }
 
-      const loadingToast = toast.loading("Exporting data as PDF...");
+      const loadingToast = toast.loading("Generating PDF report...");
 
-      // TODO: Implement PDF generation
-      const pdfBlob = new Blob(['PDF generation not implemented yet'], { type: 'application/pdf' });
-      const url = URL.createObjectURL(pdfBlob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `user_management_${format(new Date(), "yyyy-MM-dd_HH-mm")}.pdf`;
+      // Dynamically import pdfMake and fonts
+      if (!pdfMake) {
+        pdfMake = (await import("pdfmake/build/pdfmake")).default;
+        const pdfFonts = await import("pdfmake/build/vfs_fonts");
+        pdfMake.vfs = (pdfFonts as any).vfs;
+      }
 
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      // Transform data for the table
+      const tableBody = data.map(user => [
+        { text: `${user.firstName || ""} ${user.lastName || ""}`, alignment: 'left', margin: [8, 4] },
+        { text: user.email || "-", alignment: 'left', margin: [8, 4] },
+        { text: user.phoneNumber || "-", alignment: 'left', margin: [8, 4] },
+        { text: format(new Date(user.createdAt), "dd/MM/yy"), alignment: 'center', margin: [8, 4] },
+        { text: user.analytics?.totalGamesPlayed || 0, alignment: 'center', margin: [8, 4] },
+        { text: user.analytics?.totalTimePlayed ? Math.floor(user.analytics.totalTimePlayed / 60) + " minutes" : "0 minutes", alignment: 'center', margin: [8, 4] },
+        { text: user.analytics?.totalSessionCount || 0, alignment: 'center', margin: [8, 4] },
+        { text: user.lastLoggedIn ? format(new Date(user.lastLoggedIn), "dd/MM/yy HH:mm") : "Never logged in", alignment: 'center', margin: [8, 4] }
+      ]);
 
-      toast.dismiss(loadingToast);
-      toast.success("PDF file exported successfully");
-      setOpen(false);
+      // Calculate summary statistics
+      const totalUsers = data.length;
+      const activeUsers = data.filter(user => user.isActive).length;
+      const totalSessions = data.reduce((sum, user) => sum + (user.analytics?.totalSessionCount || 0), 0);
+      const totalGamesPlayed = data.reduce((sum, user) => sum + (user.analytics?.totalGamesPlayed || 0), 0);
+      const avgSessionsPerUser = totalUsers ? (totalSessions / totalUsers).toFixed(2) : 0;
+
+      const docDefinition: TDocumentDefinitions = {
+        pageSize: { width: 842, height: 595 },
+        pageMargins: [40, 40, 40, 40],
+        pageOrientation: 'landscape',
+        content: [
+          {
+            text: 'User Management Statistics Report',
+            style: 'header',
+            alignment: 'center',
+            margin: [0, 0, 0, 20] as [number, number, number, number]
+          },
+          {
+            text: `Generated on ${format(new Date(), "MMMM dd, yyyy 'at' HH:mm")}`,
+            alignment: 'center',
+            margin: [0, 0, 0, 20] as [number, number, number, number]
+          },
+          {
+            text: 'Summary Statistics',
+            style: 'subheader',
+            margin: [0, 0, 0, 10] as [number, number, number, number]
+          },
+          {
+            columns: [
+              {
+                width: 'auto',
+                text: [
+                  { text: 'Total Users: ', bold: true }, `${totalUsers}\n`,
+                  { text: 'Active Users: ', bold: true }, `${activeUsers}\n`,
+                  { text: 'Total Sessions: ', bold: true }, `${totalSessions}\n`,
+                ]
+              },
+              {
+                width: 'auto',
+                text: [
+                  { text: 'Total Games Played: ', bold: true }, `${totalGamesPlayed}\n`,
+                  { text: 'Avg Sessions/User: ', bold: true }, `${avgSessionsPerUser}\n`,
+                ]
+              }
+            ],
+            margin: [0, 0, 0, 20] as [number, number, number, number]
+          },
+          {
+            text: 'Detailed User Data',
+            style: 'subheader',
+            margin: [0, 0, 0, 10] as [number, number, number, number]
+          },
+          {
+            table: {
+              headerRows: 1,
+              widths: [110, 140, 80, 80, 50, 70, 50, 120] as number[],
+              body: [
+                [
+                  { text: 'Name', style: 'tableHeader', alignment: 'left', margin: [8, 4] },
+                  { text: 'Email', style: 'tableHeader', alignment: 'left', margin: [8, 4] },
+                  { text: 'Phone', style: 'tableHeader', alignment: 'left', margin: [8, 4] },
+                  { text: 'Registration Date', style: 'tableHeader', alignment: 'center', margin: [8, 4] },
+                  { text: 'Games Played', style: 'tableHeader', alignment: 'center', margin: [8, 4] },
+                  { text: 'Time Played', style: 'tableHeader', alignment: 'center', margin: [8, 4] },
+                  { text: 'Sessions', style: 'tableHeader', alignment: 'center', margin: [8, 4] },
+                  { text: 'Last Login', style: 'tableHeader', alignment: 'center', margin: [8, 4] }
+                ],
+                ...tableBody
+              ]
+            }
+          }
+        ],
+        styles: {
+          header: {
+            fontSize: 18,
+            bold: true,
+            color: '#D946EF'
+          },
+          subheader: {
+            fontSize: 14,
+            bold: true,
+            margin: [0, 10, 0, 5] as [number, number, number, number]
+          },
+          tableHeader: {
+            bold: true,
+            fillColor: '#F3F4F6',
+            fontSize: 11
+          }
+        },
+          defaultStyle: {
+            fontSize: 10,
+            lineHeight: 1.4
+        }
+      };
+
+      const pdfDoc = pdfMake.createPdf(docDefinition);
+      
+      // Get the PDF as a blob
+      pdfDoc.getBlob((blob: any) => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `user_management_${format(new Date(), "yyyy-MM-dd_HH-mm")}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        toast.dismiss(loadingToast);
+        toast.success("PDF report generated successfully");
+        setOpen(false);
+      });
     } catch (error) {
-      toast.error(`Failed to export PDF file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(`Failed to generate PDF report: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 

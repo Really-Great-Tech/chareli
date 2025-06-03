@@ -227,7 +227,7 @@ export function LoginModal({
                               backgroundColor: "#E2E8F0",
                               border: "0",
                               borderRadius: "0.375rem",
-                              fontFamily: "pincuk",
+                              fontFamily: "boogaloo",
                               fontSize: "11px",
                             }}
                             containerClass="dark:bg-[#191c2b]"
@@ -263,7 +263,7 @@ export function LoginModal({
                             ? "Enter your email"
                             : "Enter your phone number"
                         }
-                        className={`mt-1 bg-[#E2E8F0] border-0 pl-10 font-pincuk text-xl tracking-wider font-normal h-[48px] ${
+                        className={`mt-1 bg-[#E2E8F0] border-0 pl-10 font-boogaloo text-xl tracking-wider font-normal h-[48px] ${
                           activeTab === "email" ? "pl-10" : ""
                         }`}
                       />
@@ -272,7 +272,7 @@ export function LoginModal({
                   <ErrorMessage
                     name={activeTab === "email" ? "email" : "phoneNumber"}
                     component="div"
-                    className="text-red-500 text-xs"
+                    className="text-red-500 mt-1 font-boogaloo text-sm tracking-wider"
                   />
                 </div>
                 <div className="relative">
@@ -303,17 +303,17 @@ export function LoginModal({
                       name="password"
                       type={showPassword ? "text" : "password"}
                       placeholder="password"
-                      className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-pincuk text-xl tracking-wider font-normal h-[48px]"
+                      className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-boogaloo text-xl tracking-wider font-normal h-[48px]"
                     />
                   </div>
                   <ErrorMessage
                     name="password"
                     component="div"
-                    className="text-red-500  mt-1 font-pincuk text-xl tracking-wider"
+                    className="text-red-500  mt-1 font-boogaloo text-sm tracking-wider"
                   />
                 </div>
                 {loginError && (
-                  <div className="text-red-500  font-pincuk text-xl tracking-wider text-center">
+                  <div className="text-red-500 font-boogaloo text-sm tracking-wider text-center">
                     {loginError}
                   </div>
                 )}
@@ -337,10 +337,10 @@ export function LoginModal({
                   Login
                 </Button>
                 {!hideSignUpLink && (
-                  <p className=" text-center text-black dark:text-white font-pincuk text-xl tracking-wider">
+                  <p className=" text-center text-black dark:text-white font-boogaloo text-md tracking-wider">
                     Don't have an account?{" "}
                     <span
-                      className="text-[#C026D3] cursor-pointer hover:underline text-lg font-boogaloo"
+                      className="text-[#C026D3] cursor-pointer hover:underline text-xl font-boogaloo"
                       onClick={openSignUpModal}
                     >
                       Sign Up

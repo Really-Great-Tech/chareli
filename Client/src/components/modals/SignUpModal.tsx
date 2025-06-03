@@ -230,13 +230,13 @@ export function SignUpModal({
                                 id="email"
                                 name="email"
                                 placeholder="Enter Email"
-                                className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-pincuk text-xl tracking-wider text-[11px] font-normal h-[48px]"
+                                className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-boogaloo text-lg tracking-wider text-[11px] font-normal h-[48px]"
                               />
                             </div>
                             <ErrorMessage
                               name="email"
                               component="div"
-                              className="text-red-500  mt-1 font-pincuk text-xl tracking-wider"
+                              className="text-red-500  mt-1 font-boogaloo text-sm tracking-wider"
                             />
                           </div>
                         )}
@@ -262,7 +262,7 @@ export function SignUpModal({
                                       backgroundColor: "#E2E8F0", 
                                       border: "0", 
                                       borderRadius: "0.375rem", 
-                                      fontFamily: "pincuk", 
+                                      fontFamily: "boogaloo", 
                                       fontSize: "11px" 
                                     }}
                                     containerClass="dark:bg-[#191c2b]"
@@ -292,7 +292,7 @@ export function SignUpModal({
                             <ErrorMessage
                               name="phoneNumber"
                               component="div"
-                              className="text-red-500  mt-1 font-pincuk text-xl tracking-wider"
+                              className="text-red-500  mt-1 font-boogaloo text-sm tracking-wider"
                             />
                           </div>
                         )}
@@ -318,13 +318,13 @@ export function SignUpModal({
                                     id="firstName"
                                     name="firstName"
                                     placeholder="Enter First Name"
-                                    className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-pincuk text-xl tracking-wider text-[11px] font-normal h-[48px]"
+                                    className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-boogaloo text-lg tracking-wider text-[11px] font-normal h-[48px]"
                                   />
                                 </div>
                                 <ErrorMessage
                                   name="firstName"
                                   component="div"
-                                  className="text-red-500  mt-1 font-pincuk text-xl tracking-wider"
+                                  className="text-red-500  mt-1 font-boogaloo text-sm tracking-wider"
                                 />
                               </div>
                             )}
@@ -346,13 +346,13 @@ export function SignUpModal({
                                     id="lastName"
                                     name="lastName"
                                     placeholder="Enter Last Name"
-                                    className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-pincuk text-xl tracking-wider text-[11px] font-normal h-[48px]"
+                                    className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-boogaloo text-lg tracking-wider text-[11px] font-normal h-[48px]"
                                   />
                                 </div>
                                 <ErrorMessage
                                   name="lastName"
                                   component="div"
-                                  className="text-red-500  mt-1 font-pincuk text-xl tracking-wider"
+                                  className="text-red-500  mt-1 font-boogaloo text-sm tracking-wider"
                                 />
                               </div>
                             )}
@@ -391,13 +391,13 @@ export function SignUpModal({
                         name="password"
                         type={showPassword ? "text" : "password"}
                         placeholder="Enter Password"
-                        className="mt-1 bg-[#E2E8F0] border-0 pl-10 pr-10 font-pincuk text-xl tracking-wider text-[11px] font-normal h-[48px]"
+                        className="mt-1 bg-[#E2E8F0] border-0 pl-10 pr-10 font-boogaloo text-lg tracking-wider text-[11px] font-normal h-[48px]"
                       />
                     </div>
                     <ErrorMessage
                       name="password"
                       component="div"
-                      className="text-red-500 mt-1 font-pincuk text-xl tracking-wider"
+                      className="text-red-500 mt-1 font-boogaloo text-sm tracking-wider"
                     />
                   </div>
                   <div className="relative mt-4">
@@ -428,13 +428,13 @@ export function SignUpModal({
                         name="confirmPassword"
                         type={showConfirmPassword ? "text" : "password"}
                         placeholder="Confirm Password"
-                        className="mt-1 bg-[#E2E8F0] border-0 pl-10 pr-10 font-pincuk text-xl tracking-wider text-[11px] font-normal h-[48px]"
+                        className="mt-1 bg-[#E2E8F0] border-0 pl-10 pr-10 font-boogaloo text-lg tracking-wider text-[11px] font-normal h-[48px]"
                       />
                     </div>
                     <ErrorMessage
                       name="confirmPassword"
                       component="div"
-                      className="text-red-500  mt-1 font-pincuk text-xl tracking-wider"
+                      className="text-red-500  mt-1 font-boogaloo text-sm tracking-wider"
                     />
                   </div>
                   <div className="my-5 flex flex-col gap-3">
@@ -462,7 +462,7 @@ export function SignUpModal({
                     <ErrorMessage
                       name="ageConfirm"
                       component="div"
-                      className="text-red-500  font-pincuk text-xl tracking-wider"
+                      className="text-red-500  font-boogaloo text-sm tracking-wider"
                     />
                     <div className="flex items-center space-x-2">
                       <Field name="terms">
@@ -488,7 +488,7 @@ export function SignUpModal({
                     <ErrorMessage
                       name="terms"
                       component="div"
-                      className="text-red-500  font-pincuk text-xl tracking-wider"
+                      className="text-red-500  font-boogaloo text-sm tracking-wider"
                     />
                   </div>
                   <Button
@@ -503,7 +503,7 @@ export function SignUpModal({
             </Formik>
           </DialogDescription>
         </DialogHeader>
-        <p className=" text-center text-black dark:text-white font-pincuk text-xl tracking-wider">
+        <p className=" text-center text-black dark:text-white font-boogaloo text-lg tracking-wider">
           Already have an account?{" "}
           <span
             className="underline text-[#C026D3] cursor-pointer font-boogaloo text-lg hover:underline"

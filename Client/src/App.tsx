@@ -21,7 +21,7 @@ const App: React.FC = () => {
       <BrowserRouter>
         <AuthProvider>
           <div className='font-boogaloo'>
-            <Toaster position="bottom-right" richColors />
+            <Toaster position="top-right" richColors />
             <AppRoutes />
           </div>
         </AuthProvider>

@@ -140,15 +140,15 @@ export default function UserManagement() {
                       {filteredUsers && filteredUsers.slice((page - 1) * usersPerPage, page * usersPerPage).map((user, idx) => (
                         <TableRow
                           key={idx}
-                          className="font-pincuk text-lg tracking-wider cursor-pointer hover:bg-[#f3e8ff] dark:hover:bg-[#23243a]"
+                          className="font-pincuk text-md tracking-wider cursor-pointer hover:bg-[#f3e8ff] dark:hover:bg-[#23243a]"
                           onClick={() => navigate(`/admin/management/${user.id}`, { state: { user } })}
                         >
-                          <TableCell>{`${user.firstName || ""} ${user.lastName || ""}`}</TableCell>
-                          <TableCell>{user.email || '-'}</TableCell>
-                          <TableCell>{user.phoneNumber || '-'}</TableCell>
+                          <TableCell className="text-lg">{`${user.firstName || ""} ${user.lastName || ""}`}</TableCell>
+                          <TableCell className="text-lg">{user.email || '-'}</TableCell>
+                          <TableCell className="">{user.phoneNumber || '-'}</TableCell>
                           <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
                           <TableCell>{user.analytics?.totalGamesPlayed || 0}</TableCell>
-                          <TableCell>{formatTime(user.analytics?.totalTimePlayed || 0)}</TableCell>
+                          <TableCell className="text-lg">{formatTime(user.analytics?.totalTimePlayed || 0)}</TableCell>
                           <TableCell>{user.analytics?.totalSessionCount || 0}</TableCell>
                           <TableCell>
                             <span className="flex items-center gap-2">

@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Outlet } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Outlet, useLocation } from "react-router-dom";
 import AdminNavbar from "../components/single/AdminNavbar";
 import { NavLink } from "react-router-dom";
 import { IoGameControllerOutline } from "react-icons/io5";
@@ -51,13 +51,30 @@ const menuItems = [
 
 const AdminLayout: React.FC = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const location = useLocation();
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
   };
 
+  // Check if current route is admin route and manage cursor override
+  useEffect(() => {
+    const isAdminRoute = location.pathname.startsWith('/admin');
+    
+    if (isAdminRoute) {
+      document.body.classList.add('admin-route');
+    } else {
+      document.body.classList.remove('admin-route');
+    }
+
+    // Cleanup function to remove class when component unmounts
+    return () => {
+      document.body.classList.remove('admin-route');
+    };
+  }, [location.pathname]);
+
   return (
-    <div className="min-h-screen dark:bg-[#0f1221] text-white dark:text-gray-900 transition-colors duration-300">
+    <div className="admin-layout min-h-screen bg-white dark:bg-[#0f1221] text-gray-900 dark:text-white transition-colors duration-300">
       {/* Fixed header */}
       <div className="fixed top-0 left-0 right-0 z-50">
         <AdminNavbar />
@@ -70,7 +87,7 @@ const AdminLayout: React.FC = () => {
             ? '-translate-x-full lg:translate-x-0 w-16' 
             : 'translate-x-0 w-60'
         }`}>
-          <aside className="h-full bg-white/95 dark:bg-[#0f1221]/95 shadow-lg backdrop-blur-sm transition-colors duration-300">
+          <aside className="h-full bg-white/95 dark:bg-[#0f1221]/95 backdrop-blur-sm transition-colors duration-300">
             <div className="flex flex-col h-full relative">
               <nav className="flex-1">
                 <ul className="space-y-5 px-2 py-4">

@@ -593,3 +593,117 @@ export const revokeRole = async (
     next(error);
   }
 };
+
+/**
+ * @swagger
+ * /auth/users/{id}/role:
+ *   put:
+ *     summary: Change user role
+ *     description: Change a user's role directly. Superadmins can change any role, admins can only change to editor or player roles.
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID of the user whose role will be changed
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - role
+ *             properties:
+ *               role:
+ *                 type: string
+ *                 enum: [player, editor, admin, superadmin]
+ *                 description: The new role for the user
+ *           example:
+ *             role: "editor"
+ *     responses:
+ *       200:
+ *         description: Role successfully changed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Role successfully changed to editor.
+ *                 data:
+ *                   type: object
+ *       400:
+ *         description: Bad request - Invalid role or user already has this role
+ *       401:
+ *         description: Unauthorized - User not authenticated
+ *       403:
+ *         description: Forbidden - User does not have permission to change roles
+ *       404:
+ *         description: Not found - User not found
+ *       500:
+ *         description: Internal server error
+ */
+export const changeUserRole = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { role: newRoleName } = req.body;
+    const currentUserRole = req.user?.role;
+    const currentUserId = req.user?.userId;
+
+    // Validate required fields
+    if (!newRoleName) {
+      return next(ApiError.badRequest('Role is required'));
+    }
+
+    // Validate role
+    if (!Object.values(RoleType).includes(newRoleName as RoleType)) {
+      return next(ApiError.badRequest('Invalid role'));
+    }
+
+    // Prevent changing your own role
+    if (currentUserId === id) {
+      return next(ApiError.badRequest('You cannot change your own role'));
+    }
+
+    // Check permission based on role hierarchy
+    if (currentUserRole === RoleType.ADMIN) {
+      // Admin can only assign editor and player roles
+      if (newRoleName === RoleType.SUPERADMIN || newRoleName === RoleType.ADMIN) {
+        return next(ApiError.forbidden('Admin can only assign editor and player roles'));
+      }
+    } else if (currentUserRole !== RoleType.SUPERADMIN) {
+      return next(ApiError.forbidden('You do not have permission to change roles'));
+    }
+
+    // Use the auth service to change the role
+    const updatedUser = await authService.changeUserRole(
+      id,
+      newRoleName as RoleType,
+      currentUserId!
+    );
+
+    const { password: _, ...userWithoutSensitiveInfo } = updatedUser;
+
+    res.status(200).json({
+      success: true,
+      message: `Role successfully changed to ${newRoleName}.`,
+      data: userWithoutSensitiveInfo,
+    });
+  } catch (error) {
+    next(error instanceof Error ? ApiError.badRequest(error.message) : error);
+  }
+};

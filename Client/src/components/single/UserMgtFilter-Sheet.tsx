@@ -109,10 +109,10 @@ export function UserManagementFilterSheet({
               <Input 
                 type="number"
                 min="0"
-                value={filters.timePlayed.min}
+                value={filters.timePlayed.min === 0 ? '' : filters.timePlayed.min}
                 onChange={(e) => handleChange('timePlayed', {
                   ...filters.timePlayed,
-                  min: parseInt(e.target.value) || 0
+                  min: e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0
                 })}
                 placeholder="Min minutes"
                 className="bg-[#F1F5F9] border border-[#CBD5E0] h-14 text-gray-400 font-thin font-pincuk text-xl tracking-wider dark:bg-[#121C2D]"
@@ -120,10 +120,10 @@ export function UserManagementFilterSheet({
               <Input 
                 type="number"
                 min={filters.timePlayed.min}
-                value={filters.timePlayed.max}
+                value={filters.timePlayed.max === 0 ? '' : filters.timePlayed.max}
                 onChange={(e) => handleChange('timePlayed', {
                   ...filters.timePlayed,
-                  max: parseInt(e.target.value) || 0
+                  max: e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0
                 })}
                 placeholder="Max minutes"
                 className="bg-[#F1F5F9] border border-[#CBD5E0] h-14 text-gray-400 font-thin font-pincuk text-xl tracking-wider dark:bg-[#121C2D]"

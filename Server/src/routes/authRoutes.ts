@@ -19,7 +19,8 @@ import {
   verifyInvitationToken,
   resetPasswordFromInvitation,
   revokeRole,
-  changePassword
+  changePassword,
+  changeUserRole
 } from '../controllers/userManagementController';
 import { authenticate, isAdmin } from '../middlewares/authMiddleware';
 import { validateBody, validateParams } from '../middlewares/validationMiddleware';
@@ -107,6 +108,15 @@ router.put(
   isAdmin,
   validateParams(yup.object({ id: yup.string().uuid('Invalid user ID').required('User ID is required') })),
   revokeRole
+);
+
+router.put(
+  '/users/:id/role',
+  authenticate,
+  isAdmin,
+  validateParams(yup.object({ id: yup.string().uuid('Invalid user ID').required('User ID is required') })),
+  validateBody(yup.object({ role: yup.string().oneOf(['player', 'editor', 'admin', 'superadmin'], 'Invalid role').required('Role is required') })),
+  changeUserRole
 );
 
 export default router;

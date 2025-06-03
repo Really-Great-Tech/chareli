@@ -59,6 +59,7 @@ export const useUpdateGame = () => {
       queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES] });
       queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES, id] });
       queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAME_ANALYTICS, id] });
     },
   });
 };
@@ -66,12 +67,21 @@ export const useUpdateGame = () => {
 export const useToggleGameStatus = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (gameId: string) => {
-      const response = await backendService.patch(`${BackendRoute.ADMIN_GAMES}/${gameId}/toggle-status`);
+    mutationFn: async ({ gameId, currentStatus }: { gameId: string; currentStatus: string }) => {
+      const newStatus = currentStatus === 'active' ? 'disabled' : 'active';
+      const formData = new FormData();
+      formData.append('status', newStatus);
+      
+      const response = await backendService.put(BackendRoute.GAME_BY_ID.replace(':id', gameId), formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (_, { gameId }) => {
       queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAME_ANALYTICS, gameId] });
     },
   });
 };

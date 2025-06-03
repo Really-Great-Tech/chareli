@@ -58,7 +58,7 @@ export function ResetPasswordOTPModal({
       toast.success("OTP verified successfully");
     } catch (error: any) {
       setError("Invalid OTP. Please try again.");
-      toast.error("Invalid OTP. Please try again.");
+      // toast.error("Invalid OTP. Please try again.");
     } finally {
       setIsVerifying(false);
     }

@@ -68,7 +68,8 @@ export function ResetPasswordPage() {
         } catch (error) {
           setIsTokenValid(false);
           setIsTokenChecking(false);
-          toast.error("Invalid or expired reset token");
+          console.log(error)
+          // toast.error("Invalid or expired reset token");
         }
       };
       
@@ -88,11 +89,7 @@ export function ResetPasswordPage() {
       setIsSuccess(true);
       toast.success("Password reset successful");
     } catch (error: any) {
-      if (error.response?.data?.message) {
-        toast.error(error.response.data.message);
-      } else {
-        toast.error("Failed to reset password. Please try again.");
-      }
+      console.log(error)
     }
   };
 

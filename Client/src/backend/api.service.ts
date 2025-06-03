@@ -52,8 +52,8 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     if (error.response?.status !== 401 || originalRequest._retry) {
-      if (error.response?.data?.message) {
-        toast.error(error.response.data.message);
+      if (error.response?.data?.error?.message) {
+        toast.error(error.response?.data?.error?.message);
       } else if (error.message) {
         toast.error(`Error: ${error.message}`);
       } else {

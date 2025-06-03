@@ -180,7 +180,7 @@ export default function GamePlay() {
                 expanded
                   ? "h-screen"
                   : "h-[calc(100vh-64px)]"
-              } mx-auto rounded-2xl border-4 border-purple-400`}
+              } mx-auto rounded-2xl border-1 border-purple-400`}
               style={{ background: "#18181b" }}
             >
               {isGameLoading && (

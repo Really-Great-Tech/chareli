@@ -21,13 +21,13 @@ const inviteSchema = Yup.object().shape({
     .email("Invalid email format")
     .required("Email is required"),
   role: Yup.string()
-    .oneOf(["admin", "editor"], "Invalid role")
+    .oneOf(["admin"], "Invalid role")
     .required("Role is required"),
 });
 
 const initialValues: InviteUserRequest = {
   email: "",
-  role: "editor",
+  role: "admin",
 };
 
 export function InviteSheet({ children }: { children: React.ReactNode }) {
@@ -111,7 +111,6 @@ export function InviteSheet({ children }: { children: React.ReactNode }) {
                   name="role"
                   className="col-span-3 shadow-none text-gray-400 font-thin font-pincuk text-xl tracking-wider h-14 bg-[#F1F5F9] border border-[#CBD5E0] rounded-lg dark:bg-[#121C2D] dark:text-white p-2"
                 >
-                  <option value="editor">Editor</option>
                   <option value="admin">Admin</option>
                 </Field>
                 <ErrorMessage

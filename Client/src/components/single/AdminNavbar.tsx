@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Button } from '../ui/button';
 
 import { IoMdSettings } from "react-icons/io";
-import { IoIosSearch } from "react-icons/io";
+// import { IoIosSearch } from "react-icons/io";
 // import { CommandInput } from '../ui/command';
 import { IoExitOutline } from "react-icons/io5";
 
@@ -23,7 +23,7 @@ const AdminNavbar: React.FC = () => {
 
   const [showSearch, setShowSearch] = useState(false);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
-  const [searchValue, setSearchValue] = useState("");
+  // const [searchValue, setSearchValue] = useState("");
 
   const navigate = useNavigate();
 
@@ -68,7 +68,7 @@ const AdminNavbar: React.FC = () => {
       {/* right side */}
       <div className='flex gap-4 items-center'>
         <div className="font-extrabold text-[#D946EF] dark:text-[#E879F9] flex items-center gap-4">
-          {!showSearch ? (
+          {/* {!showSearch ? (
             <button
               aria-label="Open search"
               onClick={() => setShowSearch(true)}
@@ -100,7 +100,7 @@ const AdminNavbar: React.FC = () => {
                 </button>
               )}
             </div>
-          )}
+          )} */}
           <IoMdSettings className='w-6 h-6 cursor-pointer' onClick={() => navigate('/admin/settings')} />
         </div>
         <div className="space-x-4 flex items-center">

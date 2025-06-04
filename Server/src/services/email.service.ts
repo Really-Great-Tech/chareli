@@ -1,4 +1,5 @@
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
+import * as nodemailer from 'nodemailer';
 import config from '../config/config';
 import logger from '../utils/logger';
 import { invitationEmailTemplate } from '../templates/emails/invitation.template';
@@ -6,6 +7,9 @@ import { welcomeEmailTemplate } from '../templates/emails/welcome.template';
 import { resetPasswordEmailTemplate } from '../templates/emails/reset.template';
 import { otpEmailTemplate } from '../templates/emails/otp.template';
 import { roleRevokedEmailTemplate, roleChangedEmailTemplate } from '../templates/emails/role.template';
+
+// Provider selection flag - set to true to use Gmail, false to use SES
+const USE_GMAIL = true;
 
 export interface EmailServiceInterface {
   sendInvitationEmail(email: string, invitationLink: string, role: string): Promise<boolean>;
@@ -16,17 +20,107 @@ export interface EmailServiceInterface {
   sendRoleChangedEmail(email: string, oldRole: string, newRole: string): Promise<boolean>;
 }
 
-export class EmailService implements EmailServiceInterface {
+interface EmailProvider {
+  sendEmail(to: string, subject: string, html: string): Promise<boolean>;
+}
+
+class SESProvider implements EmailProvider {
   private sesClient: SESClient;
 
   constructor() {
     this.sesClient = new SESClient({
-      region: "eu-central-1",
+      region: "",
       credentials: {
-        accessKeyId: "AKIAU2CFV3CEC25FE4J2",
-        secretAccessKey: "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",
+        accessKeyId: "",
+        secretAccessKey: "",
       }
     });
+  }
+
+  async sendEmail(to: string, subject: string, html: string): Promise<boolean> {
+    try {
+      const emailsToSkip = ["admin@example.com", "edmondboakye1622@gmail.com"];
+
+      // In development mode, just log the email instead of sending
+      if (emailsToSkip.includes(to)) {
+        logger.info(`DEVELOPMENT MODE -- Skipping for this email ${to}: Email would be sent to ${to}`);
+        return true;
+      }
+
+      const command = new SendEmailCommand({
+        Destination: {
+          ToAddresses: [to],
+        },
+        Message: {
+          Body: {
+            Html: {
+              Charset: "UTF-8",
+              Data: html,
+            },
+          },
+          Subject: {
+            Charset: "UTF-8",
+            Data: subject,
+          },
+        },
+        Source: 'no-reply@dev.chareli.reallygreattech.com'
+      });
+
+      await this.sesClient.send(command);
+      logger.info(`Email sent successfully to ${to} via SES`);
+      return true;
+    } catch (error) {
+      logger.error('Failed to send email via SES:', error);
+      return false;
+    }
+  }
+}
+
+class GmailProvider implements EmailProvider {
+  private transporter: nodemailer.Transporter;
+
+  constructor() {
+    this.transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'edmondboakye1622@gmail.com',
+        pass: 'ogmm ioqb bzdb ogpg'
+      }
+    });
+  }
+
+  async sendEmail(to: string, subject: string, html: string): Promise<boolean> {
+    try {
+      const emailsToSkip = ["admin@example.com", "edmondboakye1622@gmail.com"];
+
+      // In development mode, just log the email instead of sending
+      if (emailsToSkip.includes(to)) {
+        logger.info(`DEVELOPMENT MODE -- Skipping for this email ${to}: Email would be sent to ${to}`);
+        return true;
+      }
+
+      const mailOptions = {
+        from: '"Chareli Team" <edmondboakye1622@gmail.com>',
+        to: to,
+        subject: subject,
+        html: html
+      };
+
+      await this.transporter.sendMail(mailOptions);
+      logger.info(`Email sent successfully to ${to} via Gmail`);
+      return true;
+    } catch (error) {
+      logger.error('Failed to send email via Gmail:', error);
+      return false;
+    }
+  }
+}
+
+export class EmailService implements EmailServiceInterface {
+  private provider: EmailProvider;
+
+  constructor() {
+    this.provider = USE_GMAIL ? new GmailProvider() : new SESProvider();
   }
 
   /**
@@ -78,47 +172,11 @@ export class EmailService implements EmailServiceInterface {
   }
 
   /**
-   * Send an email using Amazon SES
+   * Send an email using the configured provider (Gmail or SES)
    */
   private async sendEmail(to: string, subject: string, html: string): Promise<boolean> {
-    try {
-
-      const emailsToSkip = ["admin@example.com", "edmondboakye1622@gmail.com"]
-
-      // In development mode, just log the email instead of sending
-      if (emailsToSkip.includes(to)) {
-        logger.info(`DEVELOPMENT MODE -- Skipping for this email ${to}: Email would be sent to ${to}`);
-        return true;
-      }
-
-      const command = new SendEmailCommand({
-        Destination: {
-          ToAddresses: [to],
-        },
-        Message: {
-          Body: {
-            Html: {
-              Charset: "UTF-8",
-              Data: html,
-            },
-          },
-          Subject: {
-            Charset: "UTF-8",
-            Data: subject,
-          },
-        },
-        Source: 'no-reply@dev.chareli.reallygreattech.com'
-      });
-
-      await this.sesClient.send(command);
-      logger.info(`Email sent successfully to ${to}`);
-      return true;
-    } catch (error) {
-      logger.error('Failed to send email:', error);
-      return false;
-    }
+    return this.provider.sendEmail(to, subject, html);
   }
 }
 
-// Singleton instance
 export const emailService = new EmailService();

@@ -65,7 +65,7 @@ const ActivityLogExportModal = ({
         return;
       }
 
-      const loadingToast = toast.loading("Exporting activity log as CSV...");
+      // const loadingToast = toast.loading("Exporting activity log as CSV...");
 
       const formattedData = formatActivityDataForExport(data);
       const worksheet = XLSX.utils.json_to_sheet(formattedData);
@@ -81,8 +81,8 @@ const ActivityLogExportModal = ({
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
       
-      toast.dismiss(loadingToast);
-      toast.success("CSV file exported successfully");
+      // toast.dismiss(loadingToast);
+      // toast.success("CSV file exported successfully");
       setOpen(false);
     } catch (error) {
       toast.error(`Failed to export CSV file: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -96,7 +96,7 @@ const ActivityLogExportModal = ({
         return;
       }
 
-      const loadingToast = toast.loading("Exporting activity log as XLS...");
+      // const loadingToast = toast.loading("Exporting activity log as XLS...");
 
       const filename = `user_activity_log_${format(new Date(), "yyyy-MM-dd_HH-mm")}.xlsx`;
       const formattedData = formatActivityDataForExport(data);
@@ -119,8 +119,8 @@ const ActivityLogExportModal = ({
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      toast.dismiss(loadingToast);
-      toast.success("XLS file exported successfully");
+      // toast.dismiss(loadingToast);
+      // toast.success("XLS file exported successfully");
       setOpen(false);
     } catch (error) {
       toast.error(`Failed to export XLS file: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -134,7 +134,7 @@ const ActivityLogExportModal = ({
         return;
       }
 
-      const loadingToast = toast.loading("Exporting activity log as JSON...");
+      // const loadingToast = toast.loading("Exporting activity log as JSON...");
 
       const filename = `user_activity_log_${format(new Date(), "yyyy-MM-dd_HH-mm")}.json`;
       const formattedData = formatActivityDataForExport(data);
@@ -151,8 +151,8 @@ const ActivityLogExportModal = ({
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      toast.dismiss(loadingToast);
-      toast.success("JSON file exported successfully");
+      // toast.dismiss(loadingToast);
+      // toast.success("JSON file exported successfully");
       setOpen(false);
     } catch (error) {
       toast.error(`Failed to export JSON file: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -166,7 +166,7 @@ const ActivityLogExportModal = ({
         return;
       }
 
-      const loadingToast = toast.loading("Generating activity log PDF report...");
+      // const loadingToast = toast.loading("Generating activity log PDF report...");
 
       // Dynamically import pdfMake and fonts
       if (!pdfMake) {
@@ -307,8 +307,8 @@ const ActivityLogExportModal = ({
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
         
-        toast.dismiss(loadingToast);
-        toast.success("PDF report generated successfully");
+        // toast.dismiss(loadingToast);
+        // toast.success("PDF report generated successfully");
         setOpen(false);
       });
     } catch (error) {

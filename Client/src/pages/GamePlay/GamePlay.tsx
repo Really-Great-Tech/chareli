@@ -176,12 +176,12 @@ export default function GamePlay() {
         <>
           <div className={expanded ? "fixed inset-0 z-40 bg-black" : "relative"}>
             <div
-              className={`relative w-full ${
+              className={`relative ${
                 expanded
-                  ? "h-screen"
-                  : "h-[calc(100vh-64px)]"
-              } mx-auto rounded-2xl border-1 border-purple-400`}
-              style={{ background: "#18181b" }}
+                  ? "h-screen w-full"
+                  : "w-full"
+              } overflow-hidden`}
+              // style={{ background: "#18181b" }}
             >
               {isGameLoading && (
                 <GameLoadingScreen
@@ -192,11 +192,17 @@ export default function GamePlay() {
               )}
               <iframe
                 src={`${game.gameFile.s3Key}`}
-                className={`w-full h-full rounded-2xl`}
-                style={{ display: "block", background: "transparent" }}
+                className={`w-full`}
+                style={{ 
+                  display: "block", 
+                  // background: "transparent",
+                  height: expanded ? "calc(100% - 60px)" : "100vh",
+                  border: "none"
+                }}
                 sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
                 title={game.title}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                scrolling="no"
                 onLoad={() => {
                   setLoadProgress(100);
                 }}
@@ -206,7 +212,47 @@ export default function GamePlay() {
                 openSignUpModal={handleOpenSignUpModal}
                 isGameLoading={isGameLoading}
               />
-              <div className={`absolute bottom-0 left-0 right-0 flex items-center justify-between px-6 py-2 bg-[#2d0036] border-t border-purple-400 ${expanded ? "z-50" : ""}`}>
+              {expanded && (
+                <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-6 py-2 bg-[#2d0036] border-t border-purple-400 z-50">
+                  <span className="text-white text-sm font-semibold">
+                    {game.title}
+                  </span>
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2">
+                      <span role="img" aria-label="smile" className="text-xl">
+                        😍
+                      </span>
+                      <span role="img" aria-label="smile" className="text-xl">
+                        🥲
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <button
+                        className="text-white hover:text-purple-400 transition-colors"
+                        onClick={() => setExpanded((e) => !e)}
+                        title={expanded ? "Exit Fullscreen" : "Expand"}
+                      >
+                        <LuExpand className="w-5 h-5" />
+                      </button>
+                      <button
+                        className="text-white hover:text-purple-400 transition-colors"
+                        onClick={() => {
+                          if (analyticsIdRef.current) {
+                            updateEndTime();
+                          }
+                          navigate(-1);
+                        }}
+                        title="Close Game"
+                      >
+                        <LuX className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            {!expanded && (
+              <div className="flex items-center justify-between px-6 py-2 bg-[#2d0036] border-t border-purple-400 rounded-b-2xl">
                 <span className="text-white text-sm font-semibold">
                   {game.title}
                 </span>
@@ -242,7 +288,7 @@ export default function GamePlay() {
                   </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Similar Games section */}

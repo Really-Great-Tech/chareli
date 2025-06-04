@@ -21,6 +21,7 @@ import {
 import { useCategories } from '../../backend/category.service';
 import { toast } from 'sonner';
 import uploadImg from '../../assets/fetch-upload.svg';
+import GameCreationProgress from './GameCreationProgress';
 // import type { GameResponse } from "../../backend/types";
 
 interface EditSheetProps {
@@ -54,6 +55,9 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const [isImageLoading, setIsImageLoading] = useState(false);
   const [gameFileName, setGameFileName] = useState<string | null>(null);
+  const [showProgress, setShowProgress] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [currentStep, setCurrentStep] = useState('');
 
   const { data: game, error } = useGameById(gameId);
 
@@ -76,15 +80,15 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
       setGameFileName(null);
 
       // Set thumbnail preview if available
-      // if (game.thumbnailFile?.url) {
-      //   setIsImageLoading(true);
-      //   setThumbnailPreview(game.thumbnailFile.url);
-      // }
+      if (game.thumbnailFile?.s3Key) {
+        setIsImageLoading(true);
+        setThumbnailPreview(game.thumbnailFile.s3Key);
+      }
 
-      // // Set game file name if available
-      // if (game.gameFile?.name) {
-      //   setGameFileName(game.gameFile.name);
-      // }
+      // Set game file name if available
+      if (game.gameFile?.name) {
+        setGameFileName(game.gameFile.name);
+      }
     }
   }, [game?.id]); // Only run when game ID changes to prevent unnecessary updates
   const updateGame = useUpdateGame();
@@ -92,6 +96,11 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
 
   const handleSubmit = async (values: FormValues, { setSubmitting }: any) => {
     try {
+      // Show progress bar
+      setShowProgress(true);
+      setProgress(0);
+      setCurrentStep('Preparing update...');
+
       const formData = new FormData();
       formData.append('title', values.title);
       formData.append('description', values.description);
@@ -105,10 +114,33 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
         formData.append('gameFile', values.gameFile);
       }
 
+      // Simulate progress steps
+      setProgress(20);
+      setCurrentStep('Updating thumbnail...');
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      setProgress(50);
+      setCurrentStep('Updating game file...');
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      setProgress(80);
+      setCurrentStep('Processing update...');
+      
       await updateGame.mutateAsync({ id: gameId, data: formData });
+      
+      setProgress(100);
+      setCurrentStep('Update complete!');
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       toast.success('Game updated successfully!');
+      setShowProgress(false);
+      setProgress(0);
+      setCurrentStep('');
       onOpenChange(false);
     } catch (error) {
+      setShowProgress(false);
+      setProgress(0);
+      setCurrentStep('');
       toast.error('Failed to update game');
     } finally {
       setSubmitting(false);
@@ -157,11 +189,11 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
                 <Label className="">Update Thumbnail icon</Label>
                 <div className="mt-2 relative w-36 h-36">
                   {thumbnailPreview ? (
-                    <>
+                    <label className="relative w-36 h-36 cursor-pointer group">
                       <img
                         src={thumbnailPreview}
                         alt="Thumbnail"
-                        className={`w-36 h-36 rounded-lg object-cover transition-opacity duration-200 ${
+                        className={`w-36 h-36 rounded-lg object-cover transition-opacity duration-200 group-hover:opacity-75 ${
                           isImageLoading ? 'opacity-0' : 'opacity-100'
                         }`}
                         onLoad={() => setIsImageLoading(false)}
@@ -171,18 +203,40 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
                           e.currentTarget.onerror = null; // Prevent infinite loop
                         }}
                       />
+                      {/* Overlay on hover */}
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg flex items-center justify-center">
+                        <span className="text-white text-sm font-medium">Click to change</span>
+                      </div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setFieldValue('thumbnailFile', file);
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              setThumbnailPreview(reader.result as string);
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
                       <button
                         type="button"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
                           setThumbnailPreview(null);
                           setFieldValue('thumbnailFile', undefined);
                         }}
-                        className="absolute top-2 right-2 bg-[#C026D3] text-white rounded-full w-4 h-4 flex items-center justify-center shadow"
+                        className="absolute top-2 right-2 bg-[#C026D3] text-white rounded-full w-6 h-6 flex items-center justify-center shadow hover:bg-[#a21caf] transition-colors"
                         title="Remove thumbnail"
                       >
-                        <XIcon className="w-3 h-3" />
+                        <XIcon className="w-4 h-4" />
                       </button>
-                    </>
+                    </label>
                   ) : isImageLoading ? (
                     <div className="w-36 h-36 rounded-lg bg-[#F1F5F9] dark:bg-[#121C2D] animate-pulse flex items-center justify-center">
                       <div className="w-8 h-8 border-4 border-[#D946EF] border-t-transparent rounded-full animate-spin"></div>
@@ -255,28 +309,79 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
 
               <div className="mt-8">
                 <Label className="text-lg mb-2 block">Game Upload .zip</Label>
-                <div className="flex items-center gap-4">
-                  <label className="w-40 h-38 flex flex-col items-center justify-center border border-[#CBD5E0] rounded-lg cursor-pointer hover:border-[#D946EF] transition">
-                    <img src={uploadImg} alt="upload" />
-                    <input
-                      type="file"
-                      accept=".zip"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          setFieldValue('gameFile', file);
-                          setGameFileName(file.name);
-                        }
-                      }}
-                    />
-                  </label>
-                  {/* {(gameFileName || game.gameFile?.name) && (
-                    <span className="text-sm font-pincuk text-xl tracking-wider text-gray-600 dark:text-gray-300">
-                      {gameFileName || game.gameFile?.name}
-                    </span>
-                  )} */}
+                <div className="mt-2 relative w-36 h-36">
+                  {(gameFileName || game.gameFile) ? (
+                    <label className="relative w-36 h-36 cursor-pointer group">
+                      {/* Show game thumbnail as visual representation */}
+                      <img
+                        src={thumbnailPreview || game.thumbnailFile?.s3Key || uploadImg}
+                        alt="Game File"
+                        className="w-36 h-36 rounded-lg object-cover transition-opacity duration-200 group-hover:opacity-75"
+                        onError={(e) => {
+                          // If thumbnail fails to load, show upload icon
+                          e.currentTarget.src = uploadImg;
+                        }}
+                      />
+                      {/* Overlay on hover */}
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg flex items-center justify-center">
+                        <span className="text-white text-sm font-medium">Click to change</span>
+                      </div>
+                      {/* ZIP badge overlay */}
+                      <div className="absolute top-2 left-2 bg-[#D946EF] text-white rounded px-2 py-1 text-xs font-bold">
+                        ZIP
+                      </div>
+                      <input
+                        type="file"
+                        accept=".zip"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setFieldValue('gameFile', file);
+                            setGameFileName(file.name);
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setGameFileName(null);
+                          setFieldValue('gameFile', undefined);
+                        }}
+                        className="absolute top-2 right-2 bg-[#C026D3] text-white rounded-full w-6 h-6 flex items-center justify-center shadow hover:bg-[#a21caf] transition-colors"
+                        title="Remove game file"
+                      >
+                        <XIcon className="w-4 h-4" />
+                      </button>
+                    </label>
+                  ) : (
+                    <label className="w-36 h-36 flex flex-col items-center justify-center border border-[#e5e7eb] rounded-lg cursor-pointer hover:bg-[#f3e8ff] transition">
+                      <span className="flex items-center justify-center">
+                        <img src={uploadImg} alt="upload" />
+                      </span>
+                      <input
+                        type="file"
+                        accept=".zip"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setFieldValue('gameFile', file);
+                            setGameFileName(file.name);
+                          }
+                        }}
+                      />
+                    </label>
+                  )}
                 </div>
+                {/* Show game title as file name */}
+                {(gameFileName || game.gameFile) && (
+                  <div className="mt-2 text-sm font-pincuk tracking-wider text-gray-600 dark:text-gray-300">
+                    📁 {gameFileName || `${game.title}.zip`}
+                  </div>
+                )}
                 <ErrorMessage
                   name="gameFile"
                   component="div"
@@ -372,6 +477,15 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
             </Form>
           )}
         </Formik>
+        
+        {/* Progress Bar */}
+        {showProgress && (
+          <GameCreationProgress 
+            progress={progress}
+            currentStep={currentStep}
+            isComplete={progress === 100}
+          />
+        )}
       </SheetContent>
       {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal

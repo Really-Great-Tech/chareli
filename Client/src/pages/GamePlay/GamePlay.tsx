@@ -247,21 +247,19 @@ export default function GamePlay() {
 
           {/* Similar Games section */}
           {!expanded && game.similarGames && game.similarGames.length > 0 && (
-            <div className="bg-[#18181b] mt-4 rounded-2xl p-4">
-              <h2 className="text-2xl font-semibold text-white mb-4 px-4">
+            <div className="dark:bg-[#18181b] p-2">
+              <h2 className="text-2xl font-semibold dark:text-white text-[#18181b] mb-4 px-4">
                 Similar Games
               </h2>
-              <Card className="border-hidden shadow-none p-4 bg-transparent max-w-[1000px]">
-                <div className="flex flex-wrap justify-start gap-6 w-full">
+              <Card className="border-hidden shadow-none p-0 bg-transparent">
+                <div className="grid gap-[8px] w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 justify-items-center">
                   {game.similarGames.map((similarGame: SimilarGame) => (
-                    <div
-                      key={similarGame.id}
-                      className="w-[180px] aspect-square"
-                    >
+                    <div key={similarGame.id} className="relative p-[10px] group cursor-pointer w-full max-w-[360px]">
                       <img
                         src={similarGame.thumbnailFile?.s3Key}
                         alt={similarGame.title}
-                        className="w-full h-full object-cover border-2 border-purple-400/30 hover:border-[#D946EF] rounded-xl hover:rounded-2xl box-border transition-all duration-200 hover:scale-105 cursor-pointer"
+                        loading="lazy"
+                        className="w-full h-[290px] min-h-[290px] max-h-[290px] object-cover rounded-[18px] border-4 border-transparent group-hover:border-[#D946EF] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(217,70,239,0.3)]"
                         onClick={() => {
                           if (analyticsIdRef.current) {
                             updateEndTime();

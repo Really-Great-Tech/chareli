@@ -24,7 +24,8 @@ export default function Categories() {
       selectedSecondary === "Popular" ? "popular" :
       selectedSecondary === "Recommended for you" ? "recommended" :
       undefined
-    : undefined
+    : undefined,
+    status: "active"
   });
 
   

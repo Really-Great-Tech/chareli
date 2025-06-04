@@ -80,8 +80,14 @@ export const useToggleGameStatus = () => {
       return response.data;
     },
     onSuccess: (_, { gameId }) => {
+      // Invalidate all games queries (this will update Home and Categories pages)
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES, gameId] });
+      // Invalidate admin queries
       queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS] });
       queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAME_ANALYTICS, gameId] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES]});
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.CATEGORIES]});
     },
   });
 };

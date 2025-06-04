@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button } from "../../../components/ui/button";
+// import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
 import {
   Table,
@@ -12,6 +12,7 @@ import {
 import { NoResults } from "../../../components/single/NoResults";
 import { FiActivity } from "react-icons/fi";
 import { useUserActivityLog } from "../../../backend/analytics.service";
+import ActivityLogExportModal from "../../../components/modals/AdminModals/ActivityLogExportModal";
 
 export default function UserActivityLog() {
   const { data: activities, isLoading, error } = useUserActivityLog();
@@ -69,9 +70,11 @@ export default function UserActivityLog() {
               Filter
               <RiEqualizer2Line size={32} />
             </Button> */}
-            <Button className="bg-[#D946EF] text-white hover:bg-[#c026d3] tracking-wider py-2">
-              Export
-            </Button>
+            <ActivityLogExportModal 
+              data={allActivities}
+              title="Export Activity Log"
+              description="Choose the format you'd like to export your activity log data"
+            />
           </div>
         </div>
         <div className="px-4 pb-4">

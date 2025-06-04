@@ -8,6 +8,7 @@ import uploadImg from '../../assets/fetch-upload.svg';
 import { useCreateGame } from '../../backend/games.service';
 import { useCategories } from '../../backend/category.service';
 import { toast } from 'sonner';
+import GameCreationProgress from './GameCreationProgress';
 import {
   Sheet,
   SheetClose,
@@ -66,6 +67,9 @@ export function CreateGameSheet({
   const formikRef = useRef<any>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const [gameFileName, setGameFileName] = useState<string | null>(null);
+  const [showProgress, setShowProgress] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [currentStep, setCurrentStep] = useState('');
   const createGame = useCreateGame();
   const { data: categories } = useCategories();
   const handleSubmit = async (
@@ -73,6 +77,11 @@ export function CreateGameSheet({
     { setSubmitting, resetForm }: any
   ) => {
     try {
+      // Show progress bar
+      setShowProgress(true);
+      setProgress(0);
+      setCurrentStep('Preparing files...');
+
       const formData = new FormData();
       formData.append('title', values.title);
       formData.append('description', values.description);
@@ -86,13 +95,36 @@ export function CreateGameSheet({
         formData.append('gameFile', values.gameFile);
       }
 
+      // Simulate progress steps
+      setProgress(20);
+      setCurrentStep('Uploading thumbnail...');
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      setProgress(50);
+      setCurrentStep('Uploading game file...');
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      setProgress(80);
+      setCurrentStep('Processing...');
+      
       await createGame.mutateAsync(formData);
+      
+      setProgress(100);
+      setCurrentStep('Complete!');
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       toast.success('Game created successfully!');
       resetForm();
       setThumbnailPreview(null);
       setGameFileName(null);
+      setShowProgress(false);
+      setProgress(0);
+      setCurrentStep('');
       onOpenChange?.(false);
     } catch (error) {
+      setShowProgress(false);
+      setProgress(0);
+      setCurrentStep('');
       toast.error('Failed to create game');
     } finally {
       setSubmitting(false);
@@ -179,7 +211,7 @@ export function CreateGameSheet({
                   as={Input}
                   id="title"
                   name="title"
-                  className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white bg-[#F1F5F9] dark:bg-[#121C2D] px-3 text-gray-700 focus:border-[#D946EF] focus:outline-none font-pincuk text-xl tracking-wider text-sm"
+                  className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white bg-[#F1F5F9] dark:bg-[#121C2D] px-3 text-gray-700 focus:border-[#D946EF] focus:outline-none font-pincuk tracking-wider text-sm"
                   placeholder="Enter game title"
                 />
                 <ErrorMessage
@@ -320,6 +352,15 @@ export function CreateGameSheet({
             </Form>
           )}
         </Formik>
+        
+        {/* Progress Bar */}
+        {showProgress && (
+          <GameCreationProgress 
+            progress={progress}
+            currentStep={currentStep}
+            isComplete={progress === 100}
+          />
+        )}
       </SheetContent>
     </Sheet>
   );

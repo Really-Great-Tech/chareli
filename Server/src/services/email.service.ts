@@ -39,7 +39,7 @@ class SESProvider implements EmailProvider {
 
   async sendEmail(to: string, subject: string, html: string): Promise<boolean> {
     try {
-      const emailsToSkip = ["admin@example.com", "edmondboakye1622@gmail.com"];
+      const emailsToSkip = ["admin@example.com"];
 
       // In development mode, just log the email instead of sending
       if (emailsToSkip.includes(to)) {
@@ -91,7 +91,7 @@ class GmailProvider implements EmailProvider {
 
   async sendEmail(to: string, subject: string, html: string): Promise<boolean> {
     try {
-      const emailsToSkip = ["admin@example.com", "edmondboakye1622@gmail.com"];
+      const emailsToSkip = ["admin@example.com"];
 
       // In development mode, just log the email instead of sending
       if (emailsToSkip.includes(to)) {

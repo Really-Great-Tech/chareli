@@ -274,7 +274,8 @@ export const login = async (
           requiresOtp: false,
           tokens,
           email: user.email,
-          phoneNumber: user.phoneNumber
+          phoneNumber: user.phoneNumber,
+          role: user?.role.name
         }
       });
       return;

@@ -13,6 +13,7 @@ interface LoginResponse {
   email?: string;
   phoneNumber?: string;
   requiresOtp: boolean;
+  role: string;
   otpType?: 'EMAIL' | 'SMS' | 'BOTH';
   message: string;
   tokens?: {
@@ -81,7 +82,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       requiresOtp, 
       otpType, 
       tokens, 
+      role
     } = response.data;
+
 
     //forto display mesage from backend
     const message = (response as any)?.message
@@ -100,6 +103,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       hasEmail: !!email,
       hasPhone: !!phoneNumber,
       email,
+      role,
       phoneNumber,
       requiresOtp,
       otpType,

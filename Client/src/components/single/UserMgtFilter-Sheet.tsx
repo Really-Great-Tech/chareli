@@ -23,6 +23,7 @@ interface FilterState {
   };
   gameTitle: string;
   gameCategory: string;
+  sortByMaxTimePlayed: boolean;
 }
 
 interface UserManagementFilterSheetProps {
@@ -46,7 +47,7 @@ export function UserManagementFilterSheet({
   // Get game titles
   const titles = games?.map(game => game.title) || [];
 
-  const handleChange = (field: keyof FilterState, value: any) => {
+  const handleChange = (field: keyof FilterState, value: unknown) => {
     onFiltersChange({
       ...filters,
       [field]: value
@@ -160,6 +161,21 @@ export function UserManagementFilterSheet({
               ))}
             </select>
           </div>
+
+          {/* Sort by Max Time Played */}
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="sortByMaxTimePlayed"
+              className="w-4 h-4"
+              checked={filters.sortByMaxTimePlayed}
+              onChange={(e) => handleChange('sortByMaxTimePlayed', e.target.checked)}
+            />
+            <Label htmlFor="sortByMaxTimePlayed" className="text-lg">Sort by Max Time Played</Label>
+          </div>
+          
+         
+
         </div>
 
         <div className="flex gap-3 justify-end px-2 mb-4"> 

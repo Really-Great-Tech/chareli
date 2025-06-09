@@ -25,7 +25,8 @@ export default function UserManagement() {
       max: 0
     },
     gameTitle: '',
-    gameCategory: ''
+    gameCategory: '',
+    sortByMaxTimePlayed: false
   });
 
   const { data: users, isLoading } = useUsersAnalytics(filters);
@@ -51,7 +52,8 @@ export default function UserManagement() {
         max: 0
       },
       gameTitle: '',
-      gameCategory: ''
+      gameCategory: '',
+      sortByMaxTimePlayed: false
     });
     setPage(1);
   };
@@ -59,7 +61,7 @@ export default function UserManagement() {
   
 
   // Filter users based on criteria
-  const filteredUsers = users?.filter(user => {
+  let filteredUsers = users?.filter(user => {
     if (filters.registrationDates.startDate && new Date(user.createdAt) < new Date(filters.registrationDates.startDate)) return false;
     if (filters.registrationDates.endDate && new Date(user.createdAt) > new Date(filters.registrationDates.endDate)) return false;
     if (filters.sessionCount && user.analytics?.totalSessionCount < parseInt(filters.sessionCount)) return false;
@@ -69,6 +71,12 @@ export default function UserManagement() {
     if (filters.gameTitle && user.analytics?.mostPlayedGame?.gameTitle !== filters.gameTitle) return false;
     return true;
   });
+
+  if (filters.sortByMaxTimePlayed && filteredUsers) {
+    filteredUsers = [...filteredUsers].sort(
+      (a, b) => (b.analytics?.totalTimePlayed || 0) - (a.analytics?.totalTimePlayed || 0)
+    );
+  }
 
 
   return (
@@ -87,10 +95,12 @@ export default function UserManagement() {
             >
               Filter
               <div className='text-[#D946EF] bg-[#FAE8FF] px-3 py-1 rounded-full'>
-                {Object.values(filters).filter(value => 
-                  typeof value === 'object' 
+                {Object.entries(filters).filter(([, value]) =>
+                  typeof value === 'object'
                     ? Object.values(value).some(v => v !== '' && v !== 0)
-                    : value !== ''
+                    : typeof value === 'boolean'
+                      ? value === true
+                      : value !== ''
                 ).length}
               </div>
               <RiEqualizer2Line size={32} />

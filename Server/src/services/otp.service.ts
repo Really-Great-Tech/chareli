@@ -17,7 +17,7 @@ export interface OtpServiceInterface {
 
 // Fixed OTP for specific emails
 const FIXED_OTP = '123456';
-const emailsToSkip = ["admin@example.com", "edmondboakye1622@gmail.com"];
+const emailsToSkip = ["admin@example.com"];
 
 export class OtpService implements OtpServiceInterface {
   private snsClient: SNSClient;

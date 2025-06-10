@@ -442,7 +442,7 @@ export const getUserActivityLog = async (
     
     // First, get the list of users (with pagination)
     const userQueryBuilder = userRepository.createQueryBuilder('user')
-      .select(['user.id', 'user.firstName', 'user.lastName', 'user.email', 'user.isActive']);
+      .select(['user.id', 'user.firstName', 'user.lastName', 'user.email', 'user.isActive', 'user.lastSeen']);
     
     // Apply user filter if provided
     if (userId) {
@@ -496,12 +496,21 @@ export const getUserActivityLog = async (
         gameEndTime = lastGameActivity.endTime;
       }
 
-      console.log(activity)
+      console.log('Activity:', activity)
+      console.log('User lastSeen:', user.lastSeen)
+      console.log('User isActive:', user.isActive)
+      
+      // Determine if user is online based on lastSeen timestamp and heartbeat system
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+      const isOnline = user.lastSeen && user.lastSeen > fiveMinutesAgo && user.isActive;
+      
+      console.log('Five minutes ago:', fiveMinutesAgo)
+      console.log('Is online calculation:', isOnline)
       
       return {
         userId: user.id,
         name: `${user.firstName || ""} ${user.lastName || ""}`,
-        userStatus: user.isActive ? 'Online' : 'Offline',
+        userStatus: isOnline ? 'Online' : 'Offline',
         activity: activity,
         lastGamePlayed: gameTitle,
         startTime: gameStartTime,

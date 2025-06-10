@@ -598,3 +598,146 @@ export const deleteUser = async (
     next(error);
   }
 };
+
+/**
+ * @swagger
+ * /users/heartbeat:
+ *   post:
+ *     summary: Send heartbeat to maintain online status
+ *     description: Updates user's lastSeen timestamp to maintain online presence. Frontend should call this every 30-60 seconds.
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Heartbeat received successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+export const sendHeartbeat = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.user?.userId) {
+      res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+      return;
+    }
+
+    const now = new Date();
+    
+    // Update user's lastSeen timestamp
+    await userRepository.update(req.user.userId, { 
+      lastSeen: now 
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Heartbeat received',
+      timestamp: now.toISOString()
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @swagger
+ * /users/online-status:
+ *   get:
+ *     summary: Get current online status
+ *     description: Returns whether the current user is considered online based on their last activity
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Online status retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     isOnline:
+ *                       type: boolean
+ *                     lastSeen:
+ *                       type: string
+ *                       format: date-time
+ *                     onlineThreshold:
+ *                       type: number
+ *                       description: Minutes threshold for online status
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
+ */
+export const getOnlineStatus = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.user?.userId) {
+      res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+      return;
+    }
+
+    const user = await userRepository.findOne({
+      where: { id: req.user.userId },
+      select: ['id', 'lastSeen', 'isActive']
+    });
+
+    if (!user) {
+      res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+      return;
+    }
+
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    const isOnline = user.lastSeen && user.lastSeen > fiveMinutesAgo && user.isActive;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        isOnline: !!isOnline,
+        lastSeen: user.lastSeen,
+        onlineThreshold: 5 // minutes
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+

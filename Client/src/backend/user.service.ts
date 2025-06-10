@@ -106,3 +106,46 @@ export const useChangePassword = () => {
     }
   });
 };
+
+/**
+ * Hook to send heartbeat to maintain online status
+ * @returns Mutation function to send heartbeat
+ */
+export const useSendHeartbeat = () => {
+  return useMutation({
+    mutationFn: async () => {
+      const response = await backendService.post(BackendRoute.USER_HEARTBEAT);
+      return response;
+    }
+  });
+};
+
+/**
+ * Hook to get current user's online status
+ * @returns Query result with online status data
+ */
+export const useOnlineStatus = () => {
+  return useQuery({
+    queryKey: [BackendRoute.USER_ONLINE_STATUS],
+    queryFn: async () => {
+      const response = await backendService.get(BackendRoute.USER_ONLINE_STATUS);
+      return response.data;
+    },
+    refetchOnWindowFocus: false,
+    refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
+  });
+};
+
+/**
+ * Function to send heartbeat (non-hook version for use in intervals)
+ * @returns Promise with response
+ */
+export const sendHeartbeat = async () => {
+  try {
+    const response = await backendService.post(BackendRoute.USER_HEARTBEAT);
+    return response;
+  } catch (error) {
+    console.error('Failed to send heartbeat:', error);
+    throw error;
+  }
+};

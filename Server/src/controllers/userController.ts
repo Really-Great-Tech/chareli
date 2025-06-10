@@ -9,7 +9,7 @@ import { authService } from '../services/auth.service';
 import { OtpType } from '../entities/Otp';
 import { Not, IsNull } from 'typeorm';
 import { s3Service } from '../services/s3.service';
-import { getCountryFromIP } from './signupAnalyticsController';
+import { getCountryFromIP, extractClientIP } from '../utils/ipUtils';
 
 const userRepository = AppDataSource.getRepository(User);
 const roleRepository = AppDataSource.getRepository(Role);
@@ -287,9 +287,7 @@ export const createUser = async (
 
     // Get IP address
     const forwarded = req.headers['x-forwarded-for'];
-    const ipAddress = Array.isArray(forwarded)
-      ? forwarded[0]
-      : (forwarded || req.socket.remoteAddress || req.ip || '');
+    const ipAddress = extractClientIP(forwarded, req.socket.remoteAddress || req.ip || '');
 
     // Get country from IP
     const country = await getCountryFromIP(ipAddress);
@@ -738,6 +736,3 @@ export const getOnlineStatus = async (
     next(error);
   }
 };
-
-
-

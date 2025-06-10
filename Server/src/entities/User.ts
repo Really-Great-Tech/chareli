@@ -55,6 +55,9 @@ export class User {
   @Column({ nullable: true })
   lastLoggedIn: Date;
 
+  @Column({ nullable: true })
+  lastSeen: Date;
+
   @Column({ nullable: true, select: false })
   resetToken: string;
 

@@ -150,11 +150,12 @@ api.interceptors.response.use(
  */
 export const backendService = {
   get: (url: string, config?: AxiosRequestConfig) => api.get(url, config),
-  post: (url: string, data?: any, config?: AxiosRequestConfig) =>
+  post: (url: string, data?: unknown, config?: AxiosRequestConfig) =>
     api.post(url, data, config),
-  put: (url: string, data?: any, config?: AxiosRequestConfig) =>
+  put: (url: string, data?: unknown, config?: AxiosRequestConfig) =>
     api.put(url, data, config),
-  patch: (url: string, data?: any, config?: AxiosRequestConfig) =>
+  patch: (url: string, data?: unknown, config?: AxiosRequestConfig) =>
     api.patch(url, data, config),
   delete: (url: string, config?: AxiosRequestConfig) => api.delete(url, config),
+  getFile: (id: string) => api.get(`/files/${id}`),
 };

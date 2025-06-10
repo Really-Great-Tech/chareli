@@ -48,7 +48,22 @@ export class AuthService {
     hasAcceptedTerms: boolean = false,
     country?: string
   ): Promise<User> {
-    // Check if user already exists
+    // Check if user already exists by email or phone number
+    const existingUser = await userRepository.findOne({
+      where: [{ email }, { phoneNumber }],
+    });
+
+    if (existingUser) {
+      if (existingUser.email == email) {
+        console.log('Email already exists:', existingUser.email);
+        throw new Error('Email is already registered');
+      }
+      if (existingUser.phoneNumber == phoneNumber) {
+        throw new Error('Phone number is already registered');
+      }
+    }
+
+
     // Get the player role
     const playerRole = await roleRepository.findOne({
       where: { name: RoleType.PLAYER }
@@ -113,6 +128,15 @@ export class AuthService {
       throw new Error('Invitation has expired');
     }
 
+    // Check if phone number already exists
+    const existingUser = await userRepository.findOne({
+      where: { phoneNumber },
+    });
+
+    if (existingUser) {
+      throw new Error('Phone number is already registered');
+    }
+
     // Hash the password
     const hashedPassword = await this.hashPassword(password);
 
@@ -141,11 +165,11 @@ export class AuthService {
     return user;
   }
 
-  
+
   async login(identifier: string, password: string): Promise<User> {
     // Detect if it's email or phone based on format
     const isEmail = identifier.includes('@');
-    
+
     const user = await userRepository.findOne({
       where: isEmail ? { email: identifier } : { phoneNumber: identifier },
       select: ['id', 'email', 'password', 'firstName', 'lastName', 'phoneNumber', 'isActive', 'isVerified', 'roleId'],
@@ -217,7 +241,7 @@ export class AuthService {
 
     const otp = await otpService.generateOtp(user.id, actualType);
     const success = await otpService.sendOtp(user.id, otp, actualType);
-    
+
     let message = '';
     if (fallbackUsed) {
       if (actualType === OtpType.EMAIL) {
@@ -238,7 +262,7 @@ export class AuthService {
     return { success, actualType, message };
   }
 
-  
+
   async verifyOtp(userId: string, otp: string): Promise<AuthTokens> {
     const isValid = await otpService.verifyOtp(userId, otp);
     if (!isValid) {
@@ -263,7 +287,7 @@ export class AuthService {
     return this.generateTokens(user);
   }
 
- 
+
   generateTokens(user: User): AuthTokens {
     const payload: TokenPayload = {
       userId: user.id,
@@ -272,19 +296,19 @@ export class AuthService {
     };
 
     const accessToken = jwt.sign(
-      payload, 
+      payload,
       config.jwt.secret
     );
 
     const refreshToken = jwt.sign(
-      payload, 
+      payload,
       config.jwt.refreshSecret
     );
 
     return { accessToken, refreshToken };
   }
 
- 
+
   async refreshToken(refreshToken: string): Promise<AuthTokens> {
     try {
       // Verify refresh token
@@ -314,22 +338,22 @@ export class AuthService {
     invitedById: string
   ): Promise<Invitation> {
     // Check if user already has this role
-    const existingUser = await userRepository.findOne({ 
+    const existingUser = await userRepository.findOne({
       where: { email },
       relations: ['role']
     });
-    
+
     if (existingUser && existingUser.role.name === roleName) {
       throw new Error('User already has this role');
     }
 
     // Check for pending invitation
-    const existingInvitation = await invitationRepository.findOne({ 
-      where: { 
+    const existingInvitation = await invitationRepository.findOne({
+      where: {
         email,
         isAccepted: false,
         expiresAt: MoreThan(new Date())
-      } 
+      }
     });
     if (existingInvitation) {
       throw new Error('Active invitation for this email already exists');
@@ -340,7 +364,7 @@ export class AuthService {
       email,
       isAccepted: true
     });
-    
+
     // Delete expired invitations
     await invitationRepository.createQueryBuilder()
       .delete()
@@ -388,7 +412,7 @@ export class AuthService {
     return invitation;
   }
 
- 
+
   /**
    * Change a user's role directly
    */
@@ -425,7 +449,7 @@ export class AuthService {
     }
 
     const oldRoleName = user.role.name;
-    
+
     // Update user's role
     user.role = newRole;
     user.roleId = newRole.id;
@@ -440,34 +464,34 @@ export class AuthService {
   async requestPasswordReset(email: string): Promise<boolean> {
     // Find the user
     const user = await userRepository.findOne({ where: { email } });
-    
+
     // Even if user is not found, return true to prevent email enumeration attacks
     if (!user) {
       logger.info(`Password reset requested for non-existent email: ${email}`);
       return true;
     }
 
-  
+
     const resetToken = crypto.randomBytes(32).toString('hex');
     const hashedToken = crypto
       .createHash('sha256')
       .update(resetToken)
       .digest('hex');
-    
+
     // Set token expiry (1 hour)
     const resetTokenExpiry = new Date();
     resetTokenExpiry.setHours(resetTokenExpiry.getHours() + 1);
-    
+
     // Save the token to the user
     user.resetToken = hashedToken;
     user.resetTokenExpiry = resetTokenExpiry;
     await userRepository.save(user);
-    
+
     // Generate reset link - point to frontend route instead of API endpoint
     // const frontendUrl = config.env === 'development' ? 'http://localhost:5173' : '';
     const frontendUrl = 'https://dev.chareli.reallygreattech.com';
     const resetLink = `${frontendUrl}/reset-password/${resetToken}`;
-    
+
     try {
       // Send reset email
       await emailService.sendPasswordResetEmail(email, resetLink);
@@ -478,14 +502,14 @@ export class AuthService {
     }
   }
 
-  
+
   async verifyResetToken(token: string): Promise<User> {
     // Hash the token to compare with the stored hash
     const hashedToken = crypto
       .createHash('sha256')
       .update(token)
       .digest('hex');
-    
+
     // Find user with this token and valid expiry
     const user = await userRepository.findOne({
       where: {
@@ -493,11 +517,11 @@ export class AuthService {
         resetTokenExpiry: MoreThan(new Date())
       }
     });
-    
+
     if (!user) {
       throw new Error('Invalid or expired reset token');
     }
-    
+
     return user;
   }
 
@@ -507,21 +531,21 @@ export class AuthService {
   async resetPassword(token: string, newPassword: string): Promise<boolean> {
     // Verify the token first
     const user = await this.verifyResetToken(token);
-    
+
     // Hash the new password
     const hashedPassword = await this.hashPassword(newPassword);
-    
+
     // Update the user's password and clear the reset token
     user.resetToken = '';
     user.resetTokenExpiry = new Date(0); // Set to epoch time
     user.password = hashedPassword;
-    
+
     await userRepository.save(user);
-    
+
     return true;
   }
 
-  
+
   async initializeSuperadmin(): Promise<void> {
     try {
       let superadminRole = await roleRepository.findOne({
@@ -565,7 +589,7 @@ export class AuthService {
     }
   }
 
- 
+
   private async hashPassword(password: string): Promise<string> {
     const saltRounds = 10;
     return bcrypt.hash(password, saltRounds);

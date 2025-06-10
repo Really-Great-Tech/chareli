@@ -30,6 +30,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { TbUser } from "react-icons/tb";
 import { AiOutlineMail } from "react-icons/ai";
 import { useNavigate } from "react-router-dom";
+import { getVisitorSessionId } from "../../utils/sessionUtils";
 
 const getAuthFields = (config?: { value?: { settings: any } }) => {
   // Default state when no config or invalid config
@@ -163,8 +164,11 @@ export function SignUpModal({
     actions: FormikHelpers<ReturnType<typeof getInitialValues>>
   ) => {
     try {
-      // Track the final signup button click
-      trackSignup({ type: "signup-modal" });
+      // Track the final signup button click with session ID
+      trackSignup({ 
+        sessionId: getVisitorSessionId(),
+        type: 'signup-modal' 
+      });
 
       await createUser.mutateAsync({
         firstName: values.firstName,

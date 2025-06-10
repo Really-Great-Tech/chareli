@@ -293,13 +293,19 @@ export const createUser = async (
     const country = await getCountryFromIP(ipAddress);
 
     // Check if user with email already exists (only if email is provided)
-    if (email) {
+    if (email || phoneNumber) {
       const existingUser = await userRepository.findOne({
-        where: { email },
+        where: [{ email }, { phoneNumber }],
+        select: ['id', 'email', 'phoneNumber'],
       });
 
       if (existingUser) {
-        return next(ApiError.badRequest('An account with this email already exists'));
+        if (existingUser.email === email) {
+          return next(ApiError.badRequest('An account with this email already exists'));
+        }
+        if (existingUser.phoneNumber === phoneNumber) {
+          return next(ApiError.badRequest('An account with this phone number already exists'));
+        }
       }
     }
 
@@ -357,7 +363,7 @@ export const createUser = async (
     // Send OTP if applicable
     if (otpType) {
       await authService.sendOtp(user, otpType);
-      
+
       res.status(201).json({
         success: true,
         message: `User created successfully. OTP sent to ${otpType === OtpType.EMAIL ? 'email' : 'phone'}.`,

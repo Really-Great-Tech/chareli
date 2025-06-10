@@ -20,6 +20,8 @@ import UserManagementView from '../pages/Admin/UserMgtView';
 import TeamManagement from '../pages/Admin/Team/TeamManagement';
 import Settings from '../pages/Admin/Settings';
 import ViewProfile from '../pages/Admin/ViewProfile';
+import Terms from '../pages/TermsOfService/Terms';
+import Privacy from '../pages/PrivacyPolicy/Privacy';
 
 
 export const AppRoutes = () => {
@@ -33,6 +35,8 @@ export const AppRoutes = () => {
           <Route path="about" element={<About />} />
           <Route path="categories" element={<Categories />} />
           <Route path="gameplay/:gameId" element={<GamePlay />} />
+          <Route path="terms" element={<Terms />} />
+          <Route path="privacy" element={<Privacy />} />
 
 
           <Route path="*" element={<ErrorPage />} />

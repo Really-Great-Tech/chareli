@@ -77,6 +77,7 @@ export function OTPVerificationModal({
       setError("Invalid OTP. Please try again.");
       toast.error("Invalid OTP. Please try again.");
     } finally {
+      setOtp("");
       setIsVerifying(false);
     }
   };
@@ -95,8 +96,17 @@ export function OTPVerificationModal({
     }
   };
 
+
+  // Reset OTP when modal closes
+  const handleOpenChange = (isOpen: boolean) => {
+    if (!isOpen) {
+      setOtp(""); // Clear OTP when modal closes
+    }
+    onOpenChange(isOpen);
+  };
+
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialog open={open} onOpenChange={handleOpenChange}>
       <AlertDialogContent className="max-w-[90vw] sm:max-w-[425px] p-4 sm:p-6 dark:bg-[#0F1221] rounded-xl">
         {/* Custom Close Button */}
         <button
@@ -137,9 +147,8 @@ export function OTPVerificationModal({
         </div>
         {error && (
           <div
-            className={`text-xs sm:text-sm text-center font-pincuk mt-2 sm:mt-3 ${
-              error.includes("resent") ? "text-green-500" : "text-red-500"
-            }`}
+            className={`text-xs sm:text-sm text-center font-pincuk mt-2 sm:mt-3 ${error.includes("resent") ? "text-green-500" : "text-red-500"
+              }`}
           >
             {error}
           </div>

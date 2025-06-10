@@ -80,14 +80,10 @@ export function LoginModal({
   hideSignUpLink = false,
 }: LoginDialogProps) {
   const [showPassword, setShowPassword] = useState(false);
-  const [loginResponse, setLoginResponse] = useState<LoginResponse | null>(
-    null
-  );
-  const [isOTPVerificationModalOpen, setIsOTPVerificationModalOpen] =
-    useState(false);
+  const [loginResponse, setLoginResponse] = useState<LoginResponse | null>(null);
+  const [isOTPVerificationModalOpen, setIsOTPVerificationModalOpen] = useState(false);
   const [loginError, setLoginError] = useState("");
-  const [isForgotPasswordModalOpen, setIsForgotPasswordModalOpen] =
-    useState(false);
+  const [isForgotPasswordModalOpen, setIsForgotPasswordModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"email" | "phone">("email");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const { login } = useAuth();
@@ -117,6 +113,7 @@ export function LoginModal({
         toast.info(response.message);
         setIsLoggingIn(false);
       } else {
+        // No OTP required, show success and redirect
         toast.success(response.message);
         if (isValidRole(response.role)) {
           navigate("/admin");
@@ -132,8 +129,12 @@ export function LoginModal({
         setLoginError(error.response.data.message);
         toast.error(error.response.data.message);
       } else {
-        setLoginError("Invalid email or password. Please try again.");
-        toast.error("Invalid email or password. Please try again.");
+        const errorMsg =
+          activeTab === "phone"
+            ? "Invalid phone number or password. Please try again."
+            : "Invalid email or password. Please try again.";
+        setLoginError(errorMsg);
+        toast.error(errorMsg);
       }
     } finally {
       actions.setSubmitting(false);
@@ -141,8 +142,8 @@ export function LoginModal({
   };
 
   return (
-    <Dialog
-      open={open && !isLoggingIn}
+    <Dialog 
+      open={open && !isLoggingIn} 
       onOpenChange={isLoggingIn ? () => {} : onOpenChange}
     >
       <CustomDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221] p-0">
@@ -162,21 +163,19 @@ export function LoginModal({
           <div className="flex font-boogaloo text-xl tracking-wide">
             <div className="px-6 flex w-full border-b">
               <button
-                className={`flex-1 py-2 font-semibold ${
-                  activeTab === "email"
+                className={`flex-1 py-2 font-semibold ${activeTab === "email"
                     ? "text-[#E328AF] border-b-2 border-[#E328AF]"
                     : "text-gray-500"
-                }`}
+                  }`}
                 onClick={() => setActiveTab("email")}
               >
                 Email
               </button>
               <button
-                className={`flex-1 py-2 font-semibold ${
-                  activeTab === "phone"
+                className={`flex-1 py-2 font-semibold ${activeTab === "phone"
                     ? "text-[#E328AF] border-b-2 border-[#E328AF]"
                     : "text-gray-500"
-                }`}
+                  }`}
                 onClick={() => setActiveTab("phone")}
               >
                 Phone Number
@@ -271,9 +270,8 @@ export function LoginModal({
                             ? "Enter your email"
                             : "Enter your phone number"
                         }
-                        className={`mt-1 bg-[#E2E8F0] border-0 pl-10 font-boogaloo text-xl tracking-wider font-normal h-[48px] ${
-                          activeTab === "email" ? "pl-10" : ""
-                        }`}
+                        className={`mt-1 bg-[#E2E8F0] border-0 pl-10 font-boogaloo text-xl tracking-wider font-normal h-[48px] ${activeTab === "email" ? "pl-10" : ""
+                          }`}
                       />
                     )}
                   </div>
@@ -365,9 +363,7 @@ export function LoginModal({
         onOpenChange={setIsOTPVerificationModalOpen}
         userId={loginResponse?.userId || ""}
         contactMethod={
-          loginResponse?.otpType === "BOTH" &&
-          loginResponse?.email &&
-          loginResponse?.phoneNumber
+          loginResponse?.otpType === "BOTH" && loginResponse?.email && loginResponse?.phoneNumber
             ? `${loginResponse.email} and ${loginResponse.phoneNumber}`
             : loginResponse?.email || loginResponse?.phoneNumber || ""
         }

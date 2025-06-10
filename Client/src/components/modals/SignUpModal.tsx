@@ -8,7 +8,10 @@ import { toast } from "sonner";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import type { FormikHelpers, FieldProps } from "formik";
 import * as Yup from "yup";
-import { passwordSchema, confirmPasswordSchema } from "../../validation/password";
+import {
+  passwordSchema,
+  confirmPasswordSchema,
+} from "../../validation/password";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import "../../styles/phone-input.css";
@@ -26,16 +29,17 @@ import { Checkbox } from "../../components/ui/checkbox";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { TbUser } from "react-icons/tb";
 import { AiOutlineMail } from "react-icons/ai";
+import { useNavigate } from "react-router-dom";
 import { getVisitorSessionId } from "../../utils/sessionUtils";
 
 const getAuthFields = (config?: { value?: { settings: any } }) => {
   // Default state when no config or invalid config
-  const defaultFields = { 
+  const defaultFields = {
     showAll: true,
     showEmail: true,
     showPhone: true,
     firstName: true,
-    lastName: true
+    lastName: true,
   };
 
   if (!config?.value?.settings) return defaultFields;
@@ -44,37 +48,37 @@ const getAuthFields = (config?: { value?: { settings: any } }) => {
 
   // Guard against undefined settings
   if (!both || !email || !sms) return defaultFields;
-  
+
   if (both.enabled) {
-    return { 
+    return {
       showAll: false,
-      showEmail: true, 
+      showEmail: true,
       showPhone: true,
       firstName: true,
-      lastName: true
+      lastName: true,
     };
   }
-  
+
   if (email.enabled) {
-    return { 
+    return {
       showAll: false,
-      showEmail: true, 
+      showEmail: true,
       showPhone: false,
       firstName: !!email.firstName,
-      lastName: !!email.lastName 
+      lastName: !!email.lastName,
     };
   }
-  
+
   if (sms.enabled) {
-    return { 
+    return {
       showAll: false,
       showEmail: false,
       showPhone: true,
       firstName: !!sms.firstName,
-      lastName: !!sms.lastName 
+      lastName: !!sms.lastName,
     };
   }
-  
+
   return defaultFields;
 };
 
@@ -86,11 +90,13 @@ const getValidationSchema = (config?: { value?: { settings: any } }) => {
     ageConfirm: Yup.boolean().default(false),
     terms: Yup.boolean()
       .oneOf([true], "You must accept the terms of use")
-      .required("You must accept the terms of use")
+      .required("You must accept the terms of use"),
   };
 
   if (fields.showAll || fields.showEmail) {
-    schema.email = Yup.string().email("Invalid email address").required("Email is required");
+    schema.email = Yup.string()
+      .email("Invalid email address")
+      .required("Email is required");
   }
 
   if (fields.showAll || fields.showPhone) {
@@ -114,7 +120,7 @@ const getInitialValues = (config?: { value?: { settings: any } }) => {
     password: "",
     confirmPassword: "",
     ageConfirm: false,
-    terms: false
+    terms: false,
   };
 
   if (fields.showAll || fields.showEmail) values.email = "";
@@ -134,13 +140,16 @@ interface SignUpDialogProps {
 // Format phone number
 const formatPhoneNumber = (value?: string) => (value ? `+${value}` : value);
 
+
+
+
 export function SignUpModal({
   open,
   onOpenChange,
   openLoginModal,
 }: SignUpDialogProps) {
   const [showPassword, setShowPassword] = useState(false);
-  const { data: config } = useSystemConfigByKey('authentication_settings');
+  const { data: config } = useSystemConfigByKey("authentication_settings");
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
@@ -150,7 +159,10 @@ export function SignUpModal({
   const createUser = useCreateUser();
   const { mutate: trackSignup } = useTrackSignupClick();
 
-  const handleSignUp = async (values: ReturnType<typeof getInitialValues>, actions: FormikHelpers<ReturnType<typeof getInitialValues>>) => {
+  const handleSignUp = async (
+    values: ReturnType<typeof getInitialValues>,
+    actions: FormikHelpers<ReturnType<typeof getInitialValues>>
+  ) => {
     try {
       // Track the final signup button click with session ID
       trackSignup({ 
@@ -165,7 +177,7 @@ export function SignUpModal({
         password: values.password,
         phoneNumber: values.phoneNumber,
         isAdult: values.ageConfirm,
-        hasAcceptedTerms: values.terms
+        hasAcceptedTerms: values.terms,
       });
 
       // Close signup modal
@@ -173,12 +185,22 @@ export function SignUpModal({
 
       toast.success("Account created successfully! Please login to continue.");
       openLoginModal();
-
     } catch (error: any) {
       actions.setStatus({ error: "Failed to create account" });
     } finally {
       actions.setSubmitting(false);
     }
+  };
+
+  const navigate = useNavigate();
+  const handleTerms = () => {
+    onOpenChange(false);
+    navigate("/terms");
+  };
+  
+  const handlePrivacy = () => {
+    onOpenChange(false);
+    navigate("/privacy");
   };
 
   return (
@@ -206,7 +228,7 @@ export function SignUpModal({
               validateOnChange={false}
               validateOnBlur={false}
             >
-              {({ isSubmitting}) => (
+              {({ isSubmitting }) => (
                 <Form className="space-y-1">
                   {/* Authentication Fields */}
                   {(() => {
@@ -256,29 +278,34 @@ export function SignUpModal({
                                   <PhoneInput
                                     country="us"
                                     value={field.value}
-                                    onChange={(value) => form.setFieldValue('phoneNumber', formatPhoneNumber(value))}
-                                    inputStyle={{ 
-                                      width: "100%", 
-                                      height: "48px", 
-                                      backgroundColor: "#E2E8F0", 
-                                      border: "0", 
-                                      borderRadius: "0.375rem", 
-                                      fontFamily: "boogaloo", 
-                                      fontSize: "11px" 
+                                    onChange={(value) =>
+                                      form.setFieldValue(
+                                        "phoneNumber",
+                                        formatPhoneNumber(value)
+                                      )
+                                    }
+                                    inputStyle={{
+                                      width: "100%",
+                                      height: "48px",
+                                      backgroundColor: "#E2E8F0",
+                                      border: "0",
+                                      borderRadius: "0.375rem",
+                                      fontFamily: "boogaloo",
+                                      fontSize: "11px",
                                     }}
                                     containerClass="dark:bg-[#191c2b]"
-                                    buttonStyle={{ 
-                                      backgroundColor: "#E2E8F0", 
-                                      border: "0", 
-                                      borderRadius: "0.375rem 0 0 0.375rem" 
+                                    buttonStyle={{
+                                      backgroundColor: "#E2E8F0",
+                                      border: "0",
+                                      borderRadius: "0.375rem 0 0 0.375rem",
                                     }}
-                                    dropdownStyle={{ 
-                                      backgroundColor: "#E2E8F0", 
-                                      color: "#000" 
+                                    dropdownStyle={{
+                                      backgroundColor: "#E2E8F0",
+                                      color: "#000",
                                     }}
-                                    searchStyle={{ 
-                                      backgroundColor: "##E2E8F0", 
-                                      color: "#000" 
+                                    searchStyle={{
+                                      backgroundColor: "##E2E8F0",
+                                      color: "#000",
                                     }}
                                     enableAreaCodeStretch
                                     autoFormat
@@ -414,7 +441,9 @@ export function SignUpModal({
                         onClick={toggleConfirmPasswordVisibility}
                         className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
                         aria-label={
-                          showConfirmPassword ? "Hide password" : "Show password"
+                          showConfirmPassword
+                            ? "Hide password"
+                            : "Show password"
                         }
                       >
                         {showConfirmPassword ? (
@@ -507,12 +536,27 @@ export function SignUpModal({
         <p className=" text-center text-black dark:text-white font-boogaloo text-lg tracking-wider">
           Already have an account?{" "}
           <span
-            className="underline text-[#C026D3] cursor-pointer font-boogaloo text-lg hover:underline"
+            className="underline text-[#C026D3] cursor-pointer font-boogaloo text-lg"
             onClick={openLoginModal}
           >
             Login
           </span>
         </p>
+        {/* terms and privacy */}
+        <div className="font-pincuk flex space-2 text-lg justify-center">
+          <p
+            className="text-[#C026D3] text-center cursor-pointer tracking-wider mr-4 hover:underline"
+             onClick={handleTerms}
+          >
+            Terms of Service
+          </p>
+          <p
+            className="text-gray-400 text-center cursor-pointer tracking-wider mr-4 underline"
+             onClick={handlePrivacy}
+          >
+            Privacy Policy
+          </p>
+        </div>
       </CustomDialogContent>
     </Dialog>
   );

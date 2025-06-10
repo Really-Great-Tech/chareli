@@ -49,6 +49,9 @@ export class User {
   @Column({ default: false })
   hasAcceptedTerms: boolean;
 
+  @Column({ default: false })
+  hasCompletedFirstLogin: boolean;
+
   @Column({ nullable: true })
   lastLoggedIn: Date;
 

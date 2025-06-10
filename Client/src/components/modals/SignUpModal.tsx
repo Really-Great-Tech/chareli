@@ -155,8 +155,6 @@ export function SignUpModal({
   const toggleConfirmPasswordVisibility = () =>
     setShowConfirmPassword(!showConfirmPassword);
 
-  console.log("config", config);
-
   const createUser = useCreateUser();
   const { mutate: trackSignup } = useTrackSignupClick();
 

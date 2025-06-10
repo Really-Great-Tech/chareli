@@ -194,10 +194,10 @@ export function SignUpModal({
     navigate("/terms");
   };
   
-  const handlePrivacy = () => {
-    onOpenChange(false);
-    navigate("/privacy");
-  };
+  // const handlePrivacy = () => {
+  //   onOpenChange(false);
+  //   navigate("/privacy");
+  // };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -548,7 +548,7 @@ export function SignUpModal({
           </p>
           <p
             className="text-gray-400 text-center cursor-pointer tracking-wider mr-4 underline"
-             onClick={handlePrivacy}
+            //  onClick={handlePrivacy}
           >
             Privacy Policy
           </p>

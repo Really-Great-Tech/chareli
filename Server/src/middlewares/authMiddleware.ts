@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import { authService, TokenPayload } from '../services/auth.service';
 import { ApiError } from './errorHandler';
 import { RoleType } from '../entities/Role';
+import { AppDataSource } from '../config/database';
+import { User } from '../entities/User';
 
 /**
  * Middleware to optionally verify JWT token and attach user to request
@@ -42,7 +44,7 @@ declare global {
 /**
  * Middleware to verify JWT token and attach user to request
  */
-export const authenticate = (req: Request, res: Response, next: NextFunction) => {
+export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Get token from Authorization header
     const authHeader = req.headers.authorization;
@@ -60,6 +62,14 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
     
     // Attach user to request
     req.user = decoded;
+    
+    // Update user's lastSeen timestamp (fire and forget - don't wait for it)
+    if (decoded.userId) {
+      const userRepository = AppDataSource.getRepository(User);
+      userRepository.update(decoded.userId, { lastSeen: new Date() }).catch(error => {
+        console.error('Failed to update lastSeen:', error);
+      });
+    }
     
     next();
   } catch (error) {

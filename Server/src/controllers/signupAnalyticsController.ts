@@ -2,10 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { AppDataSource } from '../config/database';
 import { SignupAnalytics } from '../entities/SignupAnalytics';
 import { Between } from 'typeorm';
-import NodeCache from 'node-cache';
-
-// Initialize cache with 24h TTL
-const ipCache = new NodeCache({ stdTTL: 86400 });
+import { getCountryFromIP, extractClientIP, getIPCacheStats } from '../utils/ipUtils';
 
 const signupAnalyticsRepository = AppDataSource.getRepository(SignupAnalytics);
 
@@ -43,52 +40,6 @@ function detectDeviceType(userAgent: string): string {
 }
 
 
-function isPrivateIP(ip: string): boolean {
-  return ip === '127.0.0.1' || 
-         ip === '::1' || 
-         ip === 'localhost' || 
-         ip.startsWith('192.168.') || 
-         ip.startsWith('10.') || 
-         ip.startsWith('172.16.');
-}
-
-export async function getCountryFromIP(ipAddress: string): Promise<string | null> {
-  try {
-    // Check cache first
-    const cached = ipCache.get<string>(ipAddress);
-    if (cached) {
-      console.log('IP cache hit:', ipAddress);
-      return cached;
-    }
-
-    // Handle private/local IPs
-    if (isPrivateIP(ipAddress)) {
-      return 'Local';
-    }
-
-    console.log('Fetching country for IP:', ipAddress);
-    const response = await fetch(`https://ipapi.co/${ipAddress}/json/`);
-    const data = await response.json() as {
-      error?: string;
-      country_name?: string;
-    };
-
-    if (data.error) {
-      console.error('IP API error:', data.error);
-      return null;
-    }
-
-    // Cache successful results
-    if (data.country_name) {
-      ipCache.set(ipAddress, data.country_name);
-    }
-
-    return data.country_name || null;
-  } catch (error) {
-    console.error('Error getting country from IP:', error);
-    return null;
-  }
-}
 
 /**
  * Test endpoint to verify IP country detection
@@ -101,13 +52,14 @@ export const testIPCountry = async (
   try {
     const { ip } = req.params;
     const country = await getCountryFromIP(ip);
+    const cacheStats = getIPCacheStats();
     
     res.status(200).json({
       success: true,
       data: {
         ip,
         country,
-        cached: ipCache.has(ip)
+        cached: cacheStats.keys > 0 // Simple check if cache has entries
       }
     });
   } catch (error) {
@@ -162,9 +114,7 @@ export const trackSignupClick = async (
 
     // Extract real IP address (behind proxy/CDN safe)
     const forwarded = req.headers['x-forwarded-for'];
-    const ipAddress = Array.isArray(forwarded)
-      ? forwarded[0]
-      : (forwarded || req.socket.remoteAddress || req.ip || '');
+    const ipAddress = extractClientIP(forwarded, req.socket.remoteAddress || req.ip || '');
 
     console.log('Detected IP address:', ipAddress); 
 

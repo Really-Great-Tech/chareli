@@ -44,6 +44,10 @@ export const BackendRoute = {
   
   // User Stats Route
   USER_STATS: '/api/users/me/stats',
+  
+  // Heartbeat Routes
+  USER_HEARTBEAT: '/api/users/heartbeat',
+  USER_ONLINE_STATUS: '/api/users/online-status',
 
   // Signup Analytics Routes
   SIGNUP_ANALYTICS_CLICK: '/api/signup-analytics/click',

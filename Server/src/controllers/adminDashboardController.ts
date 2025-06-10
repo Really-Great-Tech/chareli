@@ -70,31 +70,50 @@ export const getDashboardAnalytics = async (
       ? Number(((returningUsers / yesterdayUsers) * 100).toFixed(2))
       : 0;
 
-    // 1. Total Users (unique visitors by IP)
-    const [currentUniqueIPsResult, previousUniqueIPsResult, actualAppUser] = await Promise.all([
+    // 1. Total Users (unique visitors using sessionId + IP + device hybrid approach)
+    const [currentUniqueUsersResult, previousUniqueUsersResult, actualAppUser] = await Promise.all([
       signupAnalyticsRepository
-        .createQueryBuilder('analytics')
-        .select('COUNT(DISTINCT analytics.ipAddress)', 'count')
-        .where('analytics.ipAddress IS NOT NULL')
-        .andWhere('analytics.createdAt > :twentyFourHoursAgo', { twentyFourHoursAgo })
+        .createQueryBuilder('signup_analytics')
+        .select(`
+          COUNT(DISTINCT 
+            CASE 
+              WHEN signup_analytics."sessionId" IS NOT NULL THEN signup_analytics."sessionId"
+              ELSE CONCAT(signup_analytics."ipAddress", '|', signup_analytics."deviceType")
+            END
+          )`, 'count')
+        .where('signup_analytics."createdAt" > :twentyFourHoursAgo', { twentyFourHoursAgo })
         .getRawOne(),
       signupAnalyticsRepository
-        .createQueryBuilder('analytics')
-        .select('COUNT(DISTINCT analytics.ipAddress)', 'count')
-        .where('analytics.ipAddress IS NOT NULL')
-        .andWhere('analytics.createdAt BETWEEN :start AND :end', {
+        .createQueryBuilder('signup_analytics')
+        .select(`
+          COUNT(DISTINCT 
+            CASE 
+              WHEN signup_analytics."sessionId" IS NOT NULL THEN signup_analytics."sessionId"
+              ELSE CONCAT(signup_analytics."ipAddress", '|', signup_analytics."deviceType")
+            END
+          )`, 'count')
+        .where('signup_analytics."createdAt" BETWEEN :start AND :end', {
           start: fortyEightHoursAgo,
           end: twentyFourHoursAgo
         })
         .getRawOne(),
       
-      signupAnalyticsRepository.count({
-        where: {ipAddress: Not(IsNull())}
-      })
+      signupAnalyticsRepository
+        .createQueryBuilder('signup_analytics')
+        .select(`
+          COUNT(DISTINCT 
+            CASE 
+              WHEN signup_analytics."sessionId" IS NOT NULL THEN signup_analytics."sessionId"
+              ELSE CONCAT(signup_analytics."ipAddress", '|', signup_analytics."deviceType")
+            END
+          )`, 'count')
+        .getRawOne()
     ]);
     
-    const currentTotalUsers = currentUniqueIPsResult?.count || 0;
-    const previousTotalUsers = previousUniqueIPsResult?.count || 0;
+    const currentTotalUsers = parseInt(currentUniqueUsersResult?.count) || 0;
+    const previousTotalUsers = parseInt(previousUniqueUsersResult?.count) || 0;
+    // Ensure minimum count is 1 since admin user always exists
+    const actualAppUserCount = Math.max(parseInt(actualAppUser?.count) || 0, 1);
     const totalUsersPercentageChange = previousTotalUsers > 0 
       ? Math.max(Math.min(((currentTotalUsers - previousTotalUsers) / previousTotalUsers) * 100, 100), -100)
       : 0;
@@ -314,7 +333,7 @@ export const getDashboardAnalytics = async (
       success: true,
       data: {
         totalUsers: {
-          current: actualAppUser,
+          current: actualAppUserCount.toString(),
           percentageChange: Number(totalUsersPercentageChange.toFixed(2))
         },
         totalRegisteredUsers: {

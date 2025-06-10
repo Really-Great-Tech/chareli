@@ -6,6 +6,7 @@ import { StatsModal } from '../modals/StatsModal';
 import { ProfileModal } from '../modals/ProfileModal';
 import { useAuth } from '../../context/AuthContext';
 import { useTrackSignupClick } from '../../backend/signup.analytics.service';
+import { getVisitorSessionId } from '../../utils/sessionUtils';
 
 import sun from '../../assets/sun.svg';
 import moon from '../../assets/moon.svg';
@@ -164,7 +165,10 @@ const Navbar: React.FC = () => {
                 </Button>
                 <Button
                   onClick={() => {
-                    trackSignup({ type: 'navbar' });
+                    trackSignup({ 
+                      sessionId: getVisitorSessionId(),
+                      type: 'navbar' 
+                    });
                     setIsSignUpModalOpen(true);
                     setIsMobileMenuOpen(false);
                   }}
@@ -260,7 +264,10 @@ const Navbar: React.FC = () => {
             </Button>
             <Button
               onClick={() => {
-                trackSignup({ type: 'navbar' });
+                trackSignup({ 
+                  sessionId: getVisitorSessionId(),
+                  type: 'navbar' 
+                });
                 setIsSignUpModalOpen(true);
               }}
               className="bg-transparent border border-[#C026D3] dark:border-purple-400 text-[#C026D3] dark:text-purple-300 text-lg hover:bg-accent hover:text-[#C026D3]">

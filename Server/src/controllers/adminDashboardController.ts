@@ -455,11 +455,14 @@ export const getUserActivityLog = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { page = 1, limit = 11, userId } = req.query;
-    const pageNumber = parseInt(page as string, 10);
-    const limitNumber = parseInt(limit as string, 10);
+    const { page, limit, userId } = req.query;
     
-    // First, get the list of users (with pagination)
+    // Only apply pagination if page or limit parameters are explicitly provided
+    const shouldPaginate = page || limit;
+    const pageNumber = shouldPaginate ? parseInt(page as string, 10) || 1 : 1;
+    const limitNumber = shouldPaginate ? parseInt(limit as string, 10) || 10 : undefined;
+    
+    // First, get the list of users
     const userQueryBuilder = userRepository.createQueryBuilder('user')
       .select(['user.id', 'user.firstName', 'user.lastName', 'user.email', 'user.isActive', 'user.lastSeen']);
     
@@ -468,14 +471,17 @@ export const getUserActivityLog = async (
       userQueryBuilder.where('user.id = :userId', { userId });
     }
     
-    // Get total count for pagination
+    // Get total count for pagination info
     const total = await userQueryBuilder.getCount();
     
-    // Apply pagination
-    userQueryBuilder
-      .skip((pageNumber - 1) * limitNumber)
-      .take(limitNumber)
-      .orderBy('user.createdAt', 'DESC');
+    // Apply pagination only if explicitly requested
+    if (shouldPaginate && limitNumber) {
+      userQueryBuilder
+        .skip((pageNumber - 1) * limitNumber)
+        .take(limitNumber);
+    }
+    
+    userQueryBuilder.orderBy('user.createdAt', 'DESC');
     
     const users = await userQueryBuilder.getMany();
     
@@ -537,15 +543,22 @@ export const getUserActivityLog = async (
       };
     }));
     
-    res.status(200).json({
+    // Prepare response with conditional pagination info
+    const response: any = {
       success: true,
       count: formattedActivities.length,
       total,
-      page: pageNumber,
-      limit: limitNumber,
-      totalPages: Math.ceil(total / limitNumber),
       data: formattedActivities
-    });
+    };
+    
+    // Only include pagination info if pagination was applied
+    if (shouldPaginate && limitNumber) {
+      response.page = pageNumber;
+      response.limit = limitNumber;
+      response.totalPages = Math.ceil(total / limitNumber);
+    }
+    
+    res.status(200).json(response);
   } catch (error) {
     next(error);
   }
@@ -607,15 +620,17 @@ export const getGamesWithAnalytics = async (
 ): Promise<void> => {
   try {
     const { 
-      page = 1, 
-      limit = 10, 
+      page, 
+      limit, 
       categoryId, 
       status, 
       search
     } = req.query;
     
-    const pageNumber = parseInt(page as string, 10);
-    const limitNumber = parseInt(limit as string, 10);
+    // Only apply pagination if page or limit parameters are explicitly provided
+    const shouldPaginate = page || limit;
+    const pageNumber = shouldPaginate ? parseInt(page as string, 10) || 1 : 1;
+    const limitNumber = shouldPaginate ? parseInt(limit as string, 10) || 10 : undefined;
     
     // Build query for games
     const queryBuilder = gameRepository.createQueryBuilder('game')
@@ -641,14 +656,17 @@ export const getGamesWithAnalytics = async (
       );
     }
     
-    // Get total count for pagination
+    // Get total count for pagination info
     const total = await queryBuilder.getCount();
     
-    // Apply pagination
-    queryBuilder
-      .skip((pageNumber - 1) * limitNumber)
-      .take(limitNumber)
-      .orderBy('game.createdAt', 'DESC');
+    // Apply pagination only if explicitly requested
+    if (shouldPaginate && limitNumber) {
+      queryBuilder
+        .skip((pageNumber - 1) * limitNumber)
+        .take(limitNumber);
+    }
+    
+    queryBuilder.orderBy('game.createdAt', 'DESC');
     
     const games = await queryBuilder.getMany();
     
@@ -705,15 +723,22 @@ export const getGamesWithAnalytics = async (
       return transformedGame;
     });
     
-    res.status(200).json({
+    // Prepare response with conditional pagination info
+    const response: any = {
       success: true,
       count: games.length,
       total,
-      page: pageNumber,
-      limit: limitNumber,
-      totalPages: Math.ceil(total / limitNumber),
       data: gamesWithAnalytics
-    });
+    };
+    
+    // Only include pagination info if pagination was applied
+    if (shouldPaginate && limitNumber) {
+      response.page = pageNumber;
+      response.limit = limitNumber;
+      response.totalPages = Math.ceil(total / limitNumber);
+    }
+    
+    res.status(200).json(response);
   } catch (error) {
     next(error);
   }

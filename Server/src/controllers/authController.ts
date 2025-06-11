@@ -9,7 +9,7 @@ import { SystemConfig } from '../entities/SystemConfig';
 import { otpService } from '../services/otp.service';
 import * as crypto from 'crypto';
 import * as bcrypt from 'bcrypt';
-import { getCountryFromIP } from './signupAnalyticsController';
+import { getCountryFromIP, extractClientIP } from '../utils/ipUtils';
 
 // Section: Core Authentication
 // This controller handles core authentication functions like registration, login, and OTP verification
@@ -69,9 +69,7 @@ export const registerPlayer = async (
 
     // Get IP address
     const forwarded = req.headers['x-forwarded-for'];
-    const ipAddress = Array.isArray(forwarded)
-      ? forwarded[0]
-      : (forwarded || req.socket.remoteAddress || req.ip || '');
+    const ipAddress = extractClientIP(forwarded, req.socket.remoteAddress || req.ip || '');
 
     // Get country from IP
     const country = await getCountryFromIP(ipAddress);
@@ -167,9 +165,7 @@ export const registerFromInvitation = async (
 
     // Get IP address
     const forwarded = req.headers['x-forwarded-for'];
-    const ipAddress = Array.isArray(forwarded)
-      ? forwarded[0]
-      : (forwarded || req.socket.remoteAddress || req.ip || '');
+    const ipAddress = extractClientIP(forwarded, req.socket.remoteAddress || req.ip || '');
 
     // Get country from IP
     const country = await getCountryFromIP(ipAddress);

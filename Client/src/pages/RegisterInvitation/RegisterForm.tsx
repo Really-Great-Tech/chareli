@@ -55,12 +55,12 @@ export function RegisterForm({ email, token, onSuccess }: RegisterFormProps) {
 
   const handleSubmit = (values: FormValues) => {
     register(
-      { 
-        token, 
-        data: { 
+      {
+        token,
+        data: {
           ...values,
           email
-        } 
+        }
       },
       {
         onSuccess
@@ -74,7 +74,7 @@ export function RegisterForm({ email, token, onSuccess }: RegisterFormProps) {
       validationSchema={validationSchema}
       onSubmit={handleSubmit}
     >
-      {({ isSubmitting}) => (
+      {({ isSubmitting }) => (
         <Form className="space-y-6">
           <div>
             <Label htmlFor="email">Email</Label>
@@ -128,28 +128,28 @@ export function RegisterForm({ email, token, onSuccess }: RegisterFormProps) {
                     country="us"
                     value={field.value}
                     onChange={(value) => form.setFieldValue('phoneNumber', formatPhoneNumber(value))}
-                    inputStyle={{ 
-                      width: "100%", 
-                      height: "48px", 
-                      backgroundColor: "#E2E8F0", 
-                      border: "0", 
-                      borderRadius: "0.375rem", 
-                      fontFamily: "pincuk", 
-                      fontSize: "11px" 
+                    inputStyle={{
+                      width: "100%",
+                      height: "48px",
+                      backgroundColor: "#E2E8F0",
+                      border: "0",
+                      borderRadius: "0.375rem",
+                      fontFamily: "pincuk",
+                      fontSize: "11px"
                     }}
-                    containerClass="dark:bg-[#191c2b]"
-                    buttonStyle={{ 
-                      backgroundColor: "#E2E8F0", 
-                      border: "0", 
-                      borderRadius: "0.375rem 0 0 0.375rem" 
+                    containerClass="dark:bg-[#191c2b] z-[999]"
+                    buttonStyle={{
+                      backgroundColor: "#E2E8F0",
+                      border: "0",
+                      borderRadius: "0.375rem 0 0 0.375rem"
                     }}
-                    dropdownStyle={{ 
-                      backgroundColor: "#E2E8F0", 
-                      color: "#000" 
+                    dropdownStyle={{
+                      backgroundColor: "#E2E8F0",
+                      color: "#000"
                     }}
-                    searchStyle={{ 
-                      backgroundColor: "#E2E8F0", 
-                      color: "#000" 
+                    searchStyle={{
+                      backgroundColor: "#E2E8F0",
+                      color: "#000"
                     }}
                     enableAreaCodeStretch
                     autoFormat

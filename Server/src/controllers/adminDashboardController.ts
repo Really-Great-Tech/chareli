@@ -70,31 +70,50 @@ export const getDashboardAnalytics = async (
       ? Number(((returningUsers / yesterdayUsers) * 100).toFixed(2))
       : 0;
 
-    // 1. Total Users (unique visitors by IP)
-    const [currentUniqueIPsResult, previousUniqueIPsResult, actualAppUser] = await Promise.all([
+    // 1. Total Users (unique visitors using sessionId + IP + device hybrid approach)
+    const [currentUniqueUsersResult, previousUniqueUsersResult, actualAppUser] = await Promise.all([
       signupAnalyticsRepository
-        .createQueryBuilder('analytics')
-        .select('COUNT(DISTINCT analytics.ipAddress)', 'count')
-        .where('analytics.ipAddress IS NOT NULL')
-        .andWhere('analytics.createdAt > :twentyFourHoursAgo', { twentyFourHoursAgo })
+        .createQueryBuilder('signup_analytics')
+        .select(`
+          COUNT(DISTINCT 
+            CASE 
+              WHEN signup_analytics."sessionId" IS NOT NULL THEN signup_analytics."sessionId"
+              ELSE CONCAT(signup_analytics."ipAddress", '|', signup_analytics."deviceType")
+            END
+          )`, 'count')
+        .where('signup_analytics."createdAt" > :twentyFourHoursAgo', { twentyFourHoursAgo })
         .getRawOne(),
       signupAnalyticsRepository
-        .createQueryBuilder('analytics')
-        .select('COUNT(DISTINCT analytics.ipAddress)', 'count')
-        .where('analytics.ipAddress IS NOT NULL')
-        .andWhere('analytics.createdAt BETWEEN :start AND :end', {
+        .createQueryBuilder('signup_analytics')
+        .select(`
+          COUNT(DISTINCT 
+            CASE 
+              WHEN signup_analytics."sessionId" IS NOT NULL THEN signup_analytics."sessionId"
+              ELSE CONCAT(signup_analytics."ipAddress", '|', signup_analytics."deviceType")
+            END
+          )`, 'count')
+        .where('signup_analytics."createdAt" BETWEEN :start AND :end', {
           start: fortyEightHoursAgo,
           end: twentyFourHoursAgo
         })
         .getRawOne(),
       
-      signupAnalyticsRepository.count({
-        where: {ipAddress: Not(IsNull())}
-      })
+      signupAnalyticsRepository
+        .createQueryBuilder('signup_analytics')
+        .select(`
+          COUNT(DISTINCT 
+            CASE 
+              WHEN signup_analytics."sessionId" IS NOT NULL THEN signup_analytics."sessionId"
+              ELSE CONCAT(signup_analytics."ipAddress", '|', signup_analytics."deviceType")
+            END
+          )`, 'count')
+        .getRawOne()
     ]);
     
-    const currentTotalUsers = currentUniqueIPsResult?.count || 0;
-    const previousTotalUsers = previousUniqueIPsResult?.count || 0;
+    const currentTotalUsers = parseInt(currentUniqueUsersResult?.count) || 0;
+    const previousTotalUsers = parseInt(previousUniqueUsersResult?.count) || 0;
+    // Ensure minimum count is 1 since admin user always exists
+    const actualAppUserCount = Math.max(parseInt(actualAppUser?.count) || 0, 1);
     const totalUsersPercentageChange = previousTotalUsers > 0 
       ? Math.max(Math.min(((currentTotalUsers - previousTotalUsers) / previousTotalUsers) * 100, 100), -100)
       : 0;
@@ -314,7 +333,7 @@ export const getDashboardAnalytics = async (
       success: true,
       data: {
         totalUsers: {
-          current: actualAppUser,
+          current: actualAppUserCount.toString(),
           percentageChange: Number(totalUsersPercentageChange.toFixed(2))
         },
         totalRegisteredUsers: {
@@ -436,27 +455,33 @@ export const getUserActivityLog = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { page = 1, limit = 11, userId } = req.query;
-    const pageNumber = parseInt(page as string, 10);
-    const limitNumber = parseInt(limit as string, 10);
+    const { page, limit, userId } = req.query;
     
-    // First, get the list of users (with pagination)
+    // Only apply pagination if page or limit parameters are explicitly provided
+    const shouldPaginate = page || limit;
+    const pageNumber = shouldPaginate ? parseInt(page as string, 10) || 1 : 1;
+    const limitNumber = shouldPaginate ? parseInt(limit as string, 10) || 10 : undefined;
+    
+    // First, get the list of users
     const userQueryBuilder = userRepository.createQueryBuilder('user')
-      .select(['user.id', 'user.firstName', 'user.lastName', 'user.email', 'user.isActive']);
+      .select(['user.id', 'user.firstName', 'user.lastName', 'user.email', 'user.isActive', 'user.lastSeen']);
     
     // Apply user filter if provided
     if (userId) {
       userQueryBuilder.where('user.id = :userId', { userId });
     }
     
-    // Get total count for pagination
+    // Get total count for pagination info
     const total = await userQueryBuilder.getCount();
     
-    // Apply pagination
-    userQueryBuilder
-      .skip((pageNumber - 1) * limitNumber)
-      .take(limitNumber)
-      .orderBy('user.createdAt', 'DESC');
+    // Apply pagination only if explicitly requested
+    if (shouldPaginate && limitNumber) {
+      userQueryBuilder
+        .skip((pageNumber - 1) * limitNumber)
+        .take(limitNumber);
+    }
+    
+    userQueryBuilder.orderBy('user.createdAt', 'DESC');
     
     const users = await userQueryBuilder.getMany();
     
@@ -496,12 +521,21 @@ export const getUserActivityLog = async (
         gameEndTime = lastGameActivity.endTime;
       }
 
-      console.log(activity)
+      console.log('Activity:', activity)
+      console.log('User lastSeen:', user.lastSeen)
+      console.log('User isActive:', user.isActive)
+      
+      // Determine if user is online based on lastSeen timestamp and heartbeat system
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+      const isOnline = user.lastSeen && user.lastSeen > fiveMinutesAgo && user.isActive;
+      
+      console.log('Five minutes ago:', fiveMinutesAgo)
+      console.log('Is online calculation:', isOnline)
       
       return {
         userId: user.id,
         name: `${user.firstName || ""} ${user.lastName || ""}`,
-        userStatus: user.isActive ? 'Online' : 'Offline',
+        userStatus: isOnline ? 'Online' : 'Offline',
         activity: activity,
         lastGamePlayed: gameTitle,
         startTime: gameStartTime,
@@ -509,15 +543,22 @@ export const getUserActivityLog = async (
       };
     }));
     
-    res.status(200).json({
+    // Prepare response with conditional pagination info
+    const response: any = {
       success: true,
       count: formattedActivities.length,
       total,
-      page: pageNumber,
-      limit: limitNumber,
-      totalPages: Math.ceil(total / limitNumber),
       data: formattedActivities
-    });
+    };
+    
+    // Only include pagination info if pagination was applied
+    if (shouldPaginate && limitNumber) {
+      response.page = pageNumber;
+      response.limit = limitNumber;
+      response.totalPages = Math.ceil(total / limitNumber);
+    }
+    
+    res.status(200).json(response);
   } catch (error) {
     next(error);
   }
@@ -579,15 +620,17 @@ export const getGamesWithAnalytics = async (
 ): Promise<void> => {
   try {
     const { 
-      page = 1, 
-      limit = 10, 
+      page, 
+      limit, 
       categoryId, 
       status, 
       search
     } = req.query;
     
-    const pageNumber = parseInt(page as string, 10);
-    const limitNumber = parseInt(limit as string, 10);
+    // Only apply pagination if page or limit parameters are explicitly provided
+    const shouldPaginate = page || limit;
+    const pageNumber = shouldPaginate ? parseInt(page as string, 10) || 1 : 1;
+    const limitNumber = shouldPaginate ? parseInt(limit as string, 10) || 10 : undefined;
     
     // Build query for games
     const queryBuilder = gameRepository.createQueryBuilder('game')
@@ -613,14 +656,17 @@ export const getGamesWithAnalytics = async (
       );
     }
     
-    // Get total count for pagination
+    // Get total count for pagination info
     const total = await queryBuilder.getCount();
     
-    // Apply pagination
-    queryBuilder
-      .skip((pageNumber - 1) * limitNumber)
-      .take(limitNumber)
-      .orderBy('game.createdAt', 'DESC');
+    // Apply pagination only if explicitly requested
+    if (shouldPaginate && limitNumber) {
+      queryBuilder
+        .skip((pageNumber - 1) * limitNumber)
+        .take(limitNumber);
+    }
+    
+    queryBuilder.orderBy('game.createdAt', 'DESC');
     
     const games = await queryBuilder.getMany();
     
@@ -677,15 +723,22 @@ export const getGamesWithAnalytics = async (
       return transformedGame;
     });
     
-    res.status(200).json({
+    // Prepare response with conditional pagination info
+    const response: any = {
       success: true,
       count: games.length,
       total,
-      page: pageNumber,
-      limit: limitNumber,
-      totalPages: Math.ceil(total / limitNumber),
       data: gamesWithAnalytics
-    });
+    };
+    
+    // Only include pagination info if pagination was applied
+    if (shouldPaginate && limitNumber) {
+      response.page = pageNumber;
+      response.limit = limitNumber;
+      response.totalPages = Math.ceil(total / limitNumber);
+    }
+    
+    res.status(200).json(response);
   } catch (error) {
     next(error);
   }

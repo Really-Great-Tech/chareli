@@ -37,8 +37,9 @@ export default function UserManagement() {
       min: 0,
       max: 0,
     },
-    gameTitle: "",
-    gameCategory: "",
+    gameTitle: '',
+    gameCategory: '',
+    sortByMaxTimePlayed: false
   });
 
   const { data: users, isLoading } = useUsersAnalytics(filters);
@@ -63,56 +64,31 @@ export default function UserManagement() {
         min: 0,
         max: 0,
       },
-      gameTitle: "",
-      gameCategory: "",
+      gameTitle: '',
+      gameCategory: '',
+      sortByMaxTimePlayed: false
     });
     setPage(1);
   };
 
   // Filter users based on criteria
-  const filteredUsers = users?.filter((user) => {
-    if (
-      filters.registrationDates.startDate &&
-      new Date(user.createdAt) < new Date(filters.registrationDates.startDate)
-    )
-      return false;
-    if (
-      filters.registrationDates.endDate &&
-      new Date(user.createdAt) > new Date(filters.registrationDates.endDate)
-    )
-      return false;
-    if (
-      filters.sessionCount &&
-      user.analytics?.totalSessionCount < parseInt(filters.sessionCount)
-    )
-      return false;
-    if (
-      filters.timePlayed.min &&
-      (user.analytics?.totalTimePlayed || 0) / 60 < filters.timePlayed.min
-    )
-      return false;
-    if (
-      filters.timePlayed.max &&
-      (user.analytics?.totalTimePlayed || 0) / 60 > filters.timePlayed.max
-    )
-      return false;
-    if (
-      filters.gameCategory &&
-      user.analytics?.mostPlayedGame?.gameId &&
-      !games?.find(
-        (g: GameAnalytics) =>
-          g.id === user.analytics?.mostPlayedGame?.gameId &&
-          g.category?.name === filters.gameCategory
-      )
-    )
-      return false;
-    if (
-      filters.gameTitle &&
-      user.analytics?.mostPlayedGame?.gameTitle !== filters.gameTitle
-    )
-      return false;
+  let filteredUsers = users?.filter(user => {
+    if (filters.registrationDates.startDate && new Date(user.createdAt) < new Date(filters.registrationDates.startDate)) return false;
+    if (filters.registrationDates.endDate && new Date(user.createdAt) > new Date(filters.registrationDates.endDate)) return false;
+    if (filters.sessionCount && user.analytics?.totalSessionCount < parseInt(filters.sessionCount)) return false;
+    if (filters.timePlayed.min && (user.analytics?.totalTimePlayed || 0) / 60 < filters.timePlayed.min) return false;
+    if (filters.timePlayed.max && (user.analytics?.totalTimePlayed || 0) / 60 > filters.timePlayed.max) return false;
+    if (filters.gameCategory && user.analytics?.mostPlayedGame?.gameId && !games?.find((g: GameAnalytics) => g.id === user.analytics?.mostPlayedGame?.gameId && g.category?.name === filters.gameCategory)) return false;
+    if (filters.gameTitle && user.analytics?.mostPlayedGame?.gameTitle !== filters.gameTitle) return false;
     return true;
   });
+
+  if (filters.sortByMaxTimePlayed && filteredUsers) {
+    filteredUsers = [...filteredUsers].sort(
+      (a, b) => (b.analytics?.totalTimePlayed || 0) - (a.analytics?.totalTimePlayed || 0)
+    );
+  }
+
 
   return (
     <div className="px-3">
@@ -131,14 +107,14 @@ export default function UserManagement() {
               className="border-[#475568] text-[#475568] flex items-center gap-2 dark:text-white py-5"
             >
               Filter
-              <div className="text-[#D946EF] bg-[#FAE8FF] px-3 py-1 rounded-full">
-                {
-                  Object.values(filters).filter((value) =>
-                    typeof value === "object"
-                      ? Object.values(value).some((v) => v !== "" && v !== 0)
-                      : value !== ""
-                  ).length
-                }
+              <div className='text-[#D946EF] bg-[#FAE8FF] px-3 py-1 rounded-full'>
+                {Object.entries(filters).filter(([, value]) =>
+                  typeof value === 'object'
+                    ? Object.values(value).some(v => v !== '' && v !== 0)
+                    : typeof value === 'boolean'
+                      ? value === true
+                      : value !== ''
+                ).length}
               </div>
               <RiEqualizer2Line size={32} />
             </Button>

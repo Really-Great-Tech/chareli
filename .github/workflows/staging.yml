@@ -1,4 +1,4 @@
-name: Deploy to Dev Environment (Chareli)
+name: Deploy to Staging Environment (Chareli)
 
 on:
   push:
@@ -13,11 +13,11 @@ permissions:
 env:
   AWS_REGION: eu-central-1
   ECR_REGISTRY: 330858616968.dkr.ecr.eu-central-1.amazonaws.com
-  ECR_REPO_SERVER: chareli-dev-repo
-  IMAGE_TAG_SERVER_COMMIT: server-dev-${{ github.sha }}
-  IMAGE_TAG_SERVER_FIXED: server-dev
+  ECR_REPO_SERVER: chareli-server-staging
+  IMAGE_TAG_SERVER_COMMIT: server-staging-${{ github.sha }}
+  IMAGE_TAG_SERVER_FIXED: latest
 
-  S3_BUCKET_CLIENT: chareli-react-app-dev-ea15b364
+  S3_BUCKET_CLIENT: chareli-react-app-staging-0a866340
   CLOUDFRONT_DISTRIBUTION_ID_CLIENT: ED93QD3A93Q1N
 
 jobs:

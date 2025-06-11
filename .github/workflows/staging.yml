@@ -101,7 +101,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::330858616968:role/chareli-dev-oidc-role
+          role-to-assume: arn:aws:iam::330858616968:role/chareli-staging-github-oidc-role
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Set up Docker BuildX
@@ -143,7 +143,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::330858616968:role/chareli-dev-oidc-role
+          role-to-assume: arn:aws:iam::330858616968:role/chareli-staging-github-oidc-role
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Deploy Frontend to S3

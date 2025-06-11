@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { FiTrash2 } from "react-icons/fi";
 import { CiEdit } from "react-icons/ci";
 import { useState } from "react";

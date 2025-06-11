@@ -169,7 +169,7 @@ const UserManagementView = () => {
               </div>
               <div className="text-fuchsia-500  tracking-wide">Country</div>
               <div className="text-[#334154] font-pincuk text-lg tracking-wider dark:text-white">
-                -
+                {response?.user?.country || "-"}
               </div>
             </div>
           </div>

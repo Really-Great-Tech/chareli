@@ -3,6 +3,7 @@ import { User } from '../entities/User';
 import { Role, RoleType } from '../entities/Role';
 import { Invitation } from '../entities/Invitation';
 import { Otp, OtpType } from '../entities/Otp';
+import { SystemConfig } from '../entities/SystemConfig';
 import config from '../config/config';
 import logger from '../utils/logger';
 import { otpService } from './otp.service';
@@ -16,6 +17,7 @@ import { MoreThan } from 'typeorm';
 const userRepository = AppDataSource.getRepository(User);
 const roleRepository = AppDataSource.getRepository(Role);
 const invitationRepository = AppDataSource.getRepository(Invitation);
+const systemConfigRepository = AppDataSource.getRepository(SystemConfig);
 
 export interface TokenPayload {
   userId: string;
@@ -198,68 +200,102 @@ export class AuthService {
     return user;
   }
 
-  async sendOtp(user: User, type: OtpType = OtpType.SMS): Promise<OtpResult> {
-    let actualType = type;
-    let fallbackUsed = false;
+  /**
+   * Determine OTP delivery method based on authentication settings configuration
+   */
+  async determineOtpDeliveryMethod(user: User): Promise<OtpType> {
+    try {
+      // Get authentication settings from system config
+      const authConfig = await systemConfigRepository.findOne({
+        where: { key: 'authentication_settings' }
+      });
 
-    // Determine the best available method based on user's contact info
-    if (type === OtpType.SMS && !user.phoneNumber) {
-      if (user.email) {
-        actualType = OtpType.EMAIL;
-        fallbackUsed = true;
-        logger.info(`User ${user.id} has no phone number, falling back to email OTP`);
+      if (!authConfig?.value?.settings) {
+        // Fallback to default behavior if no config found
+        logger.info('No authentication settings found, using default OTP behavior');
+        return this.getDefaultOtpType(user);
+      }
+
+      const { email, sms, both } = authConfig.value.settings;
+
+      // Check which authentication method is enabled
+      if (both?.enabled) {
+        // Both is enabled, check the OTP delivery method preference
+        const otpDeliveryMethod = both.otpDeliveryMethod || 'none';
+        
+        switch (otpDeliveryMethod) {
+          case 'email':
+            if (!user.email) {
+              throw new Error('User does not have an email address for OTP verification');
+            }
+            return OtpType.EMAIL;
+          
+          case 'sms':
+            if (!user.phoneNumber) {
+              throw new Error('User does not have a phone number for OTP verification');
+            }
+            return OtpType.SMS;
+          
+          case 'none':
+            // No OTP required when "none" is selected
+            throw new Error('OTP verification is disabled for this authentication method');
+          
+          default:
+            // Fallback to default behavior
+            return this.getDefaultOtpType(user);
+        }
+      } else if (email?.enabled) {
+        // Email authentication is enabled
+        if (!user.email) {
+          throw new Error('User does not have an email address for OTP verification');
+        }
+        return OtpType.EMAIL;
+      } else if (sms?.enabled) {
+        // SMS authentication is enabled
+        if (!user.phoneNumber) {
+          throw new Error('User does not have a phone number for OTP verification');
+        }
+        return OtpType.SMS;
       } else {
-        throw new Error('User does not have a phone number or email address for OTP');
+        // No authentication method enabled, use default
+        return this.getDefaultOtpType(user);
       }
+    } catch (error) {
+      logger.error('Error determining OTP delivery method:', error);
+      // Fallback to default behavior on error
+      return this.getDefaultOtpType(user);
     }
+  }
 
-    if (type === OtpType.EMAIL && !user.email) {
-      if (user.phoneNumber) {
-        actualType = OtpType.SMS;
-        fallbackUsed = true;
-        logger.info(`User ${user.id} has no email address, falling back to SMS OTP`);
-      } else {
-        throw new Error('User does not have an email address or phone number for OTP');
-      }
+  /**
+   * Get default OTP type based on user's available contact information
+   */
+  private getDefaultOtpType(user: User): OtpType {
+    if (user.email && user.phoneNumber) {
+      return OtpType.BOTH;
+    } else if (user.email) {
+      return OtpType.EMAIL;
+    } else if (user.phoneNumber) {
+      return OtpType.SMS;
+    } else {
+      throw new Error('User does not have any contact information for OTP verification');
     }
+  }
 
-    if (type === OtpType.BOTH) {
-      // For BOTH type, send to whatever is available
-      if (!user.phoneNumber && !user.email) {
-        throw new Error('User does not have a phone number or email address for OTP');
-      }
-      if (!user.phoneNumber) {
-        actualType = OtpType.EMAIL;
-        fallbackUsed = true;
-        logger.info(`User ${user.id} has no phone number, sending email OTP only`);
-      } else if (!user.email) {
-        actualType = OtpType.SMS;
-        fallbackUsed = true;
-        logger.info(`User ${user.id} has no email address, sending SMS OTP only`);
-      }
-    }
-
-    const otp = await otpService.generateOtp(user.id, actualType);
-    const success = await otpService.sendOtp(user.id, otp, actualType);
+  async sendOtp(user: User, type: OtpType): Promise<OtpResult> {
+    const otp = await otpService.generateOtp(user.id, type);
+    const success = await otpService.sendOtp(user.id, otp, type);
 
     let message = '';
-    if (fallbackUsed) {
-      if (actualType === OtpType.EMAIL) {
-        message = `OTP sent to your email address (${user.email})`;
-      } else if (actualType === OtpType.SMS) {
-        message = `OTP sent to your phone number (${user.phoneNumber})`;
-      }
-    } else {
-      if (actualType === OtpType.EMAIL) {
-        message = `OTP sent to your email address (${user.email}).`;
-      } else if (actualType === OtpType.SMS) {
-        message = `OTP sent to your phone number (${user.phoneNumber}).`;
-      } else if (actualType === OtpType.BOTH) {
-        message = `OTP sent to both your email (${user.email}) and phone (${user.phoneNumber}).`;
-      }
+    if (type === OtpType.EMAIL) {
+      message = `OTP sent to your email address (${user.email}).`;
+    } else if (type === OtpType.SMS) {
+      message = `OTP sent to your phone number (${user.phoneNumber}).`;
+    } else if (type === OtpType.BOTH) {
+      message = `OTP sent to both your email (${user.email}) and phone (${user.phoneNumber}).`;
     }
 
-    return { success, actualType, message };
+    return { success, actualType: type, message };
   }
 
 
@@ -579,7 +615,8 @@ export class AuthService {
         isVerified: true,
         isActive: true,
         isAdult: true,
-        hasAcceptedTerms: true
+        hasAcceptedTerms: true,
+        hasCompletedFirstLogin: true,
       });
 
       await userRepository.save(superadmin);

@@ -15,6 +15,7 @@ export default function Categories() {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedSecondary, setSelectedSecondary] = useState<string | null>(null);
+  const [showMobileCategories, setShowMobileCategories] = useState(false);
   
   const { data: categoriesData, isLoading: categoriesLoading, error: categoriesError } = useCategories();
   const { data: gamesData, isLoading: gamesLoading, error: gamesError } = useGames({
@@ -33,8 +34,111 @@ export default function Categories() {
   const games: any = gamesData || [];
 
   return (
-    <div className="flex min-h-[calc(100vh-80px)] bg-white dark:bg-[#0f1221]">
-      <aside className="w-56 min-w-[220px] bg-transparent py-6 px-2 flex flex-col gap-2">
+    <div className="flex flex-col lg:flex-row min-h-[calc(100vh-80px)] bg-white dark:bg-[#0f1221]">
+      {/* Mobile Category Selector */}
+      <div className="lg:hidden bg-transparent py-4 px-4 border-b border-gray-200 dark:border-gray-700">
+        {categoriesLoading ? (
+          <div className="text-center text-sm">Loading categories...</div>
+        ) : categoriesError ? (
+          <div className="text-center text-red-500 text-sm">Error loading categories</div>
+        ) : (
+          <div className="space-y-3">
+            {/* Current Selection Display & Toggle */}
+            <button
+              onClick={() => setShowMobileCategories(!showMobileCategories)}
+              className="w-full flex items-center justify-between px-4 py-3 bg-gray-100 dark:bg-gray-800 rounded-lg text-left"
+            >
+              <span className="font-semibold text-[#121C2D] dark:text-white">
+                {selectedCategory 
+                  ? categories.find(cat => cat.id === selectedCategory)?.name 
+                  : selectedSecondary 
+                  ? selectedSecondary 
+                  : "All Categories"}
+              </span>
+              <svg 
+                className={`w-5 h-5 text-[#121C2D] dark:text-white transition-transform ${showMobileCategories ? 'rotate-180' : ''}`}
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {/* Collapsible Category List */}
+            {showMobileCategories && (
+              <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 shadow-lg max-h-80 overflow-y-auto">
+                <div className="p-2">
+                  {/* All Categories Option */}
+                  <button
+                    className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition
+                      ${!selectedCategory && !selectedSecondary
+                        ? 'bg-[#D946EF] text-white'
+                        : 'text-[#121C2D] hover:bg-[#F3E8FF] hover:text-[#D946EF] dark:text-white dark:hover:bg-gray-800'}
+                    `}
+                    onClick={() => { 
+                      setSelectedCategory(null); 
+                      setSelectedSecondary(null); 
+                      setShowMobileCategories(false);
+                    }}
+                  >
+                    All Categories
+                  </button>
+                  
+                  {/* Category Divider */}
+                  {categories.length > 0 && (
+                    <div className="border-t border-gray-200 dark:border-gray-700 my-2" />
+                  )}
+                  
+                  {/* Primary Categories */}
+                  {categories.map(cat => (
+                    <button
+                      key={cat.id}
+                      className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition
+                        ${selectedCategory === cat.id
+                          ? 'bg-[#D946EF] text-white'
+                          : 'text-[#121C2D] hover:bg-[#F3E8FF] hover:text-[#D946EF] dark:text-white dark:hover:bg-gray-800'}
+                      `}
+                      onClick={() => { 
+                        setSelectedCategory(cat.id); 
+                        setSelectedSecondary(null); 
+                        setShowMobileCategories(false);
+                      }}
+                    >
+                      {cat.name}
+                    </button>
+                  ))}
+                  
+                  {/* Secondary Categories Divider */}
+                  <div className="border-t border-gray-200 dark:border-gray-700 my-2" />
+                  
+                  {/* Secondary Categories */}
+                  {secondary.map(sec => (
+                    <button
+                      key={sec}
+                      className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition
+                        ${selectedSecondary === sec 
+                          ? 'bg-[#D946EF] text-white' 
+                          : 'text-[#121C2D] hover:bg-[#F3E8FF] hover:text-[#D946EF] dark:text-white dark:hover:bg-gray-800'}
+                      `}
+                      onClick={() => { 
+                        setSelectedSecondary(sec); 
+                        setSelectedCategory(null); 
+                        setShowMobileCategories(false);
+                      }}
+                    >
+                      {sec}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:flex w-56 min-w-[220px] bg-transparent py-6 px-2 flex-col gap-2">
         {categoriesLoading ? (
           <div className="p-4 text-center">Loading categories...</div>
         ) : categoriesError ? (
@@ -90,7 +194,7 @@ export default function Categories() {
         )}
       </aside>
       {/* Main Content */}
-      <div className="flex-1 p-8">
+      <div className="flex-1 p-4 lg:p-8">
         {gamesLoading ? (
           <GamesSkeleton count={9} showCategories={true} />
         ) : gamesError ? (
@@ -98,12 +202,12 @@ export default function Categories() {
         ) : (
           <div className="flex flex-col">
             {games.length === 0 ? (
-              <div className="text-center py-8 min-h-[60vh] flex flex-col items-center justify-center gap-4 text-[#C026D3] text-4xl">
-                  <img src={emptyGameImg} alt="No games" className="w-80 h-80 object-contain" />
+              <div className="text-center py-8 min-h-[60vh] flex flex-col items-center justify-center gap-4 text-[#C026D3] text-2xl lg:text-4xl">
+                  <img src={emptyGameImg} alt="No games" className="w-40 h-40 lg:w-80 lg:h-80 object-contain" />
                 No games found {selectedCategory ? "in this category" : selectedSecondary ? "for this filter" : ""}
               </div>
             ) : (
-              <div className="grid gap-4 w-full grid-cols-3">
+              <div className="grid gap-3 lg:gap-4 w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {games.map((game: any, index: number) => {
                 const spans = [1, 1.3, 1.1];
                 const spanIndex = index % spans.length;
@@ -124,7 +228,7 @@ export default function Categories() {
                         className="w-full h-full object-cover border-4 border-transparent group-hover:border-[#D946EF] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(217,70,239,0.3)]"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent">
-                        <span className="absolute bottom-3 left-4 text-white font-bold text-xl drop-shadow-lg">
+                        <span className="absolute bottom-3 left-4 text-white font-bold text-lg lg:text-xl drop-shadow-lg">
                           {game.title}
                         </span>
                       </div>

@@ -18,12 +18,7 @@ import { useQueryClient } from "@tanstack/react-query"
 
 const validationSchema = Yup.object({
   title: Yup.string().required("Title is required"),
-  subtitle: Yup.string().required("Subtitle is required"),
-  delay: Yup.number()
-    .required("Delay is required")
-    .min(0, "Delay must be positive")
-    .max(60, "Delay cannot exceed 60 seconds"),
-  enabled: Yup.boolean()
+  subtitle: Yup.string().required("Subtitle is required")
 });
 
 export function PopUpSheet({ children }: { children: React.ReactNode }) {
@@ -32,9 +27,7 @@ export function PopUpSheet({ children }: { children: React.ReactNode }) {
 
   const initialValues = {
     title: "",
-    subtitle: "",
-    delay: 3,
-    enabled: false
+    subtitle: ""
   };
 
   return (
@@ -112,42 +105,7 @@ export function PopUpSheet({ children }: { children: React.ReactNode }) {
                     />
                   </div>
                 </div>
-                {/* delays */}
-                <div className="items-center gap-4">
-                  <div className="flex flex-col space-y-2">
-                    <Label htmlFor="delay" className="text-right text-lg">
-                      Pop-Up Delays (seconds)
-                    </Label>
-                    <Field
-                      as={Input}
-                      id="delay"
-                      name="delay"
-                      type="number"
-                      placeholder="3"
-                      className="col-span-3 shadow-none text-gray-400 font-thin font-pincuk text-xl tracking-wider h-14 bg-[#F1F5F9] border border-[#CBD5E0]"
-                    />
-                    <ErrorMessage
-                      name="delay"
-                      component="div"
-                      className="text-red-500 text-sm"
-                    />
-                  </div>
-                </div>
 
-                {/* button */}
-                <div className="flex items-center space-x-2">
-                  <div>
-                    <Field
-                      type="checkbox"
-                      id="enabled"
-                      name="enabled"
-                      className="w-4 h-4 rounded border border-gray-200 dark:border dark:border-[#D946EF]"
-                    />
-                  </div>
-                  <Label htmlFor="enabled" className="text-right text-lg">
-                    Enable Pop-Up Displays
-                  </Label>
-                </div>
               </div>
               <div className="flex gap-3 justify-end px-2">
                 <SheetClose asChild>

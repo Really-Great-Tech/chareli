@@ -16,6 +16,7 @@ interface AuthSettings {
   sms: AuthMethodSettings;
   both: {
     enabled: boolean;
+    otpDeliveryMethod: 'email' | 'sms' | 'none';
   };
 }
 
@@ -32,7 +33,8 @@ export default function Configuration() {
       lastName: false
     },
     both: {
-      enabled: false
+      enabled: false,
+      otpDeliveryMethod: 'none'
     }
   });
 
@@ -60,7 +62,8 @@ export default function Configuration() {
         lastName: false
       },
       both: {
-        enabled: false
+        enabled: false,
+        otpDeliveryMethod: 'none'
       }
     });
   };
@@ -78,7 +81,8 @@ export default function Configuration() {
         lastName: false
       },
       both: {
-        enabled: false
+        enabled: false,
+        otpDeliveryMethod: 'none'
       }
     });
   };
@@ -96,7 +100,8 @@ export default function Configuration() {
         lastName: false
       },
       both: {
-        enabled: checked
+        enabled: checked,
+        otpDeliveryMethod: 'none'
       }
     });
   };
@@ -137,6 +142,16 @@ export default function Configuration() {
       sms: {
         ...prev.sms,
         lastName: checked
+      }
+    }));
+  };
+
+  const handleOtpDeliveryMethod = (method: 'email' | 'sms' | 'none') => {
+    setAuthSettings(prev => ({
+      ...prev,
+      both: {
+        ...prev.both,
+        otpDeliveryMethod: method
       }
     }));
   };
@@ -253,7 +268,7 @@ export default function Configuration() {
 
         {/* Both Section */}
         <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
-          <div className="flex items-center">
+          <div className="flex items-center mb-2">
             <Checkbox
               checked={authSettings.both.enabled}
               onCheckedChange={handleBoth}
@@ -264,6 +279,59 @@ export default function Configuration() {
               Both
             </Label>
           </div>
+          
+          {/* OTP Delivery Method Selection */}
+          {authSettings.both.enabled && (
+            <div className="ml-6 mt-4">
+              <Label className="text-base font-medium text-black dark:text-white mb-3 block">
+                OTP Delivery Method:
+              </Label>
+              <div className="space-y-2">
+                <div className="flex items-center">
+                  <input
+                    type="radio"
+                    id="otp-email"
+                    name="otpDeliveryMethod"
+                    value="email"
+                    checked={authSettings.both.otpDeliveryMethod === 'email'}
+                    onChange={() => handleOtpDeliveryMethod('email')}
+                    className="w-4 h-4 text-[#D946EF] bg-gray-100 border-gray-300 focus:ring-[#D946EF] dark:focus:ring-[#D946EF] dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                  />
+                  <Label htmlFor="otp-email" className="ml-2 text-base">
+                    Email
+                  </Label>
+                </div>
+                <div className="flex items-center">
+                  <input
+                    type="radio"
+                    id="otp-sms"
+                    name="otpDeliveryMethod"
+                    value="sms"
+                    checked={authSettings.both.otpDeliveryMethod === 'sms'}
+                    onChange={() => handleOtpDeliveryMethod('sms')}
+                    className="w-4 h-4 text-[#D946EF] bg-gray-100 border-gray-300 focus:ring-[#D946EF] dark:focus:ring-[#D946EF] dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                  />
+                  <Label htmlFor="otp-sms" className="ml-2 text-base">
+                    SMS
+                  </Label>
+                </div>
+                <div className="flex items-center">
+                  <input
+                    type="radio"
+                    id="otp-none"
+                    name="otpDeliveryMethod"
+                    value="none"
+                    checked={authSettings.both.otpDeliveryMethod === 'none'}
+                    onChange={() => handleOtpDeliveryMethod('none')}
+                    className="w-4 h-4 text-[#D946EF] bg-gray-100 border-gray-300 focus:ring-[#D946EF] dark:focus:ring-[#D946EF] dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                  />
+                  <Label htmlFor="otp-none" className="ml-2 text-base">
+                    None (No OTP required)
+                  </Label>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
       <div className="flex justify-end mt-4">

@@ -279,22 +279,8 @@ export const login = async (
 
     // For first-time login, require OTP verification
     try {
-      // Determine OTP type based on what user has available
-      let otpType: OtpType;
-      if (user.email && user.phoneNumber) {
-        // User has both email and phone, send to both
-        otpType = OtpType.BOTH;
-      } else if (user.email) {
-        // User has only email
-        otpType = OtpType.EMAIL;
-      } else if (user.phoneNumber) {
-        // User has only phone
-        otpType = OtpType.SMS;
-      } else {
-        // User has no contact information
-        return next(ApiError.badRequest('User does not have any contact information (phone number or email address) for OTP verification'));
-      }
-
+      // Use the new reusable function to determine OTP delivery method based on configuration
+      const otpType = await authService.determineOtpDeliveryMethod(user);
       const otpResult = await authService.sendOtp(user, otpType);
       res.status(200).json({
         success: true,

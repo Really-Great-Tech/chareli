@@ -33,13 +33,13 @@ const GameLoadingScreen = ({ game, progress, onProgress }: GameLoadingScreenProp
                 } else {
                     clearInterval(progressInterval);
                 }
-            }, 750); // Longer intervals for 15 second total loading
+            }, 250);
         }
 
         // Show slow load message after 10 seconds
         slowLoadTimeout = setTimeout(() => {
             setShowSlowLoadMessage(true);
-        }, 10000);
+        }, 3000);
 
         return () => {
             if (progressInterval) clearInterval(progressInterval);

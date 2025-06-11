@@ -117,7 +117,7 @@ export class OtpService implements OtpServiceInterface {
   }
 
 
-  async sendOtp(userId: string, otp: string, type: OtpType = OtpType.SMS): Promise<boolean> {
+  async sendOtp(userId: string, otp: string, type: OtpType): Promise<boolean> {
     const user = await userRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new Error('User not found');
@@ -126,23 +126,29 @@ export class OtpService implements OtpServiceInterface {
     let emailSent = false;
     let smsSent = false;
 
+    // Send via Email if type is EMAIL or BOTH
     if (type === OtpType.EMAIL || type === OtpType.BOTH) {
       if (!user.email) {
-        throw new Error('User does not have an email address');
+        throw new Error('User does not have an email address for OTP delivery');
       }
 
       try {
-          await emailService.sendOtpEmail(user.email, otp);
-          emailSent = true;
-        } catch (error) {
-          logger.error('Failed to send OTP via email:', error);
+        await emailService.sendOtpEmail(user.email, otp);
+        emailSent = true;
+        logger.info(`OTP sent successfully to email: ${user.email}`);
+      } catch (error) {
+        logger.error('Failed to send OTP via email:', error);
+        if (type === OtpType.EMAIL) {
+          // If email is the only method and it fails, throw error
+          throw new Error('Failed to send OTP via email');
+        }
       }
     }
 
     // Send via SMS if type is SMS or BOTH
     if (type === OtpType.SMS || type === OtpType.BOTH) {
       if (!user.phoneNumber) {
-        throw new Error('User does not have a phone number');
+        throw new Error('User does not have a phone number for OTP delivery');
       }
 
       if (config.env === 'development') {
@@ -171,16 +177,28 @@ export class OtpService implements OtpServiceInterface {
 
           await this.snsClient.send(command);
           smsSent = true;
+          logger.info(`OTP sent successfully to phone: ${user.phoneNumber}`);
         } catch (error) {
           logger.error('Failed to send OTP via AWS SNS:', error);
+          if (type === OtpType.SMS) {
+            // If SMS is the only method and it fails, throw error
+            throw new Error('Failed to send OTP via SMS');
+          }
         }
       }
     }
 
-    // Return true if at least one method was successful
-    return (type === OtpType.EMAIL && emailSent) || 
-           (type === OtpType.SMS && smsSent) || 
-           (type === OtpType.BOTH && (emailSent || smsSent));
+    // For BOTH type, return true if at least one method was successful
+    // For single methods, we would have thrown an error above if it failed
+    const success = (type === OtpType.EMAIL && emailSent) || 
+                   (type === OtpType.SMS && smsSent) || 
+                   (type === OtpType.BOTH && (emailSent || smsSent));
+
+    if (!success) {
+      throw new Error('Failed to send OTP via any available method');
+    }
+
+    return success;
   }
 }
 

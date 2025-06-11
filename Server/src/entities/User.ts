@@ -18,7 +18,7 @@ export class User {
   @Column({ select: false })
   password: string;
 
-  @Column({ nullable: true })
+  @Column({ unique: true, nullable: true })
   phoneNumber: string;
 
   @Column({ nullable: true })
@@ -54,6 +54,9 @@ export class User {
 
   @Column({ nullable: true })
   lastLoggedIn: Date;
+
+  @Column({ nullable: true })
+  lastSeen: Date;
 
   @Column({ nullable: true, select: false })
   resetToken: string;

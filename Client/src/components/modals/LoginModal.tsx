@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import type { FieldProps, FormikHelpers } from "formik";
 import type { LoginCredentials } from "../../backend/types";
@@ -89,6 +89,18 @@ export function LoginModal({
   const { login } = useAuth();
   const navigate = useNavigate();
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
+
+  // Clear error message when switching tabs
+  useEffect(() => {
+    setLoginError("");
+  }, [activeTab]);
+
+  // Clear error message when modal is opened/closed
+  useEffect(() => {
+    if (!open) {
+      setLoginError("");
+    }
+  }, [open]);
 
   const handleLogin = async (
     values: LoginFormValues,

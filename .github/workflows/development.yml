@@ -18,7 +18,7 @@ env:
   IMAGE_TAG_SERVER_FIXED: latest
 
   S3_BUCKET_CLIENT: chareli-react-app-staging-0a866340
-  CLOUDFRONT_DISTRIBUTION_ID_CLIENT: ED93QD3A93Q1N
+  CLOUDFRONT_DISTRIBUTION_ID_CLIENT: E1LXFG5G4LBPY7
 
 jobs:
   build-and-test:
@@ -101,7 +101,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::330858616968:role/chareli-dev-oidc-role
+          role-to-assume: arn:aws:iam::330858616968:role/chareli-staging-github-oidc-role
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Set up Docker BuildX
@@ -143,7 +143,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::330858616968:role/chareli-dev-oidc-role
+          role-to-assume: arn:aws:iam::330858616968:role/chareli-staging-github-oidc-role
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Deploy Frontend to S3
@@ -199,9 +199,9 @@ jobs:
         uses: appleboy/discord-action@v1.2.0
         with:
           webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          username: Chareli Dev Pipeline Bot
+          username: Chareli Staging Pipeline Bot
           message: |
-            🚀 **Chareli Dev Deployment Summary**
+            🚀 **Chareli Staging Deployment Summary**
 
             🔀 Branch: `${{ github.ref_name }}`
             📄 Commit: `${{ github.sha }}` by `${{ github.actor }}`

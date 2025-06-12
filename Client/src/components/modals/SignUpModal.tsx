@@ -550,12 +550,12 @@ export function SignUpModal({
           >
             Terms of Service
           </p>
-          <p
+          {/* <p
             className="text-gray-400 text-center cursor-pointer tracking-wider mr-4 underline"
             //  onClick={handlePrivacy}
           >
             Privacy Policy
-          </p>
+          </p> */}
         </div>
       </CustomDialogContent>
     </Dialog>

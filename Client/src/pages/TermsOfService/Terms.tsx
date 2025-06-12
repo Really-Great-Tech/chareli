@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useSystemConfigByKey } from "../../backend/configuration.service";
+import TermsError from "../TermsErrorPage";
 
 const TermsOfService: React.FC = () => {
   const { data, isLoading, error } = useSystemConfigByKey("terms");
@@ -7,21 +8,25 @@ const TermsOfService: React.FC = () => {
   const [viewerError, setViewerError] = useState(false);
 
   useEffect(() => {
-    console.log("Terms config data (full):", JSON.stringify(data, null, 2));
-    
     // Check if we have the file data in the response
     if (data?.value?.file?.s3Key) {
-      console.log("File URL found:", data.value.file.s3Key);
       setFileUrl(data.value.file.s3Key);
     } else if (data?.data?.value?.file?.s3Key) {
-      // Alternative structure - sometimes the API wraps the response in a data property
-      console.log("File URL found in data.data:", data.data.value.file.s3Key);
       setFileUrl(data.data.value.file.s3Key);
     } else {
-      console.log("No file found in the response");
       setFileUrl(null);
     }
   }, [data]);
+
+  if(!data?.value?.file || !data?.value?.file?.s3Key) {
+    return (
+      <div className="">
+        {/* <p>No terms are available.</p> */}
+        <TermsError />
+
+      </div>
+    );
+  }
 
   // For Word documents, try Microsoft's Office Web Viewer with embed parameters
   const getViewableUrl = (url: string) => {

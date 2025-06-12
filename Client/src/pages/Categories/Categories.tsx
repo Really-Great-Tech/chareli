@@ -1,35 +1,45 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useCategories } from '../../backend/category.service';
-import { useGames } from '../../backend/games.service';
-import GamesSkeleton from '../../components/single/GamesSkeleton';
-import type { Category } from '../../backend/types';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useCategories } from "../../backend/category.service";
+import { useGames } from "../../backend/games.service";
+import GamesSkeleton from "../../components/single/GamesSkeleton";
+import type { Category } from "../../backend/types";
 
 import emptyGameImg from "../../assets/empty-game.png";
 
-const secondary = [
-  "Recently Added", "Popular", "Recommended for you"
-];
+const secondary = ["Recently Added", "Popular", "Recommended for you"];
 
 export default function Categories() {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedSecondary, setSelectedSecondary] = useState<string | null>(null);
-  
-  const { data: categoriesData, isLoading: categoriesLoading, error: categoriesError } = useCategories();
-  const { data: gamesData, isLoading: gamesLoading, error: gamesError } = useGames({
+  const [selectedSecondary, setSelectedSecondary] = useState<string | null>(
+    null
+  );
+
+  const {
+    data: categoriesData,
+    isLoading: categoriesLoading,
+    error: categoriesError,
+  } = useCategories();
+  const {
+    data: gamesData,
+    isLoading: gamesLoading,
+    error: gamesError,
+  } = useGames({
     categoryId: selectedCategory || undefined,
-    filter: selectedSecondary ? 
-      selectedSecondary === "Recently Added" ? "recently_added" :
-      selectedSecondary === "Popular" ? "popular" :
-      selectedSecondary === "Recommended for you" ? "recommended" :
-      undefined
-    : undefined,
-    status: "active"
+    filter: selectedSecondary
+      ? selectedSecondary === "Recently Added"
+        ? "recently_added"
+        : selectedSecondary === "Popular"
+        ? "popular"
+        : selectedSecondary === "Recommended for you"
+        ? "recommended"
+        : undefined
+      : undefined,
+    status: "active",
   });
 
-  
   const categories = (categoriesData || []) as Category[];
   const games: any = gamesData || [];
 
@@ -39,7 +49,9 @@ export default function Categories() {
         {categoriesLoading ? (
           <div className="p-4 text-center">Loading categories...</div>
         ) : categoriesError ? (
-          <div className="p-4 text-center text-red-500">Error loading categories</div>
+          <div className="p-4 text-center text-red-500">
+            Error loading categories
+          </div>
         ) : (
           <div>
             <nav>
@@ -47,24 +59,34 @@ export default function Categories() {
                 <li>
                   <button
                     className={`w-full flex items-center gap-2 px-4 py-2 text-2xl rounded-lg font-bold tracking-widest transition
-                      ${!selectedCategory && !selectedSecondary
-                        ? 'bg-[#D946EF] text-white dark:text-white tracking-wider'
-                        : 'bg-transparent text-[#121C2D] hover:bg-[#F3E8FF] hover:text-[#D946EF] dark:text-white tracking-wider'}
+                      ${
+                        !selectedCategory && !selectedSecondary
+                          ? "bg-[#D946EF] text-white dark:text-white tracking-wider"
+                          : "bg-transparent text-[#121C2D] hover:bg-[#F3E8FF] hover:text-[#D946EF] dark:text-white dark:hover:text-[#D946EF] tracking-wider"
+                      }
                     `}
-                    onClick={() => { setSelectedCategory(null); setSelectedSecondary(null); }}
+                    onClick={() => {
+                      setSelectedCategory(null);
+                      setSelectedSecondary(null);
+                    }}
                   >
                     All
                   </button>
                 </li>
-                {categories.map(cat => (
+                {categories.map((cat) => (
                   <li key={cat.id}>
                     <button
                       className={`w-full text-left text-2xl px-4 py-2 rounded-lg font-semibold transition
-                        ${selectedCategory === cat.id
-                          ? 'bg-[#D946EF] text-white shadow dark:text-white tracking-wider'
-                          : 'text-[#121C2D] hover:bg-[#F3E8FF] hover:text-[#D946EF] dark:text-white tracking-wider'}
+                        ${
+                          selectedCategory === cat.id
+                            ? "bg-[#D946EF] text-white shadow dark:text-white tracking-wider"
+                            : "text-[#121C2D] hover:bg-[#F3E8FF] hover:text-[#D946EF] dark:text-white tracking-wider dark:hover:text-[#D946EF]"
+                        }
                       `}
-                      onClick={() => { setSelectedCategory(cat.id); setSelectedSecondary(null); }}
+                      onClick={() => {
+                        setSelectedCategory(cat.id);
+                        setSelectedSecondary(null);
+                      }}
                     >
                       {cat.name}
                     </button>
@@ -75,11 +97,18 @@ export default function Categories() {
             <div className="border-t border-[#E5E7EB] my-4" />
             <nav>
               <ul className="flex flex-col gap-1 tracking-widest">
-                {secondary.map(sec => (
+                {secondary.map((sec) => (
                   <li key={sec}>
                     <button
-                      className={`w-full text-left text-2xl px-4 py-2 rounded-lg font-semibold text-[#121C2D] hover:bg-[#F3E8FF] hover:text-[#D946EF] dark:text-white tracking-wider transition ${selectedSecondary === sec ? 'bg-[#D946EF] text-white' : ''}`}
-                      onClick={() => { setSelectedSecondary(sec); setSelectedCategory(null); }}
+                      className={`w-full text-left text-2xl px-4 py-2 rounded-lg font-semibold text-[#121C2D] hover:bg-[#F3E8FF] hover:text-[#D946EF] dark:text-white tracking-wider transition dark:hover:text-[#D946EF] ${
+                        selectedSecondary === sec
+                          ? "bg-[#D946EF] text-white"
+                          : ""
+                      }`}
+                      onClick={() => {
+                        setSelectedSecondary(sec);
+                        setSelectedCategory(null);
+                      }}
                     >
                       {sec}
                     </button>
@@ -95,44 +124,55 @@ export default function Categories() {
         {gamesLoading ? (
           <GamesSkeleton count={9} showCategories={true} />
         ) : gamesError ? (
-          <div className="text-center py-8 text-red-500">Error loading games</div>
+          <div className="text-center py-8 text-red-500">
+            Error loading games
+          </div>
         ) : (
           <div className="flex flex-col">
             {games.length === 0 ? (
               <div className="text-center py-8 min-h-[60vh] flex flex-col items-center justify-center gap-4 text-[#C026D3] text-4xl">
-                  <img src={emptyGameImg} alt="No games" className="w-80 h-80 object-contain" />
-                No games found {selectedCategory ? "in this category" : selectedSecondary ? "for this filter" : ""}
+                <img
+                  src={emptyGameImg}
+                  alt="No games"
+                  className="w-80 h-80 object-contain"
+                />
+                No games found{" "}
+                {selectedCategory
+                  ? "in this category"
+                  : selectedSecondary
+                  ? "for this filter"
+                  : ""}
               </div>
             ) : (
               <div className="grid gap-4 w-full grid-cols-3">
-              {games.map((game: any, index: number) => {
-                const spans = [1, 1.3, 1.1];
-                const spanIndex = index % spans.length;
-                const rowSpan = spans[spanIndex];
-                
-                return (
-                  <div 
-                    key={game.id} 
-                    className="relative group cursor-pointer"
-                    style={{ gridRow: `span ${Math.round(rowSpan * 2)}` }}
-                    onClick={() => navigate(`/gameplay/${game.id}`)}
-                  >
-                    <div className="relative h-full overflow-hidden rounded-[20px]">
-                      <img 
-                        src={game.thumbnailFile?.s3Key} 
-                        alt={game.title}
-                        loading="lazy"
-                        className="w-full h-full object-cover border-4 border-transparent group-hover:border-[#D946EF] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(217,70,239,0.3)]"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent">
-                        <span className="absolute bottom-3 left-4 text-white font-bold text-xl drop-shadow-lg">
-                          {game.title}
-                        </span>
+                {games.map((game: any, index: number) => {
+                  const spans = [1, 1.3, 1.1];
+                  const spanIndex = index % spans.length;
+                  const rowSpan = spans[spanIndex];
+
+                  return (
+                    <div
+                      key={game.id}
+                      className="relative group cursor-pointer"
+                      style={{ gridRow: `span ${Math.round(rowSpan * 2)}` }}
+                      onClick={() => navigate(`/gameplay/${game.id}`)}
+                    >
+                      <div className="relative h-full overflow-hidden rounded-[20px]">
+                        <img
+                          src={game.thumbnailFile?.s3Key}
+                          alt={game.title}
+                          loading="lazy"
+                          className="w-full h-full object-cover border-4 border-transparent group-hover:border-[#D946EF] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(217,70,239,0.3)]"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent">
+                          <span className="absolute bottom-3 left-4 text-white font-bold text-xl drop-shadow-lg">
+                            {game.title}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
               </div>
             )}
           </div>

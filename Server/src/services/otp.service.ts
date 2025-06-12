@@ -5,6 +5,10 @@ import config from '../config/config';
 import logger from '../utils/logger';
 import { emailService } from './email.service';
 import { SNSClient, PublishCommand } from "@aws-sdk/client-sns";
+import { Twilio } from "twilio";
+
+// Provider selection flag - set to true to use Twilio, false to use AWS SNS
+const USE_TWILIO = true;
 
 const otpRepository = AppDataSource.getRepository(Otp);
 const userRepository = AppDataSource.getRepository(User);
@@ -21,6 +25,7 @@ const emailsToSkip = ["admin@example.com"];
 
 export class OtpService implements OtpServiceInterface {
   private snsClient: SNSClient;
+  private twilioClient: Twilio;
 
   constructor() {
     this.snsClient = new SNSClient({
@@ -30,6 +35,11 @@ export class OtpService implements OtpServiceInterface {
         secretAccessKey: config.smsService.secretAccessKey,
       }
     });
+    
+    this.twilioClient = new Twilio(
+      process.env.TWILIO_ACCOUNT_SID || '',
+      process.env.TWILIO_AUTH_TOKEN || ''
+    );
   }
  
   async generateOtp(userId: string, type: OtpType = OtpType.SMS): Promise<string> {
@@ -151,41 +161,46 @@ export class OtpService implements OtpServiceInterface {
         throw new Error('User does not have a phone number for OTP delivery');
       }
 
-      if (config.env === 'development') {
-        // In development mode, just log the OTP
-        logger.info(`DEVELOPMENT MODE: OTP for ${user.phoneNumber} is ${otp}`);
-        console.log(`DEVELOPMENT MODE: OTP for ${user.phoneNumber} is ${otp}`);
-        smsSent = true;
-      } else {
-        try {
-          logger.info(`Sending OTP ${otp} to ${user.phoneNumber} via AWS SNS`);
-          
-          const command = new PublishCommand({
-            Message: `Your verification code is: ${otp}`,
-            PhoneNumber: user.phoneNumber,
-            MessageAttributes: {
-              'AWS.SNS.SMS.SenderID': {
-                DataType: 'String',
-                StringValue: config.smsService.senderName
-              },
-              'AWS.SNS.SMS.SMSType': {
-                DataType: 'String',
-                StringValue: 'Transactional'
-              }
-            }
-          });
+      if (USE_TWILIO) {
+          try {
+            logger.info(`Sending OTP ${otp} to ${user.phoneNumber} via Twilio`);
+            
+            const result = await this.twilioClient.messages.create({
+              body: `Your verification code is: ${otp}`,
+              from: process.env.TWILIO_FROM_NUMBER || '',
+              to: user.phoneNumber
+            });
 
-          await this.snsClient.send(command);
-          smsSent = true;
-          logger.info(`OTP sent successfully to phone: ${user.phoneNumber}`);
-        } catch (error) {
-          logger.error('Failed to send OTP via AWS SNS:', error);
-          if (type === OtpType.SMS) {
-            // If SMS is the only method and it fails, throw error
-            throw new Error('Failed to send OTP via SMS');
+            logger.info(`SMS sent successfully via Twilio to ${user.phoneNumber}, SID: ${result.sid}`);
+            smsSent = true;
+          } catch (error) {
+            logger.error('Failed to send OTP via Twilio:', error);
+          }
+        } else {
+          try {
+            logger.info(`Sending OTP ${otp} to ${user.phoneNumber} via AWS SNS`);
+            
+            const command = new PublishCommand({
+              Message: `Your verification code is: ${otp}`,
+              PhoneNumber: user.phoneNumber,
+              MessageAttributes: {
+                'AWS.SNS.SMS.SenderID': {
+                  DataType: 'String',
+                  StringValue: config.smsService.senderName
+                },
+                'AWS.SNS.SMS.SMSType': {
+                  DataType: 'String',
+                  StringValue: 'Transactional'
+                }
+              }
+            });
+
+            await this.snsClient.send(command);
+            smsSent = true;
+          } catch (error) {
+            logger.error('Failed to send OTP via AWS SNS:', error);
           }
         }
-      }
     }
 
     // For BOTH type, return true if at least one method was successful

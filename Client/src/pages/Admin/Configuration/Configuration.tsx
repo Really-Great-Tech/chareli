@@ -295,7 +295,7 @@ export default function Configuration() {
                     value="email"
                     checked={authSettings.both.otpDeliveryMethod === 'email'}
                     onChange={() => handleOtpDeliveryMethod('email')}
-                    className="w-4 h-4 text-[#D946EF] bg-gray-100 border-gray-300 focus:ring-[#D946EF] dark:focus:ring-[#D946EF] dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                    className="w-4 h-4 text-[#D946EF] bg-gray-100 border-gray-300 dark:bg-gray-700 dark:border-gray-600"
                   />
                   <Label htmlFor="otp-email" className="ml-2 text-base">
                     Email
@@ -309,7 +309,7 @@ export default function Configuration() {
                     value="sms"
                     checked={authSettings.both.otpDeliveryMethod === 'sms'}
                     onChange={() => handleOtpDeliveryMethod('sms')}
-                    className="w-4 h-4 text-[#D946EF] bg-gray-100 border-gray-300 focus:ring-[#D946EF] dark:focus:ring-[#D946EF] dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                    className="w-4 h-4 text-[#D946EF] bg-gray-100 border-gray-300 dark:bg-gray-700 dark:border-gray-600"
                   />
                   <Label htmlFor="otp-sms" className="ml-2 text-base">
                     SMS
@@ -323,7 +323,7 @@ export default function Configuration() {
                     value="none"
                     checked={authSettings.both.otpDeliveryMethod === 'none'}
                     onChange={() => handleOtpDeliveryMethod('none')}
-                    className="w-4 h-4 text-[#D946EF] bg-gray-100 border-gray-300 focus:ring-[#D946EF] dark:focus:ring-[#D946EF] dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                    className="w-4 h-4 text-[#D946EF] bg-gray-100 border-gray-300 dark:bg-gray-700 dark:border-gray-600"
                   />
                   <Label htmlFor="otp-none" className="ml-2 text-base">
                     None (No OTP required)

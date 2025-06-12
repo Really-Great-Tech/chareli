@@ -348,46 +348,11 @@ export const createUser = async (
     // Don't return sensitive information
     const { password: _, ...userWithoutSensitiveInfo } = user;
 
-    // Determine OTP type based on provided contact info
-    let otpType: OtpType | null = null;
-
-    if (email && !phoneNumber) {
-      otpType = OtpType.EMAIL;
-    } else if (phoneNumber && !email) {
-      otpType = OtpType.SMS;
-    } else if (email && phoneNumber) {
-      // If both are provided, check if otpType was specified in request
-      otpType = req.body.otpType || null;
-    }
-
-    // Send OTP if applicable
-    if (otpType) {
-      await authService.sendOtp(user, otpType);
-
-      res.status(201).json({
-        success: true,
-        message: `User created successfully. OTP sent to ${otpType === OtpType.EMAIL ? 'email' : 'phone'}.`,
-        data: userWithoutSensitiveInfo,
-      });
-    } else if (email && phoneNumber) {
-      // Both contact methods available but no otpType specified
-      // Return success but indicate user needs to request OTP
-      res.status(201).json({
-        success: true,
-        message: 'User created successfully. User has both email and phone. Please request OTP with preferred method.',
-        data: {
-          ...userWithoutSensitiveInfo,
-          requiresOtpRequest: true
-        }
-      });
-    } else {
-      // No valid contact method for OTP
-      res.status(201).json({
-        success: true,
-        message: 'User created successfully. No valid contact method for OTP.',
-        data: userWithoutSensitiveInfo,
-      });
-    }
+    res.status(201).json({
+      success: true,
+      message: 'User created successfully. Please login to continue.',
+      data: userWithoutSensitiveInfo,
+    });
   } catch (error) {
     next(error);
   }

@@ -438,8 +438,8 @@ export class AuthService {
     await invitationRepository.save(invitation);
 
     // Generate invitation link - point to frontend route
-    const frontendUrl = 'https://dev.chareli.reallygreattech.com';
-    // const frontendUrl = config.env === 'development' ? 'http://localhost:5173' : '';
+    // const frontendUrl = 'https://dev.chareli.reallygreattech.com';
+    const frontendUrl = config.env === 'development' ? 'http://localhost:5173' : '';
     const invitationLink = `${frontendUrl}/register-invitation/${token}`;
 
     // Send invitation email
@@ -524,8 +524,8 @@ export class AuthService {
     await userRepository.save(user);
 
     // Generate reset link - point to frontend route instead of API endpoint
-    // const frontendUrl = config.env === 'development' ? 'http://localhost:5173' : '';
-    const frontendUrl = 'https://dev.chareli.reallygreattech.com';
+    const frontendUrl = config.env === 'development' ? 'http://localhost:5173' : '';
+    // const frontendUrl = 'https://dev.chareli.reallygreattech.com';
     const resetLink = `${frontendUrl}/reset-password/${resetToken}`;
 
     try {

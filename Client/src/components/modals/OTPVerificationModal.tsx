@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   AlertDialog,
@@ -38,6 +38,14 @@ export function OTPVerificationModal({
   const { verifyOtp } = useAuth();
   const requestOtp = useRequestOtp();
   const navigate = useNavigate();
+
+  // Clear error message when modal opens
+  useEffect(() => {
+    if (open) {
+      setError("");
+      setOtp("");
+    }
+  }, [open]);
 
   const handleVerify = async () => {
     if (otp.length !== 6) {

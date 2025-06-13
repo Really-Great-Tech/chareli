@@ -134,6 +134,7 @@ export const getSystemConfigByKey = async (
 ): Promise<void> => {
   try {
     const { key } = req.params;
+    console.log(`Getting system config for key: ${key}`);
     
     const config = await systemConfigRepository.findOne({
       where: { key }
@@ -145,34 +146,50 @@ export const getSystemConfigByKey = async (
       return;
     }
 
+    console.log(`Found config for key ${key}:`, JSON.stringify(config, null, 2));
     
     // Handle file-based configs (like 'terms')
     if (key === 'terms' && config.value?.fileId) {
+      console.log(`Terms config has fileId: ${config.value.fileId}, fetching file...`);
       const file = await fileRepository.findOne({
         where: { id: config.value.fileId }
       });
       
+      console.log(`File record:`, JSON.stringify(file, null, 2));
+      
       if (file) {
         // Transform S3 key to full URL
         const baseUrl = s3Service.getBaseUrl();
+        console.log(`S3 base URL: ${baseUrl}`);
+        
         const fileWithUrl = {
           ...file,
           s3Key: `${baseUrl}/${file.s3Key}`
         };
+        
+        console.log(`Transformed file URL: ${fileWithUrl.s3Key}`);
         
         // Add file data to config value
         config.value = {
           ...config.value,
           file: fileWithUrl
         };
+      } else {
+        console.warn(`File with id ${config.value.fileId} not found.`);
       }
     }
+    
+    console.log(`Sending response:`, JSON.stringify({
+      success: true,
+      data: config,
+    }, null, 2));
     
     res.status(200).json({
       success: true,
       data: config,
     });
   } catch (error) {
+    console.error(`Error in getSystemConfigByKey:`, error);
     next(error);
   }
 };

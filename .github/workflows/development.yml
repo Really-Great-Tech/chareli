@@ -1,4 +1,4 @@
-name: Deploy to Staging Environment (Chareli)
+name: Deploy to Dev Environment (Chareli)
 
 on:
   push:
@@ -92,7 +92,7 @@ jobs:
     name: Deploy Backend to App Runner
     needs: build-and-test
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/development'
 
     steps:
       - name: Checkout Code
@@ -101,7 +101,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::330858616968:role/chareli-staging-github-oidc-role
+          role-to-assume: arn:aws:iam::330858616968:role/chareli-dev-oidc-role
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Set up Docker BuildX
@@ -126,7 +126,7 @@ jobs:
     name: Deploy Frontend to S3 & Invalidate CloudFront
     needs: build-and-test
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/development'
 
     steps:
       # Checkout code is not strictly needed here if the artifact contains everything for deployment
@@ -143,7 +143,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::330858616968:role/chareli-staging-github-oidc-role
+          role-to-assume: arn:aws:iam::330858616968:role/chareli-dev-oidc-role
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Deploy Frontend to S3
@@ -160,7 +160,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/staging' }}
+    if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/development' }}
 
     steps:
       - name: Generate Build Status

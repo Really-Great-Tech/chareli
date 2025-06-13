@@ -140,9 +140,6 @@ interface SignUpDialogProps {
 // Format phone number
 const formatPhoneNumber = (value?: string) => (value ? `+${value}` : value);
 
-
-
-
 export function SignUpModal({
   open,
   onOpenChange,
@@ -165,9 +162,9 @@ export function SignUpModal({
   ) => {
     try {
       // Track the final signup button click with session ID
-      trackSignup({ 
+      trackSignup({
         sessionId: getVisitorSessionId(),
-        type: 'signup-modal' 
+        type: "signup-modal",
       });
 
       await createUser.mutateAsync({
@@ -197,7 +194,7 @@ export function SignUpModal({
     onOpenChange(false);
     navigate("/terms");
   };
-  
+
   // const handlePrivacy = () => {
   //   onOpenChange(false);
   //   navigate("/privacy");
@@ -205,7 +202,7 @@ export function SignUpModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <CustomDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221]">
+      <CustomDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221] h-[95%]">
         {/* Custom Close Button */}
         <button
           className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#C026D3] flex items-center justify-center shadow-lg hover:bg-[#a21caf] transition-colors"
@@ -215,11 +212,11 @@ export function SignUpModal({
         >
           <span className="text-white text-2xl font-bold">×</span>
         </button>
-        <DialogHeader>
+        <DialogHeader className="h-full">
           <DialogTitle className="text-2xl font-bold text-[#E328AF] text-center font-boogaloo">
             Sign Up
           </DialogTitle>
-          <DialogDescription className="text-center">
+          <DialogDescription className="text-center h-[70%]">
             <Formik
               initialValues={getInitialValues(config)}
               validationSchema={getValidationSchema(config)}
@@ -229,298 +226,301 @@ export function SignUpModal({
               validateOnBlur={false}
             >
               {({ isSubmitting }) => (
-                <Form className="space-y-1">
-                  {/* Authentication Fields */}
-                  {(() => {
-                    const fields = getAuthFields(config);
-                    return (
-                      <>
-                        {(fields.showAll || fields.showEmail) && (
-                          <div className="relative">
-                            <Label
-                              htmlFor="email"
-                              className="font-boogaloo text-base text-black dark:text-white"
-                            >
-                              E-Mail
-                            </Label>
+                <Form className="space-y-1 flex flex-col h-full">
+                  <div className="h-[95%] overflow-auto pb-8 custom-scrollbar">
+                    {/* Authentication Fields */}
+                    {(() => {
+                      const fields = getAuthFields(config);
+                      return (
+                        <>
+                          {(fields.showAll || fields.showEmail) && (
                             <div className="relative">
-                              <AiOutlineMail
-                                size={15}
-                                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                              />
-                              <Field
-                                as={Input}
-                                id="email"
+                              <Label
+                                htmlFor="email"
+                                className="font-boogaloo text-base text-black dark:text-white"
+                              >
+                                E-Mail
+                              </Label>
+                              <div className="relative">
+                                <AiOutlineMail
+                                  size={15}
+                                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                                />
+                                <Field
+                                  as={Input}
+                                  id="email"
+                                  name="email"
+                                  placeholder="Enter Email"
+                                  className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-boogaloo text-lg tracking-wider text-[11px] font-normal h-[48px]"
+                                />
+                              </div>
+                              <ErrorMessage
                                 name="email"
-                                placeholder="Enter Email"
-                                className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-boogaloo text-lg tracking-wider text-[11px] font-normal h-[48px]"
+                                component="div"
+                                className="text-red-500  mt-1 font-boogaloo text-sm tracking-wider"
                               />
                             </div>
-                            <ErrorMessage
-                              name="email"
-                              component="div"
-                              className="text-red-500  mt-1 font-boogaloo text-sm tracking-wider"
-                            />
-                          </div>
-                        )}
+                          )}
 
-                        {(fields.showAll || fields.showPhone) && (
-                          <div className="relative">
-                            <Label
-                              htmlFor="phoneNumber"
-                              className="font-boogaloo text-base text-black dark:text-white"
-                            >
-                              Phone Number
-                            </Label>
-                            <Field name="phoneNumber">
-                              {({ field, form }: FieldProps) => (
-                                <div className="w-full mt-1">
-                                  <PhoneInput
-                                    country="us"
-                                    value={field.value}
-                                    onChange={(value) =>
-                                      form.setFieldValue(
-                                        "phoneNumber",
-                                        formatPhoneNumber(value)
-                                      )
-                                    }
-                                    inputStyle={{
-                                      width: "100%",
-                                      height: "48px",
-                                      backgroundColor: "#E2E8F0",
-                                      border: "0",
-                                      borderRadius: "0.375rem",
-                                      fontFamily: "boogaloo",
-                                      fontSize: "11px",
-                                    }}
-                                    containerClass="dark:bg-[#191c2b]"
-                                    buttonStyle={{
-                                      backgroundColor: "#E2E8F0",
-                                      border: "0",
-                                      borderRadius: "0.375rem 0 0 0.375rem",
-                                    }}
-                                    dropdownStyle={{
-                                      backgroundColor: "#E2E8F0",
-                                      color: "#000",
-                                    }}
-                                    searchStyle={{
-                                      backgroundColor: "##E2E8F0",
-                                      color: "#000",
-                                    }}
-                                    enableAreaCodeStretch
-                                    autoFormat
-                                    enableSearch
-                                    disableSearchIcon
-                                    autocompleteSearch
-                                    countryCodeEditable={false}
+                          {(fields.showAll || fields.showPhone) && (
+                            <div className="relative">
+                              <Label
+                                htmlFor="phoneNumber"
+                                className="font-boogaloo text-base text-black dark:text-white"
+                              >
+                                Phone Number
+                              </Label>
+                              <Field name="phoneNumber">
+                                {({ field, form }: FieldProps) => (
+                                  <div className="w-full mt-1">
+                                    <PhoneInput
+                                      country="us"
+                                      value={field.value}
+                                      onChange={(value) =>
+                                        form.setFieldValue(
+                                          "phoneNumber",
+                                          formatPhoneNumber(value)
+                                        )
+                                      }
+                                      inputStyle={{
+                                        width: "100%",
+                                        height: "48px",
+                                        backgroundColor: "#E2E8F0",
+                                        border: "0",
+                                        borderRadius: "0.375rem",
+                                        fontFamily: "boogaloo",
+                                        fontSize: "11px",
+                                      }}
+                                      containerClass="dark:bg-[#191c2b]"
+                                      buttonStyle={{
+                                        backgroundColor: "#E2E8F0",
+                                        border: "0",
+                                        borderRadius: "0.375rem 0 0 0.375rem",
+                                      }}
+                                      dropdownStyle={{
+                                        backgroundColor: "#E2E8F0",
+                                        color: "#000",
+                                      }}
+                                      searchStyle={{
+                                        backgroundColor: "##E2E8F0",
+                                        color: "#000",
+                                      }}
+                                      enableAreaCodeStretch
+                                      autoFormat
+                                      enableSearch
+                                      disableSearchIcon
+                                      autocompleteSearch
+                                      countryCodeEditable={false}
+                                    />
+                                  </div>
+                                )}
+                              </Field>
+                              <ErrorMessage
+                                name="phoneNumber"
+                                component="div"
+                                className="text-red-500  mt-1 font-boogaloo text-sm tracking-wider"
+                              />
+                            </div>
+                          )}
+
+                          {/* Name Fields */}
+                          {(fields.firstName || fields.lastName) && (
+                            <div className="flex space-x-4 mt-4">
+                              {fields.firstName && (
+                                <div className="flex-1 relative">
+                                  <Label
+                                    htmlFor="firstName"
+                                    className="font-boogaloo text-base text-black dark:text-white"
+                                  >
+                                    First Name
+                                  </Label>
+                                  <div className="relative">
+                                    <TbUser
+                                      size={15}
+                                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                                    />
+                                    <Field
+                                      as={Input}
+                                      id="firstName"
+                                      name="firstName"
+                                      placeholder="Enter First Name"
+                                      className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-boogaloo text-lg tracking-wider text-[11px] font-normal h-[48px]"
+                                    />
+                                  </div>
+                                  <ErrorMessage
+                                    name="firstName"
+                                    component="div"
+                                    className="text-red-500  mt-1 font-boogaloo text-sm tracking-wider"
                                   />
                                 </div>
                               )}
-                            </Field>
-                            <ErrorMessage
-                              name="phoneNumber"
-                              component="div"
-                              className="text-red-500  mt-1 font-boogaloo text-sm tracking-wider"
-                            />
-                          </div>
-                        )}
-
-                        {/* Name Fields */}
-                        {(fields.firstName || fields.lastName) && (
-                          <div className="flex space-x-4 mt-4">
-                            {fields.firstName && (
-                              <div className="flex-1 relative">
-                                <Label
-                                  htmlFor="firstName"
-                                  className="font-boogaloo text-base text-black dark:text-white"
-                                >
-                                  First Name
-                                </Label>
-                                <div className="relative">
-                                  <TbUser
-                                    size={15}
-                                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                                  />
-                                  <Field
-                                    as={Input}
-                                    id="firstName"
-                                    name="firstName"
-                                    placeholder="Enter First Name"
-                                    className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-boogaloo text-lg tracking-wider text-[11px] font-normal h-[48px]"
-                                  />
-                                </div>
-                                <ErrorMessage
-                                  name="firstName"
-                                  component="div"
-                                  className="text-red-500  mt-1 font-boogaloo text-sm tracking-wider"
-                                />
-                              </div>
-                            )}
-                            {fields.lastName && (
-                              <div className="flex-1 relative">
-                                <Label
-                                  htmlFor="lastName"
-                                  className="font-boogaloo text-base text-black dark:text-white"
-                                >
-                                  Last Name
-                                </Label>
-                                <div className="relative">
-                                  <TbUser
-                                    size={15}
-                                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                                  />
-                                  <Field
-                                    as={Input}
-                                    id="lastName"
+                              {fields.lastName && (
+                                <div className="flex-1 relative">
+                                  <Label
+                                    htmlFor="lastName"
+                                    className="font-boogaloo text-base text-black dark:text-white"
+                                  >
+                                    Last Name
+                                  </Label>
+                                  <div className="relative">
+                                    <TbUser
+                                      size={15}
+                                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                                    />
+                                    <Field
+                                      as={Input}
+                                      id="lastName"
+                                      name="lastName"
+                                      placeholder="Enter Last Name"
+                                      className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-boogaloo text-lg tracking-wider text-[11px] font-normal h-[48px]"
+                                    />
+                                  </div>
+                                  <ErrorMessage
                                     name="lastName"
-                                    placeholder="Enter Last Name"
-                                    className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-boogaloo text-lg tracking-wider text-[11px] font-normal h-[48px]"
+                                    component="div"
+                                    className="text-red-500  mt-1 font-boogaloo text-sm tracking-wider"
                                   />
                                 </div>
-                                <ErrorMessage
-                                  name="lastName"
-                                  component="div"
-                                  className="text-red-500  mt-1 font-boogaloo text-sm tracking-wider"
-                                />
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </>
-                    );
-                  })()}
+                              )}
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
 
-                  {/* Password Fields */}
-                  <div className="relative mt-4">
-                    <Label
-                      htmlFor="password"
-                      className="font-boogaloo text-base text-black dark:text-white"
-                    >
-                      Password
-                    </Label>
-                    <div className="relative">
-                      <button
-                        type="button"
-                        onClick={togglePasswordVisibility}
-                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                        aria-label={
-                          showPassword ? "Hide password" : "Show password"
-                        }
+                    {/* Password Fields */}
+                    <div className="relative mt-4">
+                      <Label
+                        htmlFor="password"
+                        className="font-boogaloo text-base text-black dark:text-white"
                       >
-                        {showPassword ? (
-                          <FaEyeSlash size={15} />
-                        ) : (
-                          <FaEye size={15} />
-                        )}
-                      </button>
-                      <Field
-                        as={Input}
-                        id="password"
+                        Password
+                      </Label>
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={togglePasswordVisibility}
+                          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                          aria-label={
+                            showPassword ? "Hide password" : "Show password"
+                          }
+                        >
+                          {showPassword ? (
+                            <FaEyeSlash size={15} />
+                          ) : (
+                            <FaEye size={15} />
+                          )}
+                        </button>
+                        <Field
+                          as={Input}
+                          id="password"
+                          name="password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Enter Password"
+                          className="mt-1 bg-[#E2E8F0] border-0 pl-10 pr-10 font-boogaloo text-lg tracking-wider text-[11px] font-normal h-[48px]"
+                        />
+                      </div>
+                      <ErrorMessage
                         name="password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Enter Password"
-                        className="mt-1 bg-[#E2E8F0] border-0 pl-10 pr-10 font-boogaloo text-lg tracking-wider text-[11px] font-normal h-[48px]"
+                        component="div"
+                        className="text-red-500 mt-1 font-boogaloo text-sm tracking-wider"
                       />
                     </div>
-                    <ErrorMessage
-                      name="password"
-                      component="div"
-                      className="text-red-500 mt-1 font-boogaloo text-sm tracking-wider"
-                    />
-                  </div>
-                  <div className="relative mt-4">
-                    <Label
-                      htmlFor="confirmPassword"
-                      className="font-boogaloo text-base text-black dark:text-white"
-                    >
-                      Confirm Password
-                    </Label>
-                    <div className="relative">
-                      <button
-                        type="button"
-                        onClick={toggleConfirmPasswordVisibility}
-                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                        aria-label={
-                          showConfirmPassword
-                            ? "Hide password"
-                            : "Show password"
-                        }
+                    <div className="relative mt-4">
+                      <Label
+                        htmlFor="confirmPassword"
+                        className="font-boogaloo text-base text-black dark:text-white"
                       >
-                        {showConfirmPassword ? (
-                          <FaEyeSlash size={15} />
-                        ) : (
-                          <FaEye size={15} />
-                        )}
-                      </button>
-                      <Field
-                        as={Input}
-                        id="confirmPassword"
+                        Confirm Password
+                      </Label>
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={toggleConfirmPasswordVisibility}
+                          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                          aria-label={
+                            showConfirmPassword
+                              ? "Hide password"
+                              : "Show password"
+                          }
+                        >
+                          {showConfirmPassword ? (
+                            <FaEyeSlash size={15} />
+                          ) : (
+                            <FaEye size={15} />
+                          )}
+                        </button>
+                        <Field
+                          as={Input}
+                          id="confirmPassword"
+                          name="confirmPassword"
+                          type={showConfirmPassword ? "text" : "password"}
+                          placeholder="Confirm Password"
+                          className="mt-1 bg-[#E2E8F0] border-0 pl-10 pr-10 font-boogaloo text-lg tracking-wider text-[11px] font-normal h-[48px]"
+                        />
+                      </div>
+                      <ErrorMessage
                         name="confirmPassword"
-                        type={showConfirmPassword ? "text" : "password"}
-                        placeholder="Confirm Password"
-                        className="mt-1 bg-[#E2E8F0] border-0 pl-10 pr-10 font-boogaloo text-lg tracking-wider text-[11px] font-normal h-[48px]"
+                        component="div"
+                        className="text-red-500  mt-1 font-boogaloo text-sm tracking-wider"
                       />
                     </div>
-                    <ErrorMessage
-                      name="confirmPassword"
-                      component="div"
-                      className="text-red-500  mt-1 font-boogaloo text-sm tracking-wider"
-                    />
-                  </div>
-                  <div className="my-5 flex flex-col gap-3">
-                    <div className="flex items-center space-x-2">
-                      <Field name="ageConfirm">
-                        {({ field, form }: FieldProps) => (
-                          <Checkbox
-                            id="ageConfirm"
-                            checked={field.value}
-                            onCheckedChange={(checked) => {
-                              form.setFieldValue("ageConfirm", checked);
-                              form.setFieldTouched("ageConfirm", true);
-                            }}
-                            className="border-2 border-gray-400 data-[state=checked]:bg-[#C026D3] data-[state=checked]:border-[#C026D3]"
-                          />
-                        )}
-                      </Field>
-                      <Label
-                        htmlFor="ageConfirm"
-                        className="font-boogaloo text-black dark:text-white cursor-pointer"
-                      >
-                        Confirm age 18+
-                      </Label>
+                    <div className="my-5 flex flex-col gap-3">
+                      <div className="flex items-center space-x-2">
+                        <Field name="ageConfirm">
+                          {({ field, form }: FieldProps) => (
+                            <Checkbox
+                              id="ageConfirm"
+                              checked={field.value}
+                              onCheckedChange={(checked) => {
+                                form.setFieldValue("ageConfirm", checked);
+                                form.setFieldTouched("ageConfirm", true);
+                              }}
+                              className="border-2 border-gray-400 data-[state=checked]:bg-[#C026D3] data-[state=checked]:border-[#C026D3]"
+                            />
+                          )}
+                        </Field>
+                        <Label
+                          htmlFor="ageConfirm"
+                          className="font-boogaloo text-black dark:text-white cursor-pointer"
+                        >
+                          Confirm age 18+
+                        </Label>
+                      </div>
+                      <ErrorMessage
+                        name="ageConfirm"
+                        component="div"
+                        className="text-red-500  font-boogaloo text-sm tracking-wider"
+                      />
+                      <div className="flex items-center space-x-2">
+                        <Field name="terms">
+                          {({ field, form }: FieldProps) => (
+                            <Checkbox
+                              id="terms"
+                              checked={field.value}
+                              onCheckedChange={(checked) => {
+                                form.setFieldValue("terms", checked);
+                                form.setFieldTouched("terms", true);
+                              }}
+                              className="border-2 border-gray-400 data-[state=checked]:bg-[#C026D3] data-[state=checked]:border-[#C026D3]"
+                            />
+                          )}
+                        </Field>
+                        <Label
+                          htmlFor="terms"
+                          className="font-boogaloo text-black dark:text-white cursor-pointer"
+                        >
+                          Accept Terms of Use
+                        </Label>
+                      </div>
+                      <ErrorMessage
+                        name="terms"
+                        component="div"
+                        className="text-red-500  font-boogaloo text-sm tracking-wider"
+                      />
                     </div>
-                    <ErrorMessage
-                      name="ageConfirm"
-                      component="div"
-                      className="text-red-500  font-boogaloo text-sm tracking-wider"
-                    />
-                    <div className="flex items-center space-x-2">
-                      <Field name="terms">
-                        {({ field, form }: FieldProps) => (
-                          <Checkbox
-                            id="terms"
-                            checked={field.value}
-                            onCheckedChange={(checked) => {
-                              form.setFieldValue("terms", checked);
-                              form.setFieldTouched("terms", true);
-                            }}
-                            className="border-2 border-gray-400 data-[state=checked]:bg-[#C026D3] data-[state=checked]:border-[#C026D3]"
-                          />
-                        )}
-                      </Field>
-                      <Label
-                        htmlFor="terms"
-                        className="font-boogaloo text-black dark:text-white cursor-pointer"
-                      >
-                        Accept Terms of Use
-                      </Label>
-                    </div>
-                    <ErrorMessage
-                      name="terms"
-                      component="div"
-                      className="text-red-500  font-boogaloo text-sm tracking-wider"
-                    />
                   </div>
+
                   <Button
                     type="submit"
                     disabled={isSubmitting}
@@ -532,31 +532,31 @@ export function SignUpModal({
               )}
             </Formik>
           </DialogDescription>
-        </DialogHeader>
-        <p className=" text-center text-black dark:text-white font-boogaloo text-lg tracking-wider">
-          Already have an account?{" "}
-          <span
-            className="underline text-[#C026D3] cursor-pointer font-boogaloo text-lg"
-            onClick={openLoginModal}
-          >
-            Login
-          </span>
-        </p>
-        {/* terms and privacy */}
-        <div className="font-pincuk flex space-2 text-lg justify-center">
-          <p
-            className="text-[#C026D3] text-center cursor-pointer tracking-wider mr-4 hover:underline"
-             onClick={handleTerms}
-          >
-            Terms of Service
+          <p className=" text-center text-black dark:text-white font-boogaloo text-lg tracking-wider">
+            Already have an account?{" "}
+            <span
+              className="underline text-[#C026D3] cursor-pointer font-boogaloo text-lg"
+              onClick={openLoginModal}
+            >
+              Login
+            </span>
           </p>
-          {/* <p
-            className="text-gray-400 text-center cursor-pointer tracking-wider mr-4 underline"
-            //  onClick={handlePrivacy}
-          >
-            Privacy Policy
-          </p> */}
-        </div>
+          {/* terms and privacy */}
+          <div className="font-pincuk flex space-2 text-lg justify-center">
+            <p
+              className="text-[#C026D3] text-center cursor-pointer tracking-wider mr-4 hover:underline"
+              onClick={handleTerms}
+            >
+              Terms of Service
+            </p>
+            {/* <p
+              className="text-gray-400 text-center cursor-pointer tracking-wider mr-4 underline"
+              onClick={handlePrivacy}
+            >
+              Privacy Policy
+            </p> */}
+          </div>
+        </DialogHeader>
       </CustomDialogContent>
     </Dialog>
   );

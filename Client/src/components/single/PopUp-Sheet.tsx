@@ -1,6 +1,6 @@
-import { Button } from "../ui/button"
-import { Input } from "../ui/input"
-import { Label } from "../ui/label"
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 import {
   Sheet,
   SheetClose,
@@ -8,17 +8,17 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "../ui/sheet"
-import { Formik, Form, Field, ErrorMessage } from "formik"
-import { toast } from "sonner"
-import * as Yup from "yup"
-import { useCreateSystemConfig } from "../../backend/configuration.service"
-import { BackendRoute } from "../../backend/constants"
-import { useQueryClient } from "@tanstack/react-query"
+} from "../ui/sheet";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import { toast } from "sonner";
+import * as Yup from "yup";
+import { useCreateSystemConfig } from "../../backend/configuration.service";
+import { BackendRoute } from "../../backend/constants";
+import { useQueryClient } from "@tanstack/react-query";
 
 const validationSchema = Yup.object({
   title: Yup.string().required("Title is required"),
-  subtitle: Yup.string().required("Subtitle is required")
+  subtitle: Yup.string().required("Subtitle is required"),
 });
 
 export function PopUpSheet({ children }: { children: React.ReactNode }) {
@@ -27,17 +27,17 @@ export function PopUpSheet({ children }: { children: React.ReactNode }) {
 
   const initialValues = {
     title: "",
-    subtitle: ""
+    subtitle: "",
   };
 
   return (
     <Sheet>
-      <SheetTrigger asChild>
-        {children}
-      </SheetTrigger>
+      <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent className="font-boogaloo dark:bg-[#0F1621]">
         <SheetHeader>
-          <SheetTitle className="text-xl font-normal tracking-wider mt-6">Admin Configuration</SheetTitle>
+          <SheetTitle className="text-xl font-normal tracking-wider mt-6">
+            Admin Configuration
+          </SheetTitle>
           <div className="border border-b-gray-200"></div>
         </SheetHeader>
         <Formik
@@ -48,13 +48,17 @@ export function PopUpSheet({ children }: { children: React.ReactNode }) {
               await createConfig.mutateAsync({
                 key: "popup",
                 value: values,
-                description: "Popup display configuration"
+                description: "Popup display configuration",
               });
-              queryClient.invalidateQueries({ queryKey: [BackendRoute.SYSTEM_CONFIG, "popup"] });
+              queryClient.invalidateQueries({
+                queryKey: [BackendRoute.SYSTEM_CONFIG, "popup"],
+              });
               toast.success("Popup configuration saved successfully");
               // Close the sheet after successful save
-              const closeEvent = new Event('click');
-              document.querySelector('[aria-label="Close"]')?.dispatchEvent(closeEvent);
+              const closeEvent = new Event("click");
+              document
+                .querySelector('[aria-label="Close"]')
+                ?.dispatchEvent(closeEvent);
             } catch (error) {
               toast.error("Failed to save popup configuration");
             } finally {
@@ -105,20 +109,24 @@ export function PopUpSheet({ children }: { children: React.ReactNode }) {
                     />
                   </div>
                 </div>
-
               </div>
               <div className="flex gap-3 justify-end px-2">
                 <SheetClose asChild>
-                  <Button type="button" className="w-20 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0]">
+                  <Button
+                    type="button"
+                    className="w-20 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0]"
+                  >
                     Cancel
                   </Button>
                 </SheetClose>
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   className="w-40 h-12 bg-[#D946EF] dark:text-white"
                   disabled={isSubmitting || createConfig.isPending}
                 >
-                  {(isSubmitting || createConfig.isPending) ? "Saving..." : "Save Configuration"}
+                  {isSubmitting || createConfig.isPending
+                    ? "Saving..."
+                    : "Save Configuration"}
                 </Button>
               </div>
             </Form>
@@ -126,5 +134,5 @@ export function PopUpSheet({ children }: { children: React.ReactNode }) {
         </Formik>
       </SheetContent>
     </Sheet>
-  )
+  );
 }

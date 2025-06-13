@@ -158,3 +158,29 @@ body.admin-route textarea {
   animation: shimmer 2s infinite linear;
   background-size: 1000px 100%;
 }
+
+
+.custom-scrollbar {
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #850891 transparent;
+  
+  /* Webkit browsers */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 0px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 0px;
+  }
+  
+  &::-webkit-scrollbar-thumb:hover {
+    background: transparent;
+  }
+}

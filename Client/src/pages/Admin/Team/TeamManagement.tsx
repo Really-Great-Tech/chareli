@@ -8,9 +8,12 @@ import { RiTeamLine } from 'react-icons/ri';
 import { toast } from "sonner";
 import type { User } from "../../../backend/types";
 import { format } from "date-fns";
-// import { getErrorMessage } from "../../../utils/errorHandling";
+import { useAuth } from "../../../context/AuthContext";
 
 export default function TeamManagement() {
+  const { user } = useAuth();
+  // const isAdmin = user?.role?.name?.toLowerCase() === 'admin';
+  const isSuperAdmin = user?.role?.name?.toLowerCase() === 'superadmin';
   const [activeTab, setActiveTab] = useState<'members' | 'invitations'>('members');
   const { data: teamData, isLoading, error } = useAllTeamMembers();
   const { data: invitationsData, isLoading: isLoadingInvitations, error: invitationsError } = useTeamInvitations();
@@ -113,7 +116,7 @@ export default function TeamManagement() {
               <th className="pb-4">Name</th>
               <th className="pb-4">Email</th>
               <th className="pb-4">Role</th>
-              <th className="pb-4">Action</th>
+              {isSuperAdmin && <th className="pb-4">Action</th>}
             </tr>
           </thead>
           <tbody>
@@ -157,22 +160,32 @@ export default function TeamManagement() {
                     <span className="bg-[#D946EF] text-white px-3 py-2 rounded-lg text-md">
                       Admin
                     </span>
+                  ) : member.role.name.toLowerCase() === "superadmin" ? (
+                    <span className="bg-[#7C3AED] text-white px-3 py-2 rounded-lg text-md">
+                      SuperAdmin
+                    </span>
                   ) : (
                     <span className="bg-[#334154] text-white px-3 py-2 rounded-lg text-md">
                       {member.role.name}
                     </span>
                   )}
                 </td>
-                <td className="py-6">
-                  <button 
-                    onClick={() => handleRevokeClick(member)}
-                    className="flex items-center gap-2 bg-[#EF4444] hover:bg-[#dc2626] text-white px-3 py-1 rounded-lg text-md transition-all"
-                    disabled={revokeRole.isPending && selectedUser?.id === member.id}
-                  >
-                    <span className="text-xl"><MdOutlineCancel className="w-4 h-4" /></span>
-                    {revokeRole.isPending && selectedUser?.id === member.id ? 'Revoking...' : 'Revoke'}
-                  </button>
-                </td>
+                {isSuperAdmin && (
+                  <td className="py-6">
+                    {member.id !== user?.id ? (
+                      <button 
+                        onClick={() => handleRevokeClick(member)}
+                        className="flex items-center gap-2 bg-[#EF4444] hover:bg-[#dc2626] text-white px-3 py-1 rounded-lg text-md transition-all"
+                        disabled={revokeRole.isPending && selectedUser?.id === member.id}
+                      >
+                        <span className="text-xl"><MdOutlineCancel className="w-4 h-4" /></span>
+                        {revokeRole.isPending && selectedUser?.id === member.id ? 'Revoking...' : 'Revoke'}
+                      </button>
+                    ) : (
+                      <span className="text-gray-400 text-sm">Cannot revoke self</span>
+                    )}
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

@@ -7,8 +7,6 @@ import { emailService } from './email.service';
 import { SNSClient, PublishCommand } from "@aws-sdk/client-sns";
 import { Twilio } from "twilio";
 
-// Provider selection flag - set to true to use Twilio, false to use AWS SNS
-const USE_TWILIO = true;
 
 const otpRepository = AppDataSource.getRepository(Otp);
 const userRepository = AppDataSource.getRepository(User);
@@ -37,8 +35,8 @@ export class OtpService implements OtpServiceInterface {
     });
     
     this.twilioClient = new Twilio(
-      process.env.TWILIO_ACCOUNT_SID || '',
-      process.env.TWILIO_AUTH_TOKEN || ''
+      config.twilio.accountSid,
+      config.twilio.authToken
     );
   }
  
@@ -161,13 +159,13 @@ export class OtpService implements OtpServiceInterface {
         throw new Error('User does not have a phone number for OTP delivery');
       }
 
-      if (USE_TWILIO) {
+      if (config.twilio.enabled) {
           try {
             logger.info(`Sending OTP ${otp} to ${user.phoneNumber} via Twilio`);
             
             const result = await this.twilioClient.messages.create({
-              body: `Your verification code is: ${otp}`,
-              from: process.env.TWILIO_FROM_NUMBER || '',
+              body: `Your Chareli verification code is: ${otp}. This code expires in ${config.otp.expiryMinutes} minutes.`,
+              from: config.twilio.fromNumber,
               to: user.phoneNumber
             });
 
@@ -181,7 +179,7 @@ export class OtpService implements OtpServiceInterface {
             logger.info(`Sending OTP ${otp} to ${user.phoneNumber} via AWS SNS`);
             
             const command = new PublishCommand({
-              Message: `Your verification code is: ${otp}`,
+              Message: `Your Chareli verification code is: ${otp}. This code expires in ${config.otp.expiryMinutes} minutes.`,
               PhoneNumber: user.phoneNumber,
               MessageAttributes: {
                 'AWS.SNS.SMS.SenderID': {

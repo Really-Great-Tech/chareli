@@ -7,7 +7,7 @@ import StatsCard from "./StatsCard";
 import PieChart from '../../../components/charts/piechart';
 import { useState } from 'react';
 import { useSignupAnalyticsData } from '../../../backend/signup.analytics.service';
-import { useUsersAnalytics } from '../../../backend/analytics.service';
+import { useDashboardAnalytics } from '../../../backend/analytics.service';
 import AdminKeepPlayingModal from '../../../components/modals/AdminKeepPlayingModal';
 import { MostPlayedGames } from './MostPlayedGames';
 import { RecentUserActivity } from './RecentUserActivity';
@@ -97,19 +97,21 @@ export default function Home() {
 // Separate component for signup click insights
 function SignupClickInsights() {
   const { data: signupAnalytics, isLoading: analyticsLoading } = useSignupAnalyticsData();
-  const { data: usersWithAnalytics, isLoading: usersLoading } = useUsersAnalytics();
+  // const { data: usersWithAnalytics, isLoading: usersLoading } = useUsersAnalytics();
+  const { data: dashboardAnalytics, isLoading: usersLoading } = useDashboardAnalytics();
   
   if (analyticsLoading || usersLoading) {
     return <div className="text-center py-4">Loading...</div>;
   }
   
-  if (!signupAnalytics || !usersWithAnalytics) {
+  if (!signupAnalytics || !dashboardAnalytics) {
     return <div className="text-center py-4">No data available</div>;
   }
 
   // Total registered users is the verified count
-  const verifiedCount = usersWithAnalytics.length;
-  const didntRegisterCount = signupAnalytics.totalClicks - verifiedCount;
+  // Defaulting to one because Super Admin is created behind the system as part of all users 
+  const verifiedCount = dashboardAnalytics?.totalRegisteredUsers?.current;
+  const didntRegisterCount = (signupAnalytics.totalClicks) - verifiedCount;
 
   const chartData = [
     { name: "Didn't register", value: didntRegisterCount, fill: "#F3C7FA" },

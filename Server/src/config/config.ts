@@ -65,6 +65,12 @@ interface Config {
     keyPairId: string;
     cookieExpiration: number;
   };
+  twilio: {
+    accountSid: string;
+    authToken: string;
+    fromNumber: string;
+    enabled: boolean;
+  };
 }
 
 const config: Config = {
@@ -127,6 +133,12 @@ const config: Config = {
     distributionDomain: process.env.CLOUDFRONT_DISTRIBUTION_DOMAIN || '',
     keyPairId: process.env.CLOUDFRONT_KEY_PAIR_ID || '',
     cookieExpiration: 86400, // 1 day in seconds
+  },
+  twilio: {
+    accountSid: process.env.TWILIO_ACCOUNT_SID || '',
+    authToken: process.env.TWILIO_AUTH_TOKEN || '',
+    fromNumber: process.env.TWILIO_FROM_NUMBER || '',
+    enabled: process.env.USE_TWILIO === 'true',
   }
 };
 

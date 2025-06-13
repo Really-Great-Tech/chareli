@@ -1,14 +1,15 @@
-import { useState, useRef } from 'react';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
-import * as Yup from 'yup';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import uploadImg from '../../assets/fetch-upload.svg';
-import { useCreateGame } from '../../backend/games.service';
-import { useCategories } from '../../backend/category.service';
-import { toast } from 'sonner';
-import GameCreationProgress from './GameCreationProgress';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState, useRef } from "react";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import uploadImg from "../../assets/fetch-upload.svg";
+import { useCreateGame } from "../../backend/games.service";
+import { useCategories } from "../../backend/category.service";
+import { toast } from "sonner";
+import GameCreationProgress from "./GameCreationProgress";
 import {
   Sheet,
   SheetClose,
@@ -16,7 +17,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from '../ui/sheet';
+} from "../ui/sheet";
 
 interface FormValues {
   title: string;
@@ -29,32 +30,32 @@ interface FormValues {
 
 // Validation schema
 const validationSchema = Yup.object({
-  title: Yup.string().required('Title is required').trim(),
-  description: Yup.string().required('Description is required').trim(),
+  title: Yup.string().required("Title is required").trim(),
+  description: Yup.string().required("Description is required").trim(),
   config: Yup.number()
-    .required('Config is required')
-    .min(0, 'Config must be a positive number'),
-  categoryId: Yup.string().required('Category is required'),
+    .required("Config is required")
+    .min(0, "Config must be a positive number"),
+  categoryId: Yup.string().required("Category is required"),
   thumbnailFile: Yup.mixed<File>()
-    .required('Thumbnail image is required')
-    .test('fileType', 'Only image files are allowed', (value) => {
+    .required("Thumbnail image is required")
+    .test("fileType", "Only image files are allowed", (value) => {
       if (!value) return false;
-      return value instanceof File && value.type.startsWith('image/');
+      return value instanceof File && value.type.startsWith("image/");
     }),
   gameFile: Yup.mixed<File>()
-    .required('Game file is required')
-    .test('fileType', 'Only ZIP files are allowed', (value) => {
+    .required("Game file is required")
+    .test("fileType", "Only ZIP files are allowed", (value) => {
       if (!value) return false;
-      return value instanceof File && value.name.toLowerCase().endsWith('.zip');
+      return value instanceof File && value.name.toLowerCase().endsWith(".zip");
     }),
 });
 
 // Initial values
 const initialValues: FormValues = {
-  title: '',
-  description: '',
+  title: "",
+  description: "",
   config: 0,
-  categoryId: '',
+  categoryId: "",
 };
 
 export function CreateGameSheet({
@@ -69,7 +70,7 @@ export function CreateGameSheet({
   const [gameFileName, setGameFileName] = useState<string | null>(null);
   const [showProgress, setShowProgress] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [currentStep, setCurrentStep] = useState('');
+  const [currentStep, setCurrentStep] = useState("");
   const createGame = useCreateGame();
   const { data: categories } = useCategories();
   const handleSubmit = async (
@@ -80,66 +81,69 @@ export function CreateGameSheet({
       // Show progress bar
       setShowProgress(true);
       setProgress(0);
-      setCurrentStep('Preparing files...');
+      setCurrentStep("Preparing files...");
 
       const formData = new FormData();
-      formData.append('title', values.title);
-      formData.append('description', values.description);
-      formData.append('config', String(values.config));
-      formData.append('categoryId', values.categoryId);
+      formData.append("title", values.title);
+      formData.append("description", values.description);
+      formData.append("config", String(values.config));
+      formData.append("categoryId", values.categoryId);
 
       if (values.thumbnailFile) {
-        formData.append('thumbnailFile', values.thumbnailFile);
+        formData.append("thumbnailFile", values.thumbnailFile);
       }
       if (values.gameFile) {
-        formData.append('gameFile', values.gameFile);
+        formData.append("gameFile", values.gameFile);
       }
 
       // Simulate progress steps
       setProgress(20);
-      setCurrentStep('Uploading thumbnail...');
-      await new Promise(resolve => setTimeout(resolve, 500));
+      setCurrentStep("Uploading thumbnail...");
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       setProgress(50);
-      setCurrentStep('Uploading game file...');
-      await new Promise(resolve => setTimeout(resolve, 500));
+      setCurrentStep("Uploading game file...");
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       setProgress(80);
-      setCurrentStep('Processing...');
-      
-      await createGame.mutateAsync(formData);
-      
-      setProgress(100);
-      setCurrentStep('Complete!');
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      setCurrentStep("Processing...");
 
-      toast.success('Game created successfully!');
+      await createGame.mutateAsync(formData);
+
+      setProgress(100);
+      setCurrentStep("Complete!");
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      toast.success("Game created successfully!");
       resetForm();
       setThumbnailPreview(null);
       setGameFileName(null);
       setShowProgress(false);
       setProgress(0);
-      setCurrentStep('');
+      setCurrentStep("");
       onOpenChange?.(false);
     } catch (error) {
       setShowProgress(false);
       setProgress(0);
-      setCurrentStep('');
-      toast.error('Failed to create game');
+      setCurrentStep("");
+      toast.error("Failed to create game");
+      console.error("Error creating game:", error);
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <Sheet onOpenChange={(open) => {
-      if (!open && formikRef.current) {
-        formikRef.current.resetForm();
-        setThumbnailPreview(null);
-        setGameFileName(null);
-      }
-      onOpenChange?.(open);
-    }}>
+    <Sheet
+      onOpenChange={(open) => {
+        if (!open && formikRef.current) {
+          formikRef.current.resetForm();
+          setThumbnailPreview(null);
+          setGameFileName(null);
+        }
+        onOpenChange?.(open);
+      }}
+    >
       <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent className="font-boogaloo dark:bg-[#0F1621] max-w-xl w-full overflow-y-auto">
         <SheetHeader>
@@ -181,7 +185,7 @@ export function CreateGameSheet({
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          setFieldValue('thumbnailFile', file);
+                          setFieldValue("thumbnailFile", file);
                           const reader = new FileReader();
                           reader.onloadend = () => {
                             setThumbnailPreview(reader.result as string);
@@ -256,7 +260,7 @@ export function CreateGameSheet({
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          setFieldValue('gameFile', file);
+                          setFieldValue("gameFile", file);
                           setGameFileName(file.name);
                         }
                       }}
@@ -331,7 +335,7 @@ export function CreateGameSheet({
                 <SheetClose asChild>
                   <Button
                     type="button"
-                    className="w-24 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-accent"
+                    className="w-24 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-slate-100"
                     onClick={() => {
                       formikRef.current?.resetForm();
                       setThumbnailPreview(null);
@@ -344,18 +348,18 @@ export function CreateGameSheet({
                 <Button
                   type="submit"
                   disabled={isSubmitting || !isValid || !dirty}
-                  className="w-24 h-12 bg-[#D946EF] dark:text-white hover:text-[#D946EF] hover:bg-[#F3E8FF]"
+                  className="w-24 h-12 bg-[#D946EF] dark:text-white hover:text-[#D946EF] hover:bg-[#F3E8FF] dark:hover:bg-[#c026d3]"
                 >
-                  {isSubmitting ? 'Creating...' : 'Create'}
+                  {isSubmitting ? "Creating..." : "Create"}
                 </Button>
               </div>
             </Form>
           )}
         </Formik>
-        
+
         {/* Progress Bar */}
         {showProgress && (
-          <GameCreationProgress 
+          <GameCreationProgress
             progress={progress}
             currentStep={currentStep}
             isComplete={progress === 100}

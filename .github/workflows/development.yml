@@ -13,12 +13,12 @@ permissions:
 env:
   AWS_REGION: eu-central-1
   ECR_REGISTRY: 330858616968.dkr.ecr.eu-central-1.amazonaws.com
-  ECR_REPO_SERVER: chareli-server-staging
-  IMAGE_TAG_SERVER_COMMIT: server-staging-${{ github.sha }}
-  IMAGE_TAG_SERVER_FIXED: latest
+  ECR_REPO_SERVER: chareli-dev-repo
+  IMAGE_TAG_SERVER_COMMIT: server-dev-${{ github.sha }}
+  IMAGE_TAG_SERVER_FIXED: server-dev
 
-  S3_BUCKET_CLIENT: chareli-react-app-staging-0a866340
-  CLOUDFRONT_DISTRIBUTION_ID_CLIENT: E1LXFG5G4LBPY7
+  S3_BUCKET_CLIENT: chareli-react-app-dev-ea15b364
+  CLOUDFRONT_DISTRIBUTION_ID_CLIENT: ED93QD3A93Q1N
 
 jobs:
   build-and-test:
@@ -199,9 +199,9 @@ jobs:
         uses: appleboy/discord-action@v1.2.0
         with:
           webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          username: Chareli Staging Pipeline Bot
+          username: Chareli Dev Pipeline Bot
           message: |
-            🚀 **Chareli Staging Deployment Summary**
+            🚀 **Chareli Dev Deployment Summary**
 
             🔀 Branch: `${{ github.ref_name }}`
             📄 Commit: `${{ github.sha }}` by `${{ github.actor }}`

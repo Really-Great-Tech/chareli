@@ -4,8 +4,10 @@ import { Role, RoleType } from '../entities/Role';
 import { Invitation } from '../entities/Invitation';
 import { Otp, OtpType } from '../entities/Otp';
 import { SystemConfig } from '../entities/SystemConfig';
+import { SignupAnalytics } from '../entities/SignupAnalytics';
 import config from '../config/config';
 import logger from '../utils/logger';
+import { getFrontendUrl } from '../utils/main';
 import { otpService } from './otp.service';
 import { emailService } from './email.service';
 import * as bcrypt from 'bcrypt';
@@ -18,6 +20,7 @@ const userRepository = AppDataSource.getRepository(User);
 const roleRepository = AppDataSource.getRepository(Role);
 const invitationRepository = AppDataSource.getRepository(Invitation);
 const systemConfigRepository = AppDataSource.getRepository(SystemConfig);
+const signupAnalyticsRepository = AppDataSource.getRepository(SignupAnalytics);
 
 export interface TokenPayload {
   userId: string;
@@ -438,8 +441,7 @@ export class AuthService {
     await invitationRepository.save(invitation);
 
     // Generate invitation link - point to frontend route
-    // const frontendUrl = 'https://dev.chareli.reallygreattech.com';
-    const frontendUrl = config.env === 'development' ? 'http://localhost:5173' : '';
+    const frontendUrl = getFrontendUrl();
     const invitationLink = `${frontendUrl}/register-invitation/${token}`;
 
     // Send invitation email
@@ -524,8 +526,7 @@ export class AuthService {
     await userRepository.save(user);
 
     // Generate reset link - point to frontend route instead of API endpoint
-    const frontendUrl = config.env === 'development' ? 'http://localhost:5173' : '';
-    // const frontendUrl = 'https://dev.chareli.reallygreattech.com';
+    const frontendUrl = getFrontendUrl();
     const resetLink = `${frontendUrl}/reset-password/${resetToken}`;
 
     try {
@@ -621,6 +622,16 @@ export class AuthService {
 
       await userRepository.save(superadmin);
       logger.info(`Superadmin account created with email: ${config.superadmin.email}`);
+
+      // Create signup analytics entry for the new superadmin
+      const signupAnalytics = signupAnalyticsRepository.create({
+        ipAddress: '127.0.0.1',
+        deviceType: 'server',
+        type: 'signup-modal'
+      });
+
+      await signupAnalyticsRepository.save(signupAnalytics);
+      logger.info('Created signup analytics entry for new superadmin');
     } catch (error) {
       logger.error('Failed to initialize superadmin account:', error);
     }

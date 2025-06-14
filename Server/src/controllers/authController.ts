@@ -248,7 +248,6 @@ export const login = async (
 
     const user = await authService.login(identifier, password);
 
-    // Check if user has completed first login - if yes, skip OTP and login directly
     if (user.hasCompletedFirstLogin) {
       const tokens = await authService.generateTokens(user);
       user.lastLoggedIn = new Date();
@@ -320,32 +319,68 @@ export const login = async (
       });
     } catch (error) {
       if (error instanceof Error) {
-        if (error.message.includes('does not have a phone number or email address')) {
-          return next(ApiError.badRequest('User does not have any contact information (phone number or email address) for OTP verification'));
-        } else if (error.message.includes('does not have an email address or phone number')) {
-          return next(ApiError.badRequest('User does not have any contact information (email address or phone number) for OTP verification'));
+        // Check if it's a configuration error (user missing required contact info)
+        if (error.message.includes('We couldn’t send a verification')) {
+          
+          logger.error('OTP Configuration Error:', error.message);
+          
+          res.status(200).json({
+            success: false,
+            message: "Your account needs additional verification information. Please contact support for assistance.",
+            data: {
+              userId: user.id,
+              email: user.email,
+              phoneNumber: user.phoneNumber
+            },
+            debug: {
+              error: error.message,
+              type: 'CONFIGURATION',
+              timestamp: new Date().toISOString()
+            }
+          });
+          return;
         }
         
-        // OTP sending failed - log for DevOps but don't show error to user
-        logger.error('OTP Service Configuration Error:', error.message);
+        // Check if it's a service error (Twilio, email service, etc.)
+        if (error.message.includes('Twilio') || 
+            error.message.includes('SMTP') || 
+            error.message.includes('email service') ||
+            error.message.includes('SMS service')) {
+          
+          logger.error('OTP Service Error:', error.message);
+          
+          res.status(200).json({
+            success: false,
+            message: "We're experiencing technical difficulties with our verification system. Please try again in a few minutes.",
+            data: {
+              userId: user.id,
+              email: user.email,
+              phoneNumber: user.phoneNumber
+            },
+            debug: {
+              error: error.message,
+              type: 'SERVICE',
+              timestamp: new Date().toISOString()
+            }
+          });
+          return;
+        }
         
-        // Return success to user (silent failure) but include diagnostic info for DevOps
+        // Generic OTP error
+        logger.error('OTP Error:', error.message);
+        
         res.status(200).json({
-          success: true,
-          message: 'First-time login. Please contact support for verification.',
+          success: false,
+          message: "Verification system temporarily unavailable. Please contact support if this continues.",
           data: {
             userId: user.id,
-            requiresOtp: true,
-            otpType: 'UNAVAILABLE',
             email: user.email,
-            phoneNumber: user.phoneNumber,
-            note: 'OTP service temporarily unavailable'
+            phoneNumber: user.phoneNumber
           },
-          // Diagnostic information for DevOps (hidden from UI)
-          _debug: {
-            otpError: error.message,
-            timestamp: new Date().toISOString(),
-            service: 'OTP'
+          debug: {
+            error: error.message,
+            type: 'UNKNOWN',
+            timestamp: new Date().toISOString()
           }
         });
         return;
@@ -353,7 +388,6 @@ export const login = async (
       throw error;
     }
   } catch (error) {
-    // This catches actual login credential errors (user not found, wrong password)
     next(error instanceof Error ? ApiError.unauthorized(error.message) : error);
   }
 };

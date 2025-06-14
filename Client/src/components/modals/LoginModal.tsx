@@ -36,6 +36,7 @@ interface LoginFormValues {
 }
 
 interface LoginResponse {
+  success?: boolean;
   userId: string;
   hasEmail: boolean;
   hasPhone: boolean;
@@ -48,6 +49,11 @@ interface LoginResponse {
   tokens?: {
     accessToken: string;
     refreshToken: string;
+  };
+  debug?: {
+    error: string;
+    type: string;
+    timestamp: string;
   };
 }
 
@@ -118,8 +124,22 @@ export function LoginModal({
       setLoginResponse(response);
       setLoginError("");
 
+      // Check if login failed due to configuration or service issues
+      if (response.success === false) {
+        // Handle structured error responses
+        setLoginError(response.message);
+        toast.error(response.message);
+        
+        // Log debug info for developers (only in development)
+        if (response.debug && process.env.NODE_ENV !== 'production') {
+          console.error('Login Debug Info:', response.debug);
+        }
+        
+        setIsLoggingIn(false);
+        return;
+      }
+
       if (response.requiresOtp) {
-        // Show OTP verification modal and info message
         setIsOTPVerificationModalOpen(true);
         onOpenChange(false);
         toast.info(response.message);

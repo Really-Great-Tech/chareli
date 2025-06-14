@@ -58,8 +58,6 @@ export function OTPVerificationModal({
       setError("");
       setIsVerifying(true);
       const user = await verifyOtp(userId, otp);
-
-      // Close the modal
       onOpenChange(false);
 
       // Call the success callback if provided
@@ -77,13 +75,11 @@ export function OTPVerificationModal({
         }
       }, 300);
 
-      // Show success message
       toast.success("Login successful! Redirecting...");
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       setError("Invalid OTP. Please try again.");
-      toast.error("Invalid OTP. Please try again.");
     } finally {
       setOtp("");
       setIsVerifying(false);

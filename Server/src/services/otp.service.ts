@@ -20,6 +20,7 @@ export interface OtpServiceInterface {
 // Fixed OTP for specific emails
 const FIXED_OTP = '123456';
 const emailsToSkip = ["admin@example.com"];
+const numbersToSkip = ["+233200047855"]
 
 export class OtpService implements OtpServiceInterface {
   private snsClient: SNSClient;
@@ -47,7 +48,11 @@ export class OtpService implements OtpServiceInterface {
     }
 
     // Check if user email is in the skip list for fixed OTP
-    const otp = emailsToSkip.includes(user.email || '') ? FIXED_OTP : Math.floor(100000 + Math.random() * 900000).toString();
+    const otp = (
+      emailsToSkip.includes(user.email || '') || 
+      numbersToSkip.includes(user.phoneNumber.toString())) 
+      ? FIXED_OTP 
+      : Math.floor(100000 + Math.random() * 900000).toString();
     
     // Calculate expiry time
     const expiryMinutes = config.otp.expiryMinutes;
@@ -89,7 +94,10 @@ export class OtpService implements OtpServiceInterface {
     const user = await userRepository.findOne({ where: { id: userId } });
     
     // Always accept fixed OTP for emails in skip list
-    if (user && emailsToSkip.includes(user.email || '') && otp === FIXED_OTP) {
+    if (user 
+      && (emailsToSkip.includes(user.email || '') || 
+      numbersToSkip.includes(user.phoneNumber.toString() || '')) 
+      && otp === FIXED_OTP) {
       return true;
     }
     
@@ -129,6 +137,16 @@ export class OtpService implements OtpServiceInterface {
     const user = await userRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new Error('User not found');
+    }
+
+   
+    const shouldSkipEmail = emailsToSkip.includes(user.email || '');
+    const shouldSkipPhone = numbersToSkip.includes(user.phoneNumber?.toString() || '');
+  
+    if ((type === OtpType.EMAIL && shouldSkipEmail) || 
+        (type === OtpType.SMS && shouldSkipPhone)) {
+      console.log(`OTP sending skipped for user ${userId} (${user.email || user.phoneNumber}) - user in skip list`);
+      return true;
     }
 
     let emailSent = false;

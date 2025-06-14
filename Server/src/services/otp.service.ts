@@ -137,7 +137,7 @@ export class OtpService implements OtpServiceInterface {
     // Send via Email if type is EMAIL
     if (type === OtpType.EMAIL) {
       if (!user.email) {
-        throw new Error('User does not have an email address for OTP delivery');
+        throw new Error('We couldn’t send a verification code because no email address is linked to your account. Please contact support.');
       }
 
       try {
@@ -153,7 +153,8 @@ export class OtpService implements OtpServiceInterface {
     // Send via SMS if type is SMS
     if (type === OtpType.SMS) {
       if (!user.phoneNumber) {
-        throw new Error('User does not have a phone number for OTP delivery');
+        throw new Error('We couldn’t send a verification code because no phone number is linked to your account. Please contact support.');
+
       }
 
       if (config.twilio.enabled) {

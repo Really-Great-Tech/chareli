@@ -25,7 +25,7 @@ const App: React.FC = () => {
               position="bottom-right"
               richColors
               toastOptions={{
-                duration: 10000,
+                duration: 6000,
                 style: {
                   background: "white",
                   color: "#C026D3",

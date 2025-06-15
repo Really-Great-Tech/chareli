@@ -177,7 +177,7 @@ export class AuthService {
 
     const user = await userRepository.findOne({
       where: isEmail ? { email: identifier } : { phoneNumber: identifier },
-      select: ['id', 'email', 'password', 'firstName', 'lastName', 'phoneNumber', 'isActive', 'isVerified', 'hasCompletedFirstLogin', 'roleId'],
+      select: ['id', 'email', 'password', 'firstName', 'lastName', 'phoneNumber', 'isActive', 'isVerified', 'hasCompletedFirstLogin', 'roleId', 'country'],
       relations: ['role']
     });
 

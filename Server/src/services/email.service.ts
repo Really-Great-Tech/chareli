@@ -6,18 +6,29 @@ import { invitationEmailTemplate } from '../templates/emails/invitation.template
 import { welcomeEmailTemplate } from '../templates/emails/welcome.template';
 import { resetPasswordEmailTemplate } from '../templates/emails/reset.template';
 import { otpEmailTemplate } from '../templates/emails/otp.template';
-import { roleRevokedEmailTemplate, roleChangedEmailTemplate } from '../templates/emails/role.template';
+import {
+  roleRevokedEmailTemplate,
+  roleChangedEmailTemplate,
+} from '../templates/emails/role.template';
 
 // Provider selection flag - set to true to use Gmail, false to use SES
 const USE_GMAIL = true;
 
 export interface EmailServiceInterface {
-  sendInvitationEmail(email: string, invitationLink: string, role: string): Promise<boolean>;
+  sendInvitationEmail(
+    email: string,
+    invitationLink: string,
+    role: string
+  ): Promise<boolean>;
   sendWelcomeEmail(email: string, name: string): Promise<boolean>;
   sendPasswordResetEmail(email: string, resetLink: string): Promise<boolean>;
   sendOtpEmail(email: string, otp: string): Promise<boolean>;
   sendRoleRevokedEmail(email: string, oldRole: string): Promise<boolean>;
-  sendRoleChangedEmail(email: string, oldRole: string, newRole: string): Promise<boolean>;
+  sendRoleChangedEmail(
+    email: string,
+    oldRole: string,
+    newRole: string
+  ): Promise<boolean>;
 }
 
 interface EmailProvider {
@@ -25,25 +36,27 @@ interface EmailProvider {
 }
 
 class SESProvider implements EmailProvider {
-  private sesClient: SESClient;
+  private readonly sesClient: SESClient;
 
   constructor() {
     this.sesClient = new SESClient({
-      region: "",
+      region: '',
       credentials: {
-        accessKeyId: "",
-        secretAccessKey: "",
-      }
+        accessKeyId: '',
+        secretAccessKey: '',
+      },
     });
   }
 
   async sendEmail(to: string, subject: string, html: string): Promise<boolean> {
     try {
-      const emailsToSkip = ["admin@example.com"];
+      const emailsToSkip = ['admin@example.com'];
 
       // In development mode, just log the email instead of sending
       if (emailsToSkip.includes(to)) {
-        logger.info(`DEVELOPMENT MODE -- Skipping for this email ${to}: Email would be sent to ${to}`);
+        logger.info(
+          `DEVELOPMENT MODE -- Skipping for this email ${to}: Email would be sent to ${to}`
+        );
         return true;
       }
 
@@ -54,16 +67,16 @@ class SESProvider implements EmailProvider {
         Message: {
           Body: {
             Html: {
-              Charset: "UTF-8",
+              Charset: 'UTF-8',
               Data: html,
             },
           },
           Subject: {
-            Charset: "UTF-8",
+            Charset: 'UTF-8',
             Data: subject,
           },
         },
-        Source: 'no-reply@dev.chareli.reallygreattech.com'
+        Source: 'no-reply@dev.chareli.reallygreattech.com',
       });
 
       await this.sesClient.send(command);
@@ -77,25 +90,27 @@ class SESProvider implements EmailProvider {
 }
 
 class GmailProvider implements EmailProvider {
-  private transporter: nodemailer.Transporter;
+  private readonly transporter: nodemailer.Transporter;
 
   constructor() {
     this.transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
         user: 'edmondboakye1622@gmail.com',
-        pass: 'ogmm ioqb bzdb ogpg'
-      }
+        pass: 'ogmm ioqb bzdb ogpg',
+      },
     });
   }
 
   async sendEmail(to: string, subject: string, html: string): Promise<boolean> {
     try {
-      const emailsToSkip = ["admin@example.com"];
+      const emailsToSkip = ['admin@example.com'];
 
       // In development mode, just log the email instead of sending
       if (emailsToSkip.includes(to)) {
-        logger.info(`DEVELOPMENT MODE -- Skipping for this email ${to}: Email would be sent to ${to}`);
+        logger.info(
+          `DEVELOPMENT MODE -- Skipping for this email ${to}: Email would be sent to ${to}`
+        );
         return true;
       }
 
@@ -103,7 +118,7 @@ class GmailProvider implements EmailProvider {
         from: '"Chareli Team" <edmondboakye1622@gmail.com>',
         to: to,
         subject: subject,
-        html: html
+        html: html,
       };
 
       await this.transporter.sendMail(mailOptions);
@@ -117,7 +132,7 @@ class GmailProvider implements EmailProvider {
 }
 
 export class EmailService implements EmailServiceInterface {
-  private provider: EmailProvider;
+  private readonly provider: EmailProvider;
 
   constructor() {
     this.provider = USE_GMAIL ? new GmailProvider() : new SESProvider();
@@ -126,8 +141,16 @@ export class EmailService implements EmailServiceInterface {
   /**
    * Send an invitation email with a link to register
    */
-  async sendInvitationEmail(email: string, invitationLink: string, role: string): Promise<boolean> {
-    const html = invitationEmailTemplate(invitationLink, role, config.otp.invitationExpiryDays);
+  async sendInvitationEmail(
+    email: string,
+    invitationLink: string,
+    role: string
+  ): Promise<boolean> {
+    const html = invitationEmailTemplate(
+      invitationLink,
+      role,
+      config.otp.invitationExpiryDays
+    );
     return this.sendEmail(email, 'Invitation to join Chareli', html);
   }
 
@@ -142,7 +165,10 @@ export class EmailService implements EmailServiceInterface {
   /**
    * Send a password reset email
    */
-  async sendPasswordResetEmail(email: string, resetLink: string): Promise<boolean> {
+  async sendPasswordResetEmail(
+    email: string,
+    resetLink: string
+  ): Promise<boolean> {
     const html = resetPasswordEmailTemplate(resetLink);
     return this.sendEmail(email, 'Reset your Chareli password', html);
   }
@@ -166,7 +192,11 @@ export class EmailService implements EmailServiceInterface {
   /**
    * Send email notification when a user's role is changed
    */
-  async sendRoleChangedEmail(email: string, oldRole: string, newRole: string): Promise<boolean> {
+  async sendRoleChangedEmail(
+    email: string,
+    oldRole: string,
+    newRole: string
+  ): Promise<boolean> {
     const html = roleChangedEmailTemplate(oldRole, newRole);
     return this.sendEmail(email, 'Your Role Has Been Updated', html);
   }
@@ -174,7 +204,11 @@ export class EmailService implements EmailServiceInterface {
   /**
    * Send an email using the configured provider (Gmail or SES)
    */
-  private async sendEmail(to: string, subject: string, html: string): Promise<boolean> {
+  private async sendEmail(
+    to: string,
+    subject: string,
+    html: string
+  ): Promise<boolean> {
     return this.provider.sendEmail(to, subject, html);
   }
 }

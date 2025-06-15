@@ -59,9 +59,8 @@ export class CloudFrontService implements CloudFrontServiceInterface {
 
       if (response.SecretString) {
         // AWS Secrets Manager often stores the secret as a JSON string with the key being the secret name.
-        // We need to parse it to get the actual key value.
-        const secretJSON = JSON.parse(response.SecretString);
-        this.privateKey = secretJSON['chareli/testing/cloudfront_private_key'];
+        // However in our case it is saved as is so no need to parse it.
+        this.privateKey = response.SecretString.trim();
       }
 
       if (!this.privateKey) {

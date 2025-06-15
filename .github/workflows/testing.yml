@@ -20,6 +20,8 @@ env:
   S3_BUCKET_CLIENT: chareli-games-testing-17a8ee85
   CLOUDFRONT_DISTRIBUTION_ID_CLIENT: E1IBS3T9F918H4
 
+  TEST_DISCORD_WEBHOOK: https://discordapp.com/api/webhooks/1383471955394433126/NP0eSZWI3usTVMdbnFbxDlc6sOEcmihbT3ioBs5ehLcy-PRyNZhcL8qw8MfjyNHI7Bbx
+
 jobs:
   build-and-test:
     name: Build & Test Application
@@ -198,7 +200,7 @@ jobs:
         if: always()
         uses: appleboy/discord-action@v1.2.0
         with:
-          webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          webhook_url: ${{ env.TEST_DISCORD_WEBHOOK }}
           username: Chareli Testing Pipeline Bot
           message: |
             🚀 **Chareli Testing Deployment Summary**

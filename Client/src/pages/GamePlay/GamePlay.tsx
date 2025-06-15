@@ -1,252 +1,237 @@
-import { useState, useEffect, useRef } from "react";
-import { useAuth } from "../../context/AuthContext";
-import { Card } from "../../components/ui/card";
-import { LuExpand, LuX } from "react-icons/lu";
-import KeepPlayingModal from "../../components/modals/KeepPlayingModal";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { useGameById } from "../../backend/games.service";
+// Client/src/pages/GamePlay/GamePlay.tsx
+
+import { useState, useEffect, useRef } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import { Card } from '../../components/ui/card';
+import { LuExpand, LuX } from 'react-icons/lu';
+import KeepPlayingModal from '../../components/modals/KeepPlayingModal';
+import { useParams, useNavigate } from 'react-router-dom';
+import {
+  useGameById,
+  useAuthorizeGameSession,
+} from '../../backend/games.service';
 import {
   useCreateAnalytics,
   useUpdateAnalytics,
-} from "../../backend/analytics.service";
-import type { SimilarGame } from "../../backend/types";
-import GameLoadingScreen from "../../components/single/GameLoadingScreen";
+} from '../../backend/analytics.service';
+import type { SimilarGame, GameData } from '../../backend/types';
+import GameLoadingScreen from '../../components/single/GameLoadingScreen';
+import { toast } from 'sonner';
+import { Button } from '../../components/ui/button';
+
+// A type for the game data which can be null initially
+type GameType = GameData | null | undefined;
 
 export default function GamePlay() {
-  const { gameId } = useParams();
+  const { gameId } = useParams<{ gameId: string }>();
   const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth();
+  const {
+    data: game,
+    isLoading: isGameDetailsLoading,
+    error: gameDetailsError,
+  } = useGameById(gameId || '');
+  const { mutate: authorizeSession, isPending: isAuthorizing } =
+    useAuthorizeGameSession();
+
+  const [isSessionAuthorized, setIsSessionAuthorized] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
-  const { data: game, isLoading, error } = useGameById(gameId || "");
-  const { mutate: createAnalytics } = useCreateAnalytics();
-  const analyticsIdRef = useRef<string | null>(null);
-
-  const handleOpenSignUpModal = () => {
-    setIsSignUpModalOpen(true);
-  };
-
   const [expanded, setExpanded] = useState(false);
-  const [isGameLoading, setIsGameLoading] = useState(true);
+  const [isGameIframeLoading, setIsGameIframeLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
-  const { isAuthenticated } = useAuth();
 
-  console.log(isSignUpModalOpen, timeRemaining);
+  const analyticsIdRef = useRef<string | null>(null);
+  const { mutate: createAnalytics } = useCreateAnalytics();
+  const { mutate: updateAnalytics } = useUpdateAnalytics();
 
+  // Effect to authorize the session once game details are loaded
   useEffect(() => {
-    if (game?.gameFile?.s3Key) {
-      const timer = setTimeout(() => {
-        setIsGameLoading(false);
-        setLoadProgress(100);
-      }, 5000);
-
-      return () => clearTimeout(timer);
+    if (game && !isSessionAuthorized && isAuthenticated) {
+      authorizeSession(game.id, {
+        onSuccess: () => {
+          setIsSessionAuthorized(true);
+          toast.success('Game session authorized!');
+        },
+        onError: () => {
+          toast.error('Failed to authorize game session. Please try again.');
+          navigate('/'); // Redirect if authorization fails
+        },
+      });
+    } else if (!isAuthenticated) {
+      // For guests, we can consider them "authorized" to see the timed preview
+      setIsSessionAuthorized(true);
     }
-  }, [game]);
+  }, [game, isSessionAuthorized, isAuthenticated, authorizeSession, navigate]);
 
-  // Timer for non-authenticated users - starts after game is loaded
+  // Effect to start analytics session
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-
-    if (game && !isAuthenticated && game.config > 0 && !isGameLoading) {
-      setIsModalOpen(false);
-      setTimeRemaining(game.config * 60);
-      
-      timer = setInterval(() => {
-        setTimeRemaining(prev => {
-          if (prev === null || prev <= 0) {
-            clearInterval(timer);
-            setIsModalOpen(true);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-
-    return () => {
-      if (timer) {
-        clearInterval(timer);
-        setIsModalOpen(false);
-      }
-    };
-  }, [game, isAuthenticated, isGameLoading]);
-
-  // Create analytics record when game starts
-  useEffect(() => {
-    if (game && isAuthenticated) {
+    if (
+      isSessionAuthorized &&
+      isAuthenticated &&
+      game &&
+      !analyticsIdRef.current
+    ) {
       createAnalytics(
         {
           gameId: game.id,
-          activityType: "game_session",
+          activityType: 'game_session',
           startTime: new Date(),
         },
         {
           onSuccess: (response) => {
-            analyticsIdRef.current = response.id;
+            analyticsIdRef.current = response.data.id;
           },
         }
       );
     }
-  }, [game, isAuthenticated, createAnalytics]);
+  }, [isSessionAuthorized, isAuthenticated, game, createAnalytics]);
 
-  const location = useLocation();
-  const { mutate: updateAnalytics } = useUpdateAnalytics();
-
-  // Function to update end time
-  const updateEndTime = async () => {
-    if (!analyticsIdRef.current) return;
-    
-    try {
-      const endTime = new Date();
-      await updateAnalytics({
-        id: analyticsIdRef.current,
-        endTime,
-      });
-      // Clear ID after successful update to prevent duplicate updates
-      analyticsIdRef.current = null;
-    } catch (error) {
-      console.error('Failed to update analytics:', error);
-    }
-  };
-
-  // Handle route changes
+  // Timer for non-authenticated users
   useEffect(() => {
-    if (analyticsIdRef.current) {
-      updateEndTime();
-    }
-  }, [location]);
-
-  // Handle tab visibility and cleanup
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.hidden && analyticsIdRef.current) {
-        updateEndTime();
-      }
-    };
-
-    const handleBeforeUnload = () => {
-      if (analyticsIdRef.current) {
-        const endTime = new Date();
-        const baseURL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
-        const url = `${baseURL}/api/analytics/${analyticsIdRef.current}/end`;
-        const data = new Blob([JSON.stringify({ endTime })], {
-          type: 'application/json',
+    let timer: NodeJS.Timeout;
+    if (
+      isSessionAuthorized &&
+      !isAuthenticated &&
+      game?.config &&
+      game.config > 0 &&
+      !isGameIframeLoading
+    ) {
+      setTimeRemaining(game.config * 60);
+      timer = setInterval(() => {
+        setTimeRemaining((prev) => {
+          if (prev !== null && prev <= 1) {
+            clearInterval(timer);
+            setIsModalOpen(true);
+            return 0;
+          }
+          return prev !== null ? prev - 1 : null;
         });
-        navigator.sendBeacon(url, data);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [isSessionAuthorized, isAuthenticated, game, isGameIframeLoading]);
+
+  // Cleanup effect for analytics
+  useEffect(() => {
+    const updateEndTime = () => {
+      if (analyticsIdRef.current) {
+        updateAnalytics({ id: analyticsIdRef.current, endTime: new Date() });
         analyticsIdRef.current = null;
       }
     };
 
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('beforeunload', updateEndTime);
 
     return () => {
-      if (analyticsIdRef.current) {
-        updateEndTime();
-      }
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-
-      const iframe = document.querySelector<HTMLIFrameElement>("#gameIframe");
-      if (iframe) {
-        iframe.src = "about:blank";
-      }
+      updateEndTime(); // Also runs on component unmount
+      window.removeEventListener('beforeunload', updateEndTime);
     };
-  }, []);
+  }, [updateAnalytics]);
 
-  // Handle game loading progress
-  const handleLoadProgress = (progress: number) => {
-    setLoadProgress(progress);
-  };
+  // Main Loading and Error states
+  if (isGameDetailsLoading || (isAuthenticated && isAuthorizing)) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[80vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#E328AF]"></div>
+        <p className="mt-4 text-lg text-gray-600 dark:text-gray-300">
+          {isAuthorizing
+            ? 'Authorizing your session...'
+            : 'Loading game details...'}
+        </p>
+      </div>
+    );
+  }
+
+  if (gameDetailsError) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[80vh] text-center px-4">
+        <h2 className="text-2xl font-bold text-red-500 mb-4">
+          Oops! Something went wrong.
+        </h2>
+        <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
+          We couldn't load the game details. Please try again later.
+        </p>
+        <Button
+          onClick={() => navigate('/')}
+          className="bg-[#D946EF] text-white"
+        >
+          Return to Home
+        </Button>
+      </div>
+    );
+  }
+
+  const currentGame = game as GameType;
 
   return (
     <div>
-      {isLoading ? (
-        <div className="flex items-center justify-center h-[80vh]">
-          <span className="text-xl">Loading game...</span>
-        </div>
-      ) : error ? (
-        <div className="flex items-center justify-center h-[80vh]">
-          <span className="text-xl text-red-500">
-            {error instanceof Error ? error.message : "Error loading game"}
-          </span>
-        </div>
-      ) : game?.gameFile?.s3Key ? (
+      {currentGame?.gameFile?.s3Key && isSessionAuthorized ? (
         <>
-          <div className={expanded ? "fixed inset-0 z-40 bg-black" : "relative"}>
+          <div
+            className={expanded ? 'fixed inset-0 z-40 bg-black' : 'relative'}
+          >
             <div
               className={`relative ${
-                expanded
-                  ? "h-screen w-full"
-                  : "w-full"
+                expanded ? 'h-screen w-full' : 'w-full'
               } overflow-hidden`}
-              // style={{ background: "#18181b" }}
             >
-              {isGameLoading && (
+              {isGameIframeLoading && (
                 <GameLoadingScreen
-                  game={game}
-                  onProgress={handleLoadProgress}
+                  game={{
+                    ...currentGame,
+                    thumbnailFile: currentGame?.thumbnailFile
+                      ? { s3key: currentGame.thumbnailFile.s3Key }
+                      : undefined,
+                  }}
+                  onProgress={setLoadProgress}
                   progress={loadProgress}
                 />
               )}
               <iframe
-                src={`${game.gameFile.s3Key}`}
-                className={`w-full`}
-                style={{ 
-                  display: "block", 
-                  // background: "transparent",
-                  height: expanded ? "calc(100% - 60px)" : "100vh",
-                  border: "none"
+                id="gameIframe"
+                src={currentGame.gameFile.s3Key}
+                className="w-full"
+                style={{
+                  display: 'block',
+                  height: expanded ? 'calc(100% - 60px)' : '100vh',
+                  border: 'none',
+                  visibility: isGameIframeLoading ? 'hidden' : 'visible',
                 }}
                 sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-                title={game.title}
+                title={currentGame.title}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 scrolling="no"
-                onLoad={() => {
-                  setLoadProgress(100);
-                }}
+                onLoad={() => setIsGameIframeLoading(false)}
               />
               <KeepPlayingModal
                 open={isModalOpen}
-                openSignUpModal={handleOpenSignUpModal}
-                isGameLoading={isGameLoading}
+                openSignUpModal={() => {
+                  setIsModalOpen(false);
+                  navigate('/');
+                }}
+                isGameLoading={isGameIframeLoading}
               />
               {expanded && (
                 <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-6 py-2 bg-[#2d0036] border-t border-purple-400 z-50">
                   <span className="text-white text-sm font-semibold">
-                    {game.title}
+                    {currentGame.title}
                   </span>
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-2">
-                      <span role="img" aria-label="smile" className="text-xl">
-                        😍
-                      </span>
-                      <span role="img" aria-label="smile" className="text-xl">
-                        🥲
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <button
-                        className="text-white hover:text-purple-400 transition-colors"
-                        onClick={() => setExpanded((e) => !e)}
-                        title={expanded ? "Exit Fullscreen" : "Expand"}
-                      >
-                        <LuExpand className="w-5 h-5" />
-                      </button>
-                      <button
-                        className="text-white hover:text-purple-400 transition-colors"
-                        onClick={() => {
-                          if (analyticsIdRef.current) {
-                            updateEndTime();
-                          }
-                          navigate(-1);
-                        }}
-                        title="Close Game"
-                      >
-                        <LuX className="w-5 h-5" />
-                      </button>
-                    </div>
+                  <div className="flex items-center space-x-3">
+                    <button
+                      className="text-white hover:text-purple-400"
+                      onClick={() => setExpanded((e) => !e)}
+                      title="Exit Fullscreen"
+                    >
+                      <LuExpand className="w-5 h-5" />
+                    </button>
+                    <button
+                      className="text-white hover:text-purple-400"
+                      onClick={() => navigate(-1)}
+                      title="Close Game"
+                    >
+                      <LuX className="w-5 h-5" />
+                    </button>
                   </div>
                 </div>
               )}
@@ -254,76 +239,64 @@ export default function GamePlay() {
             {!expanded && (
               <div className="flex items-center justify-between px-6 py-2 bg-[#2d0036] border-t border-purple-400 rounded-b-2xl">
                 <span className="text-white text-sm font-semibold">
-                  {game.title}
+                  {currentGame.title}
                 </span>
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2">
-                    <span role="img" aria-label="smile" className="text-xl">
-                      😍
-                    </span>
-                    <span role="img" aria-label="smile" className="text-xl">
-                      🥲
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <button
-                      className="text-white hover:text-purple-400 transition-colors"
-                      onClick={() => setExpanded((e) => !e)}
-                      title={expanded ? "Exit Fullscreen" : "Expand"}
-                    >
-                      <LuExpand className="w-5 h-5" />
-                    </button>
-                    <button
-                      className="text-white hover:text-purple-400 transition-colors"
-                      onClick={() => {
-                        if (analyticsIdRef.current) {
-                          updateEndTime();
-                        }
-                        navigate(-1);
-                      }}
-                      title="Close Game"
-                    >
-                      <LuX className="w-5 h-5" />
-                    </button>
-                  </div>
+                <div className="flex items-center space-x-3">
+                  <button
+                    className="text-white hover:text-purple-400"
+                    onClick={() => setExpanded((e) => !e)}
+                    title="Expand"
+                  >
+                    <LuExpand className="w-5 h-5" />
+                  </button>
+                  <button
+                    className="text-white hover:text-purple-400"
+                    onClick={() => navigate(-1)}
+                    title="Close Game"
+                  >
+                    <LuX className="w-5 h-5" />
+                  </button>
                 </div>
               </div>
             )}
           </div>
-
-          {/* Similar Games section */}
-          {!expanded && game.similarGames && game.similarGames.length > 0 && (
-            <div className="dark:bg-[#18181b] p-2">
-              <h2 className="text-2xl font-semibold dark:text-white text-[#18181b] mb-4 px-4">
-                Similar Games
-              </h2>
-              <Card className="border-hidden shadow-none p-0 bg-transparent">
-                <div className="grid gap-[8px] w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 justify-items-center">
-                  {game.similarGames.map((similarGame: SimilarGame) => (
-                    <div key={similarGame.id} className="relative p-[10px] group cursor-pointer w-full max-w-[360px]">
-                      <img
-                        src={similarGame.thumbnailFile?.s3Key}
-                        alt={similarGame.title}
-                        loading="lazy"
-                        className="w-full h-[290px] min-h-[290px] max-h-[290px] object-cover rounded-[18px] border-4 border-transparent group-hover:border-[#D946EF] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(217,70,239,0.3)]"
-                        onClick={() => {
-                          if (analyticsIdRef.current) {
-                            updateEndTime();
+          {/* Similar Games Section */}
+          {!expanded &&
+            currentGame.similarGames &&
+            currentGame.similarGames.length > 0 && (
+              <div className="dark:bg-[#18181b] p-2">
+                <h2 className="text-2xl font-semibold dark:text-white text-[#18181b] mb-4 px-4">
+                  Similar Games
+                </h2>
+                <Card className="border-hidden shadow-none p-0 bg-transparent">
+                  <div className="grid gap-[8px] w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 justify-items-center">
+                    {currentGame.similarGames.map(
+                      (similarGame: SimilarGame) => (
+                        <div
+                          key={similarGame.id}
+                          className="relative p-[10px] group cursor-pointer w-full max-w-[360px]"
+                          onClick={() =>
+                            navigate(`/gameplay/${similarGame.id}`)
                           }
-                          navigate(`/gameplay/${similarGame.id}`);
-                        }}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            </div>
-          )}
+                        >
+                          <img
+                            src={similarGame.thumbnailFile?.s3Key}
+                            alt={similarGame.title}
+                            loading="lazy"
+                            className="w-full h-[290px] object-cover rounded-[18px] border-4 border-transparent group-hover:border-[#D946EF]"
+                          />
+                        </div>
+                      )
+                    )}
+                  </div>
+                </Card>
+              </div>
+            )}
         </>
       ) : (
         <div className="flex items-center justify-center h-[80vh]">
           <span className="text-xl">
-            Game not found or no game file available
+            Game not found or no game file available.
           </span>
         </div>
       )}

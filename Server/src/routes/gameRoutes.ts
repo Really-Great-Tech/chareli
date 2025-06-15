@@ -3,19 +3,24 @@ import {
   getAllGames,
   getGameById,
   createGame,
+  getGameSessionCookies,
   updateGame,
   deleteGame,
   uploadGameFiles,
-  uploadGameFilesForUpdate
+  uploadGameFilesForUpdate,
 } from '../controllers/gameController';
 import { authenticate, isAdmin } from '../middlewares/authMiddleware';
-import { validateBody, validateParams, validateQuery } from '../middlewares/validationMiddleware';
+import {
+  validateBody,
+  validateParams,
+  validateQuery,
+} from '../middlewares/validationMiddleware';
 import { apiLimiter } from '../middlewares/rateLimitMiddleware';
 import {
   createGameSchema,
   updateGameSchema,
   gameIdParamSchema,
-  gameQuerySchema
+  gameQuerySchema,
 } from '../validation';
 
 const router = Router();
@@ -32,7 +37,19 @@ router.use(apiLimiter);
 
 // Game routes
 router.post('/', uploadGameFiles, createGame);
-router.put('/:id', validateParams(gameIdParamSchema), uploadGameFilesForUpdate, updateGame);
+router.put(
+  '/:id',
+  validateParams(gameIdParamSchema),
+  uploadGameFilesForUpdate,
+  updateGame
+);
 router.delete('/:id', validateParams(gameIdParamSchema), deleteGame);
+
+router.post(
+  '/:id/session',
+  authenticate,
+  validateParams(gameIdParamSchema),
+  getGameSessionCookies
+);
 
 export default router;

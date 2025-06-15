@@ -17,7 +17,7 @@ env:
   IMAGE_TAG_SERVER_COMMIT: server-testing-${{ github.sha }}
   IMAGE_TAG_SERVER_FIXED: latest
 
-  S3_BUCKET_CLIENT: chareli-games-testing-17a8ee85
+  S3_BUCKET_CLIENT: chareli-react-app-testing-17a8ee85
   CLOUDFRONT_DISTRIBUTION_ID_CLIENT: E2WCPWTTVYOMQR
 
   TEST_DISCORD_WEBHOOK: https://discordapp.com/api/webhooks/1383471955394433126/NP0eSZWI3usTVMdbnFbxDlc6sOEcmihbT3ioBs5ehLcy-PRyNZhcL8qw8MfjyNHI7Bbx

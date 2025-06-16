@@ -217,11 +217,26 @@ export class CloudFrontService implements CloudFrontServiceInterface {
         const hasSignatureCookie = !!testCookies['CloudFront-Signature'];
         const hasKeyPairIdCookie = !!testCookies['CloudFront-Key-Pair-Id'];
         
+        // Add detailed debugging information
+        status.cookieDetails = {
+          totalCookies: Object.keys(testCookies).length,
+          cookieNames: Object.keys(testCookies),
+          hasPolicyCookie,
+          hasSignatureCookie,
+          hasKeyPairIdCookie,
+          policyCookieSize: testCookies['CloudFront-Policy']?.length || 0,
+          signatureCookieSize: testCookies['CloudFront-Signature']?.length || 0
+        };
+        
         if (hasPolicyCookie && hasSignatureCookie && hasKeyPairIdCookie) {
           cookieGenerationStatus = '✅ Working';
         } else {
           cookieGenerationStatus = '❌ Incomplete Cookies Generated';
-          status.errors.push('Cookie generation is incomplete - some cookies are missing');
+          const missingCookies = [];
+          if (!hasPolicyCookie) missingCookies.push('CloudFront-Policy');
+          if (!hasSignatureCookie) missingCookies.push('CloudFront-Signature');
+          if (!hasKeyPairIdCookie) missingCookies.push('CloudFront-Key-Pair-Id');
+          status.errors.push(`Missing cookies: ${missingCookies.join(', ')}`);
         }
       } catch (error) {
         cookieGenerationStatus = `❌ Failed: ${error instanceof Error ? error.message : 'Unknown error'}`;

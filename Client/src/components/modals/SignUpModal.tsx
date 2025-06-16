@@ -202,7 +202,7 @@ export function SignUpModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <CustomDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221] h-[650px]">
+      <CustomDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221] h-fit">
         {/* Custom Close Button */}
         <button
           className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#C026D3] flex items-center justify-center shadow-lg hover:bg-[#a21caf] transition-colors"
@@ -212,7 +212,7 @@ export function SignUpModal({
         >
           <span className="text-white text-2xl font-bold">×</span>
         </button>
-        <DialogHeader className="h-full">
+        <DialogHeader className="h-fit">
           <DialogTitle className="text-2xl font-bold text-[#E328AF] text-center font-boogaloo">
             Sign Up
           </DialogTitle>
@@ -227,7 +227,7 @@ export function SignUpModal({
             >
               {({ isSubmitting }) => (
                 <Form className="space-y-1 flex flex-col h-full">
-                  <div className="h-[95%] overflow-auto pb-8 custom-scrollbar">
+                  <div className="overflow-auto pb-8 custom-scrollbar">
                     {/* Authentication Fields */}
                     {(() => {
                       const fields = getAuthFields(config);
@@ -263,7 +263,7 @@ export function SignUpModal({
                           )}
 
                           {(fields.showAll || fields.showPhone) && (
-                            <div className="relative">
+                            <div className="relative pt-4">
                               <Label
                                 htmlFor="phoneNumber"
                                 className="font-boogaloo text-base text-black dark:text-white"

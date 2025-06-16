@@ -10,6 +10,7 @@ export interface CloudFrontServiceInterface {
   transformS3UrlToCloudFront(s3Url: string): Promise<string>;
   transformS3KeyToCloudFront(s3Key: string): Promise<string>;
   getSignedCookies(resourcePath: string): { [key: string]: string };
+  getConfigurationStatus(): Promise<any>;
 }
 
 export class CloudFrontService implements CloudFrontServiceInterface {
@@ -152,6 +153,118 @@ export class CloudFrontService implements CloudFrontServiceInterface {
     }
     // ... rest of the transformation logic
     return s3Url; // Placeholder
+  }
+
+  
+  public async getConfigurationStatus(): Promise<any> {
+    const status: any = {
+      timestamp: new Date().toISOString(),
+      configuration: {
+        distributionDomain: this.distributionDomain || '❌ MISSING',
+        keyPairId: this.keyPairId || '❌ MISSING',
+        secretName: 'chareli/testing/cloudfront_private_key',
+        privateKey: 'Unknown'
+      },
+      initialization: {
+        isInitialized: this.isInitialized,
+        hasPrivateKey: !!this.privateKey,
+        initializationStarted: !!this.initializationPromise,
+        cookieGeneration: 'Not Tested'
+      },
+      missing: [] as string[],
+      errors: [] as string[],
+      overall: 'Unknown',
+      devOpsAction: null,
+      troubleshooting: null
+    };
+
+    // Check what's missing from environment variables
+    if (!this.distributionDomain) {
+      status.missing.push('CLOUDFRONT_DISTRIBUTION_DOMAIN');
+    }
+    if (!this.keyPairId) {
+      status.missing.push('CLOUDFRONT_KEY_PAIR_ID');
+    }
+
+    // Test private key retrieval
+    let privateKeyStatus = 'Unknown';
+    try {
+      if (this.initializationPromise) {
+        await this.initializationPromise;
+        if (this.isInitialized && this.privateKey) {
+          privateKeyStatus = '✅ Retrieved Successfully';
+        } else {
+          privateKeyStatus = '❌ Failed to Retrieve';
+          status.errors.push('Private key could not be retrieved from AWS Secrets Manager');
+        }
+      } else {
+        privateKeyStatus = '❌ Initialization Not Started';
+        status.errors.push('CloudFront service initialization was not started');
+      }
+    } catch (error) {
+      privateKeyStatus = `❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`;
+      status.errors.push(`Private key retrieval failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+
+    status.configuration.privateKey = privateKeyStatus;
+
+    // Test cookie generation if everything is configured
+    let cookieGenerationStatus = 'Not Tested';
+    if (status.missing.length === 0 && this.isInitialized) {
+      try {
+        const testCookies = this.getSignedCookies('test/*');
+        const hasPolicyCookie = !!testCookies['CloudFront-Policy'];
+        const hasSignatureCookie = !!testCookies['CloudFront-Signature'];
+        const hasKeyPairIdCookie = !!testCookies['CloudFront-Key-Pair-Id'];
+        
+        if (hasPolicyCookie && hasSignatureCookie && hasKeyPairIdCookie) {
+          cookieGenerationStatus = '✅ Working';
+        } else {
+          cookieGenerationStatus = '❌ Incomplete Cookies Generated';
+          status.errors.push('Cookie generation is incomplete - some cookies are missing');
+        }
+      } catch (error) {
+        cookieGenerationStatus = `❌ Failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
+        status.errors.push(`Cookie generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    } else {
+      cookieGenerationStatus = '⏸️ Skipped (Missing Configuration)';
+    }
+
+    status.initialization.cookieGeneration = cookieGenerationStatus;
+
+    // Overall status
+    const isFullyConfigured = status.missing.length === 0 && status.errors.length === 0;
+    status.overall = isFullyConfigured ? 
+      '✅ CloudFront Fully Configured and Working' : 
+      '🚨 CloudFront Configuration Issues Detected';
+
+    // DevOps action items
+    if (status.missing.length > 0) {
+      status.devOpsAction = {
+        message: 'Set the following environment variables:',
+        required: status.missing,
+        examples: {
+          'CLOUDFRONT_DISTRIBUTION_DOMAIN': 'd2ns3zhxgoe7jt.cloudfront.net',
+          'CLOUDFRONT_KEY_PAIR_ID': 'K1MG939NUWLVLL'
+        }
+      };
+    }
+
+    if (status.errors.length > 0) {
+      status.troubleshooting = {
+        message: 'The following issues need to be resolved:',
+        issues: status.errors,
+        commonSolutions: [
+          'Verify AWS Secrets Manager contains the private key at: chareli/testing/cloudfront_private_key',
+          'Check AWS credentials and permissions for Secrets Manager access',
+          'Ensure CloudFront distribution domain is correct',
+          'Verify CloudFront Key Pair ID matches the private key'
+        ]
+      };
+    }
+
+    return status;
   }
 }
 

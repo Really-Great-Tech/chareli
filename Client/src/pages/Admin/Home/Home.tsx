@@ -7,9 +7,8 @@ import StatsCard from "./StatsCard";
 import PieChart from '../../../components/charts/piechart';
 import { useState } from 'react';
 import { useSignupAnalyticsData } from '../../../backend/signup.analytics.service';
-import { useUsersAnalytics } from '../../../backend/analytics.service';
-import { useSystemConfigByKey } from '../../../backend/configuration.service';
-import KeepPlayingModal from '../../../components/modals/KeepPlayingModal';
+import { useDashboardAnalytics } from '../../../backend/analytics.service';
+import AdminKeepPlayingModal from '../../../components/modals/AdminKeepPlayingModal';
 import { MostPlayedGames } from './MostPlayedGames';
 import { RecentUserActivity } from './RecentUserActivity';
 
@@ -17,15 +16,9 @@ export default function Home() {
 
   const [isAcceptInviteOpen, setIsAcceptInviteOpen] = useState(false);
   const [showKeepPlayingModal, setShowKeepPlayingModal] = useState(false);
-  const { data: popupConfig } = useSystemConfigByKey('popup');
 
   const handleShowPopup = () => {
-    if (popupConfig?.value?.enabled) {
-      const delay = (popupConfig?.value?.delay || 3) * 1000;
-      setTimeout(() => {
-        setShowKeepPlayingModal(true);
-      }, delay);
-    }
+    setShowKeepPlayingModal(true);
   };
   return (
     <div>
@@ -48,7 +41,6 @@ export default function Home() {
             <Card className="bg-[#F8FAFC] dark:bg-[#0F1221] shadow-none border-none mx-3 p-4">
               <div className="justify-end flex flex-col p-3 space-y-4">
                 <p className="text-lg">User View</p>
-                <p className="text-lg">Pop-Up will appear after {popupConfig?.value?.delay || 3} seconds</p>
                 <Button 
                   onClick={handleShowPopup}
                   className="w-32 bg-[#D946EF] hover:bg-[#C026D3] text-white transition-colors duration-200"
@@ -93,9 +85,9 @@ export default function Home() {
       </div>
 
       <AcceptInvitationModal open={isAcceptInviteOpen} onOpenChange={setIsAcceptInviteOpen} isExistingUser={true} />
-      <KeepPlayingModal 
+      <AdminKeepPlayingModal 
         open={showKeepPlayingModal} 
-        openSignUpModal={() => setShowKeepPlayingModal(false)}
+        onClose={() => setShowKeepPlayingModal(false)}
         isGameLoading={false}
       />
     </div>
@@ -105,19 +97,21 @@ export default function Home() {
 // Separate component for signup click insights
 function SignupClickInsights() {
   const { data: signupAnalytics, isLoading: analyticsLoading } = useSignupAnalyticsData();
-  const { data: usersWithAnalytics, isLoading: usersLoading } = useUsersAnalytics();
+  // const { data: usersWithAnalytics, isLoading: usersLoading } = useUsersAnalytics();
+  const { data: dashboardAnalytics, isLoading: usersLoading } = useDashboardAnalytics();
   
   if (analyticsLoading || usersLoading) {
     return <div className="text-center py-4">Loading...</div>;
   }
   
-  if (!signupAnalytics || !usersWithAnalytics) {
+  if (!signupAnalytics || !dashboardAnalytics) {
     return <div className="text-center py-4">No data available</div>;
   }
 
   // Total registered users is the verified count
-  const verifiedCount = usersWithAnalytics.length;
-  const didntRegisterCount = signupAnalytics.totalClicks - verifiedCount;
+  // Defaulting to one because Super Admin is created behind the system as part of all users 
+  const verifiedCount = dashboardAnalytics?.totalRegisteredUsers?.current;
+  const didntRegisterCount = (signupAnalytics.totalClicks) - verifiedCount;
 
   const chartData = [
     { name: "Didn't register", value: didntRegisterCount, fill: "#F3C7FA" },

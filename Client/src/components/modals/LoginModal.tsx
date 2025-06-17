@@ -19,6 +19,7 @@ import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import "../../styles/phone-input.css";
 import { useNavigate } from "react-router-dom";
+import { isValidRole } from "../../utils/main";
 
 interface LoginDialogProps {
   open: boolean;
@@ -35,17 +36,24 @@ interface LoginFormValues {
 }
 
 interface LoginResponse {
+  success?: boolean;
   userId: string;
   hasEmail: boolean;
   hasPhone: boolean;
   phoneNumber?: string;
   email?: string;
   requiresOtp: boolean;
-  otpType?: "EMAIL" | "SMS" | "BOTH";
+  role: string;
+  otpType?: "EMAIL" | "SMS" | "NONE";
   message: string;
   tokens?: {
     accessToken: string;
     refreshToken: string;
+  };
+  debug?: {
+    error: string;
+    type: string;
+    timestamp: string;
   };
 }
 
@@ -83,18 +91,22 @@ export function LoginModal({
   const [loginError, setLoginError] = useState("");
   const [isForgotPasswordModalOpen, setIsForgotPasswordModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"email" | "phone">("email");
-  const [shouldRedirect, setShouldRedirect] = useState(false);
-  const { login, isAuthenticated } = useAuth();
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const { login } = useAuth();
   const navigate = useNavigate();
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
-  // Watch for authentication state changes
+  // Clear error message when switching tabs
   useEffect(() => {
-    if (shouldRedirect && isAuthenticated) {
-      navigate("/");
-      setShouldRedirect(false);
+    setLoginError("");
+  }, [activeTab]);
+
+  // Clear error message when modal is opened/closed
+  useEffect(() => {
+    if (!open) {
+      setLoginError("");
     }
-  }, [shouldRedirect, isAuthenticated, navigate]);
+  }, [open]);
 
   const handleLogin = async (
     values: LoginFormValues,
@@ -102,6 +114,7 @@ export function LoginModal({
   ) => {
     try {
       setLoginError("");
+      setIsLoggingIn(true);
       const credentials: LoginCredentials = {
         identifier: activeTab === "email" ? values.email! : values.phoneNumber!,
         password: values.password,
@@ -109,26 +122,51 @@ export function LoginModal({
 
       const response: LoginResponse = await login(credentials);
       setLoginResponse(response);
-      setLoginError(""); 
+      setLoginError("");
+
+      // Check if login failed due to configuration or service issues
+      if (response.success === false) {
+        // Handle structured error responses
+        setLoginError(response.message);
+        toast.error(response.message);
+        
+        // Log debug info for developers (only in development)
+        if (response.debug && process.env.NODE_ENV !== 'production') {
+          console.error('Login Debug Info:', response.debug);
+        }
+        
+        setIsLoggingIn(false);
+        return;
+      }
 
       if (response.requiresOtp) {
-        // Show OTP verification modal and info message
         setIsOTPVerificationModalOpen(true);
         onOpenChange(false);
         toast.info(response.message);
+        setIsLoggingIn(false);
       } else {
         // No OTP required, show success and redirect
         toast.success(response.message);
-        setShouldRedirect(true);
+        if (isValidRole(response.role)) {
+          navigate("/admin");
+        } else {
+          navigate("/");
+        }
         onOpenChange(false);
+        setIsLoggingIn(false);
       }
     } catch (error: any) {
+      setIsLoggingIn(false);
       if (error.response?.data?.message) {
         setLoginError(error.response.data.message);
         toast.error(error.response.data.message);
       } else {
-        setLoginError("Invalid email or password. Please try again.");
-        toast.error("Invalid email or password. Please try again.");
+        const errorMsg =
+          activeTab === "phone"
+            ? "Invalid phone number or password. Please try again."
+            : "Invalid email or password. Please try again.";
+        setLoginError(errorMsg);
+        toast.error(errorMsg);
       }
     } finally {
       actions.setSubmitting(false);
@@ -136,7 +174,10 @@ export function LoginModal({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog 
+      open={open && !isLoggingIn} 
+      onOpenChange={isLoggingIn ? () => {} : onOpenChange}
+    >
       <CustomDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221] p-0">
         {/* Custom Close Button */}
         <button
@@ -154,21 +195,19 @@ export function LoginModal({
           <div className="flex font-boogaloo text-xl tracking-wide">
             <div className="px-6 flex w-full border-b">
               <button
-                className={`flex-1 py-2 font-semibold ${
-                  activeTab === "email"
+                className={`flex-1 py-2 font-semibold ${activeTab === "email"
                     ? "text-[#E328AF] border-b-2 border-[#E328AF]"
                     : "text-gray-500"
-                }`}
+                  }`}
                 onClick={() => setActiveTab("email")}
               >
                 Email
               </button>
               <button
-                className={`flex-1 py-2 font-semibold ${
-                  activeTab === "phone"
+                className={`flex-1 py-2 font-semibold ${activeTab === "phone"
                     ? "text-[#E328AF] border-b-2 border-[#E328AF]"
                     : "text-gray-500"
-                }`}
+                  }`}
                 onClick={() => setActiveTab("phone")}
               >
                 Phone Number
@@ -263,9 +302,8 @@ export function LoginModal({
                             ? "Enter your email"
                             : "Enter your phone number"
                         }
-                        className={`mt-1 bg-[#E2E8F0] border-0 pl-10 font-boogaloo text-xl tracking-wider font-normal h-[48px] ${
-                          activeTab === "email" ? "pl-10" : ""
-                        }`}
+                        className={`mt-1 bg-[#E2E8F0] border-0 pl-10 font-boogaloo text-xl tracking-wider font-normal h-[48px] ${activeTab === "email" ? "pl-10" : ""
+                          }`}
                       />
                     )}
                   </div>
@@ -357,9 +395,9 @@ export function LoginModal({
         onOpenChange={setIsOTPVerificationModalOpen}
         userId={loginResponse?.userId || ""}
         contactMethod={
-          loginResponse?.otpType === "BOTH" && loginResponse?.email && loginResponse?.phoneNumber
-            ? `${loginResponse.email} and ${loginResponse.phoneNumber}`
-            : loginResponse?.email || loginResponse?.phoneNumber || ""
+          loginResponse?.otpType === "EMAIL" ? (loginResponse?.email || "your registered email") :
+          loginResponse?.otpType === "SMS" ? (loginResponse?.phoneNumber || "your registered phone number") :
+          "your registered contact method"
         }
         otpType={loginResponse?.otpType}
       />

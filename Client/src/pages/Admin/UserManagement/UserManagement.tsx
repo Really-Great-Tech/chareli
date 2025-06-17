@@ -1,28 +1,41 @@
-import { useState } from 'react'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../../components/ui/table";
+import { useState } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../../components/ui/table";
 import { Card } from "../../../components/ui/card";
-import { UserManagementFilterSheet } from '../../../components/single/UserMgtFilter-Sheet';
-import { Button } from '../../../components/ui/button';
-import { RiEqualizer2Line } from 'react-icons/ri';
+import { UserManagementFilterSheet } from "../../../components/single/UserMgtFilter-Sheet";
+import { Button } from "../../../components/ui/button";
+import { RiEqualizer2Line } from "react-icons/ri";
 import ExportModal from "../../../components/modals/AdminModals/ExportModal";
 import { useNavigate } from "react-router-dom";
-import { useUsersAnalytics, useGamesAnalytics } from '../../../backend/analytics.service';
-import type { FilterState, GameAnalytics } from '../../../backend/analytics.service';
-import { NoResults } from '../../../components/single/NoResults';
-import { formatTime } from '../../../utils/main';
+import {
+  useUsersAnalytics,
+  useGamesAnalytics,
+} from "../../../backend/analytics.service";
+import type {
+  FilterState,
+  GameAnalytics,
+} from "../../../backend/analytics.service";
+import { NoResults } from "../../../components/single/NoResults";
+import { formatTime } from "../../../utils/main";
 
 export default function UserManagement() {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState<FilterState>({
     registrationDates: {
-      startDate: '',
-      endDate: ''
+      startDate: "",
+      endDate: "",
     },
-    sessionCount: '',
+    sessionCount: "",
     timePlayed: {
       min: 0,
-      max: 0
+      max: 0,
     },
     gameTitle: '',
     gameCategory: '',
@@ -34,7 +47,7 @@ export default function UserManagement() {
   const { data: games } = useGamesAnalytics();
   const usersPerPage = 12;
 
-  console.log("users for analytics", users)
+  console.log("users for analytics", users);
 
   const handleFiltersChange = (newFilters: FilterState) => {
     setFilters(newFilters);
@@ -44,13 +57,13 @@ export default function UserManagement() {
   const handleFilterReset = () => {
     setFilters({
       registrationDates: {
-        startDate: '',
-        endDate: ''
+        startDate: "",
+        endDate: "",
       },
-      sessionCount: '',
+      sessionCount: "",
       timePlayed: {
         min: 0,
-        max: 0
+        max: 0,
       },
       gameTitle: '',
       gameCategory: '',
@@ -59,8 +72,6 @@ export default function UserManagement() {
     });
     setPage(1);
   };
-
-  
 
   // Filter and sort users based on criteria
   const filteredUsers = users?.filter(user => {
@@ -82,9 +93,11 @@ export default function UserManagement() {
 
 
   return (
-    <div className='px-3'>
+    <div className="px-3">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-[#D946EF] text-3xl font-boogaloo">User Management</h1>
+        <h1 className="text-[#D946EF] text-3xl font-boogaloo">
+          User Management
+        </h1>
         <div className="flex gap-3">
           <UserManagementFilterSheet
             filters={filters}
@@ -97,20 +110,22 @@ export default function UserManagement() {
             >
               Filter
               <div className='text-[#D946EF] bg-[#FAE8FF] px-3 py-1 rounded-full'>
-                {Object.values(filters).filter(value => 
-                  typeof value === 'object' 
+                {Object.entries(filters).filter(([, value]) =>
+                  typeof value === 'object'
                     ? Object.values(value).some(v => v !== '' && v !== 0)
-                    : value !== ''
+                    : typeof value === 'boolean'
+                      ? value === true
+                      : value !== ''
                 ).length}
               </div>
               <RiEqualizer2Line size={32} />
             </Button>
           </UserManagementFilterSheet>
-            <ExportModal 
-              data={filteredUsers || []}
-              title="Export User Data"
-              description="Choose the format you'd like to export your user data"
-            />
+          <ExportModal
+            data={filteredUsers || []}
+            title="Export User Data"
+            description="Choose the format you'd like to export your user data"
+          />
         </div>
       </div>
       <div className="col-span-1 md:col-span-2 lg:col-span-4">
@@ -124,79 +139,126 @@ export default function UserManagement() {
             {isLoading ? (
               <div className="text-center py-4">Loading...</div>
             ) : !filteredUsers?.length ? (
-              <NoResults 
+              <NoResults
                 title={users?.length ? "No matching results" : "No users found"}
-                message={users?.length 
-                  ? "Try adjusting your filters or search criteria"
-                  : "There are no users in the system yet"
+                message={
+                  users?.length
+                    ? "Try adjusting your filters or search criteria"
+                    : "There are no users in the system yet"
                 }
               />
             ) : (
               <>
                 <Table>
-                    <TableHeader>
-                      <TableRow className="text-xl text-bold">
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Phone</TableHead>
-                        <TableHead>Registration Date</TableHead>
-                        <TableHead>Games Played</TableHead>
-                        <TableHead>Time Played</TableHead>
-                        <TableHead>Session count</TableHead>
-                        <TableHead>Last Login</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredUsers && filteredUsers.slice((page - 1) * usersPerPage, page * usersPerPage).map((user, idx) => (
-                        <TableRow
-                          key={idx}
-                          className="font-pincuk text-md tracking-wider cursor-pointer hover:bg-[#f3e8ff] dark:hover:bg-[#23243a]"
-                          onClick={() => navigate(`/admin/management/${user.id}`, { state: { user } })}
-                        >
-                          <TableCell className="text-lg">{`${user.firstName || ""} ${user.lastName || ""}`}</TableCell>
-                          <TableCell className="text-lg">{user.email || '-'}</TableCell>
-                          <TableCell className="">{user.phoneNumber || '-'}</TableCell>
-                          <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
-                          <TableCell>{user.analytics?.totalGamesPlayed || 0}</TableCell>
-                          <TableCell className="text-lg">{formatTime(user.analytics?.totalTimePlayed || 0)}</TableCell>
-                          <TableCell>{user.analytics?.totalSessionCount || 0}</TableCell>
-                          <TableCell>
-                            <span className="flex items-center gap-2">
-                              <div className="bg-[#94A3B7] p-2 rounded-lg">
-                                <span className={`inline-block w-2 h-2 rounded-full ${user.lastLoggedIn ? 'bg-green-500' : 'bg-red-500'}`} />
-                                <span className="rounded px-2 py-1 text-white font-semibold text-sm">
-                                  {user.lastLoggedIn ? 
-                                    new Date(user.lastLoggedIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) 
-                                    : 'Never logged in'}
-                                </span>
-                              </div>
-                            </span>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                  <div className="flex justify-between items-center mt-4">
-                    <span className="text-sm">
-                      Showing {((page - 1) * usersPerPage) + 1}-{Math.min(page * usersPerPage, filteredUsers?.length || 0)} from {filteredUsers?.length || 0} data
-                    </span>
-                    <div className="flex items-center gap-2 rounded-xl space-x-4 pr-1 pl-0.5 border border-[#D946EF] dark:text-white">
-                      {Array.from({ length: Math.ceil((filteredUsers?.length || 0) / usersPerPage) }, (_, i) => (
+                  <TableHeader>
+                    <TableRow className="text-xl text-bold">
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>Registration Date</TableHead>
+                      <TableHead>Games Played</TableHead>
+                      <TableHead>Time Played</TableHead>
+                      <TableHead>Session count</TableHead>
+                      <TableHead>Last Login</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredUsers &&
+                      filteredUsers
+                        .slice((page - 1) * usersPerPage, page * usersPerPage)
+                        .map((user, idx) => (
+                          <TableRow
+                            key={idx}
+                            className="font-pincuk text-md tracking-wider cursor-pointer hover:bg-[#f3e8ff] dark:hover:bg-[#23243a]"
+                            onClick={() =>
+                              navigate(`/admin/management/${user.id}`, {
+                                state: { user },
+                              })
+                            }
+                          >
+                            <TableCell className="text-lg">{`${
+                              user.firstName || ""
+                            } ${user.lastName || ""}`}</TableCell>
+                            <TableCell className="text-lg">
+                              {user.email || "-"}
+                            </TableCell>
+                            <TableCell className="">
+                              {user.phoneNumber || "-"}
+                            </TableCell>
+                            <TableCell>
+                              {new Date(user.createdAt).toLocaleDateString()}
+                            </TableCell>
+                            <TableCell>
+                              {user.analytics?.totalGamesPlayed || 0}
+                            </TableCell>
+                            <TableCell className="text-lg">
+                              {formatTime(user.analytics?.totalTimePlayed || 0)}
+                            </TableCell>
+                            <TableCell>
+                              {user.analytics?.totalSessionCount || 0}
+                            </TableCell>
+                            <TableCell>
+                              <span className="flex items-center gap-2">
+                                <div className="bg-[#94A3B7] p-2 rounded-lg">
+                                  <span
+                                    className={`inline-block w-2 h-2 rounded-full ${
+                                      user.lastLoggedIn
+                                        ? "bg-green-500"
+                                        : "bg-red-500"
+                                    }`}
+                                  />
+                                  <span className="rounded px-2 py-1 text-white font-semibold text-sm">
+                                    {user.lastLoggedIn
+                                      ? new Date(
+                                          user.lastLoggedIn
+                                        ).toLocaleTimeString("en-US", {
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                          hour12: true,
+                                        })
+                                      : "Never logged in"}
+                                  </span>
+                                </div>
+                              </span>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                  </TableBody>
+                </Table>
+                <div className="flex justify-between items-center mt-4">
+                  <span className="text-sm">
+                    Showing {(page - 1) * usersPerPage + 1}-
+                    {Math.min(page * usersPerPage, filteredUsers?.length || 0)}{" "}
+                    from {filteredUsers?.length || 0} data
+                  </span>
+                  <div className="flex items-center gap-2 rounded-xl space-x-4 pr-1 pl-0.5 border border-[#D946EF] dark:text-white">
+                    {Array.from(
+                      {
+                        length: Math.ceil(
+                          (filteredUsers?.length || 0) / usersPerPage
+                        ),
+                      },
+                      (_, i) => (
                         <button
                           key={i + 1}
-                          className={`w-7 h-7 rounded-full ${page === i + 1 ? "bg-[#D946EF] text-white" : "bg-transparent text-[#D946EF]"} hover:bg-[#f3e8ff]`}
+                          className={`w-7 h-7 rounded-full ${
+                            page === i + 1
+                              ? "bg-[#D946EF] text-white"
+                              : "bg-transparent text-[#D946EF]"
+                          } hover:bg-[#f3e8ff]`}
                           onClick={() => setPage(i + 1)}
                         >
                           {i + 1}
                         </button>
-                      ))}
-                    </div>
+                      )
+                    )}
                   </div>
-                </>
-              )}
+                </div>
+              </>
+            )}
           </div>
         </Card>
       </div>
     </div>
-  )
+  );
 }

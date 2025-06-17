@@ -1,10 +1,11 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { backendService } from '../backend/api.service';
 import type { User, LoginCredentials } from '../backend/types';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { BackendRoute } from '../backend/constants';
+import { sendHeartbeat } from '../backend/user.service';
 
 interface LoginResponse {
   userId: string;
@@ -13,7 +14,8 @@ interface LoginResponse {
   email?: string;
   phoneNumber?: string;
   requiresOtp: boolean;
-  otpType?: 'EMAIL' | 'SMS' | 'BOTH';
+  role: string;
+  otpType?: 'EMAIL' | 'SMS' | 'NONE';
   message: string;
   tokens?: {
     accessToken: string;
@@ -41,6 +43,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [keepPlayingRedirect, setKeepPlayingRedirect] = useState(false);
   const queryClient = useQueryClient();
+  const heartbeatIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -54,6 +57,48 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setIsLoading(false);
     }
   }, []);
+
+  // Heartbeat effect - runs when user authentication status changes
+  useEffect(() => {
+    if (user && !isLoading) {
+      // Start heartbeat interval when user is authenticated
+      const startHeartbeat = () => {
+        // Send initial heartbeat
+        sendHeartbeat().catch(console.error);
+        
+        // Set up interval to send heartbeat every 60 seconds
+        heartbeatIntervalRef.current = setInterval(() => {
+          sendHeartbeat().catch(console.error);
+        }, 60 * 1000); // 60 seconds
+      };
+
+      startHeartbeat();
+
+      // Also send heartbeat on page visibility change (when user comes back to tab)
+      const handleVisibilityChange = () => {
+        if (!document.hidden && user) {
+          sendHeartbeat().catch(console.error);
+        }
+      };
+
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+
+      return () => {
+        // Cleanup interval and event listener
+        if (heartbeatIntervalRef.current) {
+          clearInterval(heartbeatIntervalRef.current);
+          heartbeatIntervalRef.current = null;
+        }
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      };
+    } else {
+      // Clear heartbeat when user is not authenticated
+      if (heartbeatIntervalRef.current) {
+        clearInterval(heartbeatIntervalRef.current);
+        heartbeatIntervalRef.current = null;
+      }
+    }
+  }, [user, isLoading]);
 
   const refreshUser = async (): Promise<User> => {
     try {
@@ -81,10 +126,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       requiresOtp, 
       otpType, 
       tokens, 
+      role
     } = response.data;
 
-    //forto display mesage from backend
     const message = (response as any)?.message
+
+    console.log(response.data, "login response")
 
     // If tokens are provided (no OTP case), save them and refresh user
     if (tokens) {
@@ -100,6 +147,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       hasEmail: !!email,
       hasPhone: !!phoneNumber,
       email,
+      role,
       phoneNumber,
       requiresOtp,
       otpType,
@@ -120,6 +168,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = () => {
+    // Clear heartbeat interval on logout
+    if (heartbeatIntervalRef.current) {
+      clearInterval(heartbeatIntervalRef.current);
+      heartbeatIntervalRef.current = null;
+    }
+    
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
     setUser(null);

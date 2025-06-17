@@ -11,14 +11,12 @@ import { SlEqualizer } from "react-icons/sl";
 import { RiTeamLine } from "react-icons/ri";
 import { IoChevronBackOutline, IoChevronForwardOutline } from "react-icons/io5";
 
-
-
 const menuItems = [
-  { 
-    title: "Home", 
-    icon: <FiHome size={20} />, 
-    path: "/admin" 
-},
+  {
+    title: "Home",
+    icon: <FiHome size={20} />,
+    path: "/admin",
+  },
   {
     title: "Game Management",
     icon: <IoGameControllerOutline size={20} />,
@@ -29,14 +27,16 @@ const menuItems = [
     icon: <MdOutlineCategory size={20} />,
     path: "/admin/categories",
   },
-  { title: "User Management", 
-    icon: <FaRegUser size={20} />, 
-    path: "/admin/management" 
-},
-  { title: "Team Management", 
-    icon: <RiTeamLine size={20} />, 
-    path: "/admin/team" 
-},
+  {
+    title: "User Management",
+    icon: <FaRegUser size={20} />,
+    path: "/admin/management",
+  },
+  {
+    title: "Team Management",
+    icon: <RiTeamLine size={20} />,
+    path: "/admin/team",
+  },
   {
     title: "Analytics",
     icon: <FaChartLine size={20} />,
@@ -59,17 +59,17 @@ const AdminLayout: React.FC = () => {
 
   // Check if current route is admin route and manage cursor override
   useEffect(() => {
-    const isAdminRoute = location.pathname.startsWith('/admin');
-    
+    const isAdminRoute = location.pathname.startsWith("/admin");
+
     if (isAdminRoute) {
-      document.body.classList.add('admin-route');
+      document.body.classList.add("admin-route");
     } else {
-      document.body.classList.remove('admin-route');
+      document.body.classList.remove("admin-route");
     }
 
     // Cleanup function to remove class when component unmounts
     return () => {
-      document.body.classList.remove('admin-route');
+      document.body.classList.remove("admin-route");
     };
   }, [location.pathname]);
 
@@ -80,13 +80,17 @@ const AdminLayout: React.FC = () => {
         <AdminNavbar />
       </div>
 
-      <div className="flex pt-[73px]"> {/* Add padding-top to account for fixed header */}
+      <div className="flex pt-[73px]">
+        {" "}
+        {/* Add padding-top to account for fixed header */}
         {/* Fixed sidebar with overlay on mobile */}
-        <div className={`fixed h-[calc(100vh-73px)] z-30 transition-all duration-300 transform ${
-          isSidebarCollapsed 
-            ? '-translate-x-full lg:translate-x-0 w-16' 
-            : 'translate-x-0 w-60'
-        }`}>
+        <div
+          className={`fixed h-[calc(100vh-73px)] z-30 transition-all duration-300 transform ${
+            isSidebarCollapsed
+              ? "-translate-x-full lg:translate-x-0 w-16"
+              : "translate-x-0 w-60"
+          }`}
+        >
           <aside className="h-full bg-white/95 dark:bg-[#0f1221]/95 backdrop-blur-sm transition-colors duration-300">
             <div className="flex flex-col h-full relative">
               <nav className="flex-1">
@@ -101,11 +105,15 @@ const AdminLayout: React.FC = () => {
                             isActive
                               ? "bg-[#D946EF] text-white"
                               : "hover:text-[#D946EF] hover:bg-[#F3E8FF] dark:text-white dark:hover:text-[#D946EF] text-[#121C2D]"
-                          } ${isSidebarCollapsed ? 'justify-center' : ''}`
+                          } ${isSidebarCollapsed ? "justify-center" : ""}`
                         }
                       >
-                        <span className={isSidebarCollapsed ? '' : 'mr-3'}>{item.icon}</span>
-                        {!isSidebarCollapsed && <span className="text-xl">{item.title}</span>}
+                        <span className={isSidebarCollapsed ? "" : "mr-3"}>
+                          {item.icon}
+                        </span>
+                        {!isSidebarCollapsed && (
+                          <span className="text-xl">{item.title}</span>
+                        )}
                       </NavLink>
                     </li>
                   ))}
@@ -115,22 +123,26 @@ const AdminLayout: React.FC = () => {
               <div className="border-t border-gray-200 dark:border-gray-800 p-4">
                 <button
                   onClick={toggleSidebar}
-                  className="absolute -right-4 bg-[#D946EF] dark:bg-[#D946EF] rounded-full p-1.5 text-white hover:bg-[#c026d3] dark:hover:bg-[#c026d3] shadow-lg transition-all duration-300"
-                  style={{ bottom: '20px' }}
+                  className={`absolute ${
+                    isSidebarCollapsed ? "-right-12" : "-right-4"
+                  } bg-[#D946EF] dark:bg-[#D946EF] rounded-full p-1.5 text-white hover:bg-[#c026d3] dark:hover:bg-[#c026d3] shadow-lg transition-all duration-300`}
+                  style={{ bottom: "20px" }}
                 >
-                  {isSidebarCollapsed ? 
-                    <IoChevronForwardOutline size={18} /> : 
+                  {isSidebarCollapsed ? (
+                    <IoChevronForwardOutline size={18} />
+                  ) : (
                     <IoChevronBackOutline size={18} />
-                  }
+                  )}
                 </button>
               </div>
             </div>
           </aside>
         </div>
-
         {/* Main content with responsive margins */}
-        <main 
-          className={`flex-1 transition-all duration-300 ${isSidebarCollapsed ? 'lg:ml-16' : 'ml-0 lg:ml-60'} bg-white dark:bg-[#0f1221] min-h-[calc(100vh-73px)] overflow-y-auto relative`}
+        <main
+          className={`flex-1 transition-all duration-300 ${
+            isSidebarCollapsed ? "lg:ml-16" : "ml-0 lg:ml-60"
+          } bg-white dark:bg-[#0f1221] min-h-[calc(100vh-73px)] overflow-y-auto relative`}
           onClick={() => {
             if (!isSidebarCollapsed && window.innerWidth < 1024) {
               setIsSidebarCollapsed(true);

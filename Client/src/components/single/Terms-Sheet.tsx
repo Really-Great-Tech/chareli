@@ -58,6 +58,7 @@ export function TermsSheet({ open, onOpenChange }: TermsSheetProps) {
       queryClient.invalidateQueries({ queryKey: [BackendRoute.SYSTEM_CONFIG, 'terms'] });
       toast.success('Terms file uploaded successfully');
       onOpenChange(false);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       toast.error('Failed to upload terms file');
     }
@@ -81,7 +82,7 @@ export function TermsSheet({ open, onOpenChange }: TermsSheetProps) {
                 <img src={uploadImg} alt="upload" className="dark:text-white" />
                 <input 
                   type="file" 
-                  accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
+                  accept=".doc,.docx"
                   className="hidden" 
                   onChange={handleFileChange}
                 />
@@ -92,6 +93,7 @@ export function TermsSheet({ open, onOpenChange }: TermsSheetProps) {
                 )}
               </label>
             </div>
+            <p className="mt-4 text-red-400">only doc/docx* files</p>
           </div>
         </form>
         <div className="flex gap-3 justify-end px-2 mt-4">

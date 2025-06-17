@@ -80,6 +80,14 @@ export function ResetPasswordOTPModal({
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221]">
+         <button
+          className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#C026D3] flex items-center justify-center shadow-lg hover:bg-[#a21caf] transition-colors"
+          onClick={() => onOpenChange(false)}
+          aria-label="Close"
+          style={{ border: "none" }}
+        >
+          <span className="text-white text-2xl font-bold">×</span>
+        </button>
         <AlertDialogHeader className="text-center">
           <AlertDialogTitle className="text-2xl font-bold dark:text-white text-black font-boogaloo">
             Reset Password Verification
@@ -88,7 +96,7 @@ export function ResetPasswordOTPModal({
             Enter the verification code we just sent to {contactMethod}
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <div className="flex justify-center my-4">
+        <div className="flex justify-center my-4">  
           <OTPInput
             value={otp}
             onChange={setOtp}

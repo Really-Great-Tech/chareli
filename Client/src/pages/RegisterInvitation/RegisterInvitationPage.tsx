@@ -36,7 +36,7 @@ export function RegisterInvitationPage() {
             <p className="text-gray-600 dark:text-gray-300 mb-6">
               This invitation link is invalid or has expired.
             </p>
-            <Button 
+            <Button
               onClick={() => navigate('/')}
               className="bg-[#D946EF] dark:text-white hover:text-[#D946EF] hover:bg-[#F3E8FF]"
             >
@@ -56,22 +56,22 @@ export function RegisterInvitationPage() {
             <h1 className="text-3xl font-boogaloo text-center mb-8">
               {(data as any)?.userExists ? 'Reset Password' : 'Complete Registration'}
             </h1>
-            
+
             {isSuccess ? (
               <div className="text-center">
                 <p className="text-gray-600 dark:text-gray-300 mb-6">
-                  {(data as any)?.userExists 
-                    ? 'Your password has been reset successfully.' 
+                  {(data as any)?.userExists
+                    ? 'Your password has been reset successfully.'
                     : 'Your account has been created successfully.'}
                 </p>
                 <div className="space-y-4">
-                  <Button 
+                  <Button
                     onClick={() => setIsLoginModalOpen(true)}
                     className="w-full bg-[#D946EF] dark:text-white hover:text-[#D946EF] hover:bg-[#F3E8FF]"
                   >
                     Log In Now
                   </Button>
-                  <Button 
+                  <Button
                     onClick={() => navigate('/')}
                     variant="outline"
                     className="w-full"
@@ -83,9 +83,9 @@ export function RegisterInvitationPage() {
             ) : (
               <>
                 {(data as any)?.userExists ? (
-                  <ResetPasswordForm 
-                    email={(data as any)?.email || ''} 
-                    token={token || ''} 
+                  <ResetPasswordForm
+                    email={(data as any)?.email || ''}
+                    token={token || ''}
                     onSuccess={() => {
                       toast.success('Password reset successful. Please log in.');
                       setIsSuccess(true);
@@ -93,9 +93,9 @@ export function RegisterInvitationPage() {
                     }}
                   />
                 ) : (
-                  <RegisterForm 
-                    email={(data as any)?.email || ''} 
-                    token={token || ''} 
+                  <RegisterForm
+                    email={(data as any)?.email || ''}
+                    token={token || ''}
                     onSuccess={() => {
                       toast.success('Registration successful. Please log in.');
                       setIsSuccess(true);
@@ -112,7 +112,7 @@ export function RegisterInvitationPage() {
       <LoginModal
         open={isLoginModalOpen}
         onOpenChange={setIsLoginModalOpen}
-        openSignUpModal={() => {}} // Not needed since we're in the registration flow
+        openSignUpModal={() => { }} // Not needed since we're in the registration flow
         defaultEmail={(data as any)?.email || ''}
         hideSignUpLink={true}
       />

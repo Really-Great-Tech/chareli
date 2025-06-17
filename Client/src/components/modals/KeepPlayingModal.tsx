@@ -2,6 +2,7 @@ import { useTrackSignupClick } from '../../backend/signup.analytics.service';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useSystemConfigByKey } from '../../backend/configuration.service';
+import { getVisitorSessionId } from '../../utils/sessionUtils';
 
 interface KeepPlayingModalProps {
   open: boolean;
@@ -15,7 +16,10 @@ export default function KeepPlayingModal({ open, isGameLoading }: KeepPlayingMod
   const { setKeepPlayingRedirect } = useAuth();
 
   const handleSignupClick = () => {
-    trackSignup({ type: 'keep-playing' });
+    trackSignup({ 
+      sessionId: getVisitorSessionId(),
+      type: 'keep-playing' 
+    });
     setKeepPlayingRedirect(true);
     navigate('/');
   };

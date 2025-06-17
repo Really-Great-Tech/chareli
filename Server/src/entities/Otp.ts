@@ -4,7 +4,7 @@ import { User } from './User';
 export enum OtpType {
   EMAIL = 'EMAIL',
   SMS = 'SMS',
-  BOTH = 'BOTH'
+  NONE = 'NONE'
 }
 
 @Entity('otps')

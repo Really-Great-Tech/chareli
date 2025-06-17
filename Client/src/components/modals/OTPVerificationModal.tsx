@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   AlertDialog,
@@ -20,7 +20,7 @@ interface OTPVerificationDialogProps {
   onOpenChange: (open: boolean) => void;
   userId: string;
   contactMethod?: string; // Email or phone number that received the OTP
-  otpType?: "EMAIL" | "SMS" | "BOTH"; // Type of OTP sent
+  otpType?: "EMAIL" | "SMS" | "NONE"; // Type of OTP sent
   onVerificationSuccess?: () => void; // Callback for when verification is successful
 }
 
@@ -39,6 +39,14 @@ export function OTPVerificationModal({
   const requestOtp = useRequestOtp();
   const navigate = useNavigate();
 
+  // Clear error message when modal opens
+  useEffect(() => {
+    if (open) {
+      setError("");
+      setOtp("");
+    }
+  }, [open]);
+
   const handleVerify = async () => {
     if (otp.length !== 6) {
       setError("Please enter a valid 6-digit OTP");
@@ -50,8 +58,6 @@ export function OTPVerificationModal({
       setError("");
       setIsVerifying(true);
       const user = await verifyOtp(userId, otp);
-
-      // Close the modal
       onOpenChange(false);
 
       // Call the success callback if provided
@@ -69,14 +75,13 @@ export function OTPVerificationModal({
         }
       }, 300);
 
-      // Show success message
       toast.success("Login successful! Redirecting...");
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       setError("Invalid OTP. Please try again.");
-      toast.error("Invalid OTP. Please try again.");
     } finally {
+      setOtp("");
       setIsVerifying(false);
     }
   };
@@ -95,8 +100,17 @@ export function OTPVerificationModal({
     }
   };
 
+
+  // Reset OTP when modal closes
+  const handleOpenChange = (isOpen: boolean) => {
+    if (!isOpen) {
+      setOtp(""); // Clear OTP when modal closes
+    }
+    onOpenChange(isOpen);
+  };
+
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialog open={open} onOpenChange={handleOpenChange}>
       <AlertDialogContent className="max-w-[90vw] sm:max-w-[425px] p-4 sm:p-6 dark:bg-[#0F1221] rounded-xl">
         {/* Custom Close Button */}
         <button
@@ -112,9 +126,7 @@ export function OTPVerificationModal({
             OTP Verification
           </AlertDialogTitle>
           <AlertDialogDescription className="dark:text-white text-black font-boogaloo text-md tracking-wider sm:text-sm mt-1">
-            Enter the verification code we just sent to{" "}
-            {otpType === "BOTH" ? "both " : ""}
-            {contactMethod}
+            Enter the verification code we just sent to {contactMethod}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="flex justify-center my-4 sm:my-6">
@@ -137,9 +149,8 @@ export function OTPVerificationModal({
         </div>
         {error && (
           <div
-            className={`text-xs sm:text-sm text-center font-pincuk mt-2 sm:mt-3 ${
-              error.includes("resent") ? "text-green-500" : "text-red-500"
-            }`}
+            className={`text-xs sm:text-sm text-center font-pincuk mt-2 sm:mt-3 ${error.includes("resent") ? "text-green-500" : "text-red-500"
+              }`}
           >
             {error}
           </div>

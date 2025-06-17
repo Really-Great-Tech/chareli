@@ -22,7 +22,7 @@ const UserManagementView = () => {
   const navigate = useNavigate();
   const { userId } = useParams();
   const [page, setPage] = useState(1);
-  const { data, isLoading, isError } = useUserAnalyticsById(userId || '');
+  const { data, isLoading, isError } = useUserAnalyticsById(userId || "");
   const response = data as any;
 
   const handleBack = () => {
@@ -68,11 +68,21 @@ const UserManagementView = () => {
             />
             <div className="flex flex-col sm:flex-row gap-3 items-center mt-4 text-center sm:text-left">
               <h2 className="mb-0 text-xl font-bold text-[#121C2D] dark:text-white tracking-wide break-all">
-                {`${response.user.firstName || ""} ${response.user.lastName || ""}`}
+                {`${response.user.firstName || ""} ${
+                  response.user.lastName || ""
+                }`}
               </h2>
               <div className="flex items-center gap-2 flex-shrink-0">
-                <span className={`${response.user.isActive ? 'text-green-500' : 'text-red-500'} font-bold text-lg`}>●</span>
-                <span className="text-gray-700  dark:text-white font-pincuk text-lg tracking-wider">{response.user.role.name}</span>
+                <span
+                  className={`${
+                    response.user.isActive ? "text-green-500" : "text-red-500"
+                  } font-bold text-lg`}
+                >
+                  ●
+                </span>
+                <span className="text-gray-700  dark:text-white font-pincuk text-lg tracking-wider">
+                  {response.user.role.name}
+                </span>
               </div>
             </div>
             <div className="mt-2 text-sm text-gray-500 font-sans font-semibold dark:text-white flex flex-col sm:flex-row items-center gap-2 text-center sm:text-left">
@@ -80,7 +90,16 @@ const UserManagementView = () => {
               <div className="flex items-center">
                 <span className="bg-indigo-100 px-2 py-0 rounded text-gray-700 dark:bg-[#94A3B7] font-pincuk text-xl tracking-wider">
                   <span className="text-yellow-500 font-bold text-lg">●</span>
-                  {response.user.lastLoggedIn ? new Date(response.user.lastLoggedIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Never'}
+                  {response.user.lastLoggedIn
+                    ? new Date(response.user.lastLoggedIn).toLocaleTimeString(
+                        "en-US",
+                        {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: true,
+                        }
+                      )
+                    : "Never"}
                 </span>
               </div>
             </div>
@@ -132,80 +151,103 @@ const UserManagementView = () => {
         <div className="flex-1">
           {/* Profile Details */}
           <div className="bg-[#f6f8fc] rounded-2xl p-4 sm:p-6 mb-6 dark:bg-[#121C2D]">
-            <h3 className="text-lg font-bold mb-4 text-[#121C2D] tracking-wide dark:text-white">Profile Details</h3>
+            <h3 className="text-lg font-bold mb-4 text-[#121C2D] tracking-wide dark:text-white">
+              Profile Details
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 md:gap-x-16 lg:gap-x-96 space-y-border-b dark:text-white">
               <div className="text-fuchsia-500  tracking-wide">Name</div>
               <div className="text-[#334154] font-pincuk text-lg tracking-wider dark:text-white">{`${response.user.firstName} ${response.user.lastName}`}</div>
               <div className="text-fuchsia-500  tracking-wide">Email</div>
-              <div className="text-[#334154] font-pincuk text-lg tracking-wider dark:text-white">{response.user.email}</div>
+              <div className="text-[#334154] font-pincuk text-lg tracking-wider dark:text-white">
+                {response.user.email}
+              </div>
               <div className="text-fuchsia-500  tracking-wide">
                 Mobile number
               </div>
-              <div className="text-[#334154] font-pincuk text-lg tracking-wider dark:text-white">{response.user.phoneNumber || '-'}</div>
-              <div className="text-fuchsia-500  tracking-wide">
-                Country
+              <div className="text-[#334154] font-pincuk text-lg tracking-wider dark:text-white">
+                {response.user.phoneNumber || "-"}
               </div>
-              <div className="text-[#334154] font-pincuk text-lg tracking-wider dark:text-white">-</div>
+              <div className="text-fuchsia-500  tracking-wide">Country</div>
+              <div className="text-[#334154] font-pincuk text-lg tracking-wider dark:text-white">
+                {response?.user?.country || "-"}
+              </div>
             </div>
           </div>
-          {/* Games */} 
+          {/* Games */}
           <div className="bg-[#f6f8fc] rounded-2xl p-4 sm:p-6 dark:bg-[#121C2D]">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse min-w-[600px]">
                 <thead>
-                <tr>
-                  <th className="text-left pb-2 text-[#121C2D] text-lg tracking-wider dark:text-white">Games</th>
-                  <th className="text-left pb-2 text-[#121C2D] text-lg tracking-wider dark:text-white">Minutes played</th>
-                </tr>
-              </thead>
-              <tbody>
-                {!games.length ? (
                   <tr>
-                    <td colSpan={2} className="text-center py-8">
-                      <div className="flex flex-col items-center gap-2">
-                        <LuGamepad2 className="w-12 h-12 text-gray-400" />
-                        <p className="text-lg font-semibold text-gray-500">No games played yet</p>
-                        <p className="text-gray-400">This user hasn't played any games yet.</p>
-                      </div>
-                    </td>
+                    <th className="text-left pb-2 text-[#121C2D] text-lg tracking-wider dark:text-white">
+                      Games
+                    </th>
+                    <th className="text-left pb-2 text-[#121C2D] text-lg tracking-wider dark:text-white">
+                      Minutes played
+                    </th>
                   </tr>
-                ) : (
-                  paginatedGames.map((game: GameActivity, idx: number) => (
-                    <tr key={idx} className="border-t border-gray-200">
-                      <td className="flex items-center gap-3 py-2">
-                        {/* Default game icon */}
-                        <div className="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center">
-                          <LuGamepad2 className="w-6 h-6 text-gray-400" />
+                </thead>
+                <tbody>
+                  {!games.length ? (
+                    <tr>
+                      <td colSpan={2} className="text-center py-8">
+                        <div className="flex flex-col items-center gap-2">
+                          <LuGamepad2 className="w-12 h-12 text-gray-400" />
+                          <p className="text-lg font-semibold text-gray-500">
+                            No games played yet
+                          </p>
+                          <p className="text-gray-400">
+                            This user hasn't played any games yet.
+                          </p>
                         </div>
-                        <span className="text-[#121C2D] text-lg tracking-wider dark:text-white">{game.gameTitle || 'Unknown Game'}</span>
                       </td>
-                      <td className="py-2 text-lg text-[#334154] font-pincuk tracking-wider dark:text-white">{formatTime(game.totalPlayTime || 0)}</td>
                     </tr>
-                  ))
-                )}
-              </tbody>
+                  ) : (
+                    paginatedGames.map((game: GameActivity, idx: number) => (
+                      <tr key={idx} className="border-t border-gray-200">
+                        <td className="flex items-center gap-3 py-2">
+                          {/* Default game icon */}
+                          <div className="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center">
+                            <LuGamepad2 className="w-6 h-6 text-gray-400" />
+                          </div>
+                          <span className="text-[#121C2D] text-lg tracking-wider dark:text-white">
+                            {game.gameTitle || "Unknown Game"}
+                          </span>
+                        </td>
+                        <td className="py-2 text-lg text-[#334154] font-pincuk tracking-wider dark:text-white">
+                          {formatTime(game.totalPlayTime || 0)}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
               </table>
             </div>
             {games.length > 0 && (
               <div className="flex flex-col sm:flex-row justify-between items-center gap-4 px-4 py-3 bg-[#F1F5F9] dark:bg-[#121C2D] rounded-b-xl mt-4">
                 <span className="text-sm text-[#121C2D] dark:text-white">
-                  Showing {(page - 1) * PAGE_SIZE + 1}-{Math.min(page * PAGE_SIZE, games.length)} from {games.length} data
+                  Showing {(page - 1) * PAGE_SIZE + 1}-
+                  {Math.min(page * PAGE_SIZE, games.length)} from {games.length}{" "}
+                  data
                 </span>
                 {Math.ceil(games.length / PAGE_SIZE) > 1 && (
                   <div className="flex items-center gap-2 rounded-xl space-x-4 pr-1 pl-0.5 border border-[#D946EF] dark:text-white">
-                    {Array.from({ length: Math.ceil(games.length / PAGE_SIZE) }, (_, i) => (
-                      <button
-                        key={i + 1}
-                        className={`w-7 h-7 rounded-full transition-colors ${
-                          page === i + 1
-                            ? "bg-[#D946EF] text-white dark:bg-gray-400"
-                            : "bg-transparent text-[#D946EF] dark:text-gray-400 hover:bg-[#f3e8ff]"
-                        }`}
-                        onClick={() => setPage(i + 1)}
-                      >
-                        {i + 1}
-                      </button>
-                    ))}
+                    {Array.from(
+                      { length: Math.ceil(games.length / PAGE_SIZE) },
+                      (_, i) => (
+                        <button
+                          key={i + 1}
+                          className={`w-7 h-7 rounded-full transition-colors ${
+                            page === i + 1
+                              ? "bg-[#D946EF] text-white dark:bg-gray-400"
+                              : "bg-transparent text-[#D946EF] dark:text-gray-400 hover:bg-[#f3e8ff]"
+                          }`}
+                          onClick={() => setPage(i + 1)}
+                        >
+                          {i + 1}
+                        </button>
+                      )
+                    )}
                   </div>
                 )}
               </div>

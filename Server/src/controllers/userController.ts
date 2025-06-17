@@ -9,7 +9,7 @@ import { authService } from '../services/auth.service';
 import { OtpType } from '../entities/Otp';
 import { Not, IsNull } from 'typeorm';
 import { s3Service } from '../services/s3.service';
-import { getCountryFromIP } from './signupAnalyticsController';
+import { getCountryFromIP, extractClientIP } from '../utils/ipUtils';
 
 const userRepository = AppDataSource.getRepository(User);
 const roleRepository = AppDataSource.getRepository(Role);
@@ -287,21 +287,25 @@ export const createUser = async (
 
     // Get IP address
     const forwarded = req.headers['x-forwarded-for'];
-    const ipAddress = Array.isArray(forwarded)
-      ? forwarded[0]
-      : (forwarded || req.socket.remoteAddress || req.ip || '');
+    const ipAddress = extractClientIP(forwarded, req.socket.remoteAddress || req.ip || '');
 
     // Get country from IP
     const country = await getCountryFromIP(ipAddress);
 
     // Check if user with email already exists (only if email is provided)
-    if (email) {
+    if (email || phoneNumber) {
       const existingUser = await userRepository.findOne({
-        where: { email },
+        where: [{ email }, { phoneNumber }],
+        select: ['id', 'email', 'phoneNumber'],
       });
 
       if (existingUser) {
-        return next(ApiError.badRequest('An account with this email already exists'));
+        if (existingUser.email === email) {
+          return next(ApiError.badRequest('An account with this email already exists'));
+        }
+        if (existingUser.phoneNumber === phoneNumber) {
+          return next(ApiError.badRequest('An account with this phone number already exists'));
+        }
       }
     }
 
@@ -344,46 +348,11 @@ export const createUser = async (
     // Don't return sensitive information
     const { password: _, ...userWithoutSensitiveInfo } = user;
 
-    // Determine OTP type based on provided contact info
-    let otpType: OtpType | null = null;
-
-    if (email && !phoneNumber) {
-      otpType = OtpType.EMAIL;
-    } else if (phoneNumber && !email) {
-      otpType = OtpType.SMS;
-    } else if (email && phoneNumber) {
-      // If both are provided, check if otpType was specified in request
-      otpType = req.body.otpType || null;
-    }
-
-    // Send OTP if applicable
-    if (otpType) {
-      await authService.sendOtp(user, otpType);
-      
-      res.status(201).json({
-        success: true,
-        message: `User created successfully. OTP sent to ${otpType === OtpType.EMAIL ? 'email' : 'phone'}.`,
-        data: userWithoutSensitiveInfo,
-      });
-    } else if (email && phoneNumber) {
-      // Both contact methods available but no otpType specified
-      // Return success but indicate user needs to request OTP
-      res.status(201).json({
-        success: true,
-        message: 'User created successfully. User has both email and phone. Please request OTP with preferred method.',
-        data: {
-          ...userWithoutSensitiveInfo,
-          requiresOtpRequest: true
-        }
-      });
-    } else {
-      // No valid contact method for OTP
-      res.status(201).json({
-        success: true,
-        message: 'User created successfully. No valid contact method for OTP.',
-        data: userWithoutSensitiveInfo,
-      });
-    }
+    res.status(201).json({
+      success: true,
+      message: 'User created successfully. Please login to continue.',
+      data: userWithoutSensitiveInfo,
+    });
   } catch (error) {
     next(error);
   }
@@ -593,6 +562,146 @@ export const deleteUser = async (
     res.status(200).json({
       success: true,
       message: 'User deleted successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @swagger
+ * /users/heartbeat:
+ *   post:
+ *     summary: Send heartbeat to maintain online status
+ *     description: Updates user's lastSeen timestamp to maintain online presence. Frontend should call this every 30-60 seconds.
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Heartbeat received successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+export const sendHeartbeat = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.user?.userId) {
+      res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+      return;
+    }
+
+    const now = new Date();
+    
+    // Update user's lastSeen timestamp
+    await userRepository.update(req.user.userId, { 
+      lastSeen: now 
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Heartbeat received',
+      timestamp: now.toISOString()
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @swagger
+ * /users/online-status:
+ *   get:
+ *     summary: Get current online status
+ *     description: Returns whether the current user is considered online based on their last activity
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Online status retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     isOnline:
+ *                       type: boolean
+ *                     lastSeen:
+ *                       type: string
+ *                       format: date-time
+ *                     onlineThreshold:
+ *                       type: number
+ *                       description: Minutes threshold for online status
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
+ */
+export const getOnlineStatus = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.user?.userId) {
+      res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+      return;
+    }
+
+    const user = await userRepository.findOne({
+      where: { id: req.user.userId },
+      select: ['id', 'lastSeen', 'isActive']
+    });
+
+    if (!user) {
+      res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+      return;
+    }
+
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    const isOnline = user.lastSeen && user.lastSeen > fiveMinutesAgo && user.isActive;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        isOnline: !!isOnline,
+        lastSeen: user.lastSeen,
+        onlineThreshold: 5 // minutes
+      }
     });
   } catch (error) {
     next(error);

@@ -10,6 +10,7 @@ export interface CloudFrontServiceInterface {
   transformS3UrlToCloudFront(s3Url: string): Promise<string>;
   transformS3KeyToCloudFront(s3Key: string): Promise<string>;
   getSignedCookies(resourcePath: string): { [key: string]: string };
+  getUniversalSignedCookies(): { [key: string]: string };
   getConfigurationStatus(): Promise<any>;
 }
 
@@ -122,6 +123,43 @@ export class CloudFrontService implements CloudFrontServiceInterface {
       keyPairId: this.keyPairId,
       privateKey: this.privateKey,
       dateLessThan: expires.toISOString(),
+    });
+
+    return Object.fromEntries(
+      Object.entries(signedCookies).map(([key, value]) => [key, String(value)])
+    );
+  }
+
+  public getUniversalSignedCookies(): { [key: string]: string } {
+    if (
+      !this.isInitialized ||
+      !this.distributionDomain ||
+      !this.keyPairId ||
+      !this.privateKey
+    ) {
+      throw new Error(
+        'CloudFront service is not properly configured for signing cookies.'
+      );
+    }
+
+    // Create a policy that covers ALL resources in the distribution
+    const policy = {
+      Statement: [
+        {
+          Resource: `https://${this.distributionDomain}/*`,
+          Condition: {
+            DateLessThan: {
+              'AWS:EpochTime': Math.floor((Date.now() + 24 * 60 * 60 * 1000) / 1000) // 24 hours
+            }
+          }
+        }
+      ]
+    };
+
+    const signedCookies = getSignedCookies({
+      policy: JSON.stringify(policy),
+      keyPairId: this.keyPairId,
+      privateKey: this.privateKey,
     });
 
     return Object.fromEntries(

@@ -13,7 +13,8 @@ import {
   authenticate, 
   isAdmin, 
   optionalAuthenticate,
-  setCloudFrontCookies
+  setCloudFrontCookies,
+  setUniversalCloudFrontCookies
 } from '../middlewares/authMiddleware';
 import {
   validateBody,
@@ -30,9 +31,9 @@ import {
 
 const router = Router();
 
-// GET routes that need AWS access for thumbnails/game files - use CloudFront middleware
-router.get('/', optionalAuthenticate, setCloudFrontCookies, validateQuery(gameQuerySchema), getAllGames);
-router.get('/:id', optionalAuthenticate, setCloudFrontCookies, validateParams(gameIdParamSchema), getGameById);
+// GET routes that need AWS access for thumbnails/game files - use Universal CloudFront middleware
+router.get('/', optionalAuthenticate, setUniversalCloudFrontCookies, validateQuery(gameQuerySchema), getAllGames);
+router.get('/:id', optionalAuthenticate, setUniversalCloudFrontCookies, validateParams(gameIdParamSchema), getGameById);
 
 router.use(authenticate);
 router.use(isAdmin);

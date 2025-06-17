@@ -913,24 +913,21 @@ export const getGameSessionCookies = async (
       return next(ApiError.notFound('Game not found'));
     }
 
-    // 2. Define the resource path for the CloudFront policy.
-    // This policy will grant access to all files within this specific game's folder.
-    // We assume game files are stored under a path like 'games/<game-id>/...'.
-    const resourcePath = `games/${gameId}/*`;
-
-    // 3. Generate the signed cookies using our service.
-    const signedCookies = cloudFrontService.getSignedCookies(resourcePath);
+    // 2. Generate universal signed cookies that cover ALL resources.
+    // This provides access to the specific game plus any other resources (thumbnails, assets, etc.)
+    // that might be needed during gameplay.
+    const signedCookies = cloudFrontService.getUniversalSignedCookies();
 
     // 4. Set the cookies on the response.
-    // These options are CRITICAL for security and functionality.
-    // const cookieOptions = {
-    //   domain: config.cloudfront.distributionDomain, // IMPORTANT: Must be the CloudFront domain.
-    //   path: '/',
-    //   httpOnly: true, // Prevents client-side script access.
-    //   secure: config.env === 'production', // Send only over HTTPS in production.
-    //   sameSite: 'none' as const, // Required for cross-domain cookies. Add 'secure: true'.
-    // };
-    const cookieOptions = getCloudFrontCookieOptions();
+    // Using improved cookie options for better compatibility and security.
+    const cookieOptions = {
+      domain: config.cloudfront.distributionDomain, // Use actual CloudFront domain
+      path: '/',
+      httpOnly: false, // Allow JS access if needed
+      secure: true,
+      sameSite: 'lax' as const, // Better compatibility than 'none'
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    };
 
     // The AWS SDK returns an object with cookie names as keys. We loop through
     // them and set each one on the response.

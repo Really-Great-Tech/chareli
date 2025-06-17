@@ -10,7 +10,7 @@ import {
 } from '../controllers/fileController';
 import { validateBody, validateParams, validateQuery } from '../middlewares/validationMiddleware';
 import { apiLimiter } from '../middlewares/rateLimitMiddleware';
-import { setCloudFrontCookies } from '../middlewares/authMiddleware';
+import { setUniversalCloudFrontCookies } from '../middlewares/authMiddleware';
 import { cloudFrontService } from '../services/cloudfront.service';
 import {
   createFileSchema,
@@ -87,8 +87,8 @@ router.get('/cloudfront/config', async (req, res) => {
 });
 
 // GET routes that need AWS access - use CloudFront middleware
-router.get('/', setCloudFrontCookies, validateQuery(fileQuerySchema), getAllFiles);
-router.get('/:id', setCloudFrontCookies, validateParams(fileIdParamSchema), getFileById);
+router.get('/', setUniversalCloudFrontCookies, validateQuery(fileQuerySchema), getAllFiles);
+router.get('/:id', setUniversalCloudFrontCookies, validateParams(fileIdParamSchema), getFileById);
 router.post('/', uploadFile, createFile);
 router.put('/:id', validateParams(fileIdParamSchema), uploadFileForUpdate, updateFile);
 router.delete('/:id', validateParams(fileIdParamSchema), deleteFile);

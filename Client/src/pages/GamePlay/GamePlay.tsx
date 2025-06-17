@@ -301,18 +301,34 @@ export default function GamePlay() {
                 <div className="grid gap-[8px] w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 justify-items-center">
                   {game.similarGames.map((similarGame: SimilarGame) => (
                     <div key={similarGame.id} className="relative p-[10px] group cursor-pointer w-full max-w-[360px]">
-                      <img
-                        src={similarGame.thumbnailFile?.s3Key}
-                        alt={similarGame.title}
-                        loading="lazy"
-                        className="w-full h-[290px] min-h-[290px] max-h-[290px] object-cover rounded-[18px] border-4 border-transparent group-hover:border-[#D946EF] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(217,70,239,0.3)]"
-                        onClick={() => {
-                          if (analyticsIdRef.current) {
-                            updateEndTime();
-                          }
-                          navigate(`/gameplay/${similarGame.id}`);
-                        }}
-                      />
+                      <div className="relative">
+                        <img
+                          src={similarGame.thumbnailFile?.s3Key}
+                          alt={similarGame.title}
+                          loading="lazy"
+                          className="w-full h-[290px] min-h-[290px] max-h-[290px] object-cover rounded-[18px] border-4 border-transparent group-hover:border-[#D946EF] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(217,70,239,0.3)]"
+                          onClick={() => {
+                            if (analyticsIdRef.current) {
+                              updateEndTime();
+                            }
+                            navigate(`/gameplay/${similarGame.id}`);
+                          }}
+                        />
+                        {/* Game Info Overlay */}
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent rounded-b-[14px] p-4">
+                          <h3 className="text-white font-bold text-lg mb-1 truncate">
+                            {similarGame.title}
+                          </h3>
+                          {similarGame.description && (
+                            <p className="text-gray-200 text-sm leading-tight">
+                              {similarGame.description.length > 80 
+                                ? `${similarGame.description.substring(0, 80)}...` 
+                                : similarGame.description
+                              }
+                            </p>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>

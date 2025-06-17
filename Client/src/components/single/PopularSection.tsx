@@ -56,13 +56,29 @@ const PopularSection = ({ searchQuery, setSearchQuery }: PopularSectionProps) =>
                         <div className="grid gap-[10px] w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 justify-items-center">
                             {games.map((game: any) => (
                                 <div key={game.id} className="relative p-[10px] group cursor-pointer w-full max-w-[340px]">
-                                    <img 
-                                        src={game.thumbnailFile?.s3Key} 
-                                        alt={game.title}
-                                        loading="lazy"
-                                        className="w-full h-[290px] min-h-[290px] max-h-[290px] object-cover rounded-[32px] border-4 border-transparent group-hover:border-[#D946EF] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(217,70,239,0.3)]"
-                                        onClick={() => handleGamePlay(game.id)}
-                                    />
+                                    <div className="relative">
+                                        <img 
+                                            src={game.thumbnailFile?.s3Key} 
+                                            alt={game.title}
+                                            loading="lazy"
+                                            className="w-full h-[290px] min-h-[290px] max-h-[290px] object-cover rounded-[32px] border-4 border-transparent group-hover:border-[#D946EF] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(217,70,239,0.3)]"
+                                            onClick={() => handleGamePlay(game.id)}
+                                        />
+                                        {/* Game Info Overlay */}
+                                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent rounded-b-[28px] p-4">
+                                            <h3 className="text-white font-bold text-lg mb-1 truncate">
+                                                {game.title}
+                                            </h3>
+                                            {game.description && (
+                                                <p className="text-gray-200 text-sm leading-tight">
+                                                    {game.description.length > 80 
+                                                        ? `${game.description.substring(0, 80)}...` 
+                                                        : game.description
+                                                    }
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
                             ))}
                         </div>

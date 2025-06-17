@@ -39,6 +39,7 @@ export default function UserManagement() {
     },
     gameTitle: "",
     gameCategory: "",
+    country: "",
     sortByMaxTimePlayed: false,
   });
 
@@ -66,6 +67,7 @@ export default function UserManagement() {
       },
       gameTitle: "",
       gameCategory: "",
+      country: "",
       sortByMaxTimePlayed: false,
     });
     setPage(1);
@@ -113,6 +115,11 @@ export default function UserManagement() {
       user.analytics?.mostPlayedGame?.gameTitle !== filters.gameTitle
     )
       return false;
+    if (
+      filters.country &&
+      user.country !== filters.country
+    )
+      return false;
     return true;
   });
 
@@ -135,6 +142,7 @@ export default function UserManagement() {
             filters={filters}
             onFiltersChange={handleFiltersChange}
             onReset={handleFilterReset}
+            users={users}
           >
             <Button
               variant="outline"

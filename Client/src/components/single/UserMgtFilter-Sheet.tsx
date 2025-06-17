@@ -9,6 +9,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "../ui/sheet"
+import { SearchableSelect } from "../ui/searchable-select"
 import { useGamesAnalytics } from "../../backend/analytics.service"
 
 interface FilterState {
@@ -23,6 +24,7 @@ interface FilterState {
   };
   gameTitle: string;
   gameCategory: string;
+  country: string;
   sortByMaxTimePlayed: boolean;
 }
 
@@ -31,21 +33,26 @@ interface UserManagementFilterSheetProps {
   filters: FilterState;
   onFiltersChange: (filters: FilterState) => void;
   onReset: () => void;
+  users?: Array<{ country?: string }>;
 }
 
 export function UserManagementFilterSheet({ 
   children, 
   filters, 
   onFiltersChange,
-  onReset 
+  onReset,
+  users 
 }: UserManagementFilterSheetProps) {
   const { data: games } = useGamesAnalytics();
   
   // Get unique categories from games
-  const categories = [...new Set(games?.map(game => game.category?.name).filter(Boolean))];
+  const categories = [...new Set(games?.map(game => game.category?.name).filter(Boolean))] as string[];
   
   // Get game titles
-  const titles = games?.map(game => game.title) || [];
+  const titles = (games?.map(game => game.title).filter(Boolean) || []) as string[];
+  
+  // Get unique countries from users
+  const countries = [...new Set(users?.map(user => user.country).filter(Boolean))].sort() as string[];
 
   const handleChange = (field: keyof FilterState, value: unknown) => {
     onFiltersChange({
@@ -135,31 +142,43 @@ export function UserManagementFilterSheet({
           {/* Game Category */}
           <div className="flex flex-col space-y-2">
             <Label className="text-lg">Game Category</Label>
-            <select 
+            <SearchableSelect
               value={filters.gameCategory}
-              onChange={(e) => handleChange('gameCategory', e.target.value)}
-              className="bg-[#F1F5F9] border border-[#CBD5E0] h-14 px-3 text-gray-400 font-thin font-pincuk text-xl tracking-wider rounded dark:bg-[#121C2D]"
-            >
-              <option value="">All Categories</option>
-              {categories.map((category) => (
-                <option key={category} value={category}>{category}</option>
-              ))}
-            </select>
+              onValueChange={(value) => handleChange('gameCategory', value)}
+              options={categories.map(category => ({ value: category, label: category }))}
+              placeholder="All Categories"
+              searchPlaceholder="Search categories..."
+              emptyText="No categories found."
+              className="w-full bg-[#F1F5F9] border border-[#CBD5E0] h-14 text-gray-400 font-thin font-pincuk text-xl tracking-wider dark:bg-[#121C2D] hover:bg-[#F1F5F9] dark:hover:bg-[#121C2D]"
+            />
           </div>
 
           {/* Game Title */}
           <div className="flex flex-col space-y-2">
             <Label className="text-lg">Game Title</Label>
-            <select 
+            <SearchableSelect
               value={filters.gameTitle}
-              onChange={(e) => handleChange('gameTitle', e.target.value)}
-              className="bg-[#F1F5F9] border border-[#CBD5E0] h-14 px-3 text-gray-400 font-thin font-pincuk text-xl tracking-wider rounded dark:bg-[#121C2D]"
-            >
-              <option value="">All Games</option>
-              {titles.map((title) => (
-                <option key={title} value={title}>{title}</option>
-              ))}
-            </select>
+              onValueChange={(value) => handleChange('gameTitle', value)}
+              options={titles.map(title => ({ value: title, label: title }))}
+              placeholder="All Games"
+              searchPlaceholder="Search games..."
+              emptyText="No games found."
+              className="w-full bg-[#F1F5F9] border border-[#CBD5E0] h-14 text-gray-400 font-thin font-pincuk text-xl tracking-wider dark:bg-[#121C2D] hover:bg-[#F1F5F9] dark:hover:bg-[#121C2D]"
+            />
+          </div>
+
+          {/* Country */}
+          <div className="flex flex-col space-y-2">
+            <Label className="text-lg">Country</Label>
+            <SearchableSelect
+              value={filters.country}
+              onValueChange={(value) => handleChange('country', value)}
+              options={countries.map(country => ({ value: country, label: country }))}
+              placeholder="All Countries"
+              searchPlaceholder="Search countries..."
+              emptyText="No countries found."
+              className="w-full bg-[#F1F5F9] border border-[#CBD5E0] h-14 text-gray-400 font-thin font-pincuk text-xl tracking-wider dark:bg-[#121C2D] hover:bg-[#F1F5F9] dark:hover:bg-[#121C2D]"
+            />
           </div>
 
           {/* Sort by Max Time Played */}

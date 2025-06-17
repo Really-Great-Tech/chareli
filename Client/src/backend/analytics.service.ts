@@ -294,6 +294,7 @@ export interface FilterState {
   };
   gameTitle: string;
   gameCategory: string;
+  country: string;
   sortByMaxTimePlayed: boolean;
 }
 

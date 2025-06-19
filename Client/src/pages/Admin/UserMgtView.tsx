@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { IoChevronBack } from "react-icons/io5";
 import { useNavigate, useParams } from "react-router-dom";
@@ -22,7 +23,7 @@ const UserManagementView = () => {
   const navigate = useNavigate();
   const { userId } = useParams();
   const [page, setPage] = useState(1);
-  const { data, isLoading, isError } = useUserAnalyticsById(userId || "");
+  const { data, isLoading, isError } = useUserAnalyticsById(userId ?? "");
   const response = data as any;
 
   const handleBack = () => {
@@ -46,7 +47,7 @@ const UserManagementView = () => {
   }
 
   // Get games array and handle pagination
-  const games = response?.analytics?.gameActivity || [];
+  const games = response?.analytics?.gameActivity ?? [];
   const paginatedGames = games.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
@@ -68,8 +69,8 @@ const UserManagementView = () => {
             />
             <div className="flex flex-col sm:flex-row gap-3 items-center mt-4 text-center sm:text-left">
               <h2 className="mb-0 text-xl font-bold text-[#121C2D] dark:text-white tracking-wide break-all">
-                {`${response.user.firstName || ""} ${
-                  response.user.lastName || ""
+                {`${response.user.firstName ?? ""} ${
+                  response.user.lastName ?? ""
                 }`}
               </h2>
               <div className="flex items-center gap-2 flex-shrink-0">
@@ -115,7 +116,7 @@ const UserManagementView = () => {
                   Minutes Played
                 </span>
                 <span className=" text-[#475568] font-pincuk text-lg tracking-wider dark:text-white">
-                  {formatTime(response.analytics?.totalTimePlayed || 0)}
+                  {formatTime(response.analytics?.totalTimePlayed ?? 0)}
                 </span>
               </div>
             </div>
@@ -128,7 +129,7 @@ const UserManagementView = () => {
                   Total Plays
                 </span>
                 <span className=" text-[#475568] font-pincuk text-lg tracking-wider dark:text-white">
-                  {response.analytics?.totalGamesPlayed || 0}
+                  {response.analytics?.totalGamesPlayed ?? 0}
                 </span>
               </div>
             </div>
@@ -141,7 +142,7 @@ const UserManagementView = () => {
                   Sessions
                 </span>
                 <span className=" text-[#475568] font-pincuk text-lg tracking-wider dark:text-white">
-                  {response.analytics?.totalSessionCount || 0}
+                  {response.analytics?.totalSessionCount ?? 0}
                 </span>
               </div>
             </div>
@@ -154,7 +155,7 @@ const UserManagementView = () => {
             <h3 className="text-lg font-bold mb-4 text-[#121C2D] tracking-wide dark:text-white">
               Profile Details
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 md:gap-x-16 lg:gap-x-96 space-y-border-b dark:text-white">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 md:gap-x-16 lg:gap-x-56 space-y-border-b dark:text-white">
               <div className="text-fuchsia-500  tracking-wide">Name</div>
               <div className="text-[#334154] font-pincuk text-lg tracking-wider dark:text-white">{`${response.user.firstName} ${response.user.lastName}`}</div>
               <div className="text-fuchsia-500  tracking-wide">Email</div>
@@ -165,11 +166,11 @@ const UserManagementView = () => {
                 Mobile number
               </div>
               <div className="text-[#334154] font-pincuk text-lg tracking-wider dark:text-white">
-                {response.user.phoneNumber || "-"}
+                {response.user.phoneNumber ?? "-"}
               </div>
               <div className="text-fuchsia-500  tracking-wide">Country</div>
               <div className="text-[#334154] font-pincuk text-lg tracking-wider dark:text-white">
-                {response?.user?.country || "-"}
+                {response?.user?.country ?? "-"}
               </div>
             </div>
           </div>
@@ -211,11 +212,11 @@ const UserManagementView = () => {
                             <LuGamepad2 className="w-6 h-6 text-gray-400" />
                           </div>
                           <span className="text-[#121C2D] text-lg tracking-wider dark:text-white">
-                            {game.gameTitle || "Unknown Game"}
+                            {game.gameTitle ?? "Unknown Game"}
                           </span>
                         </td>
                         <td className="py-2 text-lg text-[#334154] font-pincuk tracking-wider dark:text-white">
-                          {formatTime(game.totalPlayTime || 0)}
+                          {formatTime(game.totalPlayTime ?? 0)}
                         </td>
                       </tr>
                     ))

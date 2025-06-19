@@ -45,7 +45,7 @@ export default function Home() {
                   onClick={handleShowPopup}
                   className="w-32 bg-[#D946EF] hover:bg-[#C026D3] text-white transition-colors duration-200"
                 >
-                  Show Pop-up Now
+                  Pop-up Preview
                 </Button>
               </div>
             </Card>

@@ -51,11 +51,33 @@ const menuItems = [
 
 const AdminLayout: React.FC = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const location = useLocation();
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
   };
+
+  // Check if screen is mobile and set initial sidebar state
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const mobile = window.innerWidth < 1024; // lg breakpoint
+      setIsMobile(mobile);
+      // On mobile, default sidebar to hidden
+      if (mobile) {
+        setIsSidebarCollapsed(true);
+      }
+    };
+
+    // Check on initial load
+    checkScreenSize();
+
+    // Add event listener for window resize
+    window.addEventListener('resize', checkScreenSize);
+
+    // Cleanup event listener
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   // Check if current route is admin route and manage cursor override
   useEffect(() => {
@@ -107,6 +129,12 @@ const AdminLayout: React.FC = () => {
                               : "hover:text-[#D946EF] hover:bg-[#F3E8FF] dark:text-white dark:hover:text-[#D946EF] text-[#121C2D]"
                           } ${isSidebarCollapsed ? "justify-center" : ""}`
                         }
+                        onClick={() => {
+                          // Close sidebar on mobile when item is selected
+                          if (isMobile) {
+                            setIsSidebarCollapsed(true);
+                          }
+                        }}
                       >
                         <span className={isSidebarCollapsed ? "" : "mr-3"}>
                           {item.icon}

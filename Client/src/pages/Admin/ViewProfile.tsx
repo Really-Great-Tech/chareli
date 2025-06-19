@@ -59,7 +59,7 @@ export default function ViewProfile() {
               </div>
             </div>
             <Button
-                className="w-full mt-3 border border-white bg-transparent shadow-none text-[#121C2D] h-14 hover:bg-[#3b495d] dark:text-white"
+                className="w-full mt-3 border border-white bg-transparent shadow-none text-[#121C2D] h-14 hover:bg-fuchsia-500 dark:text-white"
                 onClick={() => setEditOpen(true)}
             >
                 Edit <CiEdit />

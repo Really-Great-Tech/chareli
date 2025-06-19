@@ -80,6 +80,7 @@ export interface GameFile {
 export interface SimilarGame {
   id: string;
   title: string;
+  description: string;
   thumbnailFile?: GameFile;
 }
 

@@ -23,6 +23,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "../ui/sheet"
+import { SearchableSelect } from "../ui/searchable-select"
 import { useGamesAnalytics } from "../../backend/analytics.service"
 
 interface FilterState {
@@ -37,6 +38,7 @@ interface FilterState {
   };
   gameTitle: string;
   gameCategory: string;
+  country: string;
   sortByMaxTimePlayed: boolean;
   country: string;
 }
@@ -46,28 +48,26 @@ interface UserManagementFilterSheetProps {
   filters: FilterState;
   onFiltersChange: (filters: FilterState) => void;
   onReset: () => void;
+  users?: Array<{ country?: string }>;
 }
 
 export function UserManagementFilterSheet({ 
   children, 
   filters, 
   onFiltersChange,
-  onReset 
+  onReset,
+  users 
 }: UserManagementFilterSheetProps) {
   const { data: games } = useGamesAnalytics();
   
   // Get unique categories from games
-  const categories = [...new Set(games?.map(game => game.category?.name).filter(Boolean))];
+  const categories = [...new Set(games?.map(game => game.category?.name).filter(Boolean))] as string[];
   
-  // Get game titles and transform them into options
-  const gameOptions = useMemo(() => 
-    (games?.map(game => game.title) || [])
-      .map(title => ({ label: title, value: title })),
-    [games]
-  );
-
-  // Create memoized countries list
-  const countries = useMemo(() => countryList().getData(), []);
+  // Get game titles
+  const titles = (games?.map(game => game.title).filter(Boolean) || []) as string[];
+  
+  // Get unique countries from users
+  const countries = [...new Set(users?.map(user => user.country).filter(Boolean))].sort() as string[];
 
   const handleChange = (field: keyof FilterState, value: unknown) => {
     onFiltersChange({
@@ -157,104 +157,42 @@ export function UserManagementFilterSheet({
           {/* Game Category */}
           <div className="flex flex-col space-y-2">
             <Label className="text-lg">Game Category</Label>
-            <select 
+            <SearchableSelect
               value={filters.gameCategory}
-              onChange={(e) => handleChange('gameCategory', e.target.value)}
-              className="bg-[#F1F5F9] border border-[#CBD5E0] h-14 px-3 text-gray-400 font-thin font-pincuk text-xl tracking-wider rounded dark:bg-[#121C2D]"
-            >
-              <option value="">All Categories</option>
-              {categories.map((category) => (
-                <option key={category} value={category}>{category}</option>
-              ))}
-            </select>
+              onValueChange={(value) => handleChange('gameCategory', value)}
+              options={categories.map(category => ({ value: category, label: category }))}
+              placeholder="All Categories"
+              searchPlaceholder="Search categories..."
+              emptyText="No categories found."
+              className="w-full bg-[#F1F5F9] border border-[#CBD5E0] h-14 text-gray-400 font-thin font-pincuk text-xl tracking-wider dark:bg-[#121C2D] hover:bg-[#F1F5F9] dark:hover:bg-[#121C2D]"
+            />
           </div>
 
           {/* Game Title */}
           <div className="flex flex-col space-y-2">
             <Label className="text-lg">Game Title</Label>
-            <Select<GameOption>
-              options={gameOptions}
-              value={gameOptions.find(game => game.value === filters.gameTitle)}
-              onChange={(option: SingleValue<GameOption>) => handleChange('gameTitle', option ? option.value : '')}
-              className="bg-[#F1F5F9] text-gray-400 font-thin font-pincuk text-xl tracking-wider dark:bg-[#121C2D]"
-              classNamePrefix="react-select"
-              placeholder="Select a game..."
-              isClearable
-              styles={{
-                control: (base: CSSObjectWithLabel) => ({
-                  ...base,
-                  height: '42px',
-                  borderColor: '#CBD5E0',
-                  backgroundColor: '#F1F5F9 dark:bg-[#121C2D]',
-                  '&:hover': {
-                    borderColor: '#CBD5E0'
-                  }
-                }),
-                menu: (base: CSSObjectWithLabel) => ({
-                  ...base,
-                  backgroundColor: '#F1F5F9',
-                  '.dark &': {
-                    backgroundColor: '#121C2D'
-                  }
-                }),
-                option: (base: CSSObjectWithLabel, { isFocused }: { isFocused: boolean }) => ({
-                  ...base,
-                  backgroundColor: isFocused ? '#E2E8F0' : 'transparent',
-                  '&:hover': {
-                    backgroundColor: '#E2E8F0'
-                  },
-                  '.dark &': {
-                    backgroundColor: isFocused ? '#1E293B' : 'transparent',
-                    '&:hover': {
-                      backgroundColor: '#1E293B '
-                    }
-                  }
-                })
-              }}
+            <SearchableSelect
+              value={filters.gameTitle}
+              onValueChange={(value) => handleChange('gameTitle', value)}
+              options={titles.map(title => ({ value: title, label: title }))}
+              placeholder="All Games"
+              searchPlaceholder="Search games..."
+              emptyText="No games found."
+              className="w-full bg-[#F1F5F9] border border-[#CBD5E0] h-14 text-gray-400 font-thin font-pincuk text-xl tracking-wider dark:bg-[#121C2D] hover:bg-[#F1F5F9] dark:hover:bg-[#121C2D]"
             />
           </div>
-          {/* Select country */}
+
+          {/* Country */}
           <div className="flex flex-col space-y-2">
-            <Label className="text-lg">Select Country</Label>
-            <Select<CountryOption>
-              options={countries}
-              value={countries.find(country => country.value === filters.country)}
-              onChange={(option: SingleValue<CountryOption>) => handleChange('country', option ? option.value : '')}
-              className="bg-[#F1F5F9] text-gray-400 font-thin font-pincuk text-xl tracking-wider dark:bg-[#121C2D]"
-              classNamePrefix="react-select"
-              placeholder="Select a country..."
-              isClearable
-              styles={{
-                control: (base: CSSObjectWithLabel) => ({
-                  ...base,
-                  height: '42px',
-                  borderColor: '#CBD5E0',
-                  backgroundColor: '#F1F5F9 dark:bg-[#121C2D]',
-                  '&:hover': {
-                    borderColor: '#CBD5E0'
-                  }
-                }),
-                menu: (base: CSSObjectWithLabel) => ({
-                  ...base,
-                  backgroundColor: '#F1F5F9',
-                  '.dark &': {
-                    backgroundColor: '#121C2D'
-                  }
-                }),
-                option: (base: CSSObjectWithLabel, { isFocused }: { isFocused: boolean }) => ({
-                  ...base,
-                  backgroundColor: isFocused ? '#E2E8F0' : 'transparent',
-                  '&:hover': {
-                    backgroundColor: '#E2E8F0'
-                  },
-                  '.dark &': {
-                    backgroundColor: isFocused ? '#1E293B' : 'transparent',
-                    '&:hover': {
-                      backgroundColor: '#1E293B'
-                    }
-                  }
-                })
-              }}
+            <Label className="text-lg">Country</Label>
+            <SearchableSelect
+              value={filters.country}
+              onValueChange={(value) => handleChange('country', value)}
+              options={countries.map(country => ({ value: country, label: country }))}
+              placeholder="All Countries"
+              searchPlaceholder="Search countries..."
+              emptyText="No countries found."
+              className="w-full bg-[#F1F5F9] border border-[#CBD5E0] h-14 text-gray-400 font-thin font-pincuk text-xl tracking-wider dark:bg-[#121C2D] hover:bg-[#F1F5F9] dark:hover:bg-[#121C2D]"
             />
           </div>
 

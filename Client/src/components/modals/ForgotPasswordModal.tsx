@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import type { FieldProps, FormikHelpers } from "formik";
@@ -125,15 +125,17 @@ export function ForgotPasswordModal({
     setUserId("");
   };
 
+  // Reset form when modal opens
+  useEffect(() => {
+    if (open) {
+      resetForm();
+    }
+  }, [open]);
+
   return (
     <Dialog 
       open={open} 
-      onOpenChange={(newOpen) => {
-        if (!newOpen) {
-          resetForm();
-        }
-        onOpenChange(newOpen);
-      }}
+      onOpenChange={onOpenChange}
     >
       <CustomDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221]">
         <button
@@ -156,7 +158,10 @@ export function ForgotPasswordModal({
                     ? "text-[#E328AF] border-b-2 border-[#E328AF]"
                     : "text-gray-500"
                 }`}
-                onClick={() => setActiveTab("email")}
+                onClick={() => {
+                  setActiveTab("email");
+                  resetForm(); // Reset form state when switching tabs
+                }}
               >
                 Email
               </button>
@@ -166,7 +171,10 @@ export function ForgotPasswordModal({
                     ? "text-[#E328AF] border-b-2 border-[#E328AF]"
                     : "text-gray-500"
                 }`}
-                onClick={() => setActiveTab("phone")}
+                onClick={() => {
+                  setActiveTab("phone");
+                  resetForm(); // Reset form state when switching tabs
+                }}
               >
                 Phone Number
               </button>
@@ -180,10 +188,10 @@ export function ForgotPasswordModal({
                   <p className="text-md font-semibold text-center text-black dark:text-white mt-2">
                     {submittedContact}
                   </p>
-                  <p className=" text-center text-black dark:text-white font-pincuk text-xl tracking-wider mt-2">
+                  <p className=" text-center text-black dark:text-white font-pincuk text-[18px] tracking-wider mt-2">
                     {activeTab === "email" 
-                      ? "Please check your email and follow the instructions to reset your password."
-                      : "If this phone number exists in our system, you will receive a reset code shortly."}
+                      ? "Check your email to reset your password."
+                      : "Reset code will be sent if the number is registered."}
                   </p>
                 </p>
                 <div className="flex flex-col space-y-2 mt-4">
@@ -211,11 +219,11 @@ export function ForgotPasswordModal({
                 enableReinitialize
               >
                 {({ isSubmitting }) => (
-                  <Form className="space-y-4">
-                    <p className="text-center text-black dark:text-white font-pincuk text-xl tracking-wider mb-4">
+                  <Form className="space-y-6">
+                    <p className="text-center text-black dark:text-white font-pincuk text-[18px] tracking-wider my-4">
                       {activeTab === "email" 
-                        ? "Enter your email address and we'll send you instructions to reset your password."
-                        : "Enter your phone number and we'll send you a code to reset your password."}
+                        ? "Enter your email to reset your password."
+                        : "Enter your phone number to reset your password."}
                     </p>
                     <div className="relative">
                       <Label

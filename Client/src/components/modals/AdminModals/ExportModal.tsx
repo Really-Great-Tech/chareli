@@ -281,7 +281,7 @@ const ExportModal = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="border-[#475568] text-[#475568] flex items-center gap-2 dark:text-white py-5">
+        <Button className="flex items-center gap-2 bg-[#D946EF] text-white hover:bg-[#c026d3]">
           <Download size={16} />
           Export Data
         </Button>

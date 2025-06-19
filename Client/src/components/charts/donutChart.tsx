@@ -64,9 +64,9 @@ export function DonutChart() {
   }
 
   return (
-    <div className="flex items-start justify-between max-w-3xl mx-auto">
-      {/* Left side with chart */}
-      <div className="relative w-80 h-80 flex items-center justify-center">
+    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between max-w-4xl mx-auto gap-6">
+      {/* Chart container */}
+      <div className="relative w-full lg:w-80 h-64 sm:h-80 flex items-center justify-center">
         <PieChart width={300} height={300}>
           <Pie
             data={data}
@@ -89,9 +89,9 @@ export function DonutChart() {
         </div>
       </div>
 
-      {/* Right side with legend */}
-      <div className="mt-12 flex flex-col space-y-4 font-boogaloo">
-        <div className="text-xl text-gray-600 font-medium dark:text-white">
+      {/* Legend section */}
+      <div className="mt-4 lg:mt-12 flex flex-col space-y-4 font-boogaloo w-full lg:w-auto">
+        <div className="text-lg lg:text-xl text-gray-600 font-medium dark:text-white text-center lg:text-left">
           Total number of registered users = {total}
         </div>
         
@@ -99,11 +99,11 @@ export function DonutChart() {
           {data.map((_entry, index) => (
             <div 
               key={`legend-${index}`} 
-              className="flex items-center cursor-pointer"
+              className="flex items-center justify-center lg:justify-start cursor-pointer"
               onMouseEnter={() => setActiveIndex(index)}
             >
               <div className="w-5 h-5 mr-3" style={{ backgroundColor: index === 0 ? "#D946EF" : "#F5D0FE" }}></div>
-              <span className="text-lg text-gray-600 dark:text-white">
+              <span className="text-base lg:text-lg text-gray-600 dark:text-white">
                 {index === 0 ? "Active users" : "Non-active"} = {_entry.value}
               </span>
             </div>

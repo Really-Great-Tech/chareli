@@ -17,12 +17,12 @@ export default function Analytics() {
   const totalRegistered = adultsCount + minorsCount;
   console.log('Age Counts:', { adultsCount, minorsCount, totalRegistered });
   return (
-    <div>
+    <div className="space-y-6">
       {/* donut chart */}
-       <div className="col-span-1 md:col-span-2 lg:col-span-4">
+       <div className="w-full">
         <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
           <div className="justify-between items-center flex p-3">
-            <p className="text-3xl">Registration insights</p>
+            <p className="text-xl sm:text-2xl lg:text-3xl">Registration insights</p>
           </div>
           {/* inner card */}
           <Card className="bg-[#F8FAFC] dark:bg-[#0F1221] shadow-none border-none mx-3 p-4">
@@ -31,7 +31,7 @@ export default function Analytics() {
               <div className="">
               <div className="justify-start flex items-center gap-4">
               <img src={usersLine} alt="users" className="w-10 h-10 dark:text-white" />
-              <p className="text-lg text-[#64748A] dark:text-white">Total number of registered users</p>
+              <p className="text-sm sm:text-base lg:text-lg text-[#64748A] dark:text-white">Total number of registered users</p>
               </div>
 
               <DonutChart />
@@ -41,10 +41,10 @@ export default function Analytics() {
         </Card>
       </div>
       {/* bar chart */}
-       <div className="col-span-1 md:col-span-2 lg:col-span-4 mt-4">
+       <div className="w-full">
         <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
           <div className="justify-between items-center flex p-3">
-            <p className="text-3xl">Click insights</p>
+            <p className="text-xl sm:text-2xl lg:text-3xl">Click insights</p>
           </div>
           {/* inner card */}
           <Card className="bg-[#F8FAFC] dark:bg-[#0F1221] shadow-none border-none mx-3 p-4">
@@ -53,7 +53,7 @@ export default function Analytics() {
               <div className="">
               <div className="justify-start flex items-center gap-4">
               <img src={click} alt="users" className="w-10 h-10 dark:text-white" />
-              <p className="text-lg text-[#64748A] dark:text-white">Total clicks on Sign-up form</p>
+              <p className="text-sm sm:text-base lg:text-lg text-[#64748A] dark:text-white">Total clicks on Sign-up form</p>
               </div>
 
               <HorizontalBarChart/>
@@ -64,10 +64,10 @@ export default function Analytics() {
       </div>
 
       {/* bar chart for user age */}
-      <div className="col-span-1 md:col-span-2 lg:col-span-4 mt-4">
+      <div className="w-full">
         <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
           <div className="justify-between items-center flex p-3">
-            <p className="text-3xl">User Age</p>
+            <p className="text-xl sm:text-2xl lg:text-3xl">User Age</p>
           </div>
           {/* inner card */}
           <Card className="bg-[#F8FAFC] dark:bg-[#0F1221] shadow-none border-none mx-3 p-4">
@@ -76,8 +76,8 @@ export default function Analytics() {
               <div className="">
               <div className="justify-start flex items-center gap-4">
               <div className="flex gap-4 items-center"> 
-              <p className="font-bold text-3xl">{totalRegistered}</p>
-              <p className="text-lg text-[#64748A] dark:text-white">Total registered users</p>
+              <p className="font-bold text-xl sm:text-2xl lg:text-3xl">{totalRegistered}</p>
+              <p className="text-sm sm:text-base lg:text-lg text-[#64748A] dark:text-white">Total registered users</p>
               </div>
               </div>
 

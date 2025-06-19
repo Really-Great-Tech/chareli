@@ -72,45 +72,50 @@ const HorizontalBarChart = () => {
   return (
     <Card className="w-full p-4 bg-[#F8FAFC] dark:bg-[#0F1221] shadow-none border-none rounded-2xl">
       <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart layout="vertical" data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis 
-              type="number" 
-              domain={[0, Math.max(5, ...data.map((item: ChartDataPoint) => item.value))]}
-            />
-            <YAxis
-              type="category"
-              dataKey="name"
-              width={200}
-              tick={{
-                fill: "#64748B",
-                fontSize: 12,
-                fontFamily: "inherit"
-              }}
-              tickLine={false}
-              axisLine={false}
-            />
-            <Tooltip 
-              contentStyle={{
-                backgroundColor: '#fff',
-                border: '1px solid #e2e8f0',
-                borderRadius: '0.5rem',
-                padding: '0.5rem'
-              }}
-            />
-            <Bar 
-              dataKey="value" 
-              barSize={60}
-              fill="#F3C4FB"
-              radius={[0, 4, 4, 0]}
-            >
-              {data.map((entry: ChartDataPoint, index: number) => (
-                <Cell key={`cell-${index}`} fill={entry.fill} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+        {/* Horizontally scrollable container for mobile responsiveness */}
+        <div className="overflow-x-auto">
+          <div style={{ minWidth: '500px' }}>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart layout="vertical" data={data}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  type="number" 
+                  domain={[0, Math.max(5, ...data.map((item: ChartDataPoint) => item.value))]}
+                />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  width={200}
+                  tick={{
+                    fill: "#64748B",
+                    fontSize: 12,
+                    fontFamily: "inherit"
+                  }}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <Tooltip 
+                  contentStyle={{
+                    backgroundColor: '#fff',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '0.5rem',
+                    padding: '0.5rem'
+                  }}
+                />
+                <Bar 
+                  dataKey="value" 
+                  barSize={60}
+                  fill="#F3C4FB"
+                  radius={[0, 4, 4, 0]}
+                >
+                  {data.map((entry: ChartDataPoint, index: number) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

@@ -25,7 +25,7 @@ const MainLayout: React.FC = () => {
               platform.
             </p>
 
-            <p className="font-pincuk text-xl tracking-wider sm:text-sm mt-3 mb-3 leading-relaxed">
+            <p className="font-pincuk text-xl tracking-wider sm:text-sm mt-3 leading-relaxed">
               By using this service, you agree to the Chareli{" "}
               <span className="text-[#C026D3] underline cursor-pointer hover:text-[#db2ee8] transition-colors" onClick={handleTermsPage}>
                 Terms of Service
@@ -39,22 +39,9 @@ const MainLayout: React.FC = () => {
             </p>
 
             <p className="font-pincuk text-xl tracking-wider sm:text-sm leading-relaxed">
-              Chareli uses cookies to deliver and enhance the quality of its
-              services, to analyze traffic, and to personalize the content that
-              you see. Chareli uses analytics services to serve the content that
-              you see. You can opt out of content personalization at
-              <span /*className='text-[#C026D3] underline cursor-pointer hover:text-[#db2ee8] transition-colors ml-1'*/
-              >
-                Personalization settings & cookies
-              </span>
-              . You can opt out of ads personalization with{" "}
-              <span /*className='text-[#C026D3] underline cursor-pointer hover:text-[#db2ee8] transition-colors'*/
-              >
-                ad settings
-              </span>
-              . Note that this setting also affects ads personalization on other
-              sites and apps that partner with Chareli.{" "}
+              Chareli uses cookies to improve our services and analyze traffic. By continuing to use Chareli, you consent to cookies as explained in our Privacy Policy.
             </p>
+
           </div>
         </footer>
       )}

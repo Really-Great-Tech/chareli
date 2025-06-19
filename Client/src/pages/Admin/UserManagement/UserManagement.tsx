@@ -39,6 +39,7 @@ export default function UserManagement() {
     },
     gameTitle: "",
     gameCategory: "",
+    country: "",
     sortByMaxTimePlayed: false,
   });
 
@@ -66,6 +67,7 @@ export default function UserManagement() {
       },
       gameTitle: "",
       gameCategory: "",
+      country: "",
       sortByMaxTimePlayed: false,
     });
     setPage(1);
@@ -113,6 +115,11 @@ export default function UserManagement() {
       user.analytics?.mostPlayedGame?.gameTitle !== filters.gameTitle
     )
       return false;
+    if (
+      filters.country &&
+      user.country !== filters.country
+    )
+      return false;
     return true;
   });
 
@@ -126,22 +133,23 @@ export default function UserManagement() {
 
   return (
     <div className="px-3">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-[#D946EF] text-3xl font-boogaloo">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+        <h1 className="text-[#D946EF] text-2xl sm:text-3xl font-boogaloo">
           User Management
         </h1>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3 justify-end">
           <UserManagementFilterSheet
             filters={filters}
             onFiltersChange={handleFiltersChange}
             onReset={handleFilterReset}
+            users={users}
           >
             <Button
               variant="outline"
               className="border-[#475568] text-[#475568] flex items-center gap-2 dark:text-white py-5"
             >
               Filter
-              <div className="text-[#D946EF] bg-[#FAE8FF] px-3 py-1 rounded-full">
+              <div className="text-[#D946EF] bg-[#FAE8FF] px-2 sm:px-3 py-1 rounded-full text-sm">
                 {
                   Object.entries(filters).filter(([, value]) =>
                     typeof value === "object"
@@ -152,7 +160,7 @@ export default function UserManagement() {
                   ).length
                 }
               </div>
-              <RiEqualizer2Line size={32} />
+              <RiEqualizer2Line size={24} className="sm:size-8" />
             </Button>
           </UserManagementFilterSheet>
           <ExportModal

@@ -35,17 +35,45 @@ export function OTPVerificationModal({
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(30);
+  const [canResend, setCanResend] = useState(false);
   const { verifyOtp } = useAuth();
   const requestOtp = useRequestOtp();
   const navigate = useNavigate();
 
-  // Clear error message when modal opens
+  // Clear error message when modal opens and start cooldown
   useEffect(() => {
     if (open) {
       setError("");
       setOtp("");
+      // Start with 30-second cooldown when modal opens
+      setResendCooldown(30);
+      setCanResend(false);
     }
   }, [open]);
+
+  // Countdown timer effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    
+    if (open && resendCooldown > 0) {
+      interval = setInterval(() => {
+        setResendCooldown(prev => {
+          if (prev <= 1) {
+            setCanResend(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [open, resendCooldown]);
 
   const handleVerify = async () => {
     if (otp.length !== 6) {
@@ -87,9 +115,16 @@ export function OTPVerificationModal({
   };
 
   const handleResendOtp = async () => {
+    if (!canResend) return; // Prevent spam clicking
+    
     try {
       setError("");
       await requestOtp.mutateAsync({ userId, otpType });
+      
+      // Start new cooldown after successful resend
+      setResendCooldown(30);
+      setCanResend(false);
+      
       // Show success message
       setError("OTP resent successfully!");
       toast.success("OTP resent successfully!");
@@ -166,10 +201,18 @@ export function OTPVerificationModal({
           Didn't receive a code?{" "}
           <button
             onClick={handleResendOtp}
-            disabled={requestOtp.isPending}
-            className="underline text-[#C026D3] cursor-pointer text-lg"
+            disabled={!canResend || requestOtp.isPending}
+            className={`underline text-lg transition-colors ${
+              canResend && !requestOtp.isPending
+                ? "text-[#C026D3] cursor-pointer hover:text-[#a21caf]"
+                : "text-gray-400 cursor-not-allowed"
+            }`}
           >
-            {requestOtp.isPending ? "Sending..." : "Resend"}
+            {requestOtp.isPending
+              ? "Sending..."
+              : canResend
+              ? "Resend"
+              : `Resend in ${resendCooldown}s`}
           </button>
         </p>
       </AlertDialogContent>

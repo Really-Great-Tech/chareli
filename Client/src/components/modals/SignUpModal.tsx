@@ -263,7 +263,7 @@ export function SignUpModal({
                           )}
 
                           {(fields.showAll || fields.showPhone) && (
-                            <div className="relative pt-4">
+                            <div className="relative pt-3">
                               <Label
                                 htmlFor="phoneNumber"
                                 className="font-boogaloo text-base text-black dark:text-white"
@@ -325,7 +325,7 @@ export function SignUpModal({
 
                           {/* Name Fields */}
                           {(fields.firstName || fields.lastName) && (
-                            <div className="flex space-x-4 mt-4">
+                            <div className="flex space-x-4 mt-3">
                               {fields.firstName && (
                                 <div className="flex-1 relative">
                                   <Label

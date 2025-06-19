@@ -80,23 +80,23 @@ export default function GameManagement() {
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-[#D946EF] text-3xl font-boogaloo">All Games</h1>
-        <div className="flex gap-3">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+        <h1 className="text-[#D946EF] text-2xl sm:text-3xl font-boogaloo">All Games</h1>
+        <div className="flex flex-wrap gap-3 justify-end">
           <FilterSheet
             onFilter={setFilters}
             onReset={() => setFilters(undefined)}
           >
             <Button
               variant="outline"
-              className="border-[#475568] text-[#475568] flex items-center gap-2 dark:text-white"
+              className="border-[#475568] text-[#475568] flex items-center gap-2 dark:text-white py-2 sm:py-3 text-sm sm:text-base"
             >
               Filter
-              <RiEqualizer2Line size={32} />
+              <RiEqualizer2Line size={24} className="sm:size-8" />
             </Button>
           </FilterSheet>
           <CreateGameSheet>
-            <Button className="bg-[#D946EF] text-white font-bold hover:bg-[#c026d3] tracking-wider">
+            <Button className="bg-[#D946EF] text-white font-bold hover:bg-[#c026d3] tracking-wider py-2 sm:py-3 text-sm sm:text-base">
               Create New Game
             </Button>
           </CreateGameSheet>

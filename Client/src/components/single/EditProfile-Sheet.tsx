@@ -13,7 +13,11 @@ import { useUpdateUserData } from "../../backend/user.service";
 import { toast } from "sonner";
 import { useAuth } from "../../context/AuthContext";
 import { Formik, Form, Field, ErrorMessage } from "formik";
+import type { FieldProps } from "formik";
 import * as Yup from "yup";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
+import "../../styles/phone-input.css";
 
 interface EditProfileSheetProps {
   open: boolean;
@@ -151,15 +155,48 @@ export function EditProfileSheet({ open, onOpenChange, profile }: EditProfileShe
                 <Label htmlFor="phone" className="text-base mb-1">
                   Phone Number
                 </Label>
-                <Field
-                  as={Input}
-                  id="phone"
-                  name="phone"
-                  placeholder="Enter phone number"
-                  className={`bg-[#F1F5F9] mt-1 font-pincuk text-xl tracking-wider dark:bg-[#121C2D] dark:text-white ${
-                    errors.phone && touched.phone ? "border-red-500" : ""
-                  }`}
-                />
+                <Field name="phone">
+                  {({ field, form }: FieldProps) => (
+                    <div className="w-full mt-1">
+                      <PhoneInput
+                        country="us"
+                        value={field.value}
+                        onChange={(value) =>
+                          form.setFieldValue("phone", value ? `+${value}` : "")
+                        }
+                        inputStyle={{
+                          width: "100%",
+                          height: "48px",
+                          backgroundColor: "#F1F5F9",
+                          border: "0",
+                          borderRadius: "0.375rem",
+                          fontFamily: "pincuk",
+                          fontSize: "11px",
+                        }}
+                        containerClass="dark:bg-[#121C2D]"
+                        buttonStyle={{
+                          backgroundColor: "#F1F5F9",
+                          border: "0",
+                          borderRadius: "0.375rem 0 0 0.375rem",
+                        }}
+                        dropdownStyle={{
+                          backgroundColor: "#F1F5F9",
+                          color: "#000",
+                        }}
+                        searchStyle={{
+                          backgroundColor: "#F1F5F9",
+                          color: "#000",
+                        }}
+                        enableAreaCodeStretch
+                        autoFormat
+                        enableSearch
+                        disableSearchIcon
+                        autocompleteSearch
+                        countryCodeEditable={false}
+                      />
+                    </div>
+                  )}
+                </Field>
                 <ErrorMessage
                   name="phone"
                   component="div"

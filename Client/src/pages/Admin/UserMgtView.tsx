@@ -155,7 +155,7 @@ const UserManagementView = () => {
             <h3 className="text-lg font-bold mb-4 text-[#121C2D] tracking-wide dark:text-white">
               Profile Details
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 md:gap-x-16 lg:gap-x-56 space-y-border-b dark:text-white">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 md:gap-x-16 space-y-border-b dark:text-white">
               <div className="text-fuchsia-500  tracking-wide">Name</div>
               <div className="text-[#334154] font-pincuk text-lg tracking-wider dark:text-white">{`${response.user.firstName} ${response.user.lastName}`}</div>
               <div className="text-fuchsia-500  tracking-wide">Email</div>

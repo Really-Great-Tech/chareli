@@ -6,7 +6,7 @@ import { passwordSchema, confirmPasswordSchema } from "../../validation/password
 import { useResetPassword } from "../../backend/auth.service";
 import { backendService } from "../../backend/api.service";
 import { BackendRoute } from "../../backend/constants";
-import { toast } from "sonner";
+// import { toast } from "sonner";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -87,7 +87,7 @@ export function ResetPasswordPage() {
         confirmPassword: values.confirmPassword,
       });
       setIsSuccess(true);
-      toast.success("Password reset successful");
+      // toast.success("Password reset successful");
     } catch (error: any) {
       console.log(error)
     }

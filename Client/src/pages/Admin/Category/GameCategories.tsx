@@ -34,10 +34,10 @@ export default function GameCategories() {
 
   return (
     <div className="p-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-boogaloo text-[#D946EF]">Game category</h1>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
+        <h1 className="text-2xl sm:text-3xl font-boogaloo text-[#D946EF]">Game category</h1>
         <button
-          className="bg-[#D946EF] text-white px-3 py-3 rounded-lg text-lg tracking-wide hover:bg-[#D946EF] transition"
+          className="bg-[#D946EF] text-white px-3 py-2 sm:py-3 rounded-lg text-sm sm:text-lg tracking-wide hover:bg-[#D946EF] transition self-start sm:self-auto"
           onClick={() => setCreateOpen(true)}
         >
           Create New Category

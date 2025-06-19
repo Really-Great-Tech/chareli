@@ -202,21 +202,21 @@ export function SignUpModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <CustomDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221] h-fit">
+      <CustomDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221] h-[80vh]">
         {/* Custom Close Button */}
         <button
-          className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#C026D3] flex items-center justify-center shadow-lg hover:bg-[#a21caf] transition-colors"
+          className="absolute -top-2 -right-2 sm:-top-4 sm:-right-4 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#C026D3] flex items-center justify-center shadow-lg hover:bg-[#a21caf] transition-colors"
           onClick={() => onOpenChange(false)}
           aria-label="Close"
           style={{ border: "none" }}
         >
           <span className="text-white text-2xl font-bold">×</span>
         </button>
-        <DialogHeader className="h-fit">
+        <DialogHeader className="h-full overflow-auto custom-scrollbar">
           <DialogTitle className="text-2xl font-bold text-[#E328AF] text-center font-boogaloo">
             Sign Up
           </DialogTitle>
-          <DialogDescription className="text-center h-[70%]">
+          <DialogDescription className="text-center">
             <Formik
               initialValues={getInitialValues(config)}
               validationSchema={getValidationSchema(config)}
@@ -227,7 +227,7 @@ export function SignUpModal({
             >
               {({ isSubmitting }) => (
                 <Form className="space-y-1 flex flex-col h-full">
-                  <div className="overflow-auto pb-8 custom-scrollbar">
+                  <div className="pb-2">
                     {/* Authentication Fields */}
                     {(() => {
                       const fields = getAuthFields(config);
@@ -532,29 +532,31 @@ export function SignUpModal({
               )}
             </Formik>
           </DialogDescription>
-          <p className=" text-center text-black dark:text-white font-boogaloo text-lg tracking-wider">
-            Already have an account?{" "}
-            <span
-              className="underline text-[#C026D3] cursor-pointer font-boogaloo text-lg"
-              onClick={openLoginModal}
-            >
-              Login
-            </span>
-          </p>
-          {/* terms and privacy */}
-          <div className="font-pincuk flex space-2 text-lg justify-center">
-            <p
-              className="text-[#C026D3] text-center cursor-pointer tracking-wider mr-4 hover:underline"
-              onClick={handleTerms}
-            >
-              Terms of Service
+          <div className="flex flex-col flex-1 bg-green-">
+            <p className=" text-center text-black dark:text-white font-boogaloo text-lg tracking-wider">
+              Already have an account?{" "}
+              <button
+                className="underline text-[#C026D3] cursor-pointer font-boogaloo text-lg"
+                onClick={openLoginModal}
+              >
+                Login
+              </button>
             </p>
-            {/* <p
+            {/* terms and privacy */}
+            <div className="font-pincuk flex space-2 text-lg justify-center">
+              <button
+                className="text-[#C026D3] text-center cursor-buttonointer tracking-wider mr-4 hover:underline"
+                onClick={handleTerms}
+              >
+                Terms of Service
+              </button>
+              {/* <p
               className="text-gray-400 text-center cursor-pointer tracking-wider mr-4 underline"
               onClick={handlePrivacy}
             >
               Privacy Policy
             </p> */}
+            </div>
           </div>
         </DialogHeader>
       </CustomDialogContent>

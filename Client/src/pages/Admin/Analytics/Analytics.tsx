@@ -11,7 +11,6 @@ import { useDashboardAnalytics } from "../../../backend/analytics.service";
 export default function Analytics() {
   const { data: dashboardData } = useDashboardAnalytics();
   
-  console.log('Dashboard Data:', dashboardData);
   const adultsCount = dashboardData?.adultsCount ?? 0;
   const minorsCount = dashboardData?.minorsCount ?? 0;
   const totalRegistered = adultsCount + minorsCount;

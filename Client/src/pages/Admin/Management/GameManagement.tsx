@@ -22,6 +22,7 @@ import { EditSheet } from "../../../components/single/Edit-Sheet";
 import { cn } from "../../../lib/utils";
 import { formatTime } from "../../../utils/main";
 import GameThumbnail from "../Analytics/GameThumbnail";
+import { X } from "lucide-react";
 
 const pageSize = 10;
 
@@ -36,6 +37,8 @@ export default function GameManagement() {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
+  const [reorderOpen, setReorderOpen] = useState(false);
+  const [reorderHistoryOpen, setReorderHistoryOpen] = useState(false);
   const queryClient = useQueryClient();
   const { data: gamesWithAnalytics, isLoading } = useGamesAnalytics();
   const deleteGame = useDeleteGame();
@@ -81,7 +84,9 @@ export default function GameManagement() {
   return (
     <div className="p-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-        <h1 className="text-[#D946EF] text-2xl sm:text-3xl font-boogaloo">All Games</h1>
+        <h1 className="text-[#D946EF] text-2xl sm:text-3xl font-boogaloo">
+          All Games
+        </h1>
         <div className="flex flex-wrap gap-3 justify-end">
           <FilterSheet
             onFilter={setFilters}
@@ -89,158 +94,291 @@ export default function GameManagement() {
           >
             <Button
               variant="outline"
-              className="border-[#475568] text-[#475568] flex items-center gap-2 dark:text-white py-2 sm:py-3 text-sm sm:text-base"
+              className="border-[#475568] text-[#475568] flex items-center gap-2 dark:text-white py-2 sm:py-[14px] text-sm sm:text-base h-[48px]"
             >
               Filter
               <RiEqualizer2Line size={24} className="sm:size-8" />
             </Button>
           </FilterSheet>
-          <CreateGameSheet>
-            <Button className="bg-[#D946EF] text-white font-bold hover:bg-[#c026d3] tracking-wider py-2 sm:py-3 text-sm sm:text-base">
-              Create New Game
+          <Button
+            className={`text-[#0F1621] font-normal text-sm sm:text-base px-[16px] py-[14px] h-[48px] bg-[#F8FAFC] hover:bg-[#F8FAFC] border-[#E2E8F0] dark:border-none border-1 ${
+              reorderOpen ? "bg-[#94A3B7] hover:bg-[#94A3B7]" : ""
+            }`}
+            onClick={() => {
+              setReorderOpen(!reorderOpen);
+              setReorderHistoryOpen(false);
+            }}
+          >
+            {reorderOpen ? (
+              <span className="flex justify-between items-center gap-2 text-white cursor-pointer">
+                Re-order mode <X size={16} color="white" />
+              </span>
+            ) : (
+              "Reorder Games"
+            )}
+          </Button>
+          {reorderOpen && (
+            <Button
+              className={`font-normal text-sm sm:text-base px-[16px] py-[14px] h-[48px] bg-white hover:bg-[#F8FAFC]  text-black border-[#E2E8F0] border-1 dark:border-none ${
+                reorderHistoryOpen
+                  ? "bg-[#86198F] hover:bg-[#86198F] text-white"
+                  : ""
+              }`}
+              onClick={() => setReorderHistoryOpen(!reorderHistoryOpen)}
+            >
+              Reorder History
             </Button>
-          </CreateGameSheet>
+          )}
+          {!reorderOpen && (
+            <CreateGameSheet>
+              <Button className="bg-[#D946EF] text-white font-bold hover:bg-[#c026d3] tracking-wider py-2 sm:py-[14px] text-sm sm:text-base h-[48px]">
+                Create New Game
+              </Button>
+            </CreateGameSheet>
+          )}
         </div>
       </div>
-      <Card className="p-0 overflow-x-auto shadow-none border border-none bg-[#F1F5F9] dark:bg-[#18192b]">
-        <table className="min-w-full bg-transparent">
-          <thead>
-            <tr className="dark:bg-[#18192b] text-xl tracking-wide font-light">
-              <th className="px-4 py-3 text-left">Game</th>
-              <th className="px-4 py-3 text-left">Category</th>
-              <th className="px-4 py-3 text-left">Minutes played</th>
-              <th className="px-4 py-3 text-left">Game Status</th>
-              <th className="px-4 py-3 text-left">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading ? (
-              <tr>
-                <td colSpan={5} className="px-4 py-3 text-center">
-                  Loading...
-                </td>
+      {reorderOpen && (
+        <div className="flex bg-[#F5D0FE] dark:bg-[#F5D0FE]/70 text-[#86198F] text-[18px] font-bolde justify-center items-center h-[52px] mb-[20px]">
+          <p>Reorder-mode: Click game to reorder</p>
+        </div>
+      )}
+      {!reorderHistoryOpen ? (
+        <Card className="p-0 overflow-x-auto shadow-none border border-none bg-[#F1F5F9] dark:bg-[#18192b]">
+          <table className="min-w-full bg-transparent">
+            <thead>
+              <tr className="dark:bg-[#18192b] text-xl tracking-wide font-light">
+                <th className="px-4 py-3 text-left">Game</th>
+                <th className="px-4 py-3 text-left">Category</th>
+                <th className="px-4 py-3 text-left">Minutes played</th>
+                <th className="px-4 py-3 text-left">Game Status</th>
+                <th className="px-4 py-3 text-left">Action</th>
               </tr>
-            ) : !filteredGames.length ? (
-              <tr>
-                <td colSpan={5}>
-                  <NoResults
-                    title={
-                      gamesWithAnalytics?.length
-                        ? "No matching results"
-                        : "No games found"
-                    }
-                    message={
-                      gamesWithAnalytics?.length
-                        ? "Try adjusting your filters"
-                        : "No games have been added to the system yet"
-                    }
-                    icon={<RiGamepadLine className="w-12 h-12 text-gray-400" />}
-                  />
-                </td>
-              </tr>
-            ) : (
-              filteredGames.map((game, idx) => (
-                <tr
-                  key={game.id}
-                  className={cn(
-                    "border-b dark:border-[#23243a] hover:bg-[#f3e8ff]/40 dark:hover:bg-[#23243a]/40 transition",
-                    idx % 2 === 0 ? "dark:bg-[#18192b]" : "dark:bg-[#23243a]"
-                  )}
-                >
-                  <td className="px-4 py-3 flex items-center gap-3">
-                    <GameThumbnail
-                      src={(game.thumbnailFile as any)?.url || ""}
-                      alt={game.title}
-                    />
-                    <span className="text-lg font-light">{game.title}</span>
-                  </td>
-                  <td className="px-4 py-3 font-pincuk text-xl tracking-wider">
-                    {game.category?.name || "Uncategorized"}
-                  </td>
-                  <td className="px-4 py-3 font-pincuk text-xl tracking-wider">
-                    {game.analytics?.totalPlayTime != null
-                      ? formatTime(game.analytics.totalPlayTime || 0)
-                      : "-"}
-                  </td>
-                  <td className="px-4 py-3">
-                    {game.status === "active" ? (
-                      <span className="inline-flex items-center gap-2 p-1 rounded bg-[#419E6A] text-white font-pincuk text-lg tracking-wider">
-                        <span className="w-2 h-2 bg-white rounded-full inline-block"></span>
-                        Active
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-2  p-1 rounded bg-[#CBD5E0] text-[#22223B] font-pincuk text-lg tracking-wider">
-                        <span className="w-2 h-2 bg-red-500 rounded-full inline-block"></span>
-                        Inactive
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-3 items-cente">
-                      <button
-                        className="text-black hover:text-black p-1 dark:text-white"
-                        title="Edit"
-                        onClick={() => {
-                          setSelectedGameId(game.id);
-                          setEditOpen(true);
-                        }}
-                      >
-                        <CiEdit />
-                      </button>
-                      <button
-                        className="text-black hover:text-black p-1 dark:text-white"
-                        title="View"
-                        onClick={() => navigate(`/admin/view-game/${game.id}`)}
-                      >
-                        {game.status === "active" ? (
-                          <IoEyeOutline />
-                        ) : (
-                          <IoEyeOffOutline />
-                        )}
-                      </button>
-                      <button
-                        className="text-black hover:text-black p-1 dark:text-white"
-                        title="Delete"
-                        onClick={() => {
-                          setSelectedGameId(game.id);
-                          setDeleteModalOpen(true);
-                        }}
-                      >
-                        <RiDeleteBin6Line />
-                      </button>
-                    </div>
+            </thead>
+            <tbody>
+              {isLoading ? (
+                <tr>
+                  <td colSpan={5} className="px-4 py-3 text-center">
+                    Loading...
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-        {/* Pagination */}
-        {filteredGames.length > 0 && (
-          <div className="flex justify-between items-center px-4 py-3 bg-[#F1F5F9] dark:bg-[#18192b] rounded-b-xl ">
-            <span className="text-sm">
-              Showing {(page - 1) * pageSize + 1}-
-              {Math.min(page * pageSize, totalGames)} from {totalGames} data
-            </span>
-            <div className="flex items-center gap-2 rounded-xl space-x-4 pr-1 pl-0.5 border border-[#D946EF] dark:text-white">
-              {Array.from({ length: totalPages }, (_, i) => (
-                <button
-                  key={i + 1}
-                  className={`w-7 h-7 rounded-full transition-colors  ${
-                    page === i + 1
-                      ? "bg-[#D946EF] text-white dark:bg-gray-400"
-                      : "bg-transparent text-[#D946EF] dark:text-gray-400 hover:bg-[#f3e8ff]"
-                  }`}
-                  onClick={() => setPage(i + 1)}
-                >
-                  {i + 1}
-                </button>
-              ))}
+              ) : !filteredGames.length ? (
+                <tr>
+                  <td colSpan={5}>
+                    <NoResults
+                      title={
+                        gamesWithAnalytics?.length
+                          ? "No matching results"
+                          : "No games found"
+                      }
+                      message={
+                        gamesWithAnalytics?.length
+                          ? "Try adjusting your filters"
+                          : "No games have been added to the system yet"
+                      }
+                      icon={
+                        <RiGamepadLine className="w-12 h-12 text-gray-400" />
+                      }
+                    />
+                  </td>
+                </tr>
+              ) : (
+                filteredGames.map((game, idx) => (
+                  <tr
+                    key={game.id}
+                    className={cn(
+                      "border-b dark:border-[#23243a] hover:bg-[#f3e8ff]/40 dark:hover:bg-[#23243a]/40 transition",
+                      idx % 2 === 0 ? "dark:bg-[#18192b]" : "dark:bg-[#23243a]"
+                    )}
+                  >
+                    <td className="px-4 py-3 flex items-center gap-3">
+                      <GameThumbnail
+                        src={(game.thumbnailFile as any)?.url || ""}
+                        alt={game.title}
+                      />
+                      <span className="text-lg font-light">{game.title}</span>
+                    </td>
+                    <td className="px-4 py-3 font-pincuk text-xl tracking-wider">
+                      {game.category?.name || "Uncategorized"}
+                    </td>
+                    <td className="px-4 py-3 font-pincuk text-xl tracking-wider">
+                      {game.analytics?.totalPlayTime != null
+                        ? formatTime(game.analytics.totalPlayTime || 0)
+                        : "-"}
+                    </td>
+                    <td className="px-4 py-3">
+                      {game.status === "active" ? (
+                        <span className="inline-flex items-center gap-2 p-1 rounded bg-[#419E6A] text-white font-pincuk text-lg tracking-wider">
+                          <span className="w-2 h-2 bg-white rounded-full inline-block"></span>
+                          Active
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-2  p-1 rounded bg-[#CBD5E0] text-[#22223B] font-pincuk text-lg tracking-wider">
+                          <span className="w-2 h-2 bg-red-500 rounded-full inline-block"></span>
+                          Inactive
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-3 items-cente">
+                        <button
+                          className="text-black hover:text-black p-1 dark:text-white"
+                          title="Edit"
+                          onClick={() => {
+                            setSelectedGameId(game.id);
+                            setEditOpen(true);
+                          }}
+                        >
+                          <CiEdit />
+                        </button>
+                        <button
+                          className="text-black hover:text-black p-1 dark:text-white"
+                          title="View"
+                          onClick={() =>
+                            navigate(`/admin/view-game/${game.id}`)
+                          }
+                        >
+                          {game.status === "active" ? (
+                            <IoEyeOutline />
+                          ) : (
+                            <IoEyeOffOutline />
+                          )}
+                        </button>
+                        <button
+                          className="text-black hover:text-black p-1 dark:text-white"
+                          title="Delete"
+                          onClick={() => {
+                            setSelectedGameId(game.id);
+                            setDeleteModalOpen(true);
+                          }}
+                        >
+                          <RiDeleteBin6Line />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+          {/* Pagination */}
+          {filteredGames.length > 0 && (
+            <div className="flex justify-between items-center px-4 py-3 bg-[#F1F5F9] dark:bg-[#18192b] rounded-b-xl ">
+              <span className="text-sm">
+                Showing {(page - 1) * pageSize + 1}-
+                {Math.min(page * pageSize, totalGames)} from {totalGames} data
+              </span>
+              <div className="flex items-center gap-2 rounded-xl space-x-4 pr-1 pl-0.5 border border-[#D946EF] dark:text-white">
+                {Array.from({ length: totalPages }, (_, i) => (
+                  <button
+                    key={i + 1}
+                    className={`w-7 h-7 rounded-full transition-colors  ${
+                      page === i + 1
+                        ? "bg-[#D946EF] text-white dark:bg-gray-400"
+                        : "bg-transparent text-[#D946EF] dark:text-gray-400 hover:bg-[#f3e8ff]"
+                    }`}
+                    onClick={() => setPage(i + 1)}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
-      </Card>
-      
+          )}
+        </Card>
+      ) : (
+        <Card className="p-0 overflow-x-auto shadow-none border border-none bg-[#F1F5F9] dark:bg-[#18192b]">
+          <table className="min-w-full bg-transparent">
+            <thead>
+              <tr className="dark:bg-[#18192b] text-xl tracking-wide font-light">
+                <th className="px-4 py-3 text-left">Game</th>
+                <th className="px-4 py-3 text-left">Order number</th>
+                <th className="px-4 py-3 text-left">Number of Clicks</th>
+              </tr>
+            </thead>
+            <tbody>
+              {isLoading ? (
+                <tr>
+                  <td colSpan={5} className="px-4 py-3 text-center">
+                    Loading...
+                  </td>
+                </tr>
+              ) : !filteredGames.length ? (
+                <tr>
+                  <td colSpan={5}>
+                    <NoResults
+                      title={
+                        gamesWithAnalytics?.length
+                          ? "No matching results"
+                          : "No games found"
+                      }
+                      message={
+                        gamesWithAnalytics?.length
+                          ? "Try adjusting your filters"
+                          : "No games have been added to the system yet"
+                      }
+                      icon={
+                        <RiGamepadLine className="w-12 h-12 text-gray-400" />
+                      }
+                    />
+                  </td>
+                </tr>
+              ) : (
+                filteredGames.map((game, idx) => (
+                  <tr
+                    key={game.id}
+                    className={cn(
+                      "border-b dark:border-[#23243a] hover:bg-[#f3e8ff]/40 dark:hover:bg-[#23243a]/40 transition",
+                      idx % 2 === 0 ? "dark:bg-[#18192b]" : "dark:bg-[#23243a]"
+                    )}
+                  >
+                    <td className="px-4 py-3 flex items-center gap-3">
+                      <GameThumbnail
+                        src={(game.thumbnailFile as any)?.url || ""}
+                        alt={game.title}
+                      />
+                      <span className="text-lg font-light">{game.title}</span>
+                    </td>
+                    <td className="px-4 py-3 font-pincuk text-xl tracking-wider">
+                      {game.category?.name || "Uncategorized"}
+                    </td>
+                    <td className="px-4 py-3 font-pincuk text-xl tracking-wider">
+                      {game.analytics?.totalPlayTime != null
+                        ? formatTime(game.analytics.totalPlayTime || 0)
+                        : "-"}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+          {/* Pagination */}
+          {filteredGames.length > 0 && (
+            <div className="flex justify-between items-center px-4 py-3 bg-[#F1F5F9] dark:bg-[#18192b] rounded-b-xl ">
+              <span className="text-sm">
+                Showing {(page - 1) * pageSize + 1}-
+                {Math.min(page * pageSize, totalGames)} from {totalGames} data
+              </span>
+              <div className="flex items-center gap-2 rounded-xl space-x-4 pr-1 pl-0.5 border border-[#D946EF] dark:text-white">
+                {Array.from({ length: totalPages }, (_, i) => (
+                  <button
+                    key={i + 1}
+                    className={`w-7 h-7 rounded-full transition-colors  ${
+                      page === i + 1
+                        ? "bg-[#D946EF] text-white dark:bg-gray-400"
+                        : "bg-transparent text-[#D946EF] dark:text-gray-400 hover:bg-[#f3e8ff]"
+                    }`}
+                    onClick={() => setPage(i + 1)}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </Card>
+      )}
+
       {editOpen && selectedGameId && (
         <EditSheet
           open={editOpen}

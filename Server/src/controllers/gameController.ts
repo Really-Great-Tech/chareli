@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppDataSource } from '../config/database';
 import { Game, GameStatus } from '../entities/Games';
+import { GamePositionHistory } from '../entities/GamePositionHistory';
 import { Category } from '../entities/Category';
 import { File } from '../entities/Files';
 import { Analytics } from '../entities/Analytics';
@@ -14,8 +15,74 @@ import logger from '../utils/logger';
 import { v4 as uuidv4 } from 'uuid';
 
 const gameRepository = AppDataSource.getRepository(Game);
+const gamePositionHistoryRepository = AppDataSource.getRepository(GamePositionHistory);
 const categoryRepository = AppDataSource.getRepository(Category);
 const fileRepository = AppDataSource.getRepository(File);
+
+// Helper function to get the maximum position
+const getMaxPosition = async (): Promise<number> => {
+  const result = await gameRepository
+    .createQueryBuilder('game')
+    .select('MAX(game.position)', 'maxPosition')
+    .getRawOne();
+  
+  return result?.maxPosition || 0;
+};
+
+// Helper function to create or update position history record
+const createOrUpdatePositionHistoryRecord = async (gameId: string, position: number, queryRunner?: any): Promise<void> => {
+  const repository = queryRunner ? queryRunner.manager.getRepository(GamePositionHistory) : gamePositionHistoryRepository;
+  
+  // Check if record already exists for this game and position
+  let historyRecord = await repository.findOne({
+    where: { gameId, position }
+  });
+  
+  if (!historyRecord) {
+    // Create new record if it doesn't exist
+    historyRecord = repository.create({
+      gameId,
+      position,
+      clickCount: 0
+    });
+    await repository.save(historyRecord);
+  }
+  // If record exists, we don't need to do anything - it will be updated when clicks are recorded
+};
+
+// Helper function to assign position for new game
+const assignPositionForNewGame = async (requestedPosition?: number, queryRunner?: any): Promise<number> => {
+  const repository = queryRunner ? queryRunner.manager.getRepository(Game) : gameRepository;
+  
+  if (requestedPosition) {
+    // Validate that position doesn't exceed total number of games + 1 (since we're adding a new game)
+    const totalGames = await repository.count();
+    if (requestedPosition > totalGames + 1) {
+      throw new ApiError(400, `Position cannot be greater than ${totalGames + 1} (total number of games + 1)`);
+    }
+    
+    // Check if position is occupied
+    const existingGame = await repository.findOne({
+      where: { position: requestedPosition }
+    });
+    
+    if (existingGame) {
+      // Move existing game to end (next available position)
+      const maxPosition = await getMaxPosition();
+      existingGame.position = maxPosition + 1;
+      await repository.save(existingGame);
+      
+      // Create or update position history for existing game at new position
+      await createOrUpdatePositionHistoryRecord(existingGame.id, maxPosition + 1, queryRunner);
+    }
+    
+    return requestedPosition;
+  } else {
+    // Auto-assign to next available position
+    const maxPosition = await getMaxPosition();
+    return maxPosition + 1;
+  }
+};
 
 
 
@@ -177,11 +244,12 @@ export const getAllGames = async (
     // Get total count for pagination
     const total = await queryBuilder.getCount();
     
-    // Apply pagination
+    // Apply pagination and order by position
     queryBuilder
       .skip((pageNumber - 1) * limitNumber)
       .take(limitNumber)
-      .orderBy('game.createdAt', 'DESC');
+      .orderBy('game.position', 'ASC')
+      .addOrderBy('game.createdAt', 'DESC'); // Secondary sort for games without position
     
     const games = await queryBuilder.getMany();
 
@@ -385,6 +453,10 @@ export const getGameById = async (
  *                 enum: [active, disabled]
  *               config:
  *                 type: integer
+ *               position:
+ *                 type: integer
+ *                 minimum: 1
+ *                 description: Position for the game (optional, auto-assigned if not provided)
  *     responses:
  *       201:
  *         description: Game created successfully
@@ -433,7 +505,8 @@ export const createGame = async (
       description, 
       categoryId, 
       status = GameStatus.ACTIVE,
-      config = 0
+      config = 0,
+      position
     } = req.body;
     
     // Validate required fields
@@ -507,7 +580,11 @@ export const createGame = async (
 
       await queryRunner.manager.save([thumbnailFileRecord, gameFileRecord]);
 
-      // Create new game with file IDs using transaction
+      // Assign position for the new game
+      logger.info('Assigning position for new game...');
+      const assignedPosition = await assignPositionForNewGame(position ? parseInt(position) : undefined, queryRunner);
+
+      // Create new game with file IDs and position using transaction
       logger.info('Creating game record...');
       const game = gameRepository.create({
         title,
@@ -517,10 +594,15 @@ export const createGame = async (
         categoryId,
         status,
         config,
+        position: assignedPosition,
         createdById: req.user?.userId
       });
 
       await queryRunner.manager.save(game);
+
+      // Create initial position history record
+      logger.info('Creating initial position history record...');
+      await createOrUpdatePositionHistoryRecord(game.id, assignedPosition, queryRunner);
 
       // Commit transaction
       await queryRunner.commitTransaction();
@@ -608,6 +690,10 @@ export const createGame = async (
  *                 enum: [active, disabled]
  *               config:
  *                 type: integer
+ *               position:
+ *                 type: integer
+ *                 minimum: 1
+ *                 description: Position for the game (optional, will swap with existing game if position is occupied)
  *     responses:
  *       200:
  *         description: Game updated successfully
@@ -639,7 +725,8 @@ export const updateGame = async (
       description, 
       categoryId, 
       status,
-      config
+      config,
+      position
     } = req.body;
     
     const game = await queryRunner.manager.findOne(Game, {
@@ -728,6 +815,47 @@ export const updateGame = async (
       }
       
       game.categoryId = categoryId;
+    }
+    
+    // Handle position update if provided
+    if (position !== undefined && position !== game.position) {
+      const newPosition = parseInt(position);
+      
+      if (newPosition < 1) {
+        return next(ApiError.badRequest('Position must be a positive integer'));
+      }
+      
+      // Validate that position doesn't exceed total number of games
+      const totalGames = await queryRunner.manager.count(Game);
+      if (newPosition > totalGames) {
+        return next(ApiError.badRequest(`Position cannot be greater than ${totalGames} (total number of games)`));
+      }
+      
+      // Check if target position is occupied
+      const gameAtTargetPosition = await queryRunner.manager.findOne(Game, {
+        where: { position: newPosition }
+      });
+      
+      if (gameAtTargetPosition) {
+        // Swap positions
+        const currentPosition = game.position;
+        
+        // Update positions
+        game.position = newPosition;
+        gameAtTargetPosition.position = currentPosition;
+        
+        await queryRunner.manager.save(gameAtTargetPosition);
+        
+        // Create or update position history for both games
+        await createOrUpdatePositionHistoryRecord(game.id, newPosition, queryRunner);
+        await createOrUpdatePositionHistoryRecord(gameAtTargetPosition.id, currentPosition, queryRunner);
+      } else {
+        // Position is free, just move there
+        game.position = newPosition;
+        
+        // Create or update position history
+        await createOrUpdatePositionHistoryRecord(game.id, newPosition, queryRunner);
+      }
     }
     
     // Update basic game properties
@@ -846,6 +974,80 @@ export const deleteGame = async (
     res.status(200).json({
       success: true,
       message: 'Game deleted successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @swagger
+ * /games/position/{position}:
+ *   get:
+ *     summary: Get game by position
+ *     description: Retrieve a game by its position number.
+ *     tags: [Games]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: position
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         description: Position number of the game to retrieve
+ *     responses:
+ *       200:
+ *         description: Game found at the specified position
+ *       404:
+ *         description: No game found at the specified position
+ *       400:
+ *         description: Invalid position parameter
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+export const getGameByPosition = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { position } = req.params;
+    
+    const positionNumber = parseInt(position);
+    
+    if (isNaN(positionNumber) || positionNumber < 1) {
+      return next(ApiError.badRequest('Position must be a positive integer'));
+    }
+    
+    // Get the game at the specified position
+    const game = await gameRepository.findOne({
+      where: { position: positionNumber },
+      relations: ['category', 'thumbnailFile', 'gameFile', 'createdBy']
+    });
+    
+    if (!game) {
+      return next(ApiError.notFound(`No game found at position ${positionNumber}`));
+    }
+    
+    // Transform game file and thumbnail URLs to direct S3 URLs
+    if (game.gameFile) {
+      const s3Key = game.gameFile.s3Key;
+      const baseUrl = s3Service.getBaseUrl();
+      game.gameFile.s3Key = `${baseUrl}/${s3Key}`;
+    }
+    if (game.thumbnailFile) {
+      const s3Key = game.thumbnailFile.s3Key;
+      const baseUrl = s3Service.getBaseUrl();
+      game.thumbnailFile.s3Key = `${baseUrl}/${s3Key}`;
+    }
+    
+    res.status(200).json({
+      success: true,
+      data: game
     });
   } catch (error) {
     next(error);

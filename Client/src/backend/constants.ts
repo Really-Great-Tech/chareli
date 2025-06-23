@@ -23,8 +23,16 @@ export const BackendRoute = {
   AUTH_REVOKE_ROLE: '/api/auth/revoke-role/:id',
   GAMES: '/api/games',
   GAME_BY_ID: '/api/games/:id',
+  GAME_BY_POSITION: '/api/games/position/:position',
   CATEGORIES: '/api/categories',
   CATEGORY_BY_ID: '/api/categories/:id',
+  
+  // Game Position History Routes
+  GAME_POSITION_HISTORY: '/api/game-position-history',
+  GAME_POSITION_HISTORY_BY_GAME: '/api/game-position-history/:gameId',
+  GAME_POSITION_HISTORY_CLICK: '/api/game-position-history/:gameId/click',
+  GAME_POSITION_HISTORY_ANALYTICS: '/api/game-position-history/analytics',
+  GAME_POSITION_HISTORY_PERFORMANCE: '/api/game-position-history/performance',
   
   // Analytics Routes
   ANALYTICS: '/api/analytics',

@@ -244,11 +244,12 @@ export const getAllGames = async (
     // Get total count for pagination
     const total = await queryBuilder.getCount();
     
-    // Apply pagination
+    // Apply pagination and order by position
     queryBuilder
       .skip((pageNumber - 1) * limitNumber)
       .take(limitNumber)
-      .orderBy('game.createdAt', 'DESC');
+      .orderBy('game.position', 'ASC')
+      .addOrderBy('game.createdAt', 'DESC'); // Secondary sort for games without position
     
     const games = await queryBuilder.getMany();
 

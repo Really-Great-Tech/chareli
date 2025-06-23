@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
 import { Category } from './Category';
 import { User } from './User';
 import { File } from './Files';
@@ -57,6 +57,10 @@ export class Game {
 
   @Column({ nullable: true })
   createdById: string;
+
+  @Column({ type: 'int', nullable: true })
+  @Index()
+  position: number;
 
   @CreateDateColumn()
   createdAt: Date;

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   getAllGames,
   getGameById,
+  getGameByPosition,
   createGame,
   updateGame,
   deleteGame,
@@ -22,6 +23,7 @@ const router = Router();
 
 // All game routes require authentication and admin privileges
 router.get('/', validateQuery(gameQuerySchema), getAllGames);
+router.get('/position/:position', getGameByPosition);
 router.get('/:id', validateParams(gameIdParamSchema), getGameById);
 
 router.use(authenticate);

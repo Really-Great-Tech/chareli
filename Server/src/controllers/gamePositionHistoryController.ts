@@ -262,12 +262,44 @@ export const getClickAnalytics = async (
  *         name: position
  *         schema:
  *           type: integer
- *         description: Filter by position
+ *         description: Filter by specific position
  *       - in: query
- *         name: isActive
+ *         name: positionMin
  *         schema:
- *           type: boolean
- *         description: Filter by active status
+ *           type: integer
+ *         description: Filter by minimum position
+ *       - in: query
+ *         name: positionMax
+ *         schema:
+ *           type: integer
+ *         description: Filter by maximum position
+ *       - in: query
+ *         name: clickCountMin
+ *         schema:
+ *           type: integer
+ *         description: Filter by minimum click count
+ *       - in: query
+ *         name: clickCountMax
+ *         schema:
+ *           type: integer
+ *         description: Filter by maximum click count
+ *       - in: query
+ *         name: gameTitle
+ *         schema:
+ *           type: string
+ *         description: Filter by game title (partial match)
+ *       - in: query
+ *         name: categoryId
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Filter by game category
+ *       - in: query
+ *         name: gameStatus
+ *         schema:
+ *           type: string
+ *           enum: [active, disabled]
+ *         description: Filter by game status
  *     responses:
  *       200:
  *         description: Position history retrieved successfully
@@ -285,8 +317,12 @@ export const getAllPositionHistory = async (
     const { 
       page = 1, 
       limit = 10, 
-      position, 
-      isActive 
+      position,
+      positionMin,
+      positionMax,
+      clickCountMin,
+      clickCountMax,
+      gameTitle
     } = req.query;
     
     const pageNumber = parseInt(page as string, 10);
@@ -298,9 +334,29 @@ export const getAllPositionHistory = async (
       .leftJoinAndSelect('game.thumbnailFile', 'thumbnailFile')
       .leftJoinAndSelect('game.gameFile', 'gameFile');
     
-    // Apply filters
+    // Apply history-specific filters
     if (position) {
-      queryBuilder.andWhere('history.position = :position', { position });
+      queryBuilder.andWhere('history.position = :position', { position: parseInt(position as string) });
+    }
+    
+    if (positionMin) {
+      queryBuilder.andWhere('history.position >= :positionMin', { positionMin: parseInt(positionMin as string) });
+    }
+    
+    if (positionMax) {
+      queryBuilder.andWhere('history.position <= :positionMax', { positionMax: parseInt(positionMax as string) });
+    }
+    
+    if (clickCountMin) {
+      queryBuilder.andWhere('history.clickCount >= :clickCountMin', { clickCountMin: parseInt(clickCountMin as string) });
+    }
+    
+    if (clickCountMax) {
+      queryBuilder.andWhere('history.clickCount <= :clickCountMax', { clickCountMax: parseInt(clickCountMax as string) });
+    }
+    
+    if (gameTitle) {
+      queryBuilder.andWhere('game.title ILIKE :gameTitle', { gameTitle: `%${gameTitle}%` });
     }
     
     // Get total count

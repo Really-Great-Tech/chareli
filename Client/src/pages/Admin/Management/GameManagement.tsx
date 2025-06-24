@@ -199,13 +199,15 @@ export default function GameManagement() {
                       idx % 2 === 0 ? "dark:bg-[#18192b]" : "dark:bg-[#23243a]"
                     )}
                     onClick={() => {
-                    setSelectedGame({
-                      id: game.id,
-                      title: game.title,
-                      category: game.category,
-                      thumbnailFile: game.thumbnailFile,
-                    });
-                    setReOrderModalOpen(true);
+                    if (reorderOpen) {
+                      setSelectedGame({
+                        id: game.id,
+                        title: game.title,
+                        category: game.category,
+                        thumbnailFile: game.thumbnailFile,
+                      });
+                      setReOrderModalOpen(true);
+                    }
                   }}
                 >
                     <td className="px-4 py-3 flex items-center gap-3">

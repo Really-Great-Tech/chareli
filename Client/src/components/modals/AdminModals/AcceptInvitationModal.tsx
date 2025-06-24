@@ -20,14 +20,14 @@ export const AcceptInvitationModal: React.FC<AcceptInvitationModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="bg-[#F1F5F9] rounded-2xl p-4 sm:p-6 md:p-8 w-[90%] sm:w-[420px] md:w-[450px] lg:w-[480px] max-w-[90vw] shadow-xl border border-[#E2E8F0] flex flex-col items-center mx-4">
-        <h2 className="text-2xl sm:text-3xl font-bold text-[#D946EF] mb-4 sm:mb-6 underline underline-offset-4 text-center font-boogaloo">
+        <h2 className="text-2xl sm:text-3xl font-bold text-[#D946EF] mb-4 sm:mb-6 underline underline-offset-4 text-center font-dmmono">
           Accept Invitation
         </h2>
         <form className="w-full flex flex-col gap-4">
           {isExistingUser ? (
             <>
               <div>
-                <label className="block font-bold text-base sm:text-lg mb-1 font-boogaloo tracking-wider">
+                <label className="block font-bold text-base sm:text-lg mb-1 font-dmmono tracking-wider">
                   Email
                 </label>
                 <input
@@ -38,7 +38,7 @@ export const AcceptInvitationModal: React.FC<AcceptInvitationModalProps> = ({
                 />
               </div>
               <div>
-                <label className="block font-bold text-base sm:text-lg mb-1 font-boogaloo tracking-wider">
+                <label className="block font-bold text-base sm:text-lg mb-1 font-dmmono tracking-wider">
                   Reset Password
                 </label>
                 <div className="relative">
@@ -60,7 +60,7 @@ export const AcceptInvitationModal: React.FC<AcceptInvitationModalProps> = ({
                 </div>
               </div>
               <div>
-                <label className="block font-bold text-base sm:text-lg mb-1 font-boogaloo tracking-wider">
+                <label className="block font-bold text-base sm:text-lg mb-1 font-dmmono tracking-wider">
                   Confirm New Password
                 </label>
                 <div className="relative">
@@ -92,7 +92,7 @@ export const AcceptInvitationModal: React.FC<AcceptInvitationModalProps> = ({
             <>
               <div className="flex gap-4">
                 <div className="flex-1">
-                  <label className="block font-bold text-base sm:text-lg mb-1 font-boogaloo tracking-wider">
+                  <label className="block font-bold text-base sm:text-lg mb-1 font-dmmono tracking-wider">
                     First Name
                   </label>
                   <input
@@ -102,7 +102,7 @@ export const AcceptInvitationModal: React.FC<AcceptInvitationModalProps> = ({
                   />
                 </div>
                 <div className="flex-1">
-                  <label className="block font-bold text-base sm:text-lg mb-1 font-boogaloo tracking-wider">
+                  <label className="block font-bold text-base sm:text-lg mb-1 font-dmmono tracking-wider">
                     Last Name
                   </label>
                   <input
@@ -113,7 +113,7 @@ export const AcceptInvitationModal: React.FC<AcceptInvitationModalProps> = ({
                 </div>
               </div>
               <div>
-                <label className="block font-bold text-base sm:text-lg mb-1 font-boogaloo tracking-wider">
+                <label className="block font-bold text-base sm:text-lg mb-1 font-dmmono tracking-wider">
                   Phone Number
                 </label>
                 <input
@@ -123,7 +123,7 @@ export const AcceptInvitationModal: React.FC<AcceptInvitationModalProps> = ({
                 />
               </div>
               <div>
-                <label className="block font-bold text-base sm:text-lg mb-1 font-boogaloo tracking-wider">
+                <label className="block font-bold text-base sm:text-lg mb-1 font-dmmono tracking-wider">
                   Reset Password
                 </label>
                 <div className="relative">
@@ -145,7 +145,7 @@ export const AcceptInvitationModal: React.FC<AcceptInvitationModalProps> = ({
                 </div>
               </div>
               <div>
-                <label className="block font-bold text-base sm:text-lg mb-1 font-boogaloo tracking-wider">
+                <label className="block font-bold text-base sm:text-lg mb-1 font-dmmono tracking-wider">
                   Confirm New Password
                 </label>
                 <div className="relative">

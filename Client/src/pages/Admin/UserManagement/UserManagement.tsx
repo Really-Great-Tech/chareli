@@ -130,7 +130,7 @@ export default function UserManagement() {
   return (
     <div className="px-3">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-        <h1 className="text-[#D946EF] text-2xl sm:text-3xl font-boogaloo">
+        <h1 className="text-[#D946EF] text-2xl sm:text-3xl font-dmmono">
           User Management
         </h1>
         <div className="flex flex-wrap gap-3 justify-end">

@@ -90,7 +90,7 @@ export default function TeamManagement() {
   return (
     <div className="px-4 sm:px-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <h1 className="text-[#D946EF] text-3xl font-boogaloo font-bold">
+        <h1 className="text-[#D946EF] text-3xl font-dmmono font-bold">
           Team Management
         </h1>
         <InviteSheet>

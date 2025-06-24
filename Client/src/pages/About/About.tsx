@@ -5,7 +5,7 @@ const About: React.FC = () => {
     <div className="min-h-screen flex flex-col">
       <div className="flex-grow space-y-8 mx-auto pl-24 pr-24 pt-10 mb-32">
         <section className="bg-[#1E0420] p-6 rounded-lg dark:bg-[#1E0420] w-full">
-          <h1 className="text-6xl font-bold text-white dark:text-gray-100 text-center font-boogaloo">
+          <h1 className="text-6xl font-bold text-white dark:text-gray-100 text-center font-dmmono">
             About us
           </h1>
           <p className="mt-4 text-gray-300 dark:text-gray-300 text-center font-worksans text-xl tracking-wider">
@@ -20,7 +20,7 @@ const About: React.FC = () => {
         </section>
 
         <section className="bg-[#1E0420] p-6 rounded-lg dark:bg-[#1E0420] w-full">
-          <h1 className="text-6xl font-bold text-white dark:text-gray-100 text-center font-boogaloo">
+          <h1 className="text-6xl font-bold text-white dark:text-gray-100 text-center font-dmmono">
             Our Mission
           </h1>
           <p className="mt-4 text-gray-300 dark:text-gray-300 text-center font-worksans text-xl tracking-wider">

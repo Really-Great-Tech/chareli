@@ -32,7 +32,7 @@ export function FilterSheet({ children, onFilter, onReset }: FilterSheetProps) {
   return (
     <Sheet>
       <SheetTrigger asChild>{children}</SheetTrigger>
-      <SheetContent className="font-boogaloo dark:bg-[#0F1621]">
+      <SheetContent className="font-dmmono dark:bg-[#0F1621]">
         <SheetHeader>
           <SheetTitle className="text-xl font-normal tracking-wider mt-6">
             Filter

@@ -68,7 +68,7 @@ export function InviteSheet({ children }: { children: React.ReactNode }) {
       }}
     >
       <SheetTrigger asChild>{children}</SheetTrigger>
-      <SheetContent className="font-boogaloo dark:bg-[#0F1621] max-w-md w-full">
+      <SheetContent className="font-dmmono dark:bg-[#0F1621] max-w-md w-full">
         <SheetHeader>
           <SheetTitle className="text-xl font-normal tracking-wider mt-6">
             Share Admin Invite

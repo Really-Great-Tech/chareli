@@ -155,14 +155,14 @@ export function ForgotPasswordModal({
           <span className="text-white text-2xl font-bold">×</span>
         </button>
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-[#E328AF] text-center font-boogaloo">
+          <DialogTitle className="text-2xl font-bold text-[#E328AF] text-center font-dmmono">
             {isSubmitted
               ? activeTab === "email"
                 ? "Check Your Email"
                 : "Password Reset"
               : "Forgot Password"}
           </DialogTitle>
-          <div className="flex font-boogaloo text-xl tracking-wide">
+          <div className="flex font-dmmono text-xl tracking-wide">
             <div className="px-6 flex w-full border-b">
               <button
                 className={`flex-1 py-2 font-semibold ${
@@ -215,7 +215,7 @@ export function ForgotPasswordModal({
                   <Button
                     type="button"
                     onClick={resetForm}
-                    className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-boogaloo"
+                    className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-dmmono"
                   >
                     {activeTab === "email"
                       ? "Try Another Email"
@@ -224,7 +224,7 @@ export function ForgotPasswordModal({
                   <Button
                     type="button"
                     onClick={handleBackToLogin}
-                    className="w-full bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-black dark:text-white border border-gray-300 dark:border-gray-700 font-boogaloo"
+                    className="w-full bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-black dark:text-white border border-gray-300 dark:border-gray-700 font-dmmono"
                   >
                     Back to Login
                   </Button>
@@ -253,7 +253,7 @@ export function ForgotPasswordModal({
                         htmlFor={
                           activeTab === "email" ? "email" : "phoneNumber"
                         }
-                        className="font-boogaloo text-base text-black dark:text-white"
+                        className="font-dmmono text-base text-black dark:text-white"
                       >
                         {activeTab === "email" ? "Email" : "Phone Number"}
                       </Label>
@@ -324,14 +324,14 @@ export function ForgotPasswordModal({
                     <Button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-boogaloo"
+                      className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-dmmono"
                     >
                       {isSubmitting ? "Sending..." : "Send Reset Instructions"}
                     </Button>
                     <Button
                       type="button"
                       onClick={handleBackToLogin}
-                      className="w-full bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-black dark:text-white border border-gray-300 dark:border-gray-700 font-boogaloo"
+                      className="w-full bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-black dark:text-white border border-gray-300 dark:border-gray-700 font-dmmono"
                     >
                       Back to Login
                     </Button>

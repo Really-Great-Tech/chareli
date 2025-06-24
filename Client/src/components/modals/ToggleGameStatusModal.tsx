@@ -33,7 +33,7 @@ export function ToggleGameStatusModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="rounded-2xl border-0 shadow-sm p-8 max-w-lg font-boogaloo tracking-wide dark:bg-[#232B3B] bg-white"
+        className="rounded-2xl border-0 shadow-sm p-8 max-w-lg font-dmmono tracking-wide dark:bg-[#232B3B] bg-white"
         style={{ boxShadow: "0 2px 4px 2px #e879f9" }}
         hideClose
       >

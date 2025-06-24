@@ -36,7 +36,7 @@ export function OTPModal({ open, onClose }: OTPModalProps) {
           onSubmit={handleSubmit}
         >
           <div>
-            <label className="block text-4xl mb-2 font-boogaloo tracking-wider">
+            <label className="block text-4xl mb-2 font-dmmono tracking-wider">
               Verify Account
             </label>
             <p className="font-worksans text-xl tracking-wider mb-8">
@@ -54,7 +54,7 @@ export function OTPModal({ open, onClose }: OTPModalProps) {
                       <input
                         {...props}
                         readOnly={isFilled}
-                        className="w-12 h-12 text-center bg-transparent rounded-none dark:text-white text-black font-boogaloo text-2xl font-bold mx-1 focus:outline-none focus:ring-0"
+                        className="w-12 h-12 text-center bg-transparent rounded-none dark:text-white text-black font-dmmono text-2xl font-bold mx-1 focus:outline-none focus:ring-0"
                       />
                     </div>
                   );

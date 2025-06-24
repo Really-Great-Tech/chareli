@@ -24,7 +24,7 @@ export function WelcomeModal({ open, onOpenChange }: WelcomeDialogProps) {
           ✕
         </button>
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold dark:text-white text-black text-left font-boogaloo">
+          <DialogTitle className="text-2xl font-bold dark:text-white text-black text-left font-dmmono">
             Welcome to Our Website
           </DialogTitle>
           <DialogDescription className="text-left dark:text-white text-black font-worksans text-xl tracking-wider mt-1">

@@ -52,7 +52,7 @@ export function OTPPlatformModal({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221] rounded-lg p-6">
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-2xl font-bold dark:text-white text-black font-boogaloo">
+          <AlertDialogTitle className="text-2xl font-bold dark:text-white text-black font-dmmono">
             OTP Verification
           </AlertDialogTitle>
           <AlertDialogDescription className=" dark:text-white text-black font-worksans text-xl tracking-wider mt-1">
@@ -80,7 +80,7 @@ export function OTPPlatformModal({
               />
               <Label
                 htmlFor="email"
-                className="font-boogaloo text-base dark:text-white text-black text-center"
+                className="font-dmmono text-base dark:text-white text-black text-center"
               >
                 {email}
               </Label>
@@ -93,7 +93,7 @@ export function OTPPlatformModal({
               />
               <Label
                 htmlFor="phone"
-                className="font-boogaloo text-base dark:text-white text-black text-center"
+                className="font-dmmono text-base dark:text-white text-black text-center"
               >
                 {phone}
               </Label>
@@ -103,7 +103,7 @@ export function OTPPlatformModal({
 
         <Button
           onClick={handleSendOTP}
-          className="w-full mt-6 bg-[#E328AF] hover:bg-[#C026D3] text-white font-boogaloo py-3 rounded-md text-lg"
+          className="w-full mt-6 bg-[#E328AF] hover:bg-[#C026D3] text-white font-dmmono py-3 rounded-md text-lg"
         >
           Next
         </Button>

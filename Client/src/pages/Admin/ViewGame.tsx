@@ -63,7 +63,7 @@ export default function ViewGame() {
             className="w-28 h-28 rounded-full object-cover mb-4"
           />
           <div className="flex gap-2 items-center">
-            <h2 className="text-xl font-bold font-boogaloo mb-2 text-[#121C2D] tracking-wider dark:text-white">
+            <h2 className="text-xl font-bold font-dmmono mb-2 text-[#121C2D] tracking-wider dark:text-white">
               {(game as any).game?.title || "-"}
             </h2>
             <span

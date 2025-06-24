@@ -69,7 +69,7 @@ export function UserManagementFilterSheet({
   return (
     <Sheet>
       <SheetTrigger asChild>{children}</SheetTrigger>
-      <SheetContent className="font-boogaloo dark:bg-[#0F1621] overflow-y-auto overflow-x-hidden">
+      <SheetContent className="font-dmmono dark:bg-[#0F1621] overflow-y-auto overflow-x-hidden">
         <SheetHeader>
           <SheetTitle className="text-xl font-normal tracking-wider mt-6">
             Filter

@@ -91,7 +91,7 @@ export function EditProfileSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="max-w-md w-full p-6 font-boogaloo dark:bg-[#0F1621]"
+        className="max-w-md w-full p-6 font-dmmono dark:bg-[#0F1621]"
       >
         <SheetHeader>
           <SheetTitle className="text-lg mt-4 tracking-wider">

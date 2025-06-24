@@ -4,7 +4,10 @@ import { Card } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
 import { DeleteConfirmationModal } from "../../../components/modals/DeleteConfirmationModal";
 import { toast } from "sonner";
-import { useDeleteGame } from "../../../backend/games.service";
+import {
+  useAllPositionHistory,
+  useDeleteGame,
+} from "../../../backend/games.service";
 import { useGamesAnalytics } from "../../../backend/analytics.service";
 import type { GameStatus } from "../../../backend/types";
 import { NoResults } from "../../../components/single/NoResults";
@@ -44,6 +47,9 @@ export default function GameManagement() {
   const queryClient = useQueryClient();
   const { data: gamesWithAnalytics, isLoading } = useGamesAnalytics();
   const deleteGame = useDeleteGame();
+  const { data: gameData } = useAllPositionHistory();
+
+  console.log("Game Data:", gameData);
 
   // Apply filters
   const filteredGames = (gamesWithAnalytics ?? []).filter((game) => {
@@ -90,18 +96,20 @@ export default function GameManagement() {
           All Games
         </h1>
         <div className="flex flex-wrap gap-3 justify-end">
-          <FilterSheet
-            onFilter={setFilters}
-            onReset={() => setFilters(undefined)}
-          >
-            <Button
-              variant="outline"
-              className="border-[#475568] text-[#475568] flex items-center gap-2 dark:text-white py-2 sm:py-[14px] text-sm sm:text-base h-[48px]"
+          {!reorderHistoryOpen && (
+            <FilterSheet
+              onFilter={setFilters}
+              onReset={() => setFilters(undefined)}
             >
-              Filter
-              <RiEqualizer2Line size={24} className="sm:size-8" />
-            </Button>
-          </FilterSheet>
+              <Button
+                variant="outline"
+                className="border-[#475568] text-[#475568] flex items-center gap-2 dark:text-white py-2 sm:py-[14px] text-sm sm:text-base h-[48px]"
+              >
+                Filter
+                <RiEqualizer2Line size={24} className="sm:size-8" />
+              </Button>
+            </FilterSheet>
+          )}
           <Button
             className={`text-[#0F1621] font-normal text-sm sm:text-base px-[16px] py-[14px] h-[48px] bg-[#F8FAFC] hover:bg-[#F8FAFC] border-[#E2E8F0] dark:border-none border-1 ${
               reorderOpen ? "bg-[#94A3B7] hover:bg-[#94A3B7]" : ""
@@ -305,17 +313,17 @@ export default function GameManagement() {
                     Loading...
                   </td>
                 </tr>
-              ) : !filteredGames.length ? (
+              ) : !gameData.length ? (
                 <tr>
                   <td colSpan={5}>
                     <NoResults
                       title={
-                        gamesWithAnalytics?.length
+                        gameData?.length
                           ? "No matching results"
                           : "No games found"
                       }
                       message={
-                        gamesWithAnalytics?.length
+                        gameData?.length
                           ? "Try adjusting your filters"
                           : "No games have been added to the system yet"
                       }
@@ -326,7 +334,7 @@ export default function GameManagement() {
                   </td>
                 </tr>
               ) : (
-                filteredGames.map((game, idx) => (
+                gameData.map((game: any, idx: number) => (
                   <tr
                     key={game.id}
                     className={cn(
@@ -336,18 +344,18 @@ export default function GameManagement() {
                   >
                     <td className="px-4 py-3 flex items-center gap-3">
                       <GameThumbnail
-                        src={(game.thumbnailFile as any)?.url || ""}
-                        alt={game.title}
+                        src={game.game.thumbnailFile.s3Key ?? ""}
+                        alt={game.game.title ?? ""}
                       />
-                      <span className="text-lg font-light">{game.title}</span>
+                      <span className="text-lg font-light">
+                        {game?.game?.title}
+                      </span>
                     </td>
                     <td className="px-4 py-3 font-pincuk text-xl tracking-wider">
-                      {game.category?.name || "Uncategorized"}
+                      {game?.position || "Uncategorized"}
                     </td>
                     <td className="px-4 py-3 font-pincuk text-xl tracking-wider">
-                      {game.analytics?.totalPlayTime != null
-                        ? formatTime(game.analytics.totalPlayTime || 0)
-                        : "-"}
+                      {game?.clickCount ?? "-"}
                     </td>
                   </tr>
                 ))

@@ -66,7 +66,7 @@ export function TermsSheet({ open, onOpenChange }: TermsSheetProps) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="font-boogaloo dark:bg-[#0F1621] max-w-xl w-full">
+      <SheetContent className="font-dmmono dark:bg-[#0F1621] max-w-xl w-full">
         <SheetHeader>
           <SheetTitle className="text-2xl font-bold tracking-wider mt-6">
             Terms of Use

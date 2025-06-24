@@ -88,7 +88,7 @@ export function EditCategory({ open, onOpenChange, categoryId }: EditCategoryPro
         side="right" 
         className="sm:max-w-md w-[90vw] bg-white dark:bg-[#18192b] border-l border-gray-200 dark:border-gray-800"
       >
-        <SheetHeader className="pb-4 mt-8 font-boogaloo">
+        <SheetHeader className="pb-4 mt-8 font-dmmono">
           <SheetTitle className="text-xl font-bold border-b">Edit Category</SheetTitle>
         </SheetHeader>
         
@@ -98,7 +98,7 @@ export function EditCategory({ open, onOpenChange, categoryId }: EditCategoryPro
           onSubmit={handleSubmit}
         >
           {({ isSubmitting }) => (
-            <Form className="flex flex-col gap-6 mt-2 font-boogaloo px-3">
+            <Form className="flex flex-col gap-6 mt-2 font-dmmono px-3">
               <div>
                 <Label htmlFor="name" className="text-base mb-1">
                   Category Name

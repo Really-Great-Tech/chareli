@@ -150,7 +150,7 @@ export function CreateGameSheet({
       }}
     >
       <SheetTrigger asChild>{children}</SheetTrigger>
-      <SheetContent className="font-boogaloo dark:bg-[#0F1621] max-w-xl w-full overflow-y-auto">
+      <SheetContent className="font-dmmono dark:bg-[#0F1621] max-w-xl w-full overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="text-2xl font-bold tracking-wider mt-6 mb-2">
             Create New Game

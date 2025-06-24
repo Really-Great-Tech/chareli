@@ -32,7 +32,7 @@ export function RegisterInvitationPage() {
       <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-[#0F1621]">
         <div className="w-full max-w-md">
           <div className="bg-white dark:bg-[#121C2D] rounded-lg shadow-lg p-8 text-center">
-            <h1 className="text-3xl font-boogaloo mb-4">Invalid Invitation</h1>
+            <h1 className="text-3xl font-dmmono mb-4">Invalid Invitation</h1>
             <p className="text-gray-600 dark:text-gray-300 mb-6">
               This invitation link is invalid or has expired.
             </p>
@@ -53,7 +53,7 @@ export function RegisterInvitationPage() {
       <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-[#0F1621] p-4">
         <div className="w-full max-w-md">
           <div className="bg-white dark:bg-[#121C2D] rounded-lg shadow-lg p-8">
-            <h1 className="text-3xl font-boogaloo text-center mb-8">
+            <h1 className="text-3xl font-dmmono text-center mb-8">
               {(data as any)?.userExists ? 'Reset Password' : 'Complete Registration'}
             </h1>
 

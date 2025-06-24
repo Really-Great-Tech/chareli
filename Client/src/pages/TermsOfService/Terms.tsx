@@ -41,7 +41,7 @@ const TermsOfService: React.FC = () => {
     <div className="h-screen flex flex-col">
       {/* Fixed Header */}
       <div className="flex-shrink-0 px-4 md:px-8 lg:px-16 py-6">
-        <h1 className="text-4xl md:text-5xl font-bold text-[#C026D3] font-boogaloo">Terms and Conditions</h1>
+        <h1 className="text-4xl md:text-5xl font-bold text-[#C026D3] font-dmmono">Terms and Conditions</h1>
       </div>
       
       {/* Content Area */}

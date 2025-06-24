@@ -111,7 +111,7 @@ export function ResetPasswordPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-200">
       <div className="bg-white dark:bg-[#0F1221] rounded-lg shadow-xl p-8 max-w-md w-full">
-        <h1 className="text-3xl font-bold mb-6 text-center text-[#E328AF] font-boogaloo">
+        <h1 className="text-3xl font-bold mb-6 text-center text-[#E328AF] font-dmmono">
           {isSuccess ? "Password Reset Successful" : "Reset Your Password"}
         </h1>
 
@@ -136,14 +136,14 @@ export function ResetPasswordPage() {
               <Button
                 type="button"
                 onClick={requestNewResetLink}
-                className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-boogaloo"
+                className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-dmmono"
               >
                 Request New Reset Link
               </Button>
               <Button
                 type="button"
                 onClick={() => navigate("/")}
-                className="w-full bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-black dark:text-white border border-gray-300 dark:border-gray-700 font-boogaloo"
+                className="w-full bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-black dark:text-white border border-gray-300 dark:border-gray-700 font-dmmono"
               >
                 Return to Home
               </Button>
@@ -161,7 +161,7 @@ export function ResetPasswordPage() {
               <Button
                 type="button"
                 onClick={openLoginModal}
-                className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-boogaloo"
+                className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-dmmono"
               >
                 Log In
               </Button>
@@ -181,7 +181,7 @@ export function ResetPasswordPage() {
                 <div className="relative">
                   <Label
                     htmlFor="password"
-                    className="font-boogaloo text-base text-black dark:text-white"
+                    className="font-dmmono text-base text-black dark:text-white"
                   >
                     New Password
                   </Label>
@@ -218,7 +218,7 @@ export function ResetPasswordPage() {
                 <div className="relative">
                   <Label
                     htmlFor="confirmPassword"
-                    className="font-boogaloo text-base text-black dark:text-white"
+                    className="font-dmmono text-base text-black dark:text-white"
                   >
                     Confirm Password
                   </Label>
@@ -256,14 +256,14 @@ export function ResetPasswordPage() {
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-boogaloo"
+                    className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-dmmono"
                   >
                     {isSubmitting ? "Resetting..." : "Reset Password"}
                   </Button>
                   <Button
                     type="button"
                     onClick={() => navigate("/")}
-                    className="w-full bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-black dark:text-white border border-gray-300 dark:border-gray-700 font-boogaloo"
+                    className="w-full bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-black dark:text-white border border-gray-300 dark:border-gray-700 font-dmmono"
                   >
                     Return to Home
                   </Button>

@@ -70,7 +70,7 @@ export default function UserActivityLog() {
               Filter
               <RiEqualizer2Line size={32} />
             </Button> */}
-            <ActivityLogExportModal 
+            <ActivityLogExportModal
               data={allActivities}
               title="Export Activity Log"
               description="Choose the format you'd like to export your activity log data"
@@ -90,78 +90,93 @@ export default function UserActivityLog() {
               </TableRow>
             </TableHeader>
             <TableBody>
-            {!activitiesToShow.length ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-6 bg-[#F8FAFC] dark:bg-[#0F1221]">
-                  <NoResults 
-                    title="No activity logs"
-                    message="There are no user activity records to display at this time."
-                    icon={<FiActivity className="w-12 h-12 text-gray-400" />}
-                  />
-                </TableCell>
-              </TableRow>
-            ) : activitiesToShow.map((row: any, idx) => (
-                <TableRow key={idx} className="font-pincuk text-xl tracking-wider">
-                  <TableCell>{row.name?.trim() ? row.name : "-"}</TableCell>
-                  <TableCell>
-                    <span
-                      className={`flex items-center gap-3 px-2 py-1 rounded-lg font-pincuk text-xl tracking-wider ${
-                        row.userStatus === "Online"
-                          ? "bg-[#4BA366] text-white"
-                          : "bg-[#D3D8DF] text-white"
-                      }`}
-                      style={{ width: "75px", justifyContent: "center" }}
-                    >
-                      <div
-                        className={`min-w-[8px] min-h-[8px] rounded-full ${
-                          row.userStatus === "Online"
-                            ? "bg-white"
-                            : "bg-[#E74C3C]"
-                        }`}
-                        style={{ aspectRatio: '1/1' }}
-                      />
-                      {row.userStatus || "Offline"}
-                    </span>
-                  </TableCell>
-                  <TableCell>{row.activity || "-"}</TableCell>
-                  <TableCell>{row.lastGamePlayed || "-"}</TableCell>
-                  <TableCell>
-                    {row.startTime ? (
-                      <span className="flex items-center gap-2 bg-[#AEB8C6] rounded-lg px-2 py-1 w-fit font-pincuk text-xl tracking-wider text-white">
-                        <div 
-                          className="min-w-[8px] min-h-[8px] rounded-full bg-[#2ECC40]"
-                          style={{ aspectRatio: '1/1' }}
-                        />
-                        {formatTime(row.startTime)}
-                      </span>
-                    ) : "-"}
-                  </TableCell>
-                  <TableCell>
-                    {row.endTime ? (
-                      <span className="flex items-center gap-2 bg-[#AEB8C6] rounded-lg px-2 py-1 w-fit font-pincuk text-xl tracking-wider text-white">
-                        <div 
-                          className="min-w-[8px] min-h-[8px] rounded-full bg-[#E74C3C]"
-                          style={{ aspectRatio: '1/1' }}
-                        />
-                        {formatTime(row.endTime)}
-                      </span>
-                    ) : "-"}
+              {!activitiesToShow.length ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={6}
+                    className="text-center py-6 bg-[#F8FAFC] dark:bg-[#0F1221]"
+                  >
+                    <NoResults
+                      title="No activity logs"
+                      message="There are no user activity records to display at this time."
+                      icon={<FiActivity className="w-12 h-12 text-gray-400" />}
+                    />
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                activitiesToShow.map((row: any, idx) => (
+                  <TableRow
+                    key={idx}
+                    className="font-worksans text-xl tracking-wider"
+                  >
+                    <TableCell>{row.name?.trim() ? row.name : "-"}</TableCell>
+                    <TableCell>
+                      <span
+                        className={`flex items-center gap-3 px-2 py-1 rounded-lg font-worksans text-xl tracking-wider ${
+                          row.userStatus === "Online"
+                            ? "bg-[#4BA366] text-white"
+                            : "bg-[#D3D8DF] text-white"
+                        }`}
+                        style={{ width: "75px", justifyContent: "center" }}
+                      >
+                        <div
+                          className={`min-w-[8px] min-h-[8px] rounded-full ${
+                            row.userStatus === "Online"
+                              ? "bg-white"
+                              : "bg-[#E74C3C]"
+                          }`}
+                          style={{ aspectRatio: "1/1" }}
+                        />
+                        {row.userStatus || "Offline"}
+                      </span>
+                    </TableCell>
+                    <TableCell>{row.activity || "-"}</TableCell>
+                    <TableCell>{row.lastGamePlayed || "-"}</TableCell>
+                    <TableCell>
+                      {row.startTime ? (
+                        <span className="flex items-center gap-2 bg-[#AEB8C6] rounded-lg px-2 py-1 w-fit font-worksans text-xl tracking-wider text-white">
+                          <div
+                            className="min-w-[8px] min-h-[8px] rounded-full bg-[#2ECC40]"
+                            style={{ aspectRatio: "1/1" }}
+                          />
+                          {formatTime(row.startTime)}
+                        </span>
+                      ) : (
+                        "-"
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {row.endTime ? (
+                        <span className="flex items-center gap-2 bg-[#AEB8C6] rounded-lg px-2 py-1 w-fit font-worksans text-xl tracking-wider text-white">
+                          <div
+                            className="min-w-[8px] min-h-[8px] rounded-full bg-[#E74C3C]"
+                            style={{ aspectRatio: "1/1" }}
+                          />
+                          {formatTime(row.endTime)}
+                        </span>
+                      ) : (
+                        "-"
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
           {activitiesToShow.length > 0 && (
             <div className="flex justify-between items-center mt-4">
               <span className="text-sm">
-                Showing {startIdx + 1}-{Math.min(endIdx, allActivities.length)} from {allActivities.length} data
+                Showing {startIdx + 1}-{Math.min(endIdx, allActivities.length)}{" "}
+                from {allActivities.length} data
               </span>
               <div className="flex items-center rounded-xl pr-1 pl-0.5 border border-[#D946EF] dark:text-white">
                 {Array.from({ length: totalActivityPages }, (_, i) => (
                   <button
                     key={i + 1}
                     className={`w-7 h-7 rounded-full ${
-                      activityPage === i + 1 ? "bg-[#D946EF] dark:text-white" : ""
+                      activityPage === i + 1
+                        ? "bg-[#D946EF] dark:text-white"
+                        : ""
                     } text-black dark:text-white`}
                     onClick={() => setActivityPage(i + 1)}
                   >
@@ -171,7 +186,7 @@ export default function UserActivityLog() {
               </div>
             </div>
           )}
-          </div>
+        </div>
       </Card>
     </div>
   );

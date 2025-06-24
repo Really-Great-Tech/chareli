@@ -27,7 +27,7 @@ interface FormValues {
 }
 
 const validationSchema = Yup.object({
-  name: Yup.string().required('Name is required').trim(),
+  name: Yup.string().required("Name is required").trim(),
   description: Yup.string().trim(),
 });
 
@@ -35,7 +35,10 @@ export function CreateCategory({ open, onOpenChange }: CreateCategoryProps) {
   const formikRef = useRef<any>(null);
   const createCategory = useCreateCategory();
 
-  const handleSubmit = async (values: FormValues, { setSubmitting, resetForm }: any) => {
+  const handleSubmit = async (
+    values: FormValues,
+    { setSubmitting, resetForm }: any
+  ) => {
     try {
       await createCategory.mutateAsync(values);
       toast.success("Category created successfully!");
@@ -49,13 +52,13 @@ export function CreateCategory({ open, onOpenChange }: CreateCategoryProps) {
   };
 
   const initialValues: FormValues = {
-    name: '',
-    description: '',
+    name: "",
+    description: "",
   };
 
   return (
-    <Sheet 
-      open={open} 
+    <Sheet
+      open={open}
       onOpenChange={(open) => {
         if (!open && formikRef.current) {
           formikRef.current.resetForm();
@@ -63,14 +66,16 @@ export function CreateCategory({ open, onOpenChange }: CreateCategoryProps) {
         onOpenChange(open);
       }}
     >
-      <SheetContent 
-        side="right" 
+      <SheetContent
+        side="right"
         className="sm:max-w-md w-[90vw] bg-white dark:bg-[#18192b] border-l border-gray-200 dark:border-gray-800"
       >
         <SheetHeader className="pb-4 mt-8 font-dmmono">
-          <SheetTitle className="text-xl font-bold border-b">Create New Category</SheetTitle>
+          <SheetTitle className="text-xl font-bold border-b">
+            Create New Category
+          </SheetTitle>
         </SheetHeader>
-        
+
         <Formik
           initialValues={initialValues}
           validationSchema={validationSchema}
@@ -88,11 +93,15 @@ export function CreateCategory({ open, onOpenChange }: CreateCategoryProps) {
                   id="name"
                   name="name"
                   placeholder="Name"
-                  className="bg-[#F5F6FA] mt-1 text-sm font-pincuk dark:bg-[#121C2D] dark:text-white"
+                  className="bg-[#F5F6FA] mt-1 text-sm font-worksans dark:bg-[#121C2D] dark:text-white"
                 />
-                <ErrorMessage name="name" component="div" className="text-red-500 text-xs mt-1 font-pincuk" />
+                <ErrorMessage
+                  name="name"
+                  component="div"
+                  className="text-red-500 text-xs mt-1 font-worksans"
+                />
               </div>
-              
+
               <div>
                 <Label htmlFor="description" className="text-base mb-1 mt-4">
                   Game Description
@@ -102,9 +111,13 @@ export function CreateCategory({ open, onOpenChange }: CreateCategoryProps) {
                   id="description"
                   name="description"
                   placeholder="Description"
-                  className="bg-[#F5F6FA] mt-1 text-sm rounded-md border border-input w-full min-h-[100px] p-3 resize-none font-pincuk dark:bg-[#121C2D] dark:text-white"
+                  className="bg-[#F5F6FA] mt-1 text-sm rounded-md border border-input w-full min-h-[100px] p-3 resize-none font-worksans dark:bg-[#121C2D] dark:text-white"
                 />
-                <ErrorMessage name="description" component="div" className="text-red-500 text-xs mt-1 font-pincuk" />
+                <ErrorMessage
+                  name="description"
+                  component="div"
+                  className="text-red-500 text-xs mt-1 font-worksans"
+                />
               </div>
 
               <div className="flex gap-4 justify-end mt-8">
@@ -120,7 +133,7 @@ export function CreateCategory({ open, onOpenChange }: CreateCategoryProps) {
                     Cancel
                   </Button>
                 </SheetClose>
-                
+
                 <Button
                   type="submit"
                   disabled={isSubmitting || !isValid || !dirty}

@@ -1,4 +1,11 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "../ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from "../ui/dialog";
 import { Button } from "../ui/button";
 import { XIcon } from "lucide-react";
 
@@ -21,7 +28,7 @@ export function DeleteConfirmationModal({
   title = "Are you sure you want to delete?",
   description = "This action cannot be reversed",
   confirmButtonText = "Delete",
-  loadingText = "Deleting..."
+  loadingText = "Deleting...",
 }: DeleteConfirmationModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -31,12 +38,19 @@ export function DeleteConfirmationModal({
         hideClose
       >
         <DialogHeader>
-          <DialogTitle className="text-2xl tracking-wider mb-2">{title}</DialogTitle>
+          <DialogTitle className="text-2xl tracking-wider mb-2">
+            {title}
+          </DialogTitle>
         </DialogHeader>
-        <div className="mb-8 text-[#22223B] text-xl tracking-wider dark:text-white">{description}</div>
+        <div className="mb-8 text-[#22223B] text-xl tracking-wider dark:text-white">
+          {description}
+        </div>
         <DialogFooter className="flex justify-end gap-4">
           <DialogClose asChild>
-            <Button variant="outline" className="w-20 h-12 text-lg rounded-lg dark:bg-white dark:text-black">
+            <Button
+              variant="outline"
+              className="w-20 h-12 text-lg rounded-lg dark:bg-white dark:text-black"
+            >
               Cancel
             </Button>
           </DialogClose>

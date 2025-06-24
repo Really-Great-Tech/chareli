@@ -19,16 +19,18 @@ const queryClient = new QueryClient({
 const App: React.FC = () => {
   useEffect(() => {
     function updateTheme() {
-      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.documentElement.classList.add('dark');  
+      if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        document.documentElement.classList.add("dark");
       } else {
-        document.documentElement.classList.remove('dark');   
+        document.documentElement.classList.remove("dark");
       }
     }
 
     updateTheme();
 
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateTheme);
+    window
+      .matchMedia("(prefers-color-scheme: dark)")
+      .addEventListener("change", updateTheme);
   }, []);
 
   return (

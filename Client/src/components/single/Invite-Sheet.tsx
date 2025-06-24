@@ -46,7 +46,7 @@ export function InviteSheet({ children }: { children: React.ReactNode }) {
         setOpen(false);
       },
       onError: (error: any) => {
-        console.log("my error", error)
+        console.log("my error", error);
         const message =
           error?.response?.data?.message ||
           error?.message ||
@@ -58,8 +58,8 @@ export function InviteSheet({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <Sheet 
-      open={open} 
+    <Sheet
+      open={open}
       onOpenChange={(newOpen) => {
         if (!newOpen && formikRef.current) {
           formikRef.current.resetForm();
@@ -109,7 +109,7 @@ export function InviteSheet({ children }: { children: React.ReactNode }) {
                   as="select"
                   id="role"
                   name="role"
-                  className="col-span-3 shadow-none text-gray-400 font-thin font-pincuk text-xl tracking-wider h-14 bg-[#F1F5F9] border border-[#CBD5E0] rounded-lg dark:bg-[#121C2D] dark:text-white p-2"
+                  className="col-span-3 shadow-none text-gray-400 font-thin font-worksans text-xl tracking-wider h-14 bg-[#F1F5F9] border border-[#CBD5E0] rounded-lg dark:bg-[#121C2D] dark:text-white p-2"
                 >
                   <option value="admin">Admin</option>
                 </Field>

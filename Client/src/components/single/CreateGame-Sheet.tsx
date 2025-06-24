@@ -169,7 +169,9 @@ export function CreateGameSheet({
               <div className="grid grid-cols-2 gap-4">
                 {/* Thumbnail Upload */}
                 <div>
-                  <Label className="text-lg mb-2 block">Add Thumbnail icon</Label>
+                  <Label className="text-lg mb-2 block">
+                    Add Thumbnail icon
+                  </Label>
                   <div className="flex items-center gap-4">
                     <label className="w-40 h-38 flex flex-col items-center justify-center border border-[#CBD5E0] rounded-lg cursor-pointer hover:border-[#D946EF] transition">
                       {thumbnailPreview ? (
@@ -206,7 +208,7 @@ export function CreateGameSheet({
                   <ErrorMessage
                     name="thumbnailFile"
                     component="div"
-                    className="text-red-500  mt-1 font-pincuk text-xl tracking-wider"
+                    className="text-red-500  mt-1 font-worksans text-xl tracking-wider"
                   />
                 </div>
 
@@ -224,13 +226,13 @@ export function CreateGameSheet({
                     id="position"
                     name="position"
                     min="1"
-                    className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white bg-[#F1F5F9] dark:bg-[#121C2D] px-3 text-gray-700 focus:border-[#D946EF] focus:outline-none font-pincuk tracking-wider text-sm"
+                    className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white bg-[#F1F5F9] dark:bg-[#121C2D] px-3 text-gray-700 focus:border-[#D946EF] focus:outline-none font-worksans tracking-wider text-sm"
                     placeholder="#234"
                   />
                   <ErrorMessage
                     name="position"
                     component="div"
-                    className="text-red-500  mt-1 font-pincuk text-xl tracking-wider"
+                    className="text-red-500  mt-1 font-worksans text-xl tracking-wider"
                   />
                 </div>
               </div>
@@ -247,13 +249,13 @@ export function CreateGameSheet({
                   as={Input}
                   id="title"
                   name="title"
-                  className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white bg-[#F1F5F9] dark:bg-[#121C2D] px-3 text-gray-700 focus:border-[#D946EF] focus:outline-none font-pincuk tracking-wider text-sm"
+                  className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white bg-[#F1F5F9] dark:bg-[#121C2D] px-3 text-gray-700 focus:border-[#D946EF] focus:outline-none font-worksans tracking-wider text-sm"
                   placeholder="Enter game title"
                 />
                 <ErrorMessage
                   name="title"
                   component="div"
-                  className="text-red-500  mt-1 font-pincuk text-xl tracking-wider"
+                  className="text-red-500  mt-1 font-worksans text-xl tracking-wider"
                 />
               </div>
 
@@ -269,13 +271,13 @@ export function CreateGameSheet({
                   as="textarea"
                   id="description"
                   name="description"
-                  className="w-full min-h-[80px] rounded-md border border-[#CBD5E0] dark:text-white dark:bg-[#121C2D] bg-[#F1F5F9] px-3 py-2 font-pincuk text-xl tracking-wider  text-gray-700 focus:border-[#D946EF] focus:outline-none resize-none"
+                  className="w-full min-h-[80px] rounded-md border border-[#CBD5E0] dark:text-white dark:bg-[#121C2D] bg-[#F1F5F9] px-3 py-2 font-worksans text-xl tracking-wider  text-gray-700 focus:border-[#D946EF] focus:outline-none resize-none"
                   placeholder="Description"
                 />
                 <ErrorMessage
                   name="description"
                   component="div"
-                  className="text-red-500  mt-1 font-pincuk text-xl tracking-wider"
+                  className="text-red-500  mt-1 font-worksans text-xl tracking-wider"
                 />
               </div>
 
@@ -299,7 +301,7 @@ export function CreateGameSheet({
                     />
                   </label>
                   {gameFileName && (
-                    <span className=" font-pincuk text-xl tracking-wider text-gray-600 dark:text-gray-300">
+                    <span className=" font-worksans text-xl tracking-wider text-gray-600 dark:text-gray-300">
                       {gameFileName}
                     </span>
                   )}
@@ -307,7 +309,7 @@ export function CreateGameSheet({
                 <ErrorMessage
                   name="gameFile"
                   component="div"
-                  className="text-red-500  mt-1 font-pincuk text-xl tracking-wider"
+                  className="text-red-500  mt-1 font-worksans text-xl tracking-wider"
                 />
               </div>
 
@@ -323,7 +325,7 @@ export function CreateGameSheet({
                   as="select"
                   id="categoryId"
                   name="categoryId"
-                  className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white dark:bg-[#121C2D] bg-[#F1F5F9] px-3 font-pincuk text-xl tracking-wider  text-gray-700 focus:border-[#D946EF] focus:outline-none"
+                  className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white dark:bg-[#121C2D] bg-[#F1F5F9] px-3 font-worksans text-xl tracking-wider  text-gray-700 focus:border-[#D946EF] focus:outline-none"
                 >
                   <option value="">Select category</option>
                   {categories?.map((category) => (
@@ -335,7 +337,7 @@ export function CreateGameSheet({
                 <ErrorMessage
                   name="categoryId"
                   component="div"
-                  className="text-red-500  mt-1 font-pincuk text-xl tracking-wider"
+                  className="text-red-500  mt-1 font-worksans text-xl tracking-wider"
                 />
               </div>
 
@@ -353,13 +355,13 @@ export function CreateGameSheet({
                   id="config"
                   name="config"
                   min="0"
-                  className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white dark:bg-[#121C2D] bg-[#F1F5F9] px-3 font-pincuk text-xl tracking-wider  text-gray-700 focus:border-[#D946EF] focus:outline-none"
+                  className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white dark:bg-[#121C2D] bg-[#F1F5F9] px-3 font-worksans text-xl tracking-wider  text-gray-700 focus:border-[#D946EF] focus:outline-none"
                   placeholder="Enter config number"
                 />
                 <ErrorMessage
                   name="config"
                   component="div"
-                  className="text-red-500  mt-1 font-pincuk text-xl tracking-wider"
+                  className="text-red-500  mt-1 font-worksans text-xl tracking-wider"
                 />
               </div>
 

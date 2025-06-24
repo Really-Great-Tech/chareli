@@ -25,9 +25,12 @@ const MainLayout: React.FC = () => {
               platform.
             </p>
 
-            <p className="font-pincuk text-xl tracking-wider sm:text-sm mt-3 leading-relaxed">
+            <p className="font-worksans text-xl tracking-wider sm:text-sm mt-3 leading-relaxed">
               By using this service, you agree to the Chareli{" "}
-              <span className="text-[#C026D3] underline cursor-pointer hover:text-[#db2ee8] transition-colors" onClick={handleTermsPage}>
+              <span
+                className="text-[#C026D3] underline cursor-pointer hover:text-[#db2ee8] transition-colors"
+                onClick={handleTermsPage}
+              >
                 Terms of Service
               </span>
               . Chareli's{" "}
@@ -38,10 +41,11 @@ const MainLayout: React.FC = () => {
               sets out how we handle your data.
             </p>
 
-            <p className="font-pincuk text-xl tracking-wider sm:text-sm leading-relaxed">
-              Chareli uses cookies to improve our services and analyze traffic. By continuing to use Chareli, you consent to cookies as explained in our Privacy Policy.
+            <p className="font-worksans text-xl tracking-wider sm:text-sm leading-relaxed">
+              Chareli uses cookies to improve our services and analyze traffic.
+              By continuing to use Chareli, you consent to cookies as explained
+              in our Privacy Policy.
             </p>
-
           </div>
         </footer>
       )}

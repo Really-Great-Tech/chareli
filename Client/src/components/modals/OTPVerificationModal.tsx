@@ -55,10 +55,10 @@ export function OTPVerificationModal({
   // Countdown timer effect
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    
+
     if (open && resendCooldown > 0) {
       interval = setInterval(() => {
-        setResendCooldown(prev => {
+        setResendCooldown((prev) => {
           if (prev <= 1) {
             setCanResend(true);
             return 0;
@@ -67,7 +67,7 @@ export function OTPVerificationModal({
         });
       }, 1000);
     }
-    
+
     return () => {
       if (interval) {
         clearInterval(interval);
@@ -116,15 +116,15 @@ export function OTPVerificationModal({
 
   const handleResendOtp = async () => {
     if (!canResend) return; // Prevent spam clicking
-    
+
     try {
       setError("");
       await requestOtp.mutateAsync({ userId, otpType });
-      
+
       // Start new cooldown after successful resend
       setResendCooldown(30);
       setCanResend(false);
-      
+
       // Show success message
       setError("OTP resent successfully!");
       toast.success("OTP resent successfully!");
@@ -134,7 +134,6 @@ export function OTPVerificationModal({
       toast.error("Failed to resend OTP. Please try again.");
     }
   };
-
 
   // Reset OTP when modal closes
   const handleOpenChange = (isOpen: boolean) => {
@@ -173,7 +172,7 @@ export function OTPVerificationModal({
               <div className="px-3 sm:px-3 py-2 sm:py-3 border-2 border-[#E328AF] mx-0.5 sm:mx-1 rounded-lg">
                 <input
                   {...props}
-                  className="w-12 h-12 sm:w-12 sm:h-12 text-center bg-transparent rounded-none dark:text-white text-black font-pincuk text-xl sm:text-2xl font-bold focus:outline-none focus:ring-0"
+                  className="w-12 h-12 sm:w-12 sm:h-12 text-center bg-transparent rounded-none dark:text-white text-black font-worksans text-xl sm:text-2xl font-bold focus:outline-none focus:ring-0"
                 />
               </div>
             )}
@@ -184,8 +183,9 @@ export function OTPVerificationModal({
         </div>
         {error && (
           <div
-            className={`text-xs sm:text-sm text-center font-pincuk mt-2 sm:mt-3 ${error.includes("resent") ? "text-green-500" : "text-red-500"
-              }`}
+            className={`text-xs sm:text-sm text-center font-worksans mt-2 sm:mt-3 ${
+              error.includes("resent") ? "text-green-500" : "text-red-500"
+            }`}
           >
             {error}
           </div>

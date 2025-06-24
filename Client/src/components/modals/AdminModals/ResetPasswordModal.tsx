@@ -1,15 +1,18 @@
-import React, { useState } from 'react';
-import { Button } from '../../ui/button';
+import React, { useState } from "react";
+import { Button } from "../../ui/button";
 import { IoIosArrowBack } from "react-icons/io";
-import { OTPModal } from './OTPModal';
+import { OTPModal } from "./OTPModal";
 
 interface ResetPasswordModalProps {
   open: boolean;
   onClose: () => void;
 }
 
-export default function ResetPasswordModal({ open, onClose }: ResetPasswordModalProps) {
-  const [email, setEmail] = useState('');
+export default function ResetPasswordModal({
+  open,
+  onClose,
+}: ResetPasswordModalProps) {
+  const [email, setEmail] = useState("");
   const [oTPOpen, setOTPOpen] = useState(false);
 
   if (!open) return null;
@@ -22,7 +25,7 @@ export default function ResetPasswordModal({ open, onClose }: ResetPasswordModal
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-white">
       {/* Back Button (Top Left of Fullscreen Modal) */}
-      <Button 
+      <Button
         className="absolute top-4 left-4 text-black hover:bg-transparent px-3 py-2 flex items-center gap-2 border border-gray-400 bg-transparent"
         onClick={onClose}
       >
@@ -35,13 +38,15 @@ export default function ResetPasswordModal({ open, onClose }: ResetPasswordModal
         </h2>
         <form className="w-full flex flex-col gap-6" onSubmit={handleSubmit}>
           <div>
-            <label className="block font-bold text-2xl mb-2 font-dmmono tracking-wider">Email</label>
+            <label className="block font-bold text-2xl mb-2 font-dmmono tracking-wider">
+              Email
+            </label>
             <input
               type="email"
-              className="w-full rounded-lg bg-[#E2E8F0] px-4 py-3 text-gray-500 font-pincuk text-xl tracking-wider  border border-[#CBD5E0]"
+              className="w-full rounded-lg bg-[#E2E8F0] px-4 py-3 text-gray-500 font-worksans text-xl tracking-wider  border border-[#CBD5E0]"
               placeholder="Email"
               value={email}
-              onChange={e => setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>

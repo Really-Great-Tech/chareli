@@ -199,7 +199,10 @@ export default function GameManagement() {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-3 text-center cursor-pointer">
+                  <td
+                    colSpan={6}
+                    className="px-4 py-3 text-center cursor-pointer"
+                  >
                     Loading...
                   </td>
                 </tr>
@@ -232,17 +235,17 @@ export default function GameManagement() {
                       idx % 2 === 0 ? "dark:bg-[#18192b]" : "dark:bg-[#23243a]"
                     )}
                     onClick={() => {
-                    if (reorderOpen) {
-                      setSelectedGame({
-                        id: game.id,
-                        title: game.title,
-                        category: game.category,
-                        thumbnailFile: game.thumbnailFile,
-                      });
-                      setReOrderModalOpen(true);
-                    }
-                  }}
-                >
+                      if (reorderOpen) {
+                        setSelectedGame({
+                          id: game.id,
+                          title: game.title,
+                          category: game.category,
+                          thumbnailFile: game.thumbnailFile,
+                        });
+                        setReOrderModalOpen(true);
+                      }
+                    }}
+                  >
                     <td className="px-4 py-3 flex items-center gap-3">
                       <GameThumbnail
                         src={(game.thumbnailFile as any)?.url || ""}
@@ -250,25 +253,25 @@ export default function GameManagement() {
                       />
                       <span className="text-lg font-light">{game.title}</span>
                     </td>
-                    <td className="px-4 py-3 font-pincuk text-xl tracking-wider">
+                    <td className="px-4 py-3 font-worksans text-xl tracking-wider">
                       {game.category?.name || "-"}
                     </td>
-                    <td className="px-4 py-3 font-pincuk text-xl tracking-wider">
+                    <td className="px-4 py-3 font-worksans text-xl tracking-wider">
                       {game.analytics?.totalPlayTime != null
                         ? formatTime(game.analytics.totalPlayTime || 0)
                         : "-"}
                     </td>
-                    <td className="px-4 py-3 font-pincuk text-xl tracking-wider">
+                    <td className="px-4 py-3 font-worksans text-xl tracking-wider">
                       {`#${game.position ?? "-"}`}
                     </td>
                     <td className="px-4 py-3">
                       {game.status === "active" ? (
-                        <span className="inline-flex items-center gap-2 p-1 rounded bg-[#419E6A] text-white font-pincuk text-lg tracking-wider">
+                        <span className="inline-flex items-center gap-2 p-1 rounded bg-[#419E6A] text-white font-worksans text-lg tracking-wider">
                           <span className="w-2 h-2 bg-white rounded-full inline-block"></span>
                           Active
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-2  p-1 rounded bg-[#CBD5E0] text-[#22223B] font-pincuk text-lg tracking-wider">
+                        <span className="inline-flex items-center gap-2  p-1 rounded bg-[#CBD5E0] text-[#22223B] font-worksans text-lg tracking-wider">
                           <span className="w-2 h-2 bg-red-500 rounded-full inline-block"></span>
                           Inactive
                         </span>
@@ -396,10 +399,10 @@ export default function GameManagement() {
                         {game?.game?.title}
                       </span>
                     </td>
-                    <td className="px-4 py-3 font-pincuk text-xl tracking-wider">
+                    <td className="px-4 py-3 font-worksans text-xl tracking-wider">
                       {`#${game?.position ?? "-"}`}
                     </td>
-                    <td className="px-4 py-3 font-pincuk text-xl tracking-wider">
+                    <td className="px-4 py-3 font-worksans text-xl tracking-wider">
                       {game?.clickCount ?? "-"}
                     </td>
                   </tr>

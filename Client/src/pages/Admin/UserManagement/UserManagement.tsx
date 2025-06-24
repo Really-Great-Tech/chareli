@@ -115,11 +115,7 @@ export default function UserManagement() {
       user.analytics?.mostPlayedGame?.gameTitle !== filters.gameTitle
     )
       return false;
-    if (
-      filters.country &&
-      user.country !== filters.country
-    )
-      return false;
+    if (filters.country && user.country !== filters.country) return false;
     return true;
   });
 
@@ -212,7 +208,7 @@ export default function UserManagement() {
                         .map((user, idx) => (
                           <TableRow
                             key={idx}
-                            className="font-pincuk text-md tracking-wider cursor-pointer hover:bg-[#f3e8ff] dark:hover:bg-[#23243a]"
+                            className="font-worksans text-md tracking-wider cursor-pointer hover:bg-[#f3e8ff] dark:hover:bg-[#23243a]"
                             onClick={() =>
                               navigate(`/admin/management/${user.id}`, {
                                 state: { user },

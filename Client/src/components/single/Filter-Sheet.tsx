@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Button } from "../ui/button"
-import { Label } from "../ui/label"
+import { Button } from "../ui/button";
+import { Label } from "../ui/label";
 import {
   Sheet,
   SheetClose,
@@ -8,16 +8,16 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "../ui/sheet"
+} from "../ui/sheet";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../ui/select"
-import { useCategories } from "../../backend/category.service"
-import type { GameStatus } from "../../backend/types"
+} from "../ui/select";
+import { useCategories } from "../../backend/category.service";
+import type { GameStatus } from "../../backend/types";
 
 interface FilterSheetProps {
   children: React.ReactNode;
@@ -31,21 +31,25 @@ export function FilterSheet({ children, onFilter, onReset }: FilterSheetProps) {
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   return (
     <Sheet>
-      <SheetTrigger asChild>
-        {children}
-      </SheetTrigger>
+      <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent className="font-dmmono dark:bg-[#0F1621]">
         <SheetHeader>
-          <SheetTitle className="text-xl font-normal tracking-wider mt-6">Filter</SheetTitle>
-         <div className="border border-b-gray-200"></div>
+          <SheetTitle className="text-xl font-normal tracking-wider mt-6">
+            Filter
+          </SheetTitle>
+          <div className="border border-b-gray-200"></div>
         </SheetHeader>
-        <form 
+        <form
           className="grid gap-4 p-4"
           onSubmit={(e) => {
             e.preventDefault();
             onFilter({
-              categoryId: selectedCategory === "all" ? undefined : selectedCategory,
-              status: selectedStatus === "all" ? undefined : selectedStatus as GameStatus
+              categoryId:
+                selectedCategory === "all" ? undefined : selectedCategory,
+              status:
+                selectedStatus === "all"
+                  ? undefined
+                  : (selectedStatus as GameStatus),
             });
           }}
         >
@@ -55,8 +59,11 @@ export function FilterSheet({ children, onFilter, onReset }: FilterSheetProps) {
               <Label htmlFor="category" className="text-right text-lg">
                 Select Category
               </Label>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-pincuk text-xl tracking-wider w-full">
+              <Select
+                value={selectedCategory}
+                onValueChange={setSelectedCategory}
+              >
+                <SelectTrigger className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-worksans text-xl tracking-wider w-full">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent className="dark:bg-[#121C2D]">
@@ -77,7 +84,7 @@ export function FilterSheet({ children, onFilter, onReset }: FilterSheetProps) {
                 Select Game Status
               </Label>
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                <SelectTrigger className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-pincuk text-xl tracking-wider w-full">
+                <SelectTrigger className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-worksans text-xl tracking-wider w-full">
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent className="dark:bg-[#121C2D]">
@@ -88,10 +95,10 @@ export function FilterSheet({ children, onFilter, onReset }: FilterSheetProps) {
               </Select>
             </div>
           </div>
-          <div className="flex gap-3 justify-end px-2"> 
+          <div className="flex gap-3 justify-end px-2">
             <SheetClose asChild>
-              <Button 
-                type="button" 
+              <Button
+                type="button"
                 onClick={() => {
                   setSelectedCategory("all");
                   setSelectedStatus("all");
@@ -103,8 +110,8 @@ export function FilterSheet({ children, onFilter, onReset }: FilterSheetProps) {
               </Button>
             </SheetClose>
             <SheetClose asChild>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-20 h-12 bg-[#D946EF] dark:text-white hover:text-[#D946EF] hover:bg-[#F3E8FF]"
               >
                 Filter
@@ -114,5 +121,5 @@ export function FilterSheet({ children, onFilter, onReset }: FilterSheetProps) {
         </form>
       </SheetContent>
     </Sheet>
-  )
+  );
 }

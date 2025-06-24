@@ -543,7 +543,7 @@ export function SignUpModal({
               </button>
             </p>
             {/* terms and privacy */}
-            <div className="font-pincuk flex space-2 text-lg justify-center">
+            <div className="font-worksans flex space-2 text-lg justify-center">
               <button
                 className="text-[#C026D3] text-center cursor-buttonointer tracking-wider mr-4 hover:underline"
                 onClick={handleTerms}

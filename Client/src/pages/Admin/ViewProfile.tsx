@@ -55,40 +55,52 @@ export default function ViewProfile() {
               </h2>
               <div className="flex items-center gap-2">
                 <span className="text-green-500 font-bold text-lg">●</span>
-                <span className="text-gray-700 dark:text-white font-pincuk text-lg tracking-wider">{user.role?.name || 'User'}</span>
+                <span className="text-gray-700 dark:text-white font-worksans text-lg tracking-wider">
+                  {user.role?.name || "User"}
+                </span>
               </div>
             </div>
             <Button
-                className="w-full mt-3 border border-white bg-transparent shadow-none text-[#121C2D] h-14 hover:bg-fuchsia-500 dark:text-white"
-                onClick={() => setEditOpen(true)}
+              className="w-full mt-3 border border-white bg-transparent shadow-none text-[#121C2D] h-14 hover:bg-fuchsia-500 dark:text-white"
+              onClick={() => setEditOpen(true)}
             >
-                Edit <CiEdit />
+              Edit <CiEdit />
             </Button>
             <EditProfileSheet
-                open={editOpen}
-                onOpenChange={setEditOpen}
-                profile={{
-                    firstName: user.firstName,
-                    lastName: user.lastName,
-                    email: user.email,
-                    phone: user.phoneNumber || '',
-                }}
+              open={editOpen}
+              onOpenChange={setEditOpen}
+              profile={{
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                phone: user.phoneNumber || "",
+              }}
             />
           </div>
         </div>
         {/* RIGHT: Profile Details */}
         <div className="flex-1 flex flex-col items-center md:items-start ">
           <div className="bg-[#f6f8fc] rounded-2xl p-8 mb-6 dark:bg-[#121C2D] w-full">
-            <h3 className="text-xl mb-4 text-[#121C2D] tracking-wide dark:text-white">Profile Details</h3>
+            <h3 className="text-xl mb-4 text-[#121C2D] tracking-wide dark:text-white">
+              Profile Details
+            </h3>
             <div className="grid grid-cols-2 gap-y-6 gap-x-8 dark:text-white space-y-6">
               <div className="text-fuchsia-500 tracking-wide text-lg">Name</div>
-              <div className="text-[#334154] font-pincuk text-xl tracking-wider dark:text-white whitespace-pre-line">
+              <div className="text-[#334154] font-worksans text-xl tracking-wider dark:text-white whitespace-pre-line">
                 {user.firstName} {user.lastName}
               </div>
-              <div className="text-fuchsia-500 tracking-wide text-lg">Email</div>
-              <div className="text-[#334154] font-pincuk text-xl tracking-wider dark:text-white">{user.email}</div>
-              <div className="text-fuchsia-500 tracking-wide text-lg">Mobile number</div>
-              <div className="text-[#334154] font-pincuk text-xl tracking-wider dark:text-white">{user.phoneNumber || 'Not provided'}</div>
+              <div className="text-fuchsia-500 tracking-wide text-lg">
+                Email
+              </div>
+              <div className="text-[#334154] font-worksans text-xl tracking-wider dark:text-white">
+                {user.email}
+              </div>
+              <div className="text-fuchsia-500 tracking-wide text-lg">
+                Mobile number
+              </div>
+              <div className="text-[#334154] font-worksans text-xl tracking-wider dark:text-white">
+                {user.phoneNumber || "Not provided"}
+              </div>
             </div>
           </div>
         </div>

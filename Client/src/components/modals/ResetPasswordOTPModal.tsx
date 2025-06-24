@@ -80,7 +80,7 @@ export function ResetPasswordOTPModal({
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221]">
-         <button
+        <button
           className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#C026D3] flex items-center justify-center shadow-lg hover:bg-[#a21caf] transition-colors"
           onClick={() => onOpenChange(false)}
           aria-label="Close"
@@ -92,11 +92,11 @@ export function ResetPasswordOTPModal({
           <AlertDialogTitle className="text-2xl font-bold dark:text-white text-black font-dmmono">
             Reset Password Verification
           </AlertDialogTitle>
-          <AlertDialogDescription className="dark:text-white text-black font-pincuk text-xl tracking-wider  mt-1">
+          <AlertDialogDescription className="dark:text-white text-black font-worksans text-xl tracking-wider  mt-1">
             Enter the verification code we just sent to {contactMethod}
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <div className="flex justify-center my-4">  
+        <div className="flex justify-center my-4">
           <OTPInput
             value={otp}
             onChange={setOtp}
@@ -105,7 +105,7 @@ export function ResetPasswordOTPModal({
               <div className="px-2 py-2 border-2 border-[#E328AF] mx-1 rounded-lg">
                 <input
                   {...props}
-                  className="w-12 h-12 text-center bg-transparent rounded-none dark:text-white text-black font-pincuk  tracking-wider text-2xl font-bold mx-1 focus:outline-none focus:ring-0"
+                  className="w-12 h-12 text-center bg-transparent rounded-none dark:text-white text-black font-worksans  tracking-wider text-2xl font-bold mx-1 focus:outline-none focus:ring-0"
                 />
               </div>
             )}
@@ -116,7 +116,7 @@ export function ResetPasswordOTPModal({
         </div>
         {error && (
           <div
-            className={` text-center font-pincuk text-xl tracking-wider mt-2 ${
+            className={` text-center font-worksans text-xl tracking-wider mt-2 ${
               error.includes("resent") ? "text-green-500" : "text-red-500"
             }`}
           >
@@ -130,7 +130,7 @@ export function ResetPasswordOTPModal({
         >
           {isVerifying ? "Verifying..." : "Verify"}
         </Button>
-        <p className=" text-center text-black dark:text-white font-pincuk text-xl tracking-wider mt-2">
+        <p className=" text-center text-black dark:text-white font-worksans text-xl tracking-wider mt-2">
           Didn't receive a code?{" "}
           <button
             onClick={handleResendOtp}

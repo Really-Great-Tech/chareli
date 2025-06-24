@@ -81,7 +81,7 @@ const UserManagementView = () => {
                 >
                   ●
                 </span>
-                <span className="text-gray-700  dark:text-white font-pincuk text-lg tracking-wider">
+                <span className="text-gray-700  dark:text-white font-worksans text-lg tracking-wider">
                   {response.user.role.name}
                 </span>
               </div>
@@ -89,7 +89,7 @@ const UserManagementView = () => {
             <div className="mt-2 text-sm text-gray-500 font-sans font-semibold dark:text-white flex flex-col sm:flex-row items-center gap-2 text-center sm:text-left">
               last login:{" "}
               <div className="flex items-center">
-                <span className="bg-indigo-100 px-2 py-0 rounded text-gray-700 dark:bg-[#94A3B7] font-pincuk text-xl tracking-wider">
+                <span className="bg-indigo-100 px-2 py-0 rounded text-gray-700 dark:bg-[#94A3B7] font-worksans text-xl tracking-wider">
                   <span className="text-yellow-500 font-bold text-lg">●</span>
                   {response.user.lastLoggedIn
                     ? new Date(response.user.lastLoggedIn).toLocaleTimeString(
@@ -115,7 +115,7 @@ const UserManagementView = () => {
                 <span className="text-[#475568] text-lg font mb-1 dark:text-white">
                   Minutes Played
                 </span>
-                <span className=" text-[#475568] font-pincuk text-lg tracking-wider dark:text-white">
+                <span className=" text-[#475568] font-worksans text-lg tracking-wider dark:text-white">
                   {formatTime(response.analytics?.totalTimePlayed ?? 0)}
                 </span>
               </div>
@@ -128,7 +128,7 @@ const UserManagementView = () => {
                 <span className="text-[#475568] text-lg font mb-1 dark:text-white">
                   Total Plays
                 </span>
-                <span className=" text-[#475568] font-pincuk text-lg tracking-wider dark:text-white">
+                <span className=" text-[#475568] font-worksans text-lg tracking-wider dark:text-white">
                   {response.analytics?.totalGamesPlayed ?? 0}
                 </span>
               </div>
@@ -141,7 +141,7 @@ const UserManagementView = () => {
                 <span className="text-[#475568] text-lg font mb-1 dark:text-white">
                   Sessions
                 </span>
-                <span className=" text-[#475568] font-pincuk text-lg tracking-wider dark:text-white">
+                <span className=" text-[#475568] font-worksans text-lg tracking-wider dark:text-white">
                   {response.analytics?.totalSessionCount ?? 0}
                 </span>
               </div>
@@ -157,19 +157,19 @@ const UserManagementView = () => {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 md:gap-x-16 space-y-border-b dark:text-white">
               <div className="text-fuchsia-500  tracking-wide">Name</div>
-              <div className="text-[#334154] font-pincuk text-lg tracking-wider dark:text-white">{`${response.user.firstName} ${response.user.lastName}`}</div>
+              <div className="text-[#334154] font-worksans text-lg tracking-wider dark:text-white">{`${response.user.firstName} ${response.user.lastName}`}</div>
               <div className="text-fuchsia-500  tracking-wide">Email</div>
-              <div className="text-[#334154] font-pincuk text-lg tracking-wider dark:text-white">
+              <div className="text-[#334154] font-worksans text-lg tracking-wider dark:text-white">
                 {response.user.email}
               </div>
               <div className="text-fuchsia-500  tracking-wide">
                 Mobile number
               </div>
-              <div className="text-[#334154] font-pincuk text-lg tracking-wider dark:text-white">
+              <div className="text-[#334154] font-worksans text-lg tracking-wider dark:text-white">
                 {response.user.phoneNumber ?? "-"}
               </div>
               <div className="text-fuchsia-500  tracking-wide">Country</div>
-              <div className="text-[#334154] font-pincuk text-lg tracking-wider dark:text-white">
+              <div className="text-[#334154] font-worksans text-lg tracking-wider dark:text-white">
                 {response?.user?.country ?? "-"}
               </div>
             </div>
@@ -215,7 +215,7 @@ const UserManagementView = () => {
                             {game.gameTitle ?? "Unknown Game"}
                           </span>
                         </td>
-                        <td className="py-2 text-lg text-[#334154] font-pincuk tracking-wider dark:text-white">
+                        <td className="py-2 text-lg text-[#334154] font-worksans tracking-wider dark:text-white">
                           {formatTime(game.totalPlayTime ?? 0)}
                         </td>
                       </tr>

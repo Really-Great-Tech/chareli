@@ -57,22 +57,23 @@ const Settings: React.FC = () => {
                 {item.icon}
               </div>
               <div>
-                <div className="text-md text-gray-900 dark:text-white">{item.title}</div>
-                <div className="text-gray-500 font-pincuk text-lg tracking-wider dark:text-white">{item.description}</div>
+                <div className="text-md text-gray-900 dark:text-white">
+                  {item.title}
+                </div>
+                <div className="text-gray-500 font-worksans text-lg tracking-wider dark:text-white">
+                  {item.description}
+                </div>
               </div>
             </div>
-            <FaChevronRight className="text-gray-900 dark:text-white"/>
+            <FaChevronRight className="text-gray-900 dark:text-white" />
           </div>
         ))}
       </div>
-      <ChangePasswordSheet 
-        open={showChangePassword} 
+      <ChangePasswordSheet
+        open={showChangePassword}
         onOpenChange={setShowChangePassword}
       />
-      <TermsSheet 
-        open={showTerms} 
-        onOpenChange={setShowTerms}
-      />
+      <TermsSheet open={showTerms} onOpenChange={setShowTerms} />
     </div>
   );
 };

@@ -35,6 +35,7 @@ interface FormValues {
   description: string;
   config: number;
   categoryId: string;
+  position?: number;
   thumbnailFile?: File;
   gameFile?: File;
 }
@@ -107,6 +108,10 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
       formData.append('config', String(values.config));
       formData.append('categoryId', values.categoryId);
 
+      if (values.position) {
+        formData.append('position', String(values.position));
+      }
+
       if (values.thumbnailFile) {
         formData.append('thumbnailFile', values.thumbnailFile);
       }
@@ -141,7 +146,9 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
       setShowProgress(false);
       setProgress(0);
       setCurrentStep('');
-      toast.error('Failed to update game');
+
+      console.log("error", error)
+      // toast.error('Failed to update game');
     } finally {
       setSubmitting(false);
     }
@@ -165,6 +172,7 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
     description: game.description || '',
     config: game.config,
     categoryId: game.categoryId || '',
+    position: game.position || undefined,
   };
 
   return (
@@ -185,91 +193,116 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
         >
           {({ setFieldValue, isSubmitting }) => (
             <Form className="space-y-4">
-              <div>
-                <Label className="">Update Thumbnail icon</Label>
-                <div className="mt-2 relative w-36 h-36">
-                  {thumbnailPreview ? (
-                    <label className="relative w-36 h-36 cursor-pointer group">
-                      <img
-                        src={thumbnailPreview}
-                        alt="Thumbnail"
-                        className={`w-36 h-36 rounded-lg object-cover transition-opacity duration-200 group-hover:opacity-75 ${
-                          isImageLoading ? 'opacity-0' : 'opacity-100'
-                        }`}
-                        onLoad={() => setIsImageLoading(false)}
-                        onError={(e) => {
-                          // If image fails to load, clear the preview
-                          setThumbnailPreview(null);
-                          e.currentTarget.onerror = null; // Prevent infinite loop
-                        }}
-                      />
-                      {/* Overlay on hover */}
-                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg flex items-center justify-center">
-                        <span className="text-white text-sm font-medium">Click to change</span>
+              {/* Thumbnail Upload and Order Number */}
+              <div className="grid grid-cols-2 gap-4">
+                {/* Thumbnail Upload */}
+                <div>
+                  <Label className="">Update Thumbnail icon</Label>
+                  <div className="mt-2 relative w-36 h-36">
+                    {thumbnailPreview ? (
+                      <label className="relative w-36 h-36 cursor-pointer group">
+                        <img
+                          src={thumbnailPreview}
+                          alt="Thumbnail"
+                          className={`w-36 h-36 rounded-lg object-cover transition-opacity duration-200 group-hover:opacity-75 ${
+                            isImageLoading ? 'opacity-0' : 'opacity-100'
+                          }`}
+                          onLoad={() => setIsImageLoading(false)}
+                          onError={(e) => {
+                            // If image fails to load, clear the preview
+                            setThumbnailPreview(null);
+                            e.currentTarget.onerror = null; // Prevent infinite loop
+                          }}
+                        />
+                        {/* Overlay on hover */}
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg flex items-center justify-center">
+                          <span className="text-white text-sm font-medium">Click to change</span>
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              setFieldValue('thumbnailFile', file);
+                              const reader = new FileReader();
+                              reader.onloadend = () => {
+                                setThumbnailPreview(reader.result as string);
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setThumbnailPreview(null);
+                            setFieldValue('thumbnailFile', undefined);
+                          }}
+                          className="absolute top-2 right-2 bg-[#C026D3] text-white rounded-full w-6 h-6 flex items-center justify-center shadow hover:bg-[#a21caf] transition-colors"
+                          title="Remove thumbnail"
+                        >
+                          <XIcon className="w-4 h-4" />
+                        </button>
+                      </label>
+                    ) : isImageLoading ? (
+                      <div className="w-36 h-36 rounded-lg bg-[#F1F5F9] dark:bg-[#121C2D] animate-pulse flex items-center justify-center">
+                        <div className="w-8 h-8 border-4 border-[#D946EF] border-t-transparent rounded-full animate-spin"></div>
                       </div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            setFieldValue('thumbnailFile', file);
-                            const reader = new FileReader();
-                            reader.onloadend = () => {
-                              setThumbnailPreview(reader.result as string);
-                            };
-                            reader.readAsDataURL(file);
-                          }
-                        }}
-                      />
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setThumbnailPreview(null);
-                          setFieldValue('thumbnailFile', undefined);
-                        }}
-                        className="absolute top-2 right-2 bg-[#C026D3] text-white rounded-full w-6 h-6 flex items-center justify-center shadow hover:bg-[#a21caf] transition-colors"
-                        title="Remove thumbnail"
-                      >
-                        <XIcon className="w-4 h-4" />
-                      </button>
-                    </label>
-                  ) : isImageLoading ? (
-                    <div className="w-36 h-36 rounded-lg bg-[#F1F5F9] dark:bg-[#121C2D] animate-pulse flex items-center justify-center">
-                      <div className="w-8 h-8 border-4 border-[#D946EF] border-t-transparent rounded-full animate-spin"></div>
-                    </div>
-                  ) : (
-                    <label className="w-36 h-36 flex flex-col items-center justify-center border border-[#e5e7eb] rounded-lg cursor-pointer hover:bg-[#f3e8ff] transition">
-                      <span className="flex items-center justify-center">
-                        <img src={uploadImg} alt="upload" />
-                      </span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            setFieldValue('thumbnailFile', file);
-                            const reader = new FileReader();
-                            reader.onloadend = () => {
-                              setThumbnailPreview(reader.result as string);
-                            };
-                            reader.readAsDataURL(file);
-                          }
-                        }}
-                      />
-                    </label>
-                  )}
+                    ) : (
+                      <label className="w-36 h-36 flex flex-col items-center justify-center border border-[#e5e7eb] rounded-lg cursor-pointer hover:bg-[#f3e8ff] transition">
+                        <span className="flex items-center justify-center">
+                          <img src={uploadImg} alt="upload" />
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              setFieldValue('thumbnailFile', file);
+                              const reader = new FileReader();
+                              reader.onloadend = () => {
+                                setThumbnailPreview(reader.result as string);
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                      </label>
+                    )}
+                  </div>
+                  <ErrorMessage
+                    name="thumbnailFile"
+                    component="div"
+                    className="text-red-500 mt-1 font-pincuk text-xl tracking-wider"
+                  />
                 </div>
-                <ErrorMessage
-                  name="thumbnailFile"
-                  component="div"
-                  className="text-red-500 mt-1 font-pincuk text-xl tracking-wider"
-                />
+
+                {/* Order Number */}
+                <div>
+                  <Label htmlFor="position" className="">
+                    Order Number
+                  </Label>
+                  <Field
+                    as={Input}
+                    type="number"
+                    id="position"
+                    name="position"
+                    min="1"
+                    className="mt-1 font-pincuk text-xl tracking-wider bg-[#F1F5F9] shadow-none dark:bg-[#121C2D]"
+                    placeholder="#234"
+                  />
+                  <ErrorMessage
+                    name="position"
+                    component="div"
+                    className="text-red-500 mt-1 font-pincuk text-xl tracking-wider"
+                  />
+                </div>
               </div>
 
               <div className="mt-8">

@@ -15,6 +15,7 @@ import { NoResults } from "../../../components/single/NoResults";
 import { useQueryClient } from "@tanstack/react-query";
 import { BackendRoute } from "../../../backend/constants";
 import { FilterSheet } from "../../../components/single/Filter-Sheet";
+import { HistoryFilterSheet } from "../../../components/single/HistoryFilter-Sheet";
 import { IoEyeOutline, IoEyeOffOutline } from "react-icons/io5";
 import { CiEdit } from "react-icons/ci";
 import {
@@ -38,6 +39,14 @@ export default function GameManagement() {
     categoryId?: string;
     status?: GameStatus;
   }>();
+  const [historyFilters, setHistoryFilters] = useState<{
+    position?: number;
+    positionMin?: number;
+    positionMax?: number;
+    clickCountMin?: number;
+    clickCountMax?: number;
+    gameTitle?: string;
+  }>();
   const navigate = useNavigate();
 
   const [editOpen, setEditOpen] = useState(false);
@@ -55,7 +64,7 @@ export default function GameManagement() {
   const queryClient = useQueryClient();
   const { data: gamesWithAnalytics, isLoading } = useGamesAnalytics();
   const deleteGame = useDeleteGame();
-  const { data: gameData } = useAllPositionHistory();
+  const { data: gameData } = useAllPositionHistory(historyFilters);
 
   console.log("Game Data:", gameData);
 
@@ -104,7 +113,7 @@ export default function GameManagement() {
           All Games
         </h1>
         <div className="flex flex-wrap gap-3 justify-end">
-          {!reorderHistoryOpen && (
+          {!reorderHistoryOpen ? (
             <FilterSheet
               onFilter={setFilters}
               onReset={() => setFilters(undefined)}
@@ -113,10 +122,23 @@ export default function GameManagement() {
                 variant="outline"
                 className="border-[#475568] text-[#475568] flex items-center gap-2 dark:text-white py-2 sm:py-[14px] text-sm sm:text-base h-[48px]"
               >
-                Filter
+                Filter Games
                 <RiEqualizer2Line size={24} className="sm:size-8" />
               </Button>
             </FilterSheet>
+          ) : (
+            <HistoryFilterSheet
+              onFilter={setHistoryFilters}
+              onReset={() => setHistoryFilters(undefined)}
+            >
+              <Button
+                variant="outline"
+                className="border-[#475568] text-[#475568] flex items-center gap-2 dark:text-white py-2 sm:py-[14px] text-sm sm:text-base h-[48px]"
+              >
+                Filter History
+                <RiEqualizer2Line size={24} className="sm:size-8" />
+              </Button>
+            </HistoryFilterSheet>
           )}
           <Button
             className={`text-[#0F1621] font-normal text-sm sm:text-base px-[16px] py-[14px] h-[48px] bg-[#F8FAFC] hover:bg-[#F8FAFC] border-[#E2E8F0] dark:border-none border-1 ${
@@ -169,6 +191,7 @@ export default function GameManagement() {
                 <th className="px-4 py-3 text-left">Game</th>
                 <th className="px-4 py-3 text-left">Category</th>
                 <th className="px-4 py-3 text-left">Minutes played</th>
+                <th className="px-4 py-3 text-left">Position</th>
                 <th className="px-4 py-3 text-left">Game Status</th>
                 <th className="px-4 py-3 text-left">Action</th>
               </tr>
@@ -176,13 +199,13 @@ export default function GameManagement() {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-3 text-center cursor-pointer">
+                  <td colSpan={6} className="px-4 py-3 text-center cursor-pointer">
                     Loading...
                   </td>
                 </tr>
               ) : !filteredGames.length ? (
                 <tr>
-                  <td colSpan={5}>
+                  <td colSpan={6}>
                     <NoResults
                       title={
                         gamesWithAnalytics?.length
@@ -228,12 +251,15 @@ export default function GameManagement() {
                       <span className="text-lg font-light">{game.title}</span>
                     </td>
                     <td className="px-4 py-3 font-pincuk text-xl tracking-wider">
-                      {game.category?.name || "Uncategorized"}
+                      {game.category?.name || "-"}
                     </td>
                     <td className="px-4 py-3 font-pincuk text-xl tracking-wider">
                       {game.analytics?.totalPlayTime != null
                         ? formatTime(game.analytics.totalPlayTime || 0)
                         : "-"}
+                    </td>
+                    <td className="px-4 py-3 font-pincuk text-xl tracking-wider">
+                      {`#${game.position ?? "-"}`}
                     </td>
                     <td className="px-4 py-3">
                       {game.status === "active" ? (
@@ -249,7 +275,7 @@ export default function GameManagement() {
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex gap-3 items-cente">
+                      <div className="flex gap-3 items-center">
                         <button
                           className="text-black hover:text-black p-1 dark:text-white"
                           title="Edit"
@@ -328,23 +354,23 @@ export default function GameManagement() {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-3 text-center">
+                  <td colSpan={3} className="px-4 py-3 text-center">
                     Loading...
                   </td>
                 </tr>
-              ) : !gameData.length ? (
+              ) : !gameData?.length ? (
                 <tr>
-                  <td colSpan={5}>
+                  <td colSpan={3}>
                     <NoResults
                       title={
                         gameData?.length
                           ? "No matching results"
-                          : "No games found"
+                          : "No history found"
                       }
                       message={
                         gameData?.length
                           ? "Try adjusting your filters"
-                          : "No games have been added to the system yet"
+                          : "No position history data available yet"
                       }
                       icon={
                         <RiGamepadLine className="w-12 h-12 text-gray-400" />
@@ -363,15 +389,15 @@ export default function GameManagement() {
                   >
                     <td className="px-4 py-3 flex items-center gap-3">
                       <GameThumbnail
-                        src={game.game.thumbnailFile.s3Key ?? ""}
-                        alt={game.game.title ?? ""}
+                        src={game.game?.thumbnailFile?.s3Key ?? ""}
+                        alt={game.game?.title ?? ""}
                       />
                       <span className="text-lg font-light">
                         {game?.game?.title}
                       </span>
                     </td>
                     <td className="px-4 py-3 font-pincuk text-xl tracking-wider">
-                      {game?.position || "Uncategorized"}
+                      {`#${game?.position ?? "-"}`}
                     </td>
                     <td className="px-4 py-3 font-pincuk text-xl tracking-wider">
                       {game?.clickCount ?? "-"}
@@ -381,28 +407,12 @@ export default function GameManagement() {
               )}
             </tbody>
           </table>
-          {/* Pagination */}
-          {filteredGames.length > 0 && (
+          {/* Pagination for history table */}
+          {gameData?.length > 0 && (
             <div className="flex justify-between items-center px-4 py-3 bg-[#F1F5F9] dark:bg-[#18192b] rounded-b-xl ">
               <span className="text-sm">
-                Showing {(page - 1) * pageSize + 1}-
-                {Math.min(page * pageSize, totalGames)} from {totalGames} data
+                Showing {gameData.length} history records
               </span>
-              <div className="flex items-center gap-2 rounded-xl space-x-4 pr-1 pl-0.5 border border-[#D946EF] dark:text-white">
-                {Array.from({ length: totalPages }, (_, i) => (
-                  <button
-                    key={i + 1}
-                    className={`w-7 h-7 rounded-full transition-colors  ${
-                      page === i + 1
-                        ? "bg-[#D946EF] text-white dark:bg-gray-400"
-                        : "bg-transparent text-[#D946EF] dark:text-gray-400 hover:bg-[#f3e8ff]"
-                    }`}
-                    onClick={() => setPage(i + 1)}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
-              </div>
             </div>
           )}
         </Card>

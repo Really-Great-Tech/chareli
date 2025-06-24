@@ -98,6 +98,12 @@ export default function ViewGame() {
               <p className=" text-[#475568] dark:text-white  font-pincuk text-lg tracking-wider">{(game as any).game?.category?.name || "-"}</p>
             </div>
             <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl p-4 flex-1">
+              <h4 className="font-bold mb-1 text-[#475568] dark:text-white">Position</h4>
+              <p className="text-[#475568] dark:text-white font-pincuk text-lg tracking-wider">
+                {(game as any).game?.position ? `#${(game as any).game.position}` : "Not assigned"}
+              </p>
+            </div>
+            <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl p-4 flex-1">
               <h4 className="font-bold mb-1 text-[#475568] dark:text-white">Game Code</h4>
               <a href={(game as any).game?.gameFile?.url || "#"} className="text-[#475568]  underline dark:text-white  font-pincuk text-lg tracking-wider" target="_blank" rel="noopener noreferrer">{(game as any).game?.gameFile?.url || "#"}</a>
             </div>

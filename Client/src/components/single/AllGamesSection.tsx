@@ -1,8 +1,8 @@
 import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
-import { useNavigate } from "react-router-dom";
 import { useGames } from "../../backend/games.service";
 import { useCategories } from "../../backend/category.service";
+import { useGameClickHandler } from "../../hooks/useGameClickHandler";
 import { useState } from "react";
 import GamesSkeleton from "./GamesSkeleton";
 
@@ -13,7 +13,6 @@ interface AllGamesSectionProps {
 }
 
 const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
-  const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState("all");
   const { data: categoriesData, isLoading: categoriesLoading } =
     useCategories();
@@ -45,10 +44,7 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
   ];
 
   const games: any = gamesData || [];
-
-  const handleGamePlay = (gameId: string) => {
-    navigate(`/gameplay/${gameId}`);
-  };
+  const { handleGameClick } = useGameClickHandler();
 
   return (
     <div className="p-4">
@@ -114,7 +110,7 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
                     key={game.id}
                     className="relative group cursor-pointer"
                     style={{ gridRow: `span ${Math.round(rowSpan * 2)}` }}
-                    onClick={() => handleGamePlay(game.id)}
+                    onClick={() => handleGameClick(game.id)}
                   >
                     <div className="relative h-full overflow-hidden rounded-[20px] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0px_20px_#D946EF,0_0px_10px_rgba(217,70,239,0.8)]">
                       <div className="w-full h-full rounded-[16px] overflow-hidden">

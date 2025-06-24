@@ -157,10 +157,10 @@ export function OTPVerificationModal({
           <span className="text-white text-2xl font-bold">×</span>
         </button>
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-xl sm:text-2xl font-bold dark:text-white text-black font-boogaloo">
+          <AlertDialogTitle className="text-xl sm:text-2xl font-bold dark:text-white text-black font-dmmono">
             OTP Verification
           </AlertDialogTitle>
-          <AlertDialogDescription className="dark:text-white text-black font-boogaloo text-md tracking-wider sm:text-sm mt-1">
+          <AlertDialogDescription className="dark:text-white text-black font-dmmono text-md tracking-wider sm:text-sm mt-1">
             Enter the verification code we just sent to {contactMethod}
           </AlertDialogDescription>
         </AlertDialogHeader>
@@ -193,11 +193,11 @@ export function OTPVerificationModal({
         <Button
           onClick={handleVerify}
           disabled={isVerifying || otp.length !== 6}
-          className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-boogaloo text-base sm:text-lg py-2 sm:py-3 mt-4 sm:mt-6"
+          className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-dmmono text-base sm:text-lg py-2 sm:py-3 mt-4 sm:mt-6"
         >
           {isVerifying ? "Verifying..." : "Verify"}
         </Button>
-        <p className="text-xs sm:text-sm text-center text-black dark:text-white font-boogaloo mt-2 sm:mt-3">
+        <p className="text-xs sm:text-sm text-center text-black dark:text-white font-dmmono mt-2 sm:mt-3">
           Didn't receive a code?{" "}
           <button
             onClick={handleResendOtp}

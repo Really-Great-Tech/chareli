@@ -90,7 +90,7 @@ export function DonutChart() {
       </div>
 
       {/* Legend section */}
-      <div className="mt-4 lg:mt-12 flex flex-col space-y-4 font-boogaloo w-full lg:w-auto">
+      <div className="mt-4 lg:mt-12 flex flex-col space-y-4 font-dmmono w-full lg:w-auto">
         <div className="text-lg lg:text-xl text-gray-600 font-medium dark:text-white text-center lg:text-left">
           Total number of registered users = {total}
         </div>

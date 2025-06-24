@@ -59,7 +59,7 @@ const GameLoadingScreen = ({ game, progress, onProgress }: GameLoadingScreenProp
             <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
             <div className="relative z-10 flex flex-col items-center">
                 <ImSpinner8 className="w-16 h-16 text-[#D946EF] animate-spin" />
-                <h2 className="mt-4 text-2xl font-boogaloo text-white">{game.title}</h2>
+                <h2 className="mt-4 text-2xl font-dmmono text-white">{game.title}</h2>
                 <p className="mt-2 text-[#D946EF]">Getting your game ready...</p>
                 
                 {/* Progress Bar */}

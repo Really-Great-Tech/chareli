@@ -89,7 +89,7 @@ export function ResetPasswordOTPModal({
           <span className="text-white text-2xl font-bold">×</span>
         </button>
         <AlertDialogHeader className="text-center">
-          <AlertDialogTitle className="text-2xl font-bold dark:text-white text-black font-boogaloo">
+          <AlertDialogTitle className="text-2xl font-bold dark:text-white text-black font-dmmono">
             Reset Password Verification
           </AlertDialogTitle>
           <AlertDialogDescription className="dark:text-white text-black font-pincuk text-xl tracking-wider  mt-1">
@@ -126,7 +126,7 @@ export function ResetPasswordOTPModal({
         <Button
           onClick={handleVerify}
           disabled={isVerifying || otp.length !== 6}
-          className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-boogaloo"
+          className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-dmmono"
         >
           {isVerifying ? "Verifying..." : "Verify"}
         </Button>

@@ -29,7 +29,7 @@ function Home() {
   };
 
   return (
-    <div className='font-boogaloo'>
+    <div className='font-dmmono'>
       <PopularSection searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
       <AllGamesSection searchQuery={searchQuery} />
       <SignUpModal 

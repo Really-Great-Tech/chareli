@@ -35,7 +35,7 @@ const App: React.FC = () => {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
-          <div className="font-boogaloo">
+          <div className="font-dmmono">
             <Toaster
               position="bottom-right"
               richColors

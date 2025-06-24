@@ -57,7 +57,7 @@ export default function ViewGame() {
             className="w-28 h-28 rounded-full object-cover mb-4" 
           />
           <div className="flex gap-2 items-center">
-          <h2 className="text-xl font-bold font-boogaloo mb-2 text-[#121C2D] tracking-wider dark:text-white">{(game as any).game?.title || "-"}</h2>
+          <h2 className="text-xl font-bold font-dmmono mb-2 text-[#121C2D] tracking-wider dark:text-white">{(game as any).game?.title || "-"}</h2>
           <span className={`inline-flex items-center gap-2 px-3 py-1 rounded font-pincuk text-xl tracking-wider mb-2 ${(game as any).game?.status === "active" ? "bg-[#D946EF]/20 dark:bg-[#E879F9] text-[#121C2D]" : "bg-[#CBD5E0] text-[#121C2D]"}`}>
             <span className={`w-2 h-2 rounded inline-block ${(game as any).game?.status === "active" ? "bg-[#419E6A]" : "bg-red-500"}`}></span>
             {(game as any).game?.status === "active" ? "Active" : "Inactive"}

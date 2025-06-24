@@ -33,7 +33,7 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
                 </button>
                 {/* Profile Header */}
                 <div className='justify-center text-center text-[#C026D3] mb-8 text-3xl'>
-                    <h1 className='font-boogaloo'>Profile</h1>
+                    <h1 className='font-dmmono'>Profile</h1>
                 </div>
                 <div className="flex items-center mb-2">
 
@@ -46,7 +46,7 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
                     </div>
 
                     <div className='ml-4'>
-                    <div className="text-3xl font-extrabold font-boogaloo dark:text-[#D946EF] text-[#0F1621] mb-1">
+                    <div className="text-3xl font-extrabold font-dmmono dark:text-[#D946EF] text-[#0F1621] mb-1">
                         {user ? `${user.firstName || '' } ${user.lastName || ''}` : 'Guest User'}
                     </div>
                     <div className="dark:text-white text-[#0F1621] font-pincuk text-xl tracking-wider">
@@ -57,19 +57,19 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
                 {/* Profile Details */}
                 <div className="dark:bg-[#18192b] bg-white rounded-xl p-4 mb-4 space-y-8">
                     <div className="flex justify-between py-2 border-b border-t border-[#CBD5E0] dark:border-[#475568] items-center mb-8">
-                        <span className="dark:text-[#D946EF] font-boogaloo text-xl mt-4 mb-8">Name</span>
+                        <span className="dark:text-[#D946EF] font-dmmono text-xl mt-4 mb-8">Name</span>
                         <span className="dark:text-white font-pincuk text-xl tracking-wider mt-4 mb-8">
                             {user ? `${user.firstName || ''} ${user.lastName || ''}` : 'Guest User'}
                         </span>
                     </div>
                     <div className="flex justify-between py-2 border-b border-[#CBD5E0] dark:border-[#475568] items-center">
-                        <span className="dark:text-[#D946EF] font-boogaloo text-xl mb-6">Email account</span> 
+                        <span className="dark:text-[#D946EF] font-dmmono text-xl mb-6">Email account</span> 
                         <span className="dark:text-white font-pincuk text-xl tracking-wider mb-6">
                             {user?.email || 'Not available'}
                         </span>
                     </div>
                     <div className="flex justify-between py-2 border-b border-[#CBD5E0] dark:border-[#475568] items-center">
-                        <span className="dark:text-[#D946EF] font-boogaloo text-xl mb-6">Mobile number</span>
+                        <span className="dark:text-[#D946EF] font-dmmono text-xl mb-6">Mobile number</span>
                         <span className="dark:text-white font-pincuk text-xl tracking-wider mb-6">
                             {user?.phoneNumber || 'Not available'}
                         </span>
@@ -80,7 +80,7 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
                       className="w-24 mt-2 py-2 rounded-lg bg-[#EF4444] hover:bg-[#dc2626] text-white tracking-wider text-lg transition-colors"
                       onClick={handleLogout}
                   >
-                    <div className='flex gap-2 items-center px-2 font-boogaloo'>
+                    <div className='flex gap-2 items-center px-2 font-dmmono'>
                         Logout
                         <TbLogout className="w-8 h-8" />
                     </div>

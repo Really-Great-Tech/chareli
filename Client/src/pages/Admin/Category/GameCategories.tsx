@@ -35,7 +35,7 @@ export default function GameCategories() {
   return (
     <div className="p-8">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
-        <h1 className="text-2xl sm:text-3xl font-boogaloo text-[#D946EF]">Game category</h1>
+        <h1 className="text-2xl sm:text-3xl font-dmmono text-[#D946EF]">Game category</h1>
         <button
           className="bg-[#D946EF] text-white px-3 py-2 sm:py-3 rounded-lg text-sm sm:text-lg tracking-wide hover:bg-[#D946EF] transition self-start sm:self-auto"
           onClick={() => setCreateOpen(true)}
@@ -48,7 +48,7 @@ export default function GameCategories() {
           <div className="col-span-full text-center py-8">Loading...</div>
         ) : !categories?.length ? (
           <div className="col-span-full text-center py-12">
-            <p className="text-xl font-boogaloo text-[#475568] dark:text-white mb-2">No categories found</p>
+            <p className="text-xl font-dmmono text-[#475568] dark:text-white mb-2">No categories found</p>
             <p className="text-sm text-[#475568] dark:text-white">Click "Create New Category" to add your first category</p>
           </div>
         ) : categories.map((cat) => (
@@ -57,7 +57,7 @@ export default function GameCategories() {
             className="bg-[#F1F5F9] rounded-2xl p-6 shadow flex flex-col gap-2 relative min-h-[120px] dark:bg-[#121C2D]"
           >
             <div className="flex justify-between items-start mb-2">
-              <h2 className="text-xl tracking-wide font-bold font-boogaloo text-[#232B3B] dark:text-white">
+              <h2 className="text-xl tracking-wide font-bold font-dmmono text-[#232B3B] dark:text-white">
                 {cat.name}
               </h2>
               <div className="flex gap-2">

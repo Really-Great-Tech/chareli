@@ -49,7 +49,7 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
   return (
     <div className="p-4">
       <div>
-        <h1 className="text-[#D946EF] text-3xl mb-4 font-boogaloo">
+        <h1 className="text-[#D946EF] text-3xl mb-4 font-dmmono">
           All Games
         </h1>
       </div>

@@ -666,7 +666,9 @@ export const getGamesWithAnalytics = async (
         .take(limitNumber);
     }
     
-    queryBuilder.orderBy('game.createdAt', 'DESC');
+    queryBuilder.orderBy('game.position', 'ASC');
+    queryBuilder.addOrderBy('game.createdAt', 'DESC')
+    
     
     const games = await queryBuilder.getMany();
     

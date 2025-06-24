@@ -1,8 +1,8 @@
 import { Card } from "../../components/ui/card";
 import { Input } from "../ui/input";
 import { IoIosSearch } from "react-icons/io";
-import { useNavigate } from "react-router-dom";
 import { useGames } from "../../backend/games.service";
+import { useGameClickHandler } from "../../hooks/useGameClickHandler";
 import GamesSkeleton from "./GamesSkeleton";
 
 import emptyGameImg from "../../assets/empty-game.png";
@@ -16,7 +16,6 @@ const PopularSection = ({
   searchQuery,
   setSearchQuery,
 }: PopularSectionProps) => {
-  const navigate = useNavigate();
   const {
     data: gamesData,
     isLoading,
@@ -28,10 +27,7 @@ const PopularSection = ({
     limit: 4,
   });
   const games: any = gamesData || [];
-
-  const handleGamePlay = (gameId: string) => {
-    navigate(`/gameplay/${gameId}`);
-  };
+  const { handleGameClick } = useGameClickHandler();
 
   return (
     <div className="p-4">
@@ -82,7 +78,7 @@ const PopularSection = ({
                       alt={game.title}
                       loading="lazy"
                       className="w-full h-[290px] min-h-[290px] max-h-[290px] object-cover rounded-[32px] border-4 border-transparent group-hover:border-[#D946EF] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(217,70,239,0.3)] box-border"
-                      onClick={() => handleGamePlay(game.id)}
+                      onClick={() => handleGameClick(game.id)}
                     />
                     {/* Game Info Overlay - Only visible on hover */}
                     <div className="absolute bottom-0 left-0 right-0 rounded-b-[28px] p-4 group-hover:opacity-100 transition-opacity duration-300 ease-in-out lg:opacity-0 lg:group-hover:opacity-100">

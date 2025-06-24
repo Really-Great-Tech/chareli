@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useCategories } from "../../backend/category.service";
 import { useGames } from "../../backend/games.service";
+import { useGameClickHandler } from "../../hooks/useGameClickHandler";
 import GamesSkeleton from "../../components/single/GamesSkeleton";
 import type { Category } from "../../backend/types";
 
@@ -11,7 +11,6 @@ import emptyGameImg from "../../assets/empty-game.png";
 const secondary = ["Recently Added", "Popular", "Recommended for you"];
 
 export default function Categories() {
-  const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedSecondary, setSelectedSecondary] = useState<string | null>(
     null
@@ -43,6 +42,7 @@ export default function Categories() {
 
   const categories = (categoriesData || []) as Category[];
   const games: any = gamesData || [];
+  const { handleGameClick } = useGameClickHandler();
 
   return (
     <div className="flex flex-col lg:flex-row min-h-[calc(100vh-80px)] bg-white dark:bg-[#0f1221]">
@@ -274,7 +274,7 @@ export default function Categories() {
                       key={game.id}
                       className="relative group cursor-pointer"
                       style={{ gridRow: `span ${Math.round(rowSpan * 2)}` }}
-                      onClick={() => navigate(`/gameplay/${game.id}`)}
+                      onClick={() => handleGameClick(game.id)}
                     >
                       <div className="relative h-full overflow-hidden rounded-[20px] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0px_20px_#D946EF,0_0px_10px_rgba(217,70,239,0.8)]">
                       <div className="w-full h-full rounded-[16px] overflow-hidden">

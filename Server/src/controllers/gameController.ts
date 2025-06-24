@@ -47,27 +47,22 @@ const createOrUpdatePositionHistoryRecord = async (gameId: string, position: num
     });
     await repository.save(historyRecord);
   }
-  // If record exists, we don't need to do anything - it will be updated when clicks are recorded
 };
 
-// Helper function to assign position for new game
 const assignPositionForNewGame = async (requestedPosition?: number, queryRunner?: any): Promise<number> => {
   const repository = queryRunner ? queryRunner.manager.getRepository(Game) : gameRepository;
   
   if (requestedPosition) {
-    // Validate that position doesn't exceed total number of games + 1 (since we're adding a new game)
     const totalGames = await repository.count();
     if (requestedPosition > totalGames + 1) {
-      throw new ApiError(400, `Position cannot be greater than ${totalGames + 1} (total number of games + 1)`);
+      throw new ApiError(400, `Position cannot be greater than ${totalGames + 1}`);
     }
     
-    // Check if position is occupied
     const existingGame = await repository.findOne({
       where: { position: requestedPosition }
     });
     
     if (existingGame) {
-      // Move existing game to end (next available position)
       const maxPosition = await getMaxPosition();
       existingGame.position = maxPosition + 1;
       await repository.save(existingGame);
@@ -249,7 +244,7 @@ export const getAllGames = async (
       .skip((pageNumber - 1) * limitNumber)
       .take(limitNumber)
       .orderBy('game.position', 'ASC')
-      .addOrderBy('game.createdAt', 'DESC'); // Secondary sort for games without position
+      .addOrderBy('game.createdAt', 'DESC'); 
     
     const games = await queryBuilder.getMany();
 
@@ -509,9 +504,19 @@ export const createGame = async (
       position
     } = req.body;
     
-    // Validate required fields
     if (!title) {
       return next(ApiError.badRequest('Game title is required'));
+    }
+    
+    if (position) {
+      const requestedPosition = parseInt(position);
+      if (requestedPosition < 1) {
+        return next(ApiError.badRequest('Position must be a positive integer'));
+      }
+      const totalGames = await gameRepository.count();
+      if (requestedPosition > totalGames + 1) {
+        return next(ApiError.badRequest(`Position cannot be greater than ${totalGames + 1} (total number of games)`));
+      }
     }
     
     // Get files from request
@@ -737,6 +742,21 @@ export const updateGame = async (
       return next(ApiError.notFound(`Game with id ${id} not found`));
     }
     
+    // Validate position early if provided (before any expensive operations)
+    if (position !== undefined && position !== game.position) {
+      const newPosition = parseInt(position);
+      
+      if (newPosition < 1) {
+        return next(ApiError.badRequest('Position must be a positive integer'));
+      }
+      
+      // Validate that position doesn't exceed total number of games
+      const totalGames = await queryRunner.manager.count(Game);
+      if (newPosition > totalGames) {
+        return next(ApiError.badRequest(`Position cannot be greater than ${totalGames} (total number of games)`));
+      }
+    }
+    
     // Handle file uploads if provided
     const files = req.files as { [fieldname: string]: Express.Multer.File[] };
     
@@ -820,16 +840,6 @@ export const updateGame = async (
     // Handle position update if provided
     if (position !== undefined && position !== game.position) {
       const newPosition = parseInt(position);
-      
-      if (newPosition < 1) {
-        return next(ApiError.badRequest('Position must be a positive integer'));
-      }
-      
-      // Validate that position doesn't exceed total number of games
-      const totalGames = await queryRunner.manager.count(Game);
-      if (newPosition > totalGames) {
-        return next(ApiError.badRequest(`Position cannot be greater than ${totalGames} (total number of games)`));
-      }
       
       // Check if target position is occupied
       const gameAtTargetPosition = await queryRunner.manager.findOne(Game, {

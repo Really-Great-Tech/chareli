@@ -235,6 +235,7 @@ export interface GameAnalytics {
   title: string;
   description?: string;
   overview?: string;
+  position?: string;
   code?: string;
   thumbnailFile?: {
     id: string;

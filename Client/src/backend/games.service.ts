@@ -184,7 +184,12 @@ export const usePositionHistoryAnalytics = () => {
 export const useAllPositionHistory = (params?: { 
   page?: number; 
   limit?: number; 
-  position?: number; 
+  position?: number;
+  positionMin?: number;
+  positionMax?: number;
+  clickCountMin?: number;
+  clickCountMax?: number;
+  gameTitle?: string;
 }) => {
   return useQuery<any>({
     queryKey: [BackendRoute.GAME_POSITION_HISTORY, params],

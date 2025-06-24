@@ -2,26 +2,25 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-@font-face {
-  font-family: 'Pong-Game';
-  src: url('./fonts/Pong-Game.ttf'),
+/* @font-face { */
+  /* font-family: 'Pong-Game'; */
+  /* src: url('./fonts/Pong-Game.ttf'), */
     /* font-weight: normal; */
     /* font-style: normal; */
     /* src: url('./fonts/Boogaloo-Regular.ttf'), */
     /* font-weight: normal; */
     /* font-style: normal; */
+/* } */
+
+@font-face {
+  font-family: 'Dm Mono';
+  src: url('./fonts/dm mono/DMMono-Regular.ttf'),
+    
 }
 
 @font-face {
-  font-family: 'Boogaloo';
-  src: url('./fonts/Boogaloo-Regular.ttf'),
-    /* font-weight: normal; */
-    /* font-style: normal; */
-}
-
-@font-face {
-  font-family: 'Pincuk';
-  src: url('./fonts/Pincuk.ttf'),
+  font-family: 'Work Sans';
+  src: url('./fonts/work sans/WorkSans-Regular.ttf'),
 }
 
 @layer base {
@@ -44,13 +43,14 @@
 
 
 
-.font-boogaloo {
-  font-family: 'Boogaloo', cursive;
+/* headers */
+.font-dmmono {
+  font-family: 'Dm Mono', cursive;
 }
 
-
-.font-pincuk {
-  font-family: 'Pincuk', cursive;
+/* sub texts */
+.font-worksans {
+  font-family: 'Work Sans', cursive;
 }
 
 body {

@@ -8,14 +8,16 @@ import { useDeleteGame } from "../../../backend/games.service";
 import { useGamesAnalytics } from "../../../backend/analytics.service";
 import type { GameStatus } from "../../../backend/types";
 import { NoResults } from "../../../components/single/NoResults";
-import { RiGamepadLine } from "react-icons/ri";
 import { useQueryClient } from "@tanstack/react-query";
 import { BackendRoute } from "../../../backend/constants";
 import { FilterSheet } from "../../../components/single/Filter-Sheet";
 import { IoEyeOutline, IoEyeOffOutline } from "react-icons/io5";
 import { CiEdit } from "react-icons/ci";
-import { RiDeleteBin6Line } from "react-icons/ri";
-import { RiEqualizer2Line } from "react-icons/ri";
+import {
+  RiDeleteBin6Line,
+  RiEqualizer2Line,
+  RiGamepadLine,
+} from "react-icons/ri";
 import { CreateGameSheet } from "../../../components/single/CreateGame-Sheet";
 import { useNavigate } from "react-router-dom";
 import { EditSheet } from "../../../components/single/Edit-Sheet";

@@ -197,7 +197,7 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
               <div className="grid grid-cols-2 gap-4">
                 {/* Thumbnail Upload */}
                 <div>
-                  <Label className="">Update Thumbnail icon</Label>
+                  <Label className="text-base">Update Thumbnail icon</Label>
                   <div className="mt-2 relative w-36 h-36">
                     {thumbnailPreview ? (
                       <label className="relative w-36 h-36 cursor-pointer group">
@@ -281,13 +281,13 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
                   <ErrorMessage
                     name="thumbnailFile"
                     component="div"
-                    className="text-red-500 mt-1 font-worksans text-xl tracking-wider"
+                    className="text-red-500 mt-1 font-worksans text-sm tracking-wider"
                   />
                 </div>
 
                 {/* Order Number */}
                 <div>
-                  <Label htmlFor="position" className="">
+                  <Label htmlFor="position" className="text-base">
                     Order Number
                   </Label>
                   <Field
@@ -296,54 +296,54 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
                     id="position"
                     name="position"
                     min="1"
-                    className="mt-1 font-worksans text-xl tracking-wider bg-[#F1F5F9] shadow-none dark:bg-[#121C2D]"
+                    className="mt-1 font-worksans text-sm tracking-wider bg-[#F1F5F9] shadow-none dark:bg-[#121C2D]"
                     placeholder="#234"
                   />
                   <ErrorMessage
                     name="position"
                     component="div"
-                    className="text-red-500 mt-1 font-worksans text-xl tracking-wider"
+                    className="text-red-500 mt-1 font-worksans text-sm tracking-wider"
                   />
                 </div>
               </div>
 
               <div className="mt-8">
-                <Label htmlFor="title" className="">
+                <Label htmlFor="title" className="text-base">
                   Title
                 </Label>
                 <Field
                   as={Input}
                   id="title"
                   name="title"
-                  className="mt-1 font-worksans text-xl tracking-wider bg-[#F1F5F9] shadow-none dark:bg-[#121C2D]"
+                  className="mt-1 font-worksans text-sm tracking-wider bg-[#F1F5F9] shadow-none dark:bg-[#121C2D]"
                 />
                 <ErrorMessage
                   name="title"
                   component="div"
-                  className="text-red-500 mt-1 font-worksans text-xl tracking-wider"
+                  className="text-red-500 mt-1 font-worksans text-sm tracking-wider"
                 />
               </div>
 
               <div className="mt-8">
-                <Label htmlFor="description" className="">
+                <Label htmlFor="description" className="text-base">
                   Short Description
                 </Label>
                 <Field
                   as="textarea"
                   id="description"
                   name="description"
-                  className="w-full mt-1 rounded-md border bg-transparent p-2 font-worksans text-xl tracking-wider dark:text-white dark:bg-[#121C2D]"
+                  className="w-full mt-1 rounded-md border bg-transparent p-2 font-worksans text-sm tracking-wider dark:text-white dark:bg-[#121C2D]"
                   rows={3}
                 />
                 <ErrorMessage
                   name="description"
                   component="div"
-                  className="text-red-500 mt-1 font-worksans text-xl tracking-wider"
+                  className="text-red-500 mt-1 font-worksans text-sm tracking-wider"
                 />
               </div>
 
               <div className="mt-8">
-                <Label className="text-lg mb-2 block">Game Upload .zip</Label>
+                <Label className="text-base mb-2 block">Game Upload .zip</Label>
                 <div className="mt-2 relative w-36 h-36">
                   {gameFileName || game.gameFile ? (
                     <label className="relative w-36 h-36 cursor-pointer group">
@@ -431,7 +431,7 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
               </div>
 
               <div className="mt-8">
-                <Label htmlFor="categoryId" className="">
+                <Label htmlFor="categoryId" className="text-base">
                   Game Category
                 </Label>
                 <div className="relative">
@@ -439,7 +439,7 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
                     as="select"
                     id="categoryId"
                     name="categoryId"
-                    className="mt-1 w-full rounded-lg dark:bg-[#121C2D] dark:text-white bg-[#F1F5F9] text-[#64748b] px-4 py-3 font-worksans text-xl tracking-wider outline-none border-none appearance-none pr-10"
+                    className="mt-1 w-full rounded-lg dark:bg-[#121C2D] dark:text-white bg-[#F1F5F9] text-[#64748b] px-4 py-3 font-worksans text-sm tracking-wider outline-none border-none appearance-none pr-10"
                   >
                     <option value="">Select category</option>
                     {categories?.map((category) => (
@@ -463,12 +463,12 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
                 <ErrorMessage
                   name="categoryId"
                   component="div"
-                  className="text-red-500 mt-1 font-worksans text-xl tracking-wider"
+                  className="text-red-500 mt-1 font-worksans text-sm tracking-wider"
                 />
               </div>
 
               <div>
-                <Label htmlFor="config" className="mt-8">
+                <Label htmlFor="config" className="mt-8 text-base">
                   Game Config
                 </Label>
                 <Field
@@ -477,12 +477,12 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
                   id="config"
                   name="config"
                   min="0"
-                  className="mt-1 bg-[#F1F5F9] shadow-none border-none dark:bg-[#121C2D]"
+                  className="mt-1 bg-[#F1F5F9] shadow-none border-none text-sm dark:bg-[#121C2D]"
                 />
                 <ErrorMessage
                   name="config"
                   component="div"
-                  className="text-red-500 mt-1 font-worksans text-xl tracking-wider"
+                  className="text-red-500 mt-1 font-worksans text-sm tracking-wider"
                 />
               </div>
 

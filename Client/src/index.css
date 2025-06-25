@@ -3,24 +3,23 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* @font-face { */
-  /* font-family: 'Pong-Game'; */
-  /* src: url('./fonts/Pong-Game.ttf'), */
-    /* font-weight: normal; */
-    /* font-style: normal; */
-    /* src: url('./fonts/Boogaloo-Regular.ttf'), */
-    /* font-weight: normal; */
-    /* font-style: normal; */
+/* font-family: 'Pong-Game'; */
+/* src: url('./fonts/Pong-Game.ttf'), */
+/* font-weight: normal; */
+/* font-style: normal; */
+/* src: url('./fonts/Boogaloo-Regular.ttf'), */
+/* font-weight: normal; */
+/* font-style: normal; */
 /* } */
 
 @font-face {
-  font-family: 'Dm Mono';
-  src: url('./fonts/dm mono/DMMono-Regular.ttf'),
-    
+  font-family: "Dm Mono";
+  src: url("./fonts/dm mono/DMMono-Regular.ttf");
 }
 
 @font-face {
-  font-family: 'Work Sans';
-  src: url('./fonts/work sans/WorkSans-Regular.ttf'),
+  font-family: "Work Sans";
+  src: url("./fonts/work sans/WorkSans-Regular.ttf");
 }
 
 @font-face {
@@ -46,16 +45,14 @@
   }
 }
 
-
-
 /* headers */
 .font-dmmono {
-  font-family: 'Dm Mono', cursive;
+  font-family: "Dm Mono", cursive;
 }
 
 /* sub texts */
 .font-worksans {
-  font-family: 'Work Sans', cursive;
+  font-family: "Work Sans", cursive;
 }
 
 /* logo text */
@@ -64,21 +61,40 @@
 }
 
 body {
-  cursor: url('./assets/icn_hand.svg'), auto;
+  cursor: url("./assets/icn_hand.svg"), auto;
 }
 
 button,
 [role="button"] {
-  cursor: url('./assets/icn_hand.svg'), auto;
+  cursor: url("./assets/icn_hand.svg"), auto;
 }
 
 a,
 .cursor-pointer {
-  cursor: url('./assets/icn_hand.svg'), pointer;
+  cursor: url("./assets/icn_hand.svg"), pointer;
 }
 
 img.cursor-pointer {
-  cursor: url('./assets/icn_hand.svg'), pointer;
+  cursor: url("./assets/icn_hand.svg"), pointer;
+}
+
+p,
+span,
+th,
+li,
+label {
+  font-family: "Work Sans", cursive;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+tr,
+td,
+h6 {
+  font-family: "Dm Mono", cursive;
 }
 
 /* Override custom cursor for admin routes */
@@ -132,9 +148,8 @@ body.admin-route textarea {
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.3s;
-  filter: drop-shadow(8px 8px 10px #D946EF);
+  filter: drop-shadow(8px 8px 10px #d946ef);
 }
-
 
 /* in your CSS */
 .backdrop-blur-sm {
@@ -169,27 +184,26 @@ body.admin-route textarea {
   background-size: 1000px 100%;
 }
 
-
 .custom-scrollbar {
   /* Firefox */
   scrollbar-width: thin;
   scrollbar-color: #850891 transparent;
-  
+
   /* Webkit browsers */
   &::-webkit-scrollbar {
     width: 6px;
   }
-  
+
   &::-webkit-scrollbar-track {
     background: transparent;
     border-radius: 0px;
   }
-  
+
   &::-webkit-scrollbar-thumb {
     background: transparent;
     border-radius: 0px;
   }
-  
+
   &::-webkit-scrollbar-thumb:hover {
     background: transparent;
   }

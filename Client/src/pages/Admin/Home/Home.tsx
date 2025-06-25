@@ -30,7 +30,7 @@ export default function Home() {
         <div className="col-span-1 md:col-span-2 lg:col-span-4 my-6">
           <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
             <div className="justify-between items-center flex p-3">
-              <p className="text-3xl dark:text-[#D946EF]">Dynamic Popup System</p>
+              <p className="text-2xl dark:text-[#D946EF]">Dynamic Popup System</p>
               <PopUpSheet>
                 <Button className="bg-[#D946EF] hover:bg-[#C026D3] text-white transition-colors duration-200">
                   Create New Pop-up
@@ -56,7 +56,7 @@ export default function Home() {
         <div className="col-span-1 md:col-span-2 lg:col-span-4 mb-6">
           <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
             <div className="justify-between items-center flex p-3">
-              <p className="text-3xl">Click insights</p>
+              <p className="text-2xl">Click insights</p>
             </div>
             {/* inner card */}
             <Card className="bg-[#F8FAFC] dark:bg-[#0F1221] shadow-none border-none mx-3 p-4">

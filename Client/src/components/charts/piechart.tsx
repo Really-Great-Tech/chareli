@@ -51,7 +51,7 @@ export default function Component({ data }: PieChartProps) {
             formatter={(value: number, name: string) => [`${value}`, name]}
           />
         </PieChart>
-        <div className="text-center font-bold text-2xl mt-2 dark:text-white text-[#5B6B7A] tracking-wider">
+        <div className="text-center font-bold text-xl mt-2 dark:text-white text-[#5B6B7A] tracking-wider">
           Total Clicks = {totalClicks}
         </div>
         <div className="flex justify-center gap-8 mt-4">
@@ -64,7 +64,7 @@ export default function Component({ data }: PieChartProps) {
                 background: item.fill,
                 borderRadius: 4,
               }} />
-              <span className="text-[#5B6B7A] dark:text-white text-[18px]">
+              <span className="text-[#5B6B7A] dark:text-white text-[16px]">
                 {item.name} = {item.value}
               </span>
             </div>

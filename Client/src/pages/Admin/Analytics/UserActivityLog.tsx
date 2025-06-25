@@ -61,7 +61,9 @@ export default function UserActivityLog() {
     <div className="col-span-1 md:col-span-2 lg:col-span-4 mt-4">
       <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
         <div className="flex justify-between items-center p-4">
-          <p className="text-3xl dark:text-[#D946EF]">User Activity Log</p>
+          <p className="text-xl md:text-2xl dark:text-[#D946EF]">
+            User Activity Log
+          </p>
           <div className="flex gap-3">
             {/* <Button
               variant="outline"
@@ -80,7 +82,7 @@ export default function UserActivityLog() {
         <div className="px-4 pb-4">
           <Table>
             <TableHeader>
-              <TableRow className="text-lg font-bold">
+              <TableRow className="text-base ">
                 <TableHead>Name</TableHead>
                 <TableHead>User Status</TableHead>
                 <TableHead>Activity</TableHead>
@@ -105,19 +107,20 @@ export default function UserActivityLog() {
                 </TableRow>
               ) : (
                 activitiesToShow.map((row: any, idx) => (
-                  <TableRow
-                    key={idx}
-                    className="font-worksans text-xl tracking-wider"
-                  >
-                    <TableCell>{row.name?.trim() ? row.name : "-"}</TableCell>
+                  <TableRow key={idx} className=" text-sm tracking-wider">
+                    <TableCell className="">
+                      <p className="font-dmmono">
+                        {row.name?.trim() ? row.name : "-"}
+                      </p>
+                    </TableCell>
                     <TableCell>
                       <span
-                        className={`flex items-center gap-3 px-2 py-1 rounded-lg font-worksans text-xl tracking-wider ${
+                        className={`flex items-center gap-1 px-1 py-1 rounded-[4px] font-dmmono text-sm tracking-wider w-fit ${
                           row.userStatus === "Online"
                             ? "bg-[#4BA366] text-white"
-                            : "bg-[#D3D8DF] text-white"
+                            : "bg-[#CBD5E0] text-white"
                         }`}
-                        style={{ width: "75px", justifyContent: "center" }}
+                        style={{ justifyContent: "center" }}
                       >
                         <div
                           className={`min-w-[8px] min-h-[8px] rounded-full ${
@@ -127,14 +130,18 @@ export default function UserActivityLog() {
                           }`}
                           style={{ aspectRatio: "1/1" }}
                         />
-                        {row.userStatus || "Offline"}
+                        {row.userStatus ?? "Offline"}
                       </span>
                     </TableCell>
-                    <TableCell>{row.activity || "-"}</TableCell>
-                    <TableCell>{row.lastGamePlayed || "-"}</TableCell>
+                    <TableCell>
+                      <p className="font-dmmono">{row.activity ?? "-"}</p>
+                    </TableCell>
+                    <TableCell>
+                      <p className="font-dmmono">{row.lastGamePlayed ?? "-"}</p>
+                    </TableCell>
                     <TableCell>
                       {row.startTime ? (
-                        <span className="flex items-center gap-2 bg-[#AEB8C6] rounded-lg px-2 py-1 w-fit font-worksans text-xl tracking-wider text-white">
+                        <span className="flex items-center gap-2 bg-[#AEB8C6] rounded-lg px-2 py-1 w-fit  text-sm tracking-wider text-white font-dmmono">
                           <div
                             className="min-w-[8px] min-h-[8px] rounded-full bg-[#2ECC40]"
                             style={{ aspectRatio: "1/1" }}
@@ -147,7 +154,7 @@ export default function UserActivityLog() {
                     </TableCell>
                     <TableCell>
                       {row.endTime ? (
-                        <span className="flex items-center gap-2 bg-[#AEB8C6] rounded-lg px-2 py-1 w-fit font-worksans text-xl tracking-wider text-white">
+                        <span className="flex items-center gap-2 bg-[#AEB8C6] rounded-lg px-2 py-1 w-fit  text-sm tracking-wider font-dmmono text-white">
                           <div
                             className="min-w-[8px] min-h-[8px] rounded-full bg-[#E74C3C]"
                             style={{ aspectRatio: "1/1" }}

@@ -80,7 +80,7 @@ export function PopUpSheet({ children }: { children: React.ReactNode }) {
                 {/* title */}
                 <div className="items-center gap-4">
                   <div className="flex flex-col space-y-2">
-                    <Label htmlFor="title" className="text-right text-lg">
+                    <Label htmlFor="title" className="text-right text-base">
                       Pop-Up Title
                     </Label>
                     <Field
@@ -88,7 +88,7 @@ export function PopUpSheet({ children }: { children: React.ReactNode }) {
                       id="title"
                       name="title"
                       placeholder="Wanna Keep Playing"
-                      className="col-span-3 shadow-none text-gray-400 font-thin font-worksans text-xl tracking-wider h-14 bg-[#F1F5F9] border border-[#CBD5E0]"
+                      className="col-span-3 shadow-none text-gray-400 font-thin font-worksans text-sm tracking-wider h-14 bg-[#F1F5F9] border border-[#CBD5E0]"
                     />
                     <ErrorMessage
                       name="title"
@@ -100,7 +100,7 @@ export function PopUpSheet({ children }: { children: React.ReactNode }) {
                 {/* subtitle */}
                 <div className="items-center gap-4">
                   <div className="flex flex-col space-y-2">
-                    <Label htmlFor="subtitle" className="text-right text-lg">
+                    <Label htmlFor="subtitle" className="text-right text-base">
                       Pop-Up Subtitle
                     </Label>
                     <Field
@@ -108,7 +108,7 @@ export function PopUpSheet({ children }: { children: React.ReactNode }) {
                       id="subtitle"
                       name="subtitle"
                       placeholder="Sign up now"
-                      className="col-span-3 shadow-none text-gray-400 font-thin font-worksans text-xl tracking-wider h-14 bg-[#F1F5F9] border border-[#CBD5E0]"
+                      className="col-span-3 shadow-none text-gray-400 font-thin font-worksans text-sm tracking-wider h-14 bg-[#F1F5F9] border border-[#CBD5E0]"
                     />
                     <ErrorMessage
                       name="subtitle"
@@ -165,7 +165,7 @@ export function PopUpSheet({ children }: { children: React.ReactNode }) {
                 </SheetClose>
                 <Button
                   type="submit"
-                  className="w-40 h-12 bg-[#D946EF] hover:bg-[#c026d3] dark:text-white  dark:hover:bg-[#c026d3]"
+                  className="w-fit h-12 bg-[#D946EF] hover:bg-[#c026d3] dark:text-white  dark:hover:bg-[#c026d3]"
                   disabled={isSubmitting || createConfig.isPending}
                 >
                   {isSubmitting || createConfig.isPending

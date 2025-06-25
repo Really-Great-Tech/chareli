@@ -25,11 +25,11 @@ export default function GameActivity() {
       <div className="col-span-1 md:col-span-2 lg:col-span-4 mt-4">
         <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full pl-4">
           <div className="justify-between items-center flex p-3">
-            <p className="text-3xl">Game Activity</p>
+            <p className="text-lg md:text-2xl">Game Activity</p>
           </div>
           <Table>
             <TableHeader>
-              <TableRow className="text-lg font-bold">
+              <TableRow className="text-base font-normal">
                 <TableHead>Game</TableHead>
                 <TableHead>Total Plays</TableHead>
                 <TableHead>Average Play Time</TableHead>
@@ -58,7 +58,7 @@ export default function GameActivity() {
       <div className="col-span-1 md:col-span-2 lg:col-span-4 mt-4">
         <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full pl-4">
           <div className="justify-between items-center flex p-3">
-            <p className="text-3xl">Game Activity</p>
+            <p className="text-lg md:text-2xl">Game Activity</p>
           </div>
           <Table>
             <TableHeader>
@@ -98,11 +98,11 @@ export default function GameActivity() {
     <div className="col-span-1 md:col-span-2 lg:col-span-4 mt-4">
       <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full pl-4">
         <div className="justify-between items-center flex p-3">
-          <p className="text-3xl">Game Activity</p>
+          <p className="text-lg md:text-2xl">Game Activity</p>
         </div>
         <Table>
           <TableHeader>
-            <TableRow className="text-lg font-bold">
+            <TableRow className="text-base">
               <TableHead>Game</TableHead>
               <TableHead>Total Plays</TableHead>
               <TableHead>Average Play Time</TableHead>
@@ -126,26 +126,29 @@ export default function GameActivity() {
               </TableRow>
             ) : (
               gamesToShow.map((game: any) => (
-                <TableRow
-                  key={game.id}
-                  className="font-worksans text-xl tracking-wider"
-                >
+                <TableRow key={game.id} className="text-sm tracking-wider">
                   <TableCell>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 ">
                       <GameThumbnail src={game.thumbnailUrl} alt={game.title} />
-                      <span className="font-bold">{game.title}</span>
+                      <span className="font-dmmono">{game.title}</span>
                     </div>
                   </TableCell>
-                  <TableCell>{game.metrics.totalPlays}</TableCell>
-                  <TableCell>{game.metrics.averagePlayTime} min</TableCell>
+                  <TableCell>
+                    <p className="font-dmmono">{game.metrics.totalPlays}</p>
+                  </TableCell>
+                  <TableCell>
+                    <p className="font-dmmono">
+                      {game.metrics.averagePlayTime} min
+                    </p>
+                  </TableCell>
                   <TableCell>
                     {game.status === "active" ? (
-                      <span className="inline-flex items-center gap-2 p-1 rounded bg-[#419E6A] text-white font-worksans text-xl tracking-wider">
+                      <span className="inline-flex items-center gap-2 p-1 rounded bg-[#419E6A] text-white font-dmmono  tracking-wider">
                         <span className="w-2 h-2 bg-white rounded-full inline-block"></span>
                         Active
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-2 p-1 rounded bg-[#CBD5E0] text-[#22223B] font-worksans text-xl tracking-wider">
+                      <span className="inline-flex items-center gap-2 p-1 rounded bg-[#CBD5E0] text-[#22223B] font-dmmono  tracking-wider">
                         <span className="w-2 h-2 bg-red-500 rounded-full inline-block"></span>
                         Inactive
                       </span>

@@ -63,11 +63,11 @@ export default function ViewGame() {
             className="w-28 h-28 rounded-full object-cover mb-4"
           />
           <div className="flex gap-2 items-center">
-            <h2 className="text-xl font-bold font-dmmono mb-2 text-[#121C2D] tracking-wider dark:text-white">
+            <h2 className="text-base font-normal font-dmmono mb-2 text-[#121C2D] tracking-wider dark:text-white">
               {(game as any).game?.title || "-"}
             </h2>
             <span
-              className={`inline-flex items-center gap-2 px-3 py-1 rounded font-worksans text-xl tracking-wider mb-2 ${
+              className={`inline-flex items-center gap-2 px-3 py-1 rounded font-dmmono text-base tracking-wider mb-2 ${
                 (game as any).game?.status === "active"
                   ? "bg-[#D946EF]/20 dark:bg-[#E879F9] text-[#121C2D]"
                   : "bg-[#CBD5E0] text-[#121C2D]"
@@ -111,39 +111,39 @@ export default function ViewGame() {
         {/* Right: Details */}
         <div className="flex-1 flex flex-col gap-6">
           <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl p-6">
-            <h3 className="text-xl font-bold mb-2 text-[#475568] tracking-wider dark:text-white">
+            <h3 className="text-base font-normal mb-2 text-[#475568] tracking-wider dark:text-white">
               Overview
             </h3>
-            <p className="text-[#475568]  whitespace-pre-line dark:text-white  font-worksans text-lg tracking-wider">
+            <p className="text-[#475568]  whitespace-pre-line dark:text-white  font-dmmono text-sm tracking-wider">
               {(game as any).game?.description || "-"}
             </p>
           </div>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl p-4 flex-1">
-              <h4 className="font-bold mb-1 text-[#475568] tracking-wider text-lg dark:text-white">
+              <h3 className="font-normal mb-1 text-[#475568] tracking-wider text-base dark:text-white">
                 Game Category
-              </h4>
-              <p className=" text-[#475568] dark:text-white  font-worksans text-lg tracking-wider">
+              </h3>
+              <p className=" text-[#475568] dark:text-white  font-dmmono text-sm tracking-wider">
                 {(game as any).game?.category?.name || "-"}
               </p>
             </div>
             <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl p-4 flex-1">
-              <h4 className="font-bold mb-1 text-[#475568] dark:text-white">
+              <h3 className="font-normal mb-1 text-[#475568] dark:text-white">
                 Position
-              </h4>
-              <p className="text-[#475568] dark:text-white font-worksans text-lg tracking-wider">
+              </h3>
+              <p className="text-[#475568] dark:text-white font-dmmono text-sm tracking-wider">
                 {(game as any).game?.position
                   ? `#${(game as any).game.position}`
                   : "Not assigned"}
               </p>
             </div>
             <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl p-4 flex-1">
-              <h4 className="font-bold mb-1 text-[#475568] dark:text-white">
+              <h3 className="font-normal mb-1 text-[#475568] dark:text-white">
                 Game Code
-              </h4>
+              </h3>
               <a
                 href={(game as any).game?.gameFile?.url || "#"}
-                className="text-[#475568]  underline dark:text-white  font-worksans text-lg tracking-wider"
+                className="text-[#475568]  underline dark:text-white  font-dmmono text-base tracking-wider text-sm"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -162,7 +162,7 @@ export default function ViewGame() {
                 <FiClock className="w-8 h-8  text-white dark:text-[#OF1621]" />
               </div>
               <div className="flex flex-col justify-start">
-                <span className="text-[#475568] text-lg font mb-1 dark:text-white">
+                <span className="text-[#475568] text-base font mb-1 dark:text-white">
                   Minutes Played
                 </span>
                 <span className="text-sm text-[#475568] font-sans dark:text-white">
@@ -175,7 +175,7 @@ export default function ViewGame() {
                 <LuGamepad2 className="w-8 h-8 text-white dark:text-[#OF1621]" />
               </div>
               <div className="flex flex-col justify-start">
-                <span className="text-[#475568] text-lg font mb-1 dark:text-white">
+                <span className="text-[#475568] text-base font mb-1 dark:text-white">
                   Total Plays
                 </span>
                 <span className="text-sm text-[#475568] font-sans dark:text-white">
@@ -188,7 +188,7 @@ export default function ViewGame() {
                 <TbCalendarClock className="w-8 h-8 text-white dark:text-[#OF1621]" />
               </div>
               <div className="flex flex-col justify-start">
-                <span className="text-[#475568] text-lg font mb-1 dark:text-white">
+                <span className="text-[#475568] text-base font mb-1 dark:text-white">
                   Sessions
                 </span>
                 <span className="text-sm text-[#475568] font-sans dark:text-white">

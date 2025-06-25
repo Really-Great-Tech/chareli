@@ -74,7 +74,7 @@ export function TermsSheet({ open, onOpenChange }: TermsSheetProps) {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="font-dmmono dark:bg-[#0F1621] max-w-xl w-full">
         <SheetHeader>
-          <SheetTitle className="text-2xl font-bold tracking-wider mt-6">
+          <SheetTitle className="text-lg font-bold tracking-wider mt-6">
             Terms of Use
           </SheetTitle>
           <div className="border border-b-gray-200 mb-2"></div>

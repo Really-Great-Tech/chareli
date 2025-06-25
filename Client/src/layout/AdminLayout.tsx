@@ -140,7 +140,7 @@ const AdminLayout: React.FC = () => {
                           {item.icon}
                         </span>
                         {!isSidebarCollapsed && (
-                          <span className="text-xl">{item.title}</span>
+                          <span className="text-lg">{item.title}</span>
                         )}
                       </NavLink>
                     </li>

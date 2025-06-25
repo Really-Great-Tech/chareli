@@ -44,7 +44,7 @@ const Settings: React.FC = () => {
 
   return (
     <div className="px-8">
-      <h1 className="text-3xl font-bold text-[#D946EF] mb-8">Settings</h1>
+      <h1 className="text-3xl font-normal text-[#D946EF] mb-8 font-worksans">Settings</h1>
       <div className="flex flex-col gap-6">
         {settings.map((item, _idx) => (
           <div
@@ -57,10 +57,10 @@ const Settings: React.FC = () => {
                 {item.icon}
               </div>
               <div>
-                <div className="text-md text-gray-900 dark:text-white">
+                <div className="text-md text-gray-900 dark:text-white font-dmmono">
                   {item.title}
                 </div>
-                <div className="text-gray-500 font-worksans text-lg tracking-wider dark:text-white">
+                <div className="text-gray-500 font-worksans text-lg tracking-wider dark:text-white font-dmmono">
                   {item.description}
                 </div>
               </div>

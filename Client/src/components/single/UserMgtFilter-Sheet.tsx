@@ -71,7 +71,7 @@ export function UserManagementFilterSheet({
       <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent className="font-dmmono dark:bg-[#0F1621] overflow-y-auto overflow-x-hidden">
         <SheetHeader>
-          <SheetTitle className="text-xl font-normal tracking-wider mt-6">
+          <SheetTitle className="text-lg font-normal tracking-wider mt-6">
             Filter
           </SheetTitle>
           <div className="border border-b-gray-200"></div>
@@ -79,7 +79,7 @@ export function UserManagementFilterSheet({
         <div className="grid gap-4 px-4">
           {/* Registration Dates */}
           <div className="flex flex-col space-y-2">
-            <Label className="text-lg">Registration Dates</Label>
+            <Label className="text-base">Registration Dates</Label>
             <div className="flex gap-2">
               <Input
                 type="date"
@@ -90,7 +90,7 @@ export function UserManagementFilterSheet({
                     startDate: e.target.value,
                   })
                 }
-                className="bg-[#F1F5F9] border border-[#CBD5E0] h-14 text-gray-400 font-thin font-worksans text-xl tracking-wider dark:bg-[#121C2D]"
+                className="bg-[#F1F5F9] border border-[#CBD5E0] h-14 text-gray-400 font-thin font-worksans text-sm tracking-wider dark:bg-[#121C2D]"
               />
               <Input
                 type="date"
@@ -101,27 +101,27 @@ export function UserManagementFilterSheet({
                     endDate: e.target.value,
                   })
                 }
-                className="bg-[#F1F5F9] border border-[#CBD5E0] h-14 text-gray-400 font-thin font-worksans text-xl tracking-wider dark:bg-[#121C2D]"
+                className="bg-[#F1F5F9] border border-[#CBD5E0] h-14 text-gray-400 font-thin font-worksans text-sm tracking-wider dark:bg-[#121C2D]"
               />
             </div>
           </div>
 
           {/* Session Count */}
           <div className="flex flex-col space-y-2">
-            <Label className="text-lg">Session Count</Label>
+            <Label className="text-base">Session Count</Label>
             <Input
               type="number"
               min="0"
               value={filters.sessionCount}
               onChange={(e) => handleChange("sessionCount", e.target.value)}
               placeholder="Minimum sessions"
-              className="bg-[#F1F5F9] border border-[#CBD5E0] h-14 text-gray-400 font-thin font-worksans text-xl tracking-wider dark:bg-[#121C2D]"
+              className="bg-[#F1F5F9] border border-[#CBD5E0] h-14 text-gray-400 font-thin font-worksans text-sm tracking-wider dark:bg-[#121C2D]"
             />
           </div>
 
           {/* Time Played (in minutes) */}
           <div className="flex flex-col space-y-2">
-            <Label className="text-lg">Time Played (minutes)</Label>
+            <Label className="text-base">Time Played (minutes)</Label>
             <div className="flex gap-2">
               <Input
                 type="number"
@@ -139,7 +139,7 @@ export function UserManagementFilterSheet({
                   })
                 }
                 placeholder="Min minutes"
-                className="bg-[#F1F5F9] border border-[#CBD5E0] h-14 text-gray-400 font-thin font-worksans text-xl tracking-wider dark:bg-[#121C2D]"
+                className="bg-[#F1F5F9] border border-[#CBD5E0] h-14 text-gray-400 font-thin font-worksans text-sm tracking-wider dark:bg-[#121C2D]"
               />
               <Input
                 type="number"
@@ -157,14 +157,14 @@ export function UserManagementFilterSheet({
                   })
                 }
                 placeholder="Max minutes"
-                className="bg-[#F1F5F9] border border-[#CBD5E0] h-14 text-gray-400 font-thin font-worksans text-xl tracking-wider dark:bg-[#121C2D]"
+                className="bg-[#F1F5F9] border border-[#CBD5E0] h-14 text-gray-400 font-thin font-worksans text-sm tracking-wider dark:bg-[#121C2D]"
               />
             </div>
           </div>
 
           {/* Game Category */}
           <div className="flex flex-col space-y-2">
-            <Label className="text-lg">Game Category</Label>
+            <Label className="text-base">Game Category</Label>
             <SearchableSelect
               value={filters.gameCategory}
               onValueChange={(value) => handleChange("gameCategory", value)}
@@ -175,13 +175,13 @@ export function UserManagementFilterSheet({
               placeholder="All Categories"
               searchPlaceholder="Search categories..."
               emptyText="No categories found."
-              className="w-full bg-[#F1F5F9] border border-[#CBD5E0] h-14 text-gray-400 font-thin font-worksans text-xl tracking-wider dark:bg-[#121C2D] hover:bg-[#F1F5F9] dark:hover:bg-[#121C2D]"
+              className="w-full bg-[#F1F5F9] border border-[#CBD5E0] h-14 text-gray-400 font-thin font-worksans text-sm tracking-wider dark:bg-[#121C2D] hover:bg-[#F1F5F9] dark:hover:bg-[#121C2D]"
             />
           </div>
 
           {/* Game Title */}
           <div className="flex flex-col space-y-2">
-            <Label className="text-lg">Game Title</Label>
+            <Label className="text-base">Game Title</Label>
             <SearchableSelect
               value={filters.gameTitle}
               onValueChange={(value) => handleChange("gameTitle", value)}
@@ -189,13 +189,13 @@ export function UserManagementFilterSheet({
               placeholder="All Games"
               searchPlaceholder="Search games..."
               emptyText="No games found."
-              className="w-full bg-[#F1F5F9] border border-[#CBD5E0] h-14 text-gray-400 font-thin font-worksans text-xl tracking-wider dark:bg-[#121C2D] hover:bg-[#F1F5F9] dark:hover:bg-[#121C2D]"
+              className="w-full bg-[#F1F5F9] border border-[#CBD5E0] h-14 text-gray-400 font-thin font-worksans text-sm tracking-wider dark:bg-[#121C2D] hover:bg-[#F1F5F9] dark:hover:bg-[#121C2D]"
             />
           </div>
 
           {/* Country */}
           <div className="flex flex-col space-y-2">
-            <Label className="text-lg">Country</Label>
+            <Label className="text-base">Country</Label>
             <SearchableSelect
               value={filters.country}
               onValueChange={(value) => handleChange("country", value)}
@@ -206,7 +206,7 @@ export function UserManagementFilterSheet({
               placeholder="All Countries"
               searchPlaceholder="Search countries..."
               emptyText="No countries found."
-              className="w-full bg-[#F1F5F9] border border-[#CBD5E0] h-14 text-gray-400 font-thin font-worksans text-xl tracking-wider dark:bg-[#121C2D] hover:bg-[#F1F5F9] dark:hover:bg-[#121C2D]"
+              className="w-full bg-[#F1F5F9] border border-[#CBD5E0] h-14 text-gray-400 font-thin font-worksans text-sm tracking-wider dark:bg-[#121C2D] hover:bg-[#F1F5F9] dark:hover:bg-[#121C2D]"
             />
           </div>
 
@@ -221,7 +221,7 @@ export function UserManagementFilterSheet({
                 handleChange("sortByMaxTimePlayed", e.target.checked)
               }
             />
-            <Label htmlFor="sortByMaxTimePlayed" className="text-lg">
+            <Label htmlFor="sortByMaxTimePlayed" className="text-base">
               Sort by Max Time Played
             </Label>
           </div>

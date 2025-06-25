@@ -90,17 +90,17 @@ export default function TeamManagement() {
   return (
     <div className="px-4 sm:px-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <h1 className="text-[#D946EF] text-3xl font-dmmono font-bold">
+        <h1 className="text-[#D946EF] text-2xl sm:text-3xl font-worksans ">
           Team Management
         </h1>
         <InviteSheet>
-          <button className="bg-[#D946EF] text-white px-3 sm:px-4 py-2 sm:py-3 rounded-lg hover:bg-[#c026d3] transition-all text-sm sm:text-base w-full sm:w-auto">
+          <button className="bg-[#D946EF] text-white px-3 sm:px-4 py-2 sm:py-3 rounded-lg hover:bg-[#c026d3] transition-all text-sm sm:text-base w-full sm:w-auto font-dmmono">
             Invite Team Member
           </button>
         </InviteSheet>
       </div>
 
-      <div className="flex gap-2 sm:gap-4 mb-6 overflow-x-auto">
+      <div className="flex gap-2 sm:gap-4 mb-6 overflow-x-auto font-dmmono">
         <button
           onClick={() => setActiveTab("members")}
           className={`px-3 sm:px-4 py-2 rounded-lg transition-all whitespace-nowrap text-sm sm:text-base ${
@@ -127,16 +127,16 @@ export default function TeamManagement() {
           <div className="min-w-[650px]">
             <table className="w-full text-left">
               <thead>
-                <tr className="text-xl font-bold text-[#121C2D] dark:text-white tracking-wide dark:font-none dark:tracking-wider">
-                  <th className="pb-4">Name</th>
-                  <th className="pb-4">Email</th>
-                  <th className="pb-4">Role</th>
-                  {isSuperAdmin && <th className="pb-4">Action</th>}
+                <tr className="text-base text-[#121C2D] dark:text-white tracking-wide dark:font-none dark:tracking-wider sm:text-lg">
+                  <th className="pb- font-normal">Name</th>
+                  <th className="pb- font-normal">Email</th>
+                  <th className="pb- font-normal">Role</th>
+                  {isSuperAdmin && <th className="pb- font-normal">Action</th>}
                 </tr>
               </thead>
               <tbody>
                 {error ? (
-                  <tr>
+                  <tr className="font-worksans">
                     <td colSpan={4} className="text-center py-6 text-red-500">
                       Failed to load team members. Please try again.
                     </td>
@@ -171,7 +171,7 @@ export default function TeamManagement() {
                     ?.map((member: User) => (
                       <tr
                         key={member.id}
-                        className="border-t border-[#d8d9da] text-md font-worksans text-lg tracking-wider"
+                        className="border-t border-[#d8d9da] text-sm font-worksans font-normal tracking-wider"
                       >
                         <td className="py-6 text-[#121C2D] dark:text-white">
                           {member.firstName || ""} {member.lastName || ""}
@@ -233,13 +233,13 @@ export default function TeamManagement() {
           <div className="min-w-[750px]">
             <table className="w-full text-left">
               <thead>
-                <tr className="text-xl font-bold text-[#121C2D] dark:text-white tracking-wide dark:font-none dark:tracking-wider">
-                  <th className="pb-4">Email</th>
-                  <th className="pb-4">Role</th>
-                  <th className="pb-4">Status</th>
-                  <th className="pb-4">Invited By</th>
-                  <th className="pb-4">Expires At</th>
-                  <th className="pb-4">Action</th>
+                <tr className="text-base sm:text-lg text-[#121C2D] dark:text-white tracking-wide dark:font-none dark:tracking-wider">
+                  <th className="pb-4 font-normal">Email</th>
+                  <th className="pb-4 font-normal">Role</th>
+                  <th className="pb-4 font-normal">Status</th>
+                  <th className="pb-4 font-normal">Invited By</th>
+                  <th className="pb-4 font-normal">Expires At</th>
+                  <th className="pb-4 font-normal">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -275,7 +275,7 @@ export default function TeamManagement() {
                     .map((invitation: any) => (
                       <tr
                         key={invitation.id}
-                        className="border-t border-[#d8d9da] text-md font-worksans text-lg tracking-wider"
+                        className="border-t border-[#d8d9da] font-worksans text-sm tracking-wider"
                       >
                         <td className="py-6 text-[#121C2D] dark:text-white">
                           {invitation.email}

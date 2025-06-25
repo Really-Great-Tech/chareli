@@ -67,12 +67,12 @@ const UserManagementView = () => {
               alt="Profile"
               className="w-20 h-20 rounded-full border-2 border-[#D946EF]"
             />
-            <div className="flex flex-col sm:flex-row gap-3 items-center mt-4 text-center sm:text-left">
-              <h2 className="mb-0 text-xl font-bold text-[#121C2D] dark:text-white tracking-wide break-all">
+            <div className="flex flex-col sm:flex-row gap-3 items-center mt-4 text-center sm:text-left flex-wrap justify-center">
+              <p className="mb-0 text-xl font-normal text-[#121C2D] dark:text-white tracking-wide text-nowrap">
                 {`${response.user.firstName ?? ""} ${
                   response.user.lastName ?? ""
                 }`}
-              </h2>
+              </p>
               <div className="flex items-center gap-2 flex-shrink-0">
                 <span
                   className={`${
@@ -86,11 +86,13 @@ const UserManagementView = () => {
                 </span>
               </div>
             </div>
-            <div className="mt-2 text-sm text-gray-500 font-sans font-semibold dark:text-white flex flex-col sm:flex-row items-center gap-2 text-center sm:text-left">
+            <div className="mt-2 text-sm text-gray-500 font-worksans dark:text-white flex flex-col sm:flex-row items-center gap-2 text-center sm:text-left">
               last login:{" "}
               <div className="flex items-center">
-                <span className="bg-indigo-100 px-2 py-0 rounded text-gray-700 dark:bg-[#94A3B7] font-worksans text-xl tracking-wider">
-                  <span className="text-yellow-500 font-bold text-lg">●</span>
+                <span className="bg-indigo-100 px-2 py-0 rounded text-gray-700 dark:bg-[#94A3B7] font-worksans text-sm font-bold tracking-wider">
+                  <span className="dark:text-yellow-300 text-yellow-500 pr-2">
+                    ●
+                  </span>
                   {response.user.lastLoggedIn
                     ? new Date(response.user.lastLoggedIn).toLocaleTimeString(
                         "en-US",
@@ -108,40 +110,40 @@ const UserManagementView = () => {
           {/* Stats Cards */}
           <div className="w-full space-y-3">
             <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl p-4 flex gap-4">
-              <div className="bg-[#F0ABFC] rounded-full px-3 py-3 items-center">
+              <div className="bg-[#F0ABFC] rounded-full px-3 py-3 items-center h-fit w-fit">
                 <FiClock className="w-8 h-8  text-white dark:text-[#OF1621]" />
               </div>
               <div className="flex flex-col justify-start">
-                <span className="text-[#475568] text-lg font mb-1 dark:text-white">
+                <span className="text-[#475568] mb-1 font-dmmono dark:text-white">
                   Minutes Played
                 </span>
-                <span className=" text-[#475568] font-worksans text-lg tracking-wider dark:text-white">
+                <span className=" text-[#475568] font-worksans font-dmmono tracking-wider dark:text-white">
                   {formatTime(response.analytics?.totalTimePlayed ?? 0)}
                 </span>
               </div>
             </div>
             <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl p-4 flex gap-4">
-              <div className="bg-[#F0ABFC] rounded-full px-3 py-3">
+              <div className="bg-[#F0ABFC] rounded-full px-3 py-3 h-fit w-fit">
                 <LuGamepad2 className="w-8 h-8 text-white dark:text-[#OF1621]" />
               </div>
               <div className="flex flex-col justify-start">
-                <span className="text-[#475568] text-lg font mb-1 dark:text-white">
+                <span className="text-[#475568] font-dmmono mb-1 dark:text-white">
                   Total Plays
                 </span>
-                <span className=" text-[#475568] font-worksans text-lg tracking-wider dark:text-white">
+                <span className=" text-[#475568] font-worksans font-dmmono tracking-wider dark:text-white">
                   {response.analytics?.totalGamesPlayed ?? 0}
                 </span>
               </div>
             </div>
             <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl p-4 flex-1 flex gap-4">
-              <div className="bg-[#F0ABFC] rounded-full px-3 py-3">
-                <TbCalendarClock className="w-8 h-8 text-white dark:text-[#OF1621]" />
+              <div className="bg-[#F0ABFC] rounded-full px-3 py-3 h-fit w-fit">
+                <TbCalendarClock className="w-8 h-8 text-white dark:text-[#OF1621] " />
               </div>
               <div className="flex flex-col justify-start">
-                <span className="text-[#475568] text-lg font mb-1 dark:text-white">
+                <span className="text-[#475568] font-dmmono font mb-1 dark:text-white">
                   Sessions
                 </span>
-                <span className=" text-[#475568] font-worksans text-lg tracking-wider dark:text-white">
+                <span className=" text-[#475568] font-worksans font-dmmono tracking-wider dark:text-white">
                   {response.analytics?.totalSessionCount ?? 0}
                 </span>
               </div>
@@ -152,24 +154,24 @@ const UserManagementView = () => {
         <div className="flex-1">
           {/* Profile Details */}
           <div className="bg-[#f6f8fc] rounded-2xl p-4 sm:p-6 mb-6 dark:bg-[#121C2D]">
-            <h3 className="text-lg font-bold mb-4 text-[#121C2D] tracking-wide dark:text-white">
+            <h3 className="text-lg font-normal mb-4 text-[#121C2D] tracking-wide dark:text-white font-worksans">
               Profile Details
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 md:gap-x-16 space-y-border-b dark:text-white">
               <div className="text-fuchsia-500  tracking-wide">Name</div>
-              <div className="text-[#334154] font-worksans text-lg tracking-wider dark:text-white">{`${response.user.firstName} ${response.user.lastName}`}</div>
+              <div className="text-[#334154] font-worksans text-sm tracking-wider dark:text-white">{`${response.user.firstName} ${response.user.lastName}`}</div>
               <div className="text-fuchsia-500  tracking-wide">Email</div>
-              <div className="text-[#334154] font-worksans text-lg tracking-wider dark:text-white">
+              <div className="text-[#334154] font-worksans text-sm tracking-wider dark:text-white">
                 {response.user.email}
               </div>
               <div className="text-fuchsia-500  tracking-wide">
                 Mobile number
               </div>
-              <div className="text-[#334154] font-worksans text-lg tracking-wider dark:text-white">
+              <div className="text-[#334154] font-worksans text-sm tracking-wider dark:text-white">
                 {response.user.phoneNumber ?? "-"}
               </div>
               <div className="text-fuchsia-500  tracking-wide">Country</div>
-              <div className="text-[#334154] font-worksans text-lg tracking-wider dark:text-white">
+              <div className="text-[#334154] font-worksans text-sm tracking-wider dark:text-white">
                 {response?.user?.country ?? "-"}
               </div>
             </div>
@@ -180,10 +182,10 @@ const UserManagementView = () => {
               <table className="w-full border-collapse min-w-[600px]">
                 <thead>
                   <tr>
-                    <th className="text-left pb-2 text-[#121C2D] text-lg tracking-wider dark:text-white">
+                    <th className="text-left pb-2 text-[#121C2D] text-lg font-normal tracking-wider dark:text-white">
                       Games
                     </th>
-                    <th className="text-left pb-2 text-[#121C2D] text-lg tracking-wider dark:text-white">
+                    <th className="text-left pb-2 text-[#121C2D] text-lg font-normal tracking-wider dark:text-white">
                       Minutes played
                     </th>
                   </tr>
@@ -205,17 +207,17 @@ const UserManagementView = () => {
                     </tr>
                   ) : (
                     paginatedGames.map((game: GameActivity, idx: number) => (
-                      <tr key={idx} className="border-t border-gray-200">
+                      <tr key={idx} className="border-t border-gray-200 text-sm">
                         <td className="flex items-center gap-3 py-2">
                           {/* Default game icon */}
                           <div className="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center">
                             <LuGamepad2 className="w-6 h-6 text-gray-400" />
                           </div>
-                          <span className="text-[#121C2D] text-lg tracking-wider dark:text-white">
+                          <span className="text-[#121C2D]  tracking-wider dark:text-white">
                             {game.gameTitle ?? "Unknown Game"}
                           </span>
                         </td>
-                        <td className="py-2 text-lg text-[#334154] font-worksans tracking-wider dark:text-white">
+                        <td className="py-2  text-[#334154] font-worksans tracking-wider dark:text-white">
                           {formatTime(game.totalPlayTime ?? 0)}
                         </td>
                       </tr>

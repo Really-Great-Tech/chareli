@@ -59,7 +59,7 @@ export function HistoryFilterSheet({
       <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent className="font-dmmono dark:bg-[#0F1621]">
         <SheetHeader>
-          <SheetTitle className="text-xl font-normal tracking-wider mt-6">
+          <SheetTitle className="text-lg font-normal tracking-wider mt-6">
             Filter History
           </SheetTitle>
           <div className="border border-b-gray-200"></div>
@@ -94,7 +94,7 @@ export function HistoryFilterSheet({
           {/* Game Title Search */}
           <div className="items-center gap-4">
             <div className="flex flex-col space-y-2">
-              <Label htmlFor="gameTitle" className="text-right text-lg">
+              <Label htmlFor="gameTitle" className="text-right text-base">
                 Game Title
               </Label>
               <Input
@@ -102,7 +102,7 @@ export function HistoryFilterSheet({
                 value={gameTitle}
                 onChange={(e) => setGameTitle(e.target.value)}
                 placeholder="Search by game title..."
-                className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-worksans text-xl tracking-wider w-full"
+                className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-worksans text-sm tracking-wider w-full"
               />
             </div>
           </div>
@@ -110,14 +110,14 @@ export function HistoryFilterSheet({
           {/* Position Filter */}
           <div className="items-center gap-4">
             <div className="flex flex-col space-y-2">
-              <Label htmlFor="positionType" className="text-right text-lg">
+              <Label htmlFor="positionType" className="text-right text-base">
                 Position Filter
               </Label>
               <Select
                 value={positionFilterType}
                 onValueChange={setPositionFilterType}
               >
-                <SelectTrigger className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-worksans text-xl tracking-wider w-full">
+                <SelectTrigger className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-worksans text-sm tracking-wider w-full">
                   <SelectValue placeholder="Select position filter type" />
                 </SelectTrigger>
                 <SelectContent className="dark:bg-[#121C2D]">
@@ -133,7 +133,7 @@ export function HistoryFilterSheet({
           {positionFilterType === "specific" && (
             <div className="items-center gap-4">
               <div className="flex flex-col space-y-2">
-                <Label htmlFor="position" className="text-right text-lg">
+                <Label htmlFor="position" className="text-right text-base">
                   Position Number
                 </Label>
                 <Input
@@ -143,7 +143,7 @@ export function HistoryFilterSheet({
                   value={position}
                   onChange={(e) => setPosition(e.target.value)}
                   placeholder="e.g., 1"
-                  className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-worksans text-xl tracking-wider w-full"
+                  className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-worksans text-sm tracking-wider w-full"
                 />
               </div>
             </div>
@@ -153,7 +153,7 @@ export function HistoryFilterSheet({
           {positionFilterType === "range" && (
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col space-y-2">
-                <Label htmlFor="positionMin" className="text-right text-lg">
+                <Label htmlFor="positionMin" className="text-right text-base">
                   Min Position
                 </Label>
                 <Input
@@ -167,7 +167,7 @@ export function HistoryFilterSheet({
                 />
               </div>
               <div className="flex flex-col space-y-2">
-                <Label htmlFor="positionMax" className="text-right text-lg">
+                <Label htmlFor="positionMax" className="text-right text-base">
                   Max Position
                 </Label>
                 <Input
@@ -186,7 +186,7 @@ export function HistoryFilterSheet({
           {/* Click Count Range */}
           <div className="items-center gap-4">
             <div className="flex flex-col space-y-2">
-              <Label className="text-right text-lg">Click Count Range</Label>
+              <Label className="text-right text-base">Click Count Range</Label>
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col space-y-1">
                   <Label
@@ -202,7 +202,7 @@ export function HistoryFilterSheet({
                     value={clickCountMin}
                     onChange={(e) => setClickCountMin(e.target.value)}
                     placeholder="e.g., 0"
-                    className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-worksans text-xl tracking-wider w-full"
+                    className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-worksans text-sm tracking-wider w-full"
                   />
                 </div>
                 <div className="flex flex-col space-y-1">
@@ -219,7 +219,7 @@ export function HistoryFilterSheet({
                     value={clickCountMax}
                     onChange={(e) => setClickCountMax(e.target.value)}
                     placeholder="e.g., 100"
-                    className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-worksans text-xl tracking-wider w-full"
+                    className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-worksans text-sm tracking-wider w-full"
                   />
                 </div>
               </div>
@@ -234,7 +234,7 @@ export function HistoryFilterSheet({
                   resetFilters();
                   onReset();
                 }}
-                className="w-20 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-accent"
+                className="w-20 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-accent dark:hover:bg-[#F8FAFC]"
               >
                 Reset
               </Button>
@@ -242,7 +242,7 @@ export function HistoryFilterSheet({
             <SheetClose asChild>
               <Button
                 type="submit"
-                className="w-20 h-12 bg-[#D946EF] dark:text-white hover:text-[#D946EF] hover:bg-[#F3E8FF]"
+                className="w-20 h-12 bg-[#D946EF] dark:text-white hover:text-[#D946EF] hover:bg-[#F3E8FF] dark:hover:text-[#D946EF]"
               >
                 Filter
               </Button>

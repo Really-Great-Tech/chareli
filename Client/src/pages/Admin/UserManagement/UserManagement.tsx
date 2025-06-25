@@ -130,7 +130,7 @@ export default function UserManagement() {
   return (
     <div className="px-3">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-        <h1 className="text-[#D946EF] text-2xl sm:text-3xl font-dmmono">
+        <h1 className="text-[#D946EF] text-2xl sm:text-3xl font-worksans">
           User Management
         </h1>
         <div className="flex flex-wrap gap-3 justify-end">
@@ -169,7 +169,7 @@ export default function UserManagement() {
       <div className="col-span-1 md:col-span-2 lg:col-span-4">
         <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
           <div className="flex justify-between p-4 text-3xl">
-            <p className="text-3xl dark:text-[#D946EF]">Recent User Activity</p>
+            <p className="text-xl dark:text-[#D946EF]">Recent User Activity</p>
             {/* <p className="text-xl cursor-pointer">View All</p> */}
           </div>
           {/* table */}
@@ -189,7 +189,7 @@ export default function UserManagement() {
               <>
                 <Table>
                   <TableHeader>
-                    <TableRow className="text-xl text-bold">
+                    <TableRow className="text-lg font-worksans">
                       <TableHead>Name</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>Country</TableHead>
@@ -208,22 +208,18 @@ export default function UserManagement() {
                         .map((user, idx) => (
                           <TableRow
                             key={idx}
-                            className="font-worksans text-md tracking-wider cursor-pointer hover:bg-[#f3e8ff] dark:hover:bg-[#23243a]"
+                            className="font-worksans text-sm tracking-wider cursor-pointer hover:bg-[#f3e8ff] dark:hover:bg-[#23243a]"
                             onClick={() =>
                               navigate(`/admin/management/${user.id}`, {
                                 state: { user },
                               })
                             }
                           >
-                            <TableCell className="text-lg">{`${
-                              user.firstName || ""
-                            } ${user.lastName || ""}`}</TableCell>
-                            <TableCell className="text-lg">
-                              {user.email || "-"}
-                            </TableCell>
-                            <TableCell className="text-lg">
-                              {user.country || "-"}
-                            </TableCell>
+                            <TableCell>{`${user.firstName || ""} ${
+                              user.lastName || ""
+                            }`}</TableCell>
+                            <TableCell>{user.email || "-"}</TableCell>
+                            <TableCell>{user.country || "-"}</TableCell>
                             <TableCell className="">
                               {user.phoneNumber || "-"}
                             </TableCell>
@@ -233,7 +229,7 @@ export default function UserManagement() {
                             <TableCell>
                               {user.analytics?.totalGamesPlayed || 0}
                             </TableCell>
-                            <TableCell className="text-lg">
+                            <TableCell>
                               {formatTime(user.analytics?.totalTimePlayed || 0)}
                             </TableCell>
                             <TableCell>

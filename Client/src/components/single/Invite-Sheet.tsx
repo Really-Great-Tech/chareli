@@ -70,7 +70,7 @@ export function InviteSheet({ children }: { children: React.ReactNode }) {
       <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent className="font-dmmono dark:bg-[#0F1621] max-w-md w-full">
         <SheetHeader>
-          <SheetTitle className="text-xl font-normal tracking-wider mt-6">
+          <SheetTitle className="text-lg font-normal tracking-wider mt-6">
             Share Admin Invite
           </SheetTitle>
           <div className="border border-b-gray-200"></div>
@@ -84,7 +84,7 @@ export function InviteSheet({ children }: { children: React.ReactNode }) {
           {({ isSubmitting, isValid, dirty }) => (
             <Form className="grid gap-6 px-4">
               <div className="flex flex-col space-y-2">
-                <Label htmlFor="email" className="text-lg">
+                <Label htmlFor="email" className="text-base">
                   User Email
                 </Label>
                 <Field
@@ -93,7 +93,7 @@ export function InviteSheet({ children }: { children: React.ReactNode }) {
                   name="email"
                   type="email"
                   placeholder="Enter email"
-                  className="col-span-3 shadow-none text-gray-400 font-thin text-xl tracking-wider h-14 bg-[#F1F5F9] border border-[#CBD5E0] dark:bg-[#121C2D] dark:text-white"
+                  className="col-span-3 shadow-none text-gray-400 font-thin text-sm tracking-wider h-14 bg-[#F1F5F9] border border-[#CBD5E0] dark:bg-[#121C2D] dark:text-white"
                 />
                 <ErrorMessage
                   name="email"
@@ -102,14 +102,14 @@ export function InviteSheet({ children }: { children: React.ReactNode }) {
                 />
               </div>
               <div className="flex flex-col space-y-2">
-                <Label htmlFor="role" className="text-lg">
+                <Label htmlFor="role" className="text-base">
                   Role
                 </Label>
                 <Field
                   as="select"
                   id="role"
                   name="role"
-                  className="col-span-3 shadow-none text-gray-400 font-thin font-worksans text-xl tracking-wider h-14 bg-[#F1F5F9] border border-[#CBD5E0] rounded-lg dark:bg-[#121C2D] dark:text-white p-2"
+                  className="col-span-3 shadow-none text-gray-400 font-thin font-worksans text-sm tracking-wider h-14 bg-[#F1F5F9] border border-[#CBD5E0] rounded-lg dark:bg-[#121C2D] dark:text-white p-2"
                 >
                   <option value="admin">Admin</option>
                 </Field>
@@ -131,7 +131,7 @@ export function InviteSheet({ children }: { children: React.ReactNode }) {
                 </SheetClose>
                 <Button
                   type="submit"
-                  className="w-22 h-12 bg-[#D946EF] dark:text-white hover:text-[#D946EF] hover:bg-[#F3E8FF]"
+                  className="w-fit h-12 bg-[#D946EF] dark:text-white hover:text-[#D946EF] hover:bg-[#F3E8FF]"
                   disabled={isSubmitting || isPending || !isValid || !dirty}
                 >
                   {isSubmitting || isPending ? "Sending..." : "Send Invite"}

@@ -42,12 +42,12 @@ export function RecentUserActivity() {
   return (
     <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
       <div className="flex justify-between p-4 text-3xl">
-        <p className="text-3xl dark:text-[#D946EF]">Recent User Activity</p>
+        <p className="text-2xl dark:text-[#D946EF]">Recent User Activity</p>
       </div>
       <div className="px-4 pb-4">
         <Table>
           <TableHeader>
-            <TableRow className="text-xl text-bold">
+            <TableRow className="text-base font-worksans">
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Registration Date</TableHead>
@@ -59,7 +59,7 @@ export function RecentUserActivity() {
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow>
+              <TableRow className="font-worksans">
                 <TableCell
                   colSpan={7}
                   className="text-center py-6 bg-[#F8FAFC] dark:bg-[#0F1221]"
@@ -68,7 +68,7 @@ export function RecentUserActivity() {
                 </TableCell>
               </TableRow>
             ) : !usersToShow.length ? (
-              <TableRow>
+              <TableRow className="font-worksans">
                 <TableCell
                   colSpan={7}
                   className="text-center py-6 bg-[#F8FAFC] dark:bg-[#0F1221]"
@@ -82,7 +82,7 @@ export function RecentUserActivity() {
               </TableRow>
             ) : (
               usersToShow.map((user, idx) => (
-                <TableRow key={idx} className="font-sans">
+                <TableRow key={idx} className="font-worksans text-sm">
                   <TableCell>{`${user.firstName || ""} ${
                     user.lastName || ""
                   }`}</TableCell>
@@ -119,7 +119,7 @@ export function RecentUserActivity() {
         </Table>
         {usersToShow.length > 0 && (
           <div className="flex justify-between items-center mt-4">
-            <span className="text-sm">
+            <span className="text-sm font-worksans">
               Showing {(currentPage - 1) * usersPerPage + 1}-
               {Math.min(currentPage * usersPerPage, allUsers.length)} from{" "}
               {allUsers.length} data

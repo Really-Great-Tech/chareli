@@ -114,7 +114,7 @@ export function EditProfileSheet({
                   id="firstName"
                   name="firstName"
                   placeholder="Enter first name"
-                  className={`bg-[#F1F5F9] mt-1 font-worksans text-xl tracking-wider dark:bg-[#121C2D] dark:text-white ${
+                  className={`bg-[#F1F5F9] mt-1 font-worksans text-sm tracking-wider dark:bg-[#121C2D] dark:text-white ${
                     errors.firstName && touched.firstName
                       ? "border-red-500"
                       : ""
@@ -135,7 +135,7 @@ export function EditProfileSheet({
                   id="lastName"
                   name="lastName"
                   placeholder="Enter last name"
-                  className={`bg-[#F1F5F9] mt-1 font-worksans text-xl tracking-wider dark:bg-[#121C2D] dark:text-white ${
+                  className={`bg-[#F1F5F9] mt-1 font-worksans text-sm tracking-wider dark:bg-[#121C2D] dark:text-white ${
                     errors.lastName && touched.lastName ? "border-red-500" : ""
                   }`}
                 />
@@ -155,7 +155,7 @@ export function EditProfileSheet({
                   name="email"
                   type="email"
                   placeholder="Enter email"
-                  className={`bg-[#F1F5F9] mt-1 font-worksans text-xl tracking-wider dark:bg-[#121C2D] dark:text-white ${
+                  className={`bg-[#F1F5F9] mt-1 font-worksans text-sm tracking-wider dark:bg-[#121C2D] dark:text-white ${
                     errors.email && touched.email ? "border-red-500" : ""
                   }`}
                 />

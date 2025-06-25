@@ -34,7 +34,7 @@ export function FilterSheet({ children, onFilter, onReset }: FilterSheetProps) {
       <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent className="font-dmmono dark:bg-[#0F1621]">
         <SheetHeader>
-          <SheetTitle className="text-xl font-normal tracking-wider mt-6">
+          <SheetTitle className="text-lg font-normal tracking-wider mt-6">
             Filter
           </SheetTitle>
           <div className="border border-b-gray-200"></div>
@@ -56,14 +56,14 @@ export function FilterSheet({ children, onFilter, onReset }: FilterSheetProps) {
           {/* category */}
           <div className="items-center gap-4">
             <div className="flex flex-col space-y-2">
-              <Label htmlFor="category" className="text-right text-lg">
+              <Label htmlFor="category" className="text-right text-base">
                 Select Category
               </Label>
               <Select
                 value={selectedCategory}
                 onValueChange={setSelectedCategory}
               >
-                <SelectTrigger className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-worksans text-xl tracking-wider w-full">
+                <SelectTrigger className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-worksans text-sm tracking-wider w-full">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent className="dark:bg-[#121C2D]">
@@ -80,11 +80,11 @@ export function FilterSheet({ children, onFilter, onReset }: FilterSheetProps) {
           {/* status */}
           <div className="items-center gap-4">
             <div className="flex flex-col space-y-2">
-              <Label htmlFor="status" className="text-right text-lg">
+              <Label htmlFor="status" className="text-right text-base">
                 Select Game Status
               </Label>
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                <SelectTrigger className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-worksans text-xl tracking-wider w-full">
+                <SelectTrigger className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-worksans text-sm tracking-wider w-full">
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent className="dark:bg-[#121C2D]">

@@ -97,7 +97,7 @@ export function EditCategory({
         className="sm:max-w-md w-[90vw] bg-white dark:bg-[#18192b] border-l border-gray-200 dark:border-gray-800"
       >
         <SheetHeader className="pb-4 mt-8 font-dmmono">
-          <SheetTitle className="text-xl font-bold border-b">
+          <SheetTitle className="text-lg font-bold border-b">
             Edit Category
           </SheetTitle>
         </SheetHeader>
@@ -118,12 +118,12 @@ export function EditCategory({
                   id="name"
                   name="name"
                   placeholder="Name"
-                  className="bg-[#F5F6FA] mt-1  font-worksans text-xl tracking-wider dark:bg-[#121C2D] dark:text-white"
+                  className="bg-[#F5F6FA] mt-1  font-worksans text-sm tracking-wider dark:bg-[#121C2D] dark:text-white"
                 />
                 <ErrorMessage
                   name="name"
                   component="div"
-                  className="text-red-500  mt-1 font-worksans text-xl tracking-wider"
+                  className="text-red-500  mt-1 font-worksans text-sm tracking-wider"
                 />
               </div>
 
@@ -136,7 +136,7 @@ export function EditCategory({
                   id="description"
                   name="description"
                   placeholder="Description"
-                  className="bg-[#F5F6FA] mt-1  rounded-md border border-input w-full min-h-[100px] p-3 resize-none font-worksans text-xl tracking-wider dark:bg-[#121C2D] dark:text-white"
+                  className="bg-[#F5F6FA] mt-1  rounded-md border border-input w-full min-h-[100px] p-3 resize-none font-worksans text-sm tracking-wider dark:bg-[#121C2D] dark:text-white"
                 />
                 <ErrorMessage
                   name="description"

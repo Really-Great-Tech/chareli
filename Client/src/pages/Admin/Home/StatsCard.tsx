@@ -156,7 +156,7 @@ export default function StatsCard() {
                 )}
                 <span>{card.change}</span>
               </div>
-              <span className="text-gray-400 text-[13px] font-worksans text-xl tracking-wider dark:text-white lg:line-clamp-2 lg:w-[100px] leading-3">
+              <span className="text-gray-400 text-[13px] font-worksans text-xl tracking-wider dark:text-white lg:line-clamp-2 lg:w-[100px] leading-4">
                 {card.description}
               </span>
             </div>

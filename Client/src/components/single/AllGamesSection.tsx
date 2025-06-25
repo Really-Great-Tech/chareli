@@ -49,7 +49,7 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
   return (
     <div className="p-4">
       <div>
-        <h1 className="text-[#D946EF] text-2xl mb-4 font-dmmono">All Games</h1>
+        <h1 className="text-[#D946EF] text-3xl mb-4 font-worksans">All Games</h1>
       </div>
       {/* filtering tabs */}
       <div className="flex gap-3 mb-8 flex-wrap">
@@ -119,7 +119,7 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
                           className="w-full h-full object-cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent group-hover:opacity-100 transition-opacity duration-300 lg:opacity-0 lg:group-hover:opacity-100 rounded-[16px]">
-                          <span className="absolute bottom-3 left-4 text-white font-bold text-xl drop-shadow-lg">
+                          <span className="absolute bottom-3 left-4 text-white font-semibold text-base drop-shadow-lg text-shadow-black/55 text-shadow-lg">
                             {game.title}
                           </span>
                         </div>

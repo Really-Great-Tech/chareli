@@ -180,7 +180,7 @@ export default function Configuration() {
           <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
         </div>
       )}
-      <h1 className="text-3xl text-[#D946EF] mb-4">User Sign Up Configuration</h1>
+      <h1 className="text-lg sm:text-2xl font-worksans text-[#D946EF] mb-4">User Sign Up Configuration</h1>
       <div className="space-y-4">
         {/* Email Authentication Section */}
         <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { FaArrowRight } from "react-icons/fa6";
-import { useGameByPosition, useUpdateGamePosition } from '../../../backend/games.service';
+import { useUpdateGamePosition } from '../../../backend/games.service';
+import { useDebouncedGameByPosition } from '../../../hooks/useDebouncedGameByPosition';
+import { toast } from 'sonner';
 
 interface ReOrderModalProps {
   onOpenChange: (open: boolean) => void;
@@ -9,6 +11,7 @@ interface ReOrderModalProps {
     title: string;
     category?: { id: string; name: string } | null;
     thumbnailFile?: { url: string } | null;
+    position?: string | number;
   } | null;
 }
 
@@ -16,12 +19,19 @@ export default function ReOrderModal({ onOpenChange, game }: ReOrderModalProps) 
   const [positionInput, setPositionInput] = useState<string>('');
   const [targetPosition, setTargetPosition] = useState<number | null>(null);
 
-  const { data: gameByPosition, isLoading: isLoadingGameByPosition } = useGameByPosition(targetPosition as number);
+  const { 
+    data: gameByPosition, 
+    isLoading: isLoadingGameByPosition,
+    isDebouncing 
+  } = useDebouncedGameByPosition(targetPosition, { 
+    delay: 300, 
+    silent: true 
+  });
   const { mutate: updateGamePosition } = useUpdateGamePosition();
 
   useEffect(() => {
-    if (positionInput) {
-      const parsedPosition = parseInt(positionInput);
+    if (positionInput.trim()) {
+      const parsedPosition = parseInt(positionInput.trim());
       if (!isNaN(parsedPosition) && parsedPosition > 0) {
         setTargetPosition(parsedPosition);
       } else {
@@ -38,13 +48,22 @@ export default function ReOrderModal({ onOpenChange, game }: ReOrderModalProps) 
 
   const handleReorder = () => {
     if (game && targetPosition) {
-      updateGamePosition({ id: game.id, position: targetPosition });
-      onOpenChange(false); // Close modal after reorder
+      updateGamePosition(
+        { id: game.id, position: targetPosition },
+        {
+          onSuccess: () => {
+            toast.success(`Game "${game.title}" successfully moved to position #${targetPosition}`);
+            onOpenChange(false); 
+          },
+          onError: (error: any) => {
+            toast.error(error?.response?.data?.message || 'Failed to update game position');
+          }
+        }
+      );
     }
   };
 
   const displayGame = gameByPosition || null;
-
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -58,8 +77,8 @@ export default function ReOrderModal({ onOpenChange, game }: ReOrderModalProps) 
         >
           <span className="text-white text-2xl font-bold">×</span>
         </button>
-        <h2 className="text-2xl font-semibold text-[#0F1621] dark:text-white mb-2">Reorder Game</h2>
-        <p className="text-gray-700 text-sm mb-4 dark:text-white">
+        <h2 className="text-[26px] font-semibold text-[#0F1621] dark:text-white mb-2">Reorder Game</h2>
+        <p className="text-gray-700 text-[18px] mb-6 dark:text-white">
           The new order number will be swapped with the existing number if already taken. This action can be reversed.
         </p>
         <div className="flex justify-between items-center mb-8">
@@ -67,7 +86,7 @@ export default function ReOrderModal({ onOpenChange, game }: ReOrderModalProps) 
           <img
             src={game.thumbnailFile?.url || ""}
             alt={game.title}
-            className="h-20 w-20 rounded-md mr-4"
+            className="h-20 w-20 rounded-md mr-4 object-cover"
           />
             <div className='mt-4'>
             <h3 className="text-lg font-medium text-gray-800 dark:text-white">{game.title}</h3>
@@ -86,12 +105,12 @@ export default function ReOrderModal({ onOpenChange, game }: ReOrderModalProps) 
         </div>
         <div className="flex justify-between items-center mb-8 w-full">
           <div className="bg-gray-200 dark:bg-[#64748A] rounded-md p-4 flex flex-col items-start flex-1 mr-4">
-            <span className="text-lg font-bold text-[#0F1621] dark:text-white mb-2">Current Position</span>
+            <span className="text-lg font-bold text-[#0F1621] dark:text-white mb-2">{`#${game?.position}`}</span>
             <div className="flex">
               <img
                 src={game.thumbnailFile?.url || ""}
                 alt={game.title}
-                className="h-20 w-20 rounded-md mr-4"
+                className="h-20 w-20 rounded-md mr-4 object-cover"
               />
               <div className='mt-4'>
                 <h3 className="text-lg font-medium text-gray-800 dark:text-white">{game.title}</h3>
@@ -105,14 +124,16 @@ export default function ReOrderModal({ onOpenChange, game }: ReOrderModalProps) 
               {targetPosition ? `#${targetPosition}` : 'New Position'}
             </span>
             <div className="flex">
-              {isLoadingGameByPosition ? (
-                <p className="text-gray-600 dark:text-white">Loading...</p>
+              {isLoadingGameByPosition || isDebouncing ? (
+                <p className="text-gray-600 dark:text-white">
+                  {isDebouncing ? 'Searching...' : 'Loading...'}
+                </p>
               ) : displayGame ? (
                 <>
                   <img
                     src={displayGame.thumbnailFile?.s3Key || ""}
                     alt={displayGame.title}
-                    className="h-20 w-20 rounded-md mr-4"
+                    className="h-20 w-20 rounded-md mr-4 object-cover"
                   />
                   <div className='mt-4'>
                     <h3 className="text-lg font-medium text-gray-800 dark:text-white">{displayGame.title}</h3>

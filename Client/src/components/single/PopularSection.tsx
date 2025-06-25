@@ -32,7 +32,7 @@ const PopularSection = ({
   return (
     <div className="p-4">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-        <h1 className="text-[#D946EF] text-2xl font-dmmono tracking-wide">
+        <h1 className="text-[#D946EF] text-2xl font-worksans tracking-wide">
           Popular
         </h1>
         <div className="relative w-full md:w-[400px]">
@@ -82,7 +82,7 @@ const PopularSection = ({
                     />
                     {/* Game Info Overlay - Only visible on hover */}
                     <div className="absolute bottom-0 left-0 right-0 rounded-b-[28px] p-4 group-hover:opacity-100 transition-opacity duration-300 ease-in-out lg:opacity-0 lg:group-hover:opacity-100">
-                      <h3 className="text-white font-bold text-lg mb-1 truncate">
+                      <h3 className="text-white font-semibold text-shadow-black/55 text-shadow-lg text-lg mb-1 truncate">
                         {game.title}
                       </h3>
                       {game.description && (

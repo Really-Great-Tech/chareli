@@ -4,6 +4,7 @@ import { User } from '../entities/User';
 import { Game, GameStatus } from '../entities/Games';
 import { Analytics } from '../entities/Analytics';
 import { SignupAnalytics } from '../entities/SignupAnalytics';
+import { GamePositionHistory } from '../entities/GamePositionHistory';
 import { ApiError } from '../middlewares/errorHandler';
 import { Between, FindOptionsWhere, In, LessThan, IsNull, Not } from 'typeorm';
 import { checkInactiveUsers } from '../jobs/userInactivityCheck';
@@ -13,6 +14,7 @@ const userRepository = AppDataSource.getRepository(User);
 const gameRepository = AppDataSource.getRepository(Game);
 const analyticsRepository = AppDataSource.getRepository(Analytics);
 const signupAnalyticsRepository = AppDataSource.getRepository(SignupAnalytics);
+const gamePositionHistoryRepository = AppDataSource.getRepository(GamePositionHistory);
 
 /**
  * @swagger
@@ -1136,6 +1138,17 @@ export const getGamesPopularityMetrics = async (
         })
         .getRawOne();
 
+      // Get position with highest click count for this game
+      const mostPlayedAtPosition = await gamePositionHistoryRepository
+        .createQueryBuilder('history')
+        .select('history.position', 'position')
+        .addSelect('history.clickCount', 'clickCount')
+        .where('history.gameId = :gameId', { gameId: game.id })
+        .orderBy('history.clickCount', 'DESC')
+        .addOrderBy('history.position', 'ASC') // Tie-breaker: prefer lower position number
+        .limit(1)
+        .getRawOne();
+
       const currentPlays = parseInt(currentPeriodPlays?.count) || 0;
       const previousPlays = parseInt(previousPeriodPlays?.count) || 0;
 
@@ -1148,12 +1161,16 @@ export const getGamesPopularityMetrics = async (
       return {
         id: game.id,
         title: game.title,
-      thumbnailUrl: game.thumbnailFile?.s3Key ? `${s3Service.getBaseUrl()}/${game.thumbnailFile.s3Key}` : null,
+        thumbnailUrl: game.thumbnailFile?.s3Key ? `${s3Service.getBaseUrl()}/${game.thumbnailFile.s3Key}` : null,
         status: game.status,
         metrics: {
           totalPlays: parseInt(overallMetrics?.totalPlays) || 0,
           averagePlayTime: Math.round((overallMetrics?.averagePlayTime || 0) / 60), // Convert to minutes
-          popularity
+          popularity,
+          mostPlayedAt: mostPlayedAtPosition ? {
+            position: parseInt(mostPlayedAtPosition.position),
+            clickCount: parseInt(mostPlayedAtPosition.clickCount)
+          } : null
         }
       };
     }));

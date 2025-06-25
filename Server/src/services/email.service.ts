@@ -12,7 +12,7 @@ import {
 } from '../templates/emails/role.template';
 
 // Provider selection flag - set to true to use Gmail, false to use SES
-const USE_GMAIL = true;
+const USE_GMAIL = process.env.EMAIL_SERVICE === 'gmail';
 
 export interface EmailServiceInterface {
   sendInvitationEmail(

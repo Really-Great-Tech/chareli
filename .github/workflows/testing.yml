@@ -11,14 +11,14 @@ permissions:
   id-token: write
 
 env:
-  AWS_REGION: eu-central-1
-  ECR_REGISTRY: 330858616968.dkr.ecr.eu-central-1.amazonaws.com
+  AWS_REGION: us-east-1
+  ECR_REGISTRY: 330858616968.dkr.ecr.us-east-1.amazonaws.com
   ECR_REPO_SERVER: chareli-server-testing
   IMAGE_TAG_SERVER_COMMIT: server-testing-${{ github.sha }}
   IMAGE_TAG_SERVER_FIXED: latest
 
-  S3_BUCKET_CLIENT: chareli-react-app-testing-17a8ee85
-  CLOUDFRONT_DISTRIBUTION_ID_CLIENT: E2WCPWTTVYOMQR
+  S3_BUCKET_CLIENT: chareli-react-app-testing-a2373fec
+  CLOUDFRONT_DISTRIBUTION_ID_CLIENT: E3HJ3WSBBU23AL
 
   TEST_DISCORD_WEBHOOK: https://discordapp.com/api/webhooks/1383471955394433126/NP0eSZWI3usTVMdbnFbxDlc6sOEcmihbT3ioBs5ehLcy-PRyNZhcL8qw8MfjyNHI7Bbx
 

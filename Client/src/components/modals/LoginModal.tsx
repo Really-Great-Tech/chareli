@@ -193,10 +193,10 @@ export function LoginModal({
           <span className="text-white text-2xl font-bold">×</span>
         </button>
         <DialogHeader className="mb-4">
-          <DialogTitle className="text-3xl font-bold text-[#E328AF] text-center font-dmmono py-4">
+          <DialogTitle className="text-2xl font-bold text-[#E328AF] text-center font-dmmono py-4">
             Login
           </DialogTitle>
-          <div className="flex font-dmmono text-xl tracking-wide">
+          <div className="flex font-dmmono text-lg tracking-wide">
             <div className="px-6 flex w-full border-b">
               <button
                 className={`flex-1 py-2 font-semibold ${
@@ -308,7 +308,7 @@ export function LoginModal({
                             ? "Enter your email"
                             : "Enter your phone number"
                         }
-                        className={`mt-1 bg-[#E2E8F0] border-0 pl-10 font-dmmono text-xl tracking-wider font-normal h-[48px] ${
+                        className={`mt-1 bg-[#E2E8F0] border-0 pl-10 font-dmmono text-lg tracking-wider font-normal h-[48px] ${
                           activeTab === "email" ? "pl-10" : ""
                         }`}
                       />
@@ -348,7 +348,7 @@ export function LoginModal({
                       name="password"
                       type={showPassword ? "text" : "password"}
                       placeholder="password"
-                      className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-dmmono text-xl tracking-wider font-normal h-[48px]"
+                      className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-dmmono text-lg tracking-wider font-normal h-[48px]"
                     />
                   </div>
                   <ErrorMessage
@@ -364,7 +364,7 @@ export function LoginModal({
                 )}
                 <div className="text-right">
                   <span
-                    className="text-[#C026D3] cursor-pointer font-dmmono text-lg hover:underline"
+                    className="text-[#C026D3] cursor-pointer font-dmmono text-md hover:underline"
                     onClick={() => {
                       onOpenChange(false);
                       setIsForgotPasswordModalOpen(true);
@@ -385,7 +385,7 @@ export function LoginModal({
                   <p className=" text-center text-black dark:text-white font-dmmono text-md tracking-wider">
                     Don't have an account?{" "}
                     <span
-                      className="text-[#C026D3] cursor-pointer hover:underline text-xl font-dmmono"
+                      className="text-[#C026D3] cursor-pointer hover:underline text-lg font-dmmono"
                       onClick={openSignUpModal}
                     >
                       Sign Up

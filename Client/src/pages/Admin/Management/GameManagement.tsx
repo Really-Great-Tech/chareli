@@ -123,7 +123,7 @@ export default function GameManagement() {
   return (
     <div className="p-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-        <h1 className="text-[#D946EF] text-2xl sm:text-3xl font-boogaloo">
+        <h1 className="text-[#D946EF] text-2xl sm:text-3xl font-dmmono">
           All Games
         </h1>
         <div className="flex flex-wrap gap-3 justify-end">
@@ -213,7 +213,10 @@ export default function GameManagement() {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-3 text-center cursor-pointer">
+                  <td
+                    colSpan={6}
+                    className="px-4 py-3 text-center cursor-pointer"
+                  >
                     Loading...
                   </td>
                 </tr>
@@ -265,25 +268,25 @@ export default function GameManagement() {
                       />
                       <span className="text-lg font-light">{game.title}</span>
                     </td>
-                    <td className="px-4 py-3 font-pincuk text-xl tracking-wider">
+                    <td className="px-4 py-3 font-worksans text-xl tracking-wider">
                       {game.category?.name || "-"}
                     </td>
-                    <td className="px-4 py-3 font-pincuk text-xl tracking-wider">
+                    <td className="px-4 py-3 font-worksans text-xl tracking-wider">
                       {game.analytics?.totalPlayTime != null
                         ? formatTime(game.analytics.totalPlayTime || 0)
                         : "-"}
                     </td>
-                    <td className="px-4 py-3 font-pincuk text-xl tracking-wider">
+                    <td className="px-4 py-3 font-worksans text-xl tracking-wider">
                       {`#${game.position ?? "-"}`}
                     </td>
                     <td className="px-4 py-3">
                       {game.status === "active" ? (
-                        <span className="inline-flex items-center gap-2 p-1 rounded bg-[#419E6A] text-white font-pincuk text-lg tracking-wider">
+                        <span className="inline-flex items-center gap-2 p-1 rounded bg-[#419E6A] text-white font-worksans text-lg tracking-wider">
                           <span className="w-2 h-2 bg-white rounded-full inline-block"></span>
                           Active
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-2  p-1 rounded bg-[#CBD5E0] text-[#22223B] font-pincuk text-lg tracking-wider">
+                        <span className="inline-flex items-center gap-2  p-1 rounded bg-[#CBD5E0] text-[#22223B] font-worksans text-lg tracking-wider">
                           <span className="w-2 h-2 bg-red-500 rounded-full inline-block"></span>
                           Inactive
                         </span>
@@ -411,10 +414,10 @@ export default function GameManagement() {
                         {game?.game?.title}
                       </span>
                     </td>
-                    <td className="px-4 py-3 font-pincuk text-xl tracking-wider">
+                    <td className="px-4 py-3 font-worksans text-xl tracking-wider">
                       {`#${game?.position ?? "-"}`}
                     </td>
-                    <td className="px-4 py-3 font-pincuk text-xl tracking-wider">
+                    <td className="px-4 py-3 font-worksans text-xl tracking-wider">
                       {game?.clickCount ?? "-"}
                     </td>
                   </tr>

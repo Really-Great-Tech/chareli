@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Button } from "../ui/button"
-import { Label } from "../ui/label"
-import { Input } from "../ui/input"
+import { Button } from "../ui/button";
+import { Label } from "../ui/label";
+import { Input } from "../ui/input";
 import {
   Sheet,
   SheetClose,
@@ -9,18 +9,18 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "../ui/sheet"
+} from "../ui/sheet";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../ui/select"
+} from "../ui/select";
 
 interface HistoryFilterSheetProps {
   children: React.ReactNode;
-  onFilter: (filters: { 
+  onFilter: (filters: {
     position?: number;
     positionMin?: number;
     positionMax?: number;
@@ -31,7 +31,11 @@ interface HistoryFilterSheetProps {
   onReset: () => void;
 }
 
-export function HistoryFilterSheet({ children, onFilter, onReset }: HistoryFilterSheetProps) {
+export function HistoryFilterSheet({
+  children,
+  onFilter,
+  onReset,
+}: HistoryFilterSheetProps) {
   const [position, setPosition] = useState<string>("");
   const [positionMin, setPositionMin] = useState<string>("");
   const [positionMax, setPositionMax] = useState<string>("");
@@ -52,24 +56,37 @@ export function HistoryFilterSheet({ children, onFilter, onReset }: HistoryFilte
 
   return (
     <Sheet>
-      <SheetTrigger asChild>
-        {children}
-      </SheetTrigger>
-      <SheetContent className="font-boogaloo dark:bg-[#0F1621]">
+      <SheetTrigger asChild>{children}</SheetTrigger>
+      <SheetContent className="font-dmmono dark:bg-[#0F1621]">
         <SheetHeader>
-          <SheetTitle className="text-xl font-normal tracking-wider mt-6">Filter History</SheetTitle>
-         <div className="border border-b-gray-200"></div>
+          <SheetTitle className="text-xl font-normal tracking-wider mt-6">
+            Filter History
+          </SheetTitle>
+          <div className="border border-b-gray-200"></div>
         </SheetHeader>
-        <form 
+        <form
           className="grid gap-4 p-4"
           onSubmit={(e) => {
             e.preventDefault();
             onFilter({
-              position: positionFilterType === "specific" && position ? parseInt(position) : undefined,
-              positionMin: positionFilterType === "range" && positionMin ? parseInt(positionMin) : undefined,
-              positionMax: positionFilterType === "range" && positionMax ? parseInt(positionMax) : undefined,
-              clickCountMin: clickCountMin ? parseInt(clickCountMin) : undefined,
-              clickCountMax: clickCountMax ? parseInt(clickCountMax) : undefined,
+              position:
+                positionFilterType === "specific" && position
+                  ? parseInt(position)
+                  : undefined,
+              positionMin:
+                positionFilterType === "range" && positionMin
+                  ? parseInt(positionMin)
+                  : undefined,
+              positionMax:
+                positionFilterType === "range" && positionMax
+                  ? parseInt(positionMax)
+                  : undefined,
+              clickCountMin: clickCountMin
+                ? parseInt(clickCountMin)
+                : undefined,
+              clickCountMax: clickCountMax
+                ? parseInt(clickCountMax)
+                : undefined,
               gameTitle: gameTitle || undefined,
             });
           }}
@@ -85,7 +102,7 @@ export function HistoryFilterSheet({ children, onFilter, onReset }: HistoryFilte
                 value={gameTitle}
                 onChange={(e) => setGameTitle(e.target.value)}
                 placeholder="Search by game title..."
-                className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-pincuk text-xl tracking-wider w-full"
+                className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-worksans text-xl tracking-wider w-full"
               />
             </div>
           </div>
@@ -96,8 +113,11 @@ export function HistoryFilterSheet({ children, onFilter, onReset }: HistoryFilte
               <Label htmlFor="positionType" className="text-right text-lg">
                 Position Filter
               </Label>
-              <Select value={positionFilterType} onValueChange={setPositionFilterType}>
-                <SelectTrigger className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-pincuk text-xl tracking-wider w-full">
+              <Select
+                value={positionFilterType}
+                onValueChange={setPositionFilterType}
+              >
+                <SelectTrigger className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-worksans text-xl tracking-wider w-full">
                   <SelectValue placeholder="Select position filter type" />
                 </SelectTrigger>
                 <SelectContent className="dark:bg-[#121C2D]">
@@ -123,7 +143,7 @@ export function HistoryFilterSheet({ children, onFilter, onReset }: HistoryFilte
                   value={position}
                   onChange={(e) => setPosition(e.target.value)}
                   placeholder="e.g., 1"
-                  className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-pincuk text-xl tracking-wider w-full"
+                  className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-worksans text-xl tracking-wider w-full"
                 />
               </div>
             </div>
@@ -143,7 +163,7 @@ export function HistoryFilterSheet({ children, onFilter, onReset }: HistoryFilte
                   value={positionMin}
                   onChange={(e) => setPositionMin(e.target.value)}
                   placeholder="e.g., 1"
-                  className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-pincuk text-xl tracking-wider w-full"
+                  className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-worksans text-xl tracking-wider w-full"
                 />
               </div>
               <div className="flex flex-col space-y-2">
@@ -157,7 +177,7 @@ export function HistoryFilterSheet({ children, onFilter, onReset }: HistoryFilte
                   value={positionMax}
                   onChange={(e) => setPositionMax(e.target.value)}
                   placeholder="e.g., 10"
-                  className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-pincuk text-xl tracking-wider w-full"
+                  className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-worksans text-xl tracking-wider w-full"
                 />
               </div>
             </div>
@@ -166,12 +186,13 @@ export function HistoryFilterSheet({ children, onFilter, onReset }: HistoryFilte
           {/* Click Count Range */}
           <div className="items-center gap-4">
             <div className="flex flex-col space-y-2">
-              <Label className="text-right text-lg">
-                Click Count Range
-              </Label>
+              <Label className="text-right text-lg">Click Count Range</Label>
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col space-y-1">
-                  <Label htmlFor="clickCountMin" className="text-sm text-gray-600">
+                  <Label
+                    htmlFor="clickCountMin"
+                    className="text-sm text-gray-600"
+                  >
                     Min Clicks
                   </Label>
                   <Input
@@ -181,11 +202,14 @@ export function HistoryFilterSheet({ children, onFilter, onReset }: HistoryFilte
                     value={clickCountMin}
                     onChange={(e) => setClickCountMin(e.target.value)}
                     placeholder="e.g., 0"
-                    className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-pincuk text-xl tracking-wider w-full"
+                    className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-worksans text-xl tracking-wider w-full"
                   />
                 </div>
                 <div className="flex flex-col space-y-1">
-                  <Label htmlFor="clickCountMax" className="text-sm text-gray-600">
+                  <Label
+                    htmlFor="clickCountMax"
+                    className="text-sm text-gray-600"
+                  >
                     Max Clicks
                   </Label>
                   <Input
@@ -195,17 +219,17 @@ export function HistoryFilterSheet({ children, onFilter, onReset }: HistoryFilte
                     value={clickCountMax}
                     onChange={(e) => setClickCountMax(e.target.value)}
                     placeholder="e.g., 100"
-                    className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-pincuk text-xl tracking-wider w-full"
+                    className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-worksans text-xl tracking-wider w-full"
                   />
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="flex gap-3 justify-end px-2"> 
+          <div className="flex gap-3 justify-end px-2">
             <SheetClose asChild>
-              <Button 
-                type="button" 
+              <Button
+                type="button"
                 onClick={() => {
                   resetFilters();
                   onReset();
@@ -216,8 +240,8 @@ export function HistoryFilterSheet({ children, onFilter, onReset }: HistoryFilte
               </Button>
             </SheetClose>
             <SheetClose asChild>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-20 h-12 bg-[#D946EF] dark:text-white hover:text-[#D946EF] hover:bg-[#F3E8FF]"
               >
                 Filter
@@ -227,5 +251,5 @@ export function HistoryFilterSheet({ children, onFilter, onReset }: HistoryFilte
         </form>
       </SheetContent>
     </Sheet>
-  )
+  );
 }

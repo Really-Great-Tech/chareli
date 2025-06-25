@@ -40,7 +40,7 @@ export function PopUpSheet({ children }: { children: React.ReactNode }) {
   return (
     <Sheet>
       <SheetTrigger asChild>{children}</SheetTrigger>
-      <SheetContent className="font-boogaloo dark:bg-[#0F1621]">
+      <SheetContent className="font-dmmono dark:bg-[#0F1621]">
         <SheetHeader>
           <SheetTitle className="text-xl font-normal tracking-wider mt-6">
             Admin Configuration
@@ -88,7 +88,7 @@ export function PopUpSheet({ children }: { children: React.ReactNode }) {
                       id="title"
                       name="title"
                       placeholder="Wanna Keep Playing"
-                      className="col-span-3 shadow-none text-gray-400 font-thin font-pincuk text-xl tracking-wider h-14 bg-[#F1F5F9] border border-[#CBD5E0]"
+                      className="col-span-3 shadow-none text-gray-400 font-thin font-worksans text-xl tracking-wider h-14 bg-[#F1F5F9] border border-[#CBD5E0]"
                     />
                     <ErrorMessage
                       name="title"
@@ -108,7 +108,7 @@ export function PopUpSheet({ children }: { children: React.ReactNode }) {
                       id="subtitle"
                       name="subtitle"
                       placeholder="Sign up now"
-                      className="col-span-3 shadow-none text-gray-400 font-thin font-pincuk text-xl tracking-wider h-14 bg-[#F1F5F9] border border-[#CBD5E0]"
+                      className="col-span-3 shadow-none text-gray-400 font-thin font-worksans text-xl tracking-wider h-14 bg-[#F1F5F9] border border-[#CBD5E0]"
                     />
                     <ErrorMessage
                       name="subtitle"
@@ -129,7 +129,7 @@ export function PopUpSheet({ children }: { children: React.ReactNode }) {
                       name="delay"
                       type="number"
                       placeholder="3"
-                      className="col-span-3 shadow-none text-gray-400 font-thin font-pincuk text-xl tracking-wider h-14 bg-[#F1F5F9] border border-[#CBD5E0]"
+                      className="col-span-3 shadow-none text-gray-400 font-thin font-worksans text-xl tracking-wider h-14 bg-[#F1F5F9] border border-[#CBD5E0]"
                     />
                     <ErrorMessage
                       name="delay"

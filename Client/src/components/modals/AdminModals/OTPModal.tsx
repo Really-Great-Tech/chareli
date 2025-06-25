@@ -11,7 +11,7 @@ interface OTPModalProps {
 
 export function OTPModal({ open, onClose }: OTPModalProps) {
   const [otp, setOtp] = useState("235");
-    const [newPassOpen, setNewPassOpen] = useState(false);
+  const [newPassOpen, setNewPassOpen] = useState(false);
 
   if (!open) return null;
 
@@ -31,12 +31,15 @@ export function OTPModal({ open, onClose }: OTPModalProps) {
       </Button>
 
       <div className="bg-white rounded-2xl p-10 w-[500px] max-w-full shadow-none border border-none flex flex-col items-center relative">
-        <form className="w-full flex flex-col gap-6 justify-start" onSubmit={handleSubmit}>
+        <form
+          className="w-full flex flex-col gap-6 justify-start"
+          onSubmit={handleSubmit}
+        >
           <div>
-            <label className="block text-4xl mb-2 font-boogaloo tracking-wider">
+            <label className="block text-4xl mb-2 font-dmmono tracking-wider">
               Verify Account
             </label>
-            <p className="font-pincuk text-xl tracking-wider mb-8">
+            <p className="font-worksans text-xl tracking-wider mb-8">
               Enter the verification code we just sent via email
             </p>
             <div className="flex justify-start">
@@ -51,7 +54,7 @@ export function OTPModal({ open, onClose }: OTPModalProps) {
                       <input
                         {...props}
                         readOnly={isFilled}
-                        className="w-12 h-12 text-center bg-transparent rounded-none dark:text-white text-black font-boogaloo text-2xl font-bold mx-1 focus:outline-none focus:ring-0"
+                        className="w-12 h-12 text-center bg-transparent rounded-none dark:text-white text-black font-dmmono text-2xl font-bold mx-1 focus:outline-none focus:ring-0"
                       />
                     </div>
                   );
@@ -71,11 +74,16 @@ export function OTPModal({ open, onClose }: OTPModalProps) {
           </button>
         </form>
         <div className="flex mt-4 items-center gap-2">
-        <p className="font-pincuk text-xl tracking-wider">Didn't recieve a code?</p>
-        <p className="text-[#D946EF] hover:underline">Resend</p>
+          <p className="font-worksans text-xl tracking-wider">
+            Didn't recieve a code?
+          </p>
+          <p className="text-[#D946EF] hover:underline">Resend</p>
         </div>
       </div>
-      <CreateNewPassModal open={newPassOpen} onClose={() => setNewPassOpen(false)} />
+      <CreateNewPassModal
+        open={newPassOpen}
+        onClose={() => setNewPassOpen(false)}
+      />
     </div>
   );
 }

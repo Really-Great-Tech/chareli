@@ -1,4 +1,11 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "../ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from "../ui/dialog";
 import { Button } from "../ui/button";
 import { XIcon } from "lucide-react";
 
@@ -17,16 +24,16 @@ export function ToggleGameStatusModal({
   onConfirm,
   isToggling = false,
   gameStatus,
-  gameTitle = "this game"
+  gameTitle = "this game",
 }: ToggleGameStatusModalProps) {
   const isActive = gameStatus === "active";
   const action = isActive ? "disable" : "enable";
   const actionCapitalized = isActive ? "Disable" : "Enable";
-  
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="rounded-2xl border-0 shadow-sm p-8 max-w-lg font-boogaloo tracking-wide dark:bg-[#232B3B] bg-white"
+        className="rounded-2xl border-0 shadow-sm p-8 max-w-lg font-dmmono tracking-wide dark:bg-[#232B3B] bg-white"
         style={{ boxShadow: "0 2px 4px 2px #e879f9" }}
         hideClose
       >
@@ -35,16 +42,15 @@ export function ToggleGameStatusModal({
             Are you sure you want to {action} {gameTitle}?
           </DialogTitle>
         </DialogHeader>
-        <div className="mb-8 text-[#121C2D] dark:text-[#CBD5E0] font-pincuk text-xl tracking-wider">
-          {isActive 
+        <div className="mb-8 text-[#121C2D] dark:text-[#CBD5E0] font-worksans text-xl tracking-wider">
+          {isActive
             ? "Players will not be able to access this game until you enable it again."
-            : "Players will be able to access this game once enabled."
-          }
+            : "Players will be able to access this game once enabled."}
         </div>
         <DialogFooter className="flex justify-end gap-4">
           <DialogClose asChild>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="px-3 py-2 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-[#232B3B] dark:bg-white dark:text-[#232B3B]"
             >
               Cancel
@@ -55,7 +61,9 @@ export function ToggleGameStatusModal({
             onClick={onConfirm}
             disabled={isToggling}
           >
-            {isToggling ? `${actionCapitalized.slice(0, -1)}ing...` : actionCapitalized}
+            {isToggling
+              ? `${actionCapitalized.slice(0, -1)}ing...`
+              : actionCapitalized}
           </Button>
         </DialogFooter>
         <DialogClose asChild>

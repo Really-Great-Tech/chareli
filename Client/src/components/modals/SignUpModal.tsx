@@ -213,7 +213,7 @@ export function SignUpModal({
           <span className="text-white text-2xl font-bold">×</span>
         </button>
         <DialogHeader className="h-full overflow-auto custom-scrollbar">
-          <DialogTitle className="text-2xl font-bold text-[#E328AF] text-center font-boogaloo">
+          <DialogTitle className="text-2xl font-bold text-[#E328AF] text-center font-dmmono">
             Sign Up
           </DialogTitle>
           <DialogDescription className="text-center">
@@ -237,7 +237,7 @@ export function SignUpModal({
                             <div className="relative">
                               <Label
                                 htmlFor="email"
-                                className="font-boogaloo text-base text-black dark:text-white"
+                                className="font-dmmono text-base text-black dark:text-white"
                               >
                                 E-Mail
                               </Label>
@@ -251,13 +251,13 @@ export function SignUpModal({
                                   id="email"
                                   name="email"
                                   placeholder="Enter Email"
-                                  className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-boogaloo text-lg tracking-wider text-[11px] font-normal h-[48px]"
+                                  className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-dmmono text-lg tracking-wider text-[11px] font-normal h-[48px]"
                                 />
                               </div>
                               <ErrorMessage
                                 name="email"
                                 component="div"
-                                className="text-red-500  mt-1 font-boogaloo text-sm tracking-wider"
+                                className="text-red-500  mt-1 font-dmmono text-sm tracking-wider"
                               />
                             </div>
                           )}
@@ -266,7 +266,7 @@ export function SignUpModal({
                             <div className="relative pt-3">
                               <Label
                                 htmlFor="phoneNumber"
-                                className="font-boogaloo text-base text-black dark:text-white"
+                                className="font-dmmono text-base text-black dark:text-white"
                               >
                                 Phone Number
                               </Label>
@@ -318,7 +318,7 @@ export function SignUpModal({
                               <ErrorMessage
                                 name="phoneNumber"
                                 component="div"
-                                className="text-red-500  mt-1 font-boogaloo text-sm tracking-wider"
+                                className="text-red-500  mt-1 font-dmmono text-sm tracking-wider"
                               />
                             </div>
                           )}
@@ -330,7 +330,7 @@ export function SignUpModal({
                                 <div className="flex-1 relative">
                                   <Label
                                     htmlFor="firstName"
-                                    className="font-boogaloo text-base text-black dark:text-white"
+                                    className="font-dmmono text-base text-black dark:text-white"
                                   >
                                     First Name
                                   </Label>
@@ -344,13 +344,13 @@ export function SignUpModal({
                                       id="firstName"
                                       name="firstName"
                                       placeholder="Enter First Name"
-                                      className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-boogaloo text-lg tracking-wider text-[11px] font-normal h-[48px]"
+                                      className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-dmmono text-lg tracking-wider text-[11px] font-normal h-[48px]"
                                     />
                                   </div>
                                   <ErrorMessage
                                     name="firstName"
                                     component="div"
-                                    className="text-red-500  mt-1 font-boogaloo text-sm tracking-wider"
+                                    className="text-red-500  mt-1 font-dmmono text-sm tracking-wider"
                                   />
                                 </div>
                               )}
@@ -358,7 +358,7 @@ export function SignUpModal({
                                 <div className="flex-1 relative">
                                   <Label
                                     htmlFor="lastName"
-                                    className="font-boogaloo text-base text-black dark:text-white"
+                                    className="font-dmmono text-base text-black dark:text-white"
                                   >
                                     Last Name
                                   </Label>
@@ -372,13 +372,13 @@ export function SignUpModal({
                                       id="lastName"
                                       name="lastName"
                                       placeholder="Enter Last Name"
-                                      className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-boogaloo text-lg tracking-wider text-[11px] font-normal h-[48px]"
+                                      className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-dmmono text-lg tracking-wider text-[11px] font-normal h-[48px]"
                                     />
                                   </div>
                                   <ErrorMessage
                                     name="lastName"
                                     component="div"
-                                    className="text-red-500  mt-1 font-boogaloo text-sm tracking-wider"
+                                    className="text-red-500  mt-1 font-dmmono text-sm tracking-wider"
                                   />
                                 </div>
                               )}
@@ -392,7 +392,7 @@ export function SignUpModal({
                     <div className="relative mt-4">
                       <Label
                         htmlFor="password"
-                        className="font-boogaloo text-base text-black dark:text-white"
+                        className="font-dmmono text-base text-black dark:text-white"
                       >
                         Password
                       </Label>
@@ -417,19 +417,19 @@ export function SignUpModal({
                           name="password"
                           type={showPassword ? "text" : "password"}
                           placeholder="Enter Password"
-                          className="mt-1 bg-[#E2E8F0] border-0 pl-10 pr-10 font-boogaloo text-lg tracking-wider text-[11px] font-normal h-[48px]"
+                          className="mt-1 bg-[#E2E8F0] border-0 pl-10 pr-10 font-dmmono text-lg tracking-wider text-[11px] font-normal h-[48px]"
                         />
                       </div>
                       <ErrorMessage
                         name="password"
                         component="div"
-                        className="text-red-500 mt-1 font-boogaloo text-sm tracking-wider"
+                        className="text-red-500 mt-1 font-dmmono text-sm tracking-wider"
                       />
                     </div>
                     <div className="relative mt-4">
                       <Label
                         htmlFor="confirmPassword"
-                        className="font-boogaloo text-base text-black dark:text-white"
+                        className="font-dmmono text-base text-black dark:text-white"
                       >
                         Confirm Password
                       </Label>
@@ -456,13 +456,13 @@ export function SignUpModal({
                           name="confirmPassword"
                           type={showConfirmPassword ? "text" : "password"}
                           placeholder="Confirm Password"
-                          className="mt-1 bg-[#E2E8F0] border-0 pl-10 pr-10 font-boogaloo text-lg tracking-wider text-[11px] font-normal h-[48px]"
+                          className="mt-1 bg-[#E2E8F0] border-0 pl-10 pr-10 font-dmmono text-lg tracking-wider text-[11px] font-normal h-[48px]"
                         />
                       </div>
                       <ErrorMessage
                         name="confirmPassword"
                         component="div"
-                        className="text-red-500  mt-1 font-boogaloo text-sm tracking-wider"
+                        className="text-red-500  mt-1 font-dmmono text-sm tracking-wider"
                       />
                     </div>
                     <div className="my-5 flex flex-col gap-3">
@@ -482,7 +482,7 @@ export function SignUpModal({
                         </Field>
                         <Label
                           htmlFor="ageConfirm"
-                          className="font-boogaloo text-black dark:text-white cursor-pointer"
+                          className="font-dmmono text-black dark:text-white cursor-pointer"
                         >
                           Confirm age 18+
                         </Label>
@@ -490,7 +490,7 @@ export function SignUpModal({
                       <ErrorMessage
                         name="ageConfirm"
                         component="div"
-                        className="text-red-500  font-boogaloo text-sm tracking-wider"
+                        className="text-red-500  font-dmmono text-sm tracking-wider"
                       />
                       <div className="flex items-center space-x-2">
                         <Field name="terms">
@@ -508,7 +508,7 @@ export function SignUpModal({
                         </Field>
                         <Label
                           htmlFor="terms"
-                          className="font-boogaloo text-black dark:text-white cursor-pointer"
+                          className="font-dmmono text-black dark:text-white cursor-pointer"
                         >
                           Accept Terms of Use
                         </Label>
@@ -516,7 +516,7 @@ export function SignUpModal({
                       <ErrorMessage
                         name="terms"
                         component="div"
-                        className="text-red-500  font-boogaloo text-sm tracking-wider"
+                        className="text-red-500  font-dmmono text-sm tracking-wider"
                       />
                     </div>
                   </div>
@@ -524,7 +524,7 @@ export function SignUpModal({
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-boogaloo"
+                    className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-dmmono"
                   >
                     {isSubmitting ? "Creating Account..." : "Sign Up"}
                   </Button>
@@ -533,17 +533,17 @@ export function SignUpModal({
             </Formik>
           </DialogDescription>
           <div className="flex flex-col flex-1 bg-green-">
-            <p className=" text-center text-black dark:text-white font-boogaloo text-lg tracking-wider">
+            <p className=" text-center text-black dark:text-white font-dmmono text-lg tracking-wider">
               Already have an account?{" "}
               <button
-                className="underline text-[#C026D3] cursor-pointer font-boogaloo text-lg"
+                className="underline text-[#C026D3] cursor-pointer font-dmmono text-lg"
                 onClick={openLoginModal}
               >
                 Login
               </button>
             </p>
             {/* terms and privacy */}
-            <div className="font-pincuk flex space-2 text-lg justify-center">
+            <div className="font-worksans flex space-2 text-lg justify-center">
               <button
                 className="text-[#C026D3] text-center cursor-buttonointer tracking-wider mr-4 hover:underline"
                 onClick={handleTerms}

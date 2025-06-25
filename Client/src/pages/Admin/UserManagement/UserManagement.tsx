@@ -115,11 +115,7 @@ export default function UserManagement() {
       user.analytics?.mostPlayedGame?.gameTitle !== filters.gameTitle
     )
       return false;
-    if (
-      filters.country &&
-      user.country !== filters.country
-    )
-      return false;
+    if (filters.country && user.country !== filters.country) return false;
     return true;
   });
 
@@ -134,7 +130,7 @@ export default function UserManagement() {
   return (
     <div className="px-3">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-        <h1 className="text-[#D946EF] text-2xl sm:text-3xl font-boogaloo">
+        <h1 className="text-[#D946EF] text-2xl sm:text-3xl font-dmmono">
           User Management
         </h1>
         <div className="flex flex-wrap gap-3 justify-end">
@@ -212,7 +208,7 @@ export default function UserManagement() {
                         .map((user, idx) => (
                           <TableRow
                             key={idx}
-                            className="font-pincuk text-md tracking-wider cursor-pointer hover:bg-[#f3e8ff] dark:hover:bg-[#23243a]"
+                            className="font-worksans text-md tracking-wider cursor-pointer hover:bg-[#f3e8ff] dark:hover:bg-[#23243a]"
                             onClick={() =>
                               navigate(`/admin/management/${user.id}`, {
                                 state: { user },

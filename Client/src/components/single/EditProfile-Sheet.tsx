@@ -44,10 +44,17 @@ const validationSchema = Yup.object().shape({
     .required("Email is required"),
   phone: Yup.string()
     .nullable()
-    .matches(/^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/, "Invalid phone number format")
+    .matches(
+      /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/,
+      "Invalid phone number format"
+    ),
 });
 
-export function EditProfileSheet({ open, onOpenChange, profile }: EditProfileSheetProps) {
+export function EditProfileSheet({
+  open,
+  onOpenChange,
+  profile,
+}: EditProfileSheetProps) {
   const updateUser = useUpdateUserData();
   const { user } = useAuth();
 
@@ -55,7 +62,7 @@ export function EditProfileSheet({ open, onOpenChange, profile }: EditProfileShe
     firstName: profile.firstName,
     lastName: profile.lastName,
     email: profile.email,
-    phone: profile.phone
+    phone: profile.phone,
   };
 
   const handleSubmit = async (values: typeof initialValues) => {
@@ -70,7 +77,7 @@ export function EditProfileSheet({ open, onOpenChange, profile }: EditProfileShe
         firstName: values.firstName.trim(),
         lastName: values.lastName.trim(),
         email: values.email,
-        phoneNumber: values.phone || undefined
+        phoneNumber: values.phone || undefined,
       });
 
       toast.success("Profile updated successfully");
@@ -82,9 +89,14 @@ export function EditProfileSheet({ open, onOpenChange, profile }: EditProfileShe
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="max-w-md w-full p-6 font-boogaloo dark:bg-[#0F1621]">
+      <SheetContent
+        side="right"
+        className="max-w-md w-full p-6 font-dmmono dark:bg-[#0F1621]"
+      >
         <SheetHeader>
-          <SheetTitle className="text-lg mt-4 tracking-wider">Edit Profile</SheetTitle>
+          <SheetTitle className="text-lg mt-4 tracking-wider">
+            Edit Profile
+          </SheetTitle>
         </SheetHeader>
         <Formik
           initialValues={initialValues}
@@ -102,8 +114,10 @@ export function EditProfileSheet({ open, onOpenChange, profile }: EditProfileShe
                   id="firstName"
                   name="firstName"
                   placeholder="Enter first name"
-                  className={`bg-[#F1F5F9] mt-1 font-pincuk text-xl tracking-wider dark:bg-[#121C2D] dark:text-white ${
-                    errors.firstName && touched.firstName ? "border-red-500" : ""
+                  className={`bg-[#F1F5F9] mt-1 font-worksans text-xl tracking-wider dark:bg-[#121C2D] dark:text-white ${
+                    errors.firstName && touched.firstName
+                      ? "border-red-500"
+                      : ""
                   }`}
                 />
                 <ErrorMessage
@@ -121,7 +135,7 @@ export function EditProfileSheet({ open, onOpenChange, profile }: EditProfileShe
                   id="lastName"
                   name="lastName"
                   placeholder="Enter last name"
-                  className={`bg-[#F1F5F9] mt-1 font-pincuk text-xl tracking-wider dark:bg-[#121C2D] dark:text-white ${
+                  className={`bg-[#F1F5F9] mt-1 font-worksans text-xl tracking-wider dark:bg-[#121C2D] dark:text-white ${
                     errors.lastName && touched.lastName ? "border-red-500" : ""
                   }`}
                 />
@@ -141,7 +155,7 @@ export function EditProfileSheet({ open, onOpenChange, profile }: EditProfileShe
                   name="email"
                   type="email"
                   placeholder="Enter email"
-                  className={`bg-[#F1F5F9] mt-1 font-pincuk text-xl tracking-wider dark:bg-[#121C2D] dark:text-white ${
+                  className={`bg-[#F1F5F9] mt-1 font-worksans text-xl tracking-wider dark:bg-[#121C2D] dark:text-white ${
                     errors.email && touched.email ? "border-red-500" : ""
                   }`}
                 />
@@ -205,11 +219,14 @@ export function EditProfileSheet({ open, onOpenChange, profile }: EditProfileShe
               </div>
               <SheetFooter className="flex flex-row justify-end mt-8 gap-4">
                 <SheetClose asChild>
-                  <Button variant="outline" className="w-20 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] dark:text-white">
+                  <Button
+                    variant="outline"
+                    className="w-20 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] dark:text-white"
+                  >
                     Cancel
                   </Button>
                 </SheetClose>
-                <Button 
+                <Button
                   type="submit"
                   className="w-20 h-12 bg-[#D946EF] text-white tracking-wide"
                   disabled={updateUser.isPending}

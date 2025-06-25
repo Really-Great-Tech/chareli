@@ -203,7 +203,7 @@ export function SignUpModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <CustomDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221]">
-        {/* Custom Close Button */}
+        {/* Custom Close Button */}  
         <button
           className="absolute -top-2 -right-2 sm:-top-4 sm:-right-4 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#C026D3] flex items-center justify-center shadow-lg hover:bg-[#a21caf] transition-colors"
           onClick={() => onOpenChange(false)}
@@ -251,7 +251,7 @@ export function SignUpModal({
                                   id="email"
                                   name="email"
                                   placeholder="Enter Email"
-                                  className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-dmmono text-lg tracking-wider text-[11px] font-normal h-[48px]"
+                                  className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-dmmono tracking-wider text-lg font-normal h-[48px]"
                                 />
                               </div>
                               <ErrorMessage
@@ -533,7 +533,7 @@ export function SignUpModal({
             </Formik>
           </DialogDescription>
           <div className="flex flex-col flex-1 bg-green-">
-            <p className=" text-center text-black dark:text-white font-dmmono text-lg tracking-wider">
+            <p className=" text-center text-black dark:text-white font-dmmono text-sm tracking-wider">
               Already have an account?{" "}
               <button
                 className="underline text-[#C026D3] cursor-pointer font-dmmono text-lg"
@@ -543,7 +543,7 @@ export function SignUpModal({
               </button>
             </p>
             {/* terms and privacy */}
-            <div className="font-worksans flex space-2 text-lg justify-center">
+            <div className="font-worksans flex space-2 text-sm justify-center">
               <button
                 className="text-[#C026D3] text-center cursor-buttonointer tracking-wider mr-4 hover:underline"
                 onClick={handleTerms}

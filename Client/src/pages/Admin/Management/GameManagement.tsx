@@ -35,6 +35,7 @@ const pageSize = 10;
 
 export default function GameManagement() {
   const [page, setPage] = useState(1);
+  const [historyPage, setHistoryPage] = useState(1);
   const [filters, setFilters] = useState<{
     categoryId?: string;
     status?: GameStatus;
@@ -65,9 +66,21 @@ export default function GameManagement() {
   const queryClient = useQueryClient();
   const { data: gamesWithAnalytics, isLoading } = useGamesAnalytics();
   const deleteGame = useDeleteGame();
-  const { data: gameData } = useAllPositionHistory(historyFilters);
+  const { data: historyResponse } = useAllPositionHistory({
+    ...historyFilters
+  });
 
-  console.log("Game Data:", gameData);
+  console.log("History Response:", historyResponse);
+  
+  // Handle both paginated and non-paginated responses
+  const allHistoryData = Array.isArray(historyResponse) ? historyResponse : (historyResponse?.data || []);
+  const historyTotal = allHistoryData.length;
+  const historyTotalPages = Math.ceil(historyTotal / pageSize);
+  
+  // Apply client-side pagination to history data
+  const startIndex = (historyPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const gameData = allHistoryData.slice(startIndex, endIndex);
 
   // Apply filters
   const filteredGames = (gamesWithAnalytics ?? []).filter((game) => {
@@ -410,11 +423,29 @@ export default function GameManagement() {
             </tbody>
           </table>
           {/* Pagination for history table */}
-          {gameData?.length > 0 && (
+          {historyTotal > 0 && (
             <div className="flex justify-between items-center px-4 py-3 bg-[#F1F5F9] dark:bg-[#18192b] rounded-b-xl">
               <span className="text-sm">
-                Showing {gameData.length} history records
+                Showing {(historyPage - 1) * pageSize + 1}-
+                {Math.min(historyPage * pageSize, historyTotal)} from {historyTotal} history records
               </span>
+              {historyTotalPages > 1 && (
+                <div className="flex items-center gap-2 rounded-xl pr-1 pl-0.5 border border-[#D946EF] dark:text-white">
+                  {Array.from({ length: historyTotalPages }, (_, i) => (
+                    <button
+                      key={i + 1}
+                      className={`w-7 h-7 rounded-full transition-colors  ${
+                        historyPage === i + 1
+                          ? "bg-[#D946EF] text-white dark:bg-gray-400"
+                          : "bg-transparent text-[#D946EF] dark:text-gray-400 hover:bg-[#f3e8ff]"
+                      }`}
+                      onClick={() => setHistoryPage(i + 1)}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </Card>

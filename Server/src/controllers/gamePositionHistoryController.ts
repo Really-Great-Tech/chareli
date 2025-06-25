@@ -315,8 +315,8 @@ export const getAllPositionHistory = async (
 ): Promise<void> => {
   try {
     const { 
-      page = 1, 
-      limit = 10, 
+      page, 
+      limit, 
       position,
       positionMin,
       positionMax,
@@ -325,8 +325,10 @@ export const getAllPositionHistory = async (
       gameTitle
     } = req.query;
     
-    const pageNumber = parseInt(page as string, 10);
-    const limitNumber = parseInt(limit as string, 10);
+    // Only apply pagination if limit is explicitly provided
+    const shouldPaginate = limit !== undefined;
+    const pageNumber = shouldPaginate ? parseInt(page as string || '1', 10) : 1;
+    const limitNumber = shouldPaginate ? parseInt(limit as string, 10) : undefined;
     
     let queryBuilder = gamePositionHistoryRepository
       .createQueryBuilder('history')
@@ -362,12 +364,17 @@ export const getAllPositionHistory = async (
     // Get total count
     const total = await queryBuilder.getCount();
     
-    // Apply pagination and ordering
-    const history = await queryBuilder
-      .orderBy('history.createdAt', 'DESC')
-      .skip((pageNumber - 1) * limitNumber)
-      .take(limitNumber)
-      .getMany();
+    // Apply ordering
+    queryBuilder.orderBy('history.createdAt', 'DESC');
+    
+    // Apply pagination only if limit is provided
+    if (shouldPaginate && limitNumber) {
+      queryBuilder
+        .skip((pageNumber - 1) * limitNumber)
+        .take(limitNumber);
+    }
+    
+    const history = await queryBuilder.getMany();
 
     // Transform game file and thumbnail URLs to direct S3 URLs
     history.forEach(historyItem => {
@@ -385,15 +392,22 @@ export const getAllPositionHistory = async (
       }
     });
     
-    res.status(200).json({
+    // Build response object based on whether pagination is used
+    const response: any = {
       success: true,
       count: history.length,
       total,
-      page: pageNumber,
-      limit: limitNumber,
-      totalPages: Math.ceil(total / limitNumber),
       data: history,
-    });
+    };
+    
+    // Only include pagination info if pagination is being used
+    if (shouldPaginate && limitNumber) {
+      response.page = pageNumber;
+      response.limit = limitNumber;
+      response.totalPages = Math.ceil(total / limitNumber);
+    }
+    
+    res.status(200).json(response);
   } catch (error) {
     next(error);
   }

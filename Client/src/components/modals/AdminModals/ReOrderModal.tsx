@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { FaArrowRight } from "react-icons/fa6";
 import { useUpdateGamePosition } from '../../../backend/games.service';
 import { useDebouncedGameByPosition } from '../../../hooks/useDebouncedGameByPosition';
+import { toast } from 'sonner';
 
 interface ReOrderModalProps {
   onOpenChange: (open: boolean) => void;
@@ -47,8 +48,18 @@ export default function ReOrderModal({ onOpenChange, game }: ReOrderModalProps) 
 
   const handleReorder = () => {
     if (game && targetPosition) {
-      updateGamePosition({ id: game.id, position: targetPosition });
-      onOpenChange(false); // Close modal after reorder
+      updateGamePosition(
+        { id: game.id, position: targetPosition },
+        {
+          onSuccess: () => {
+            toast.success(`Game "${game.title}" successfully moved to position #${targetPosition}`);
+            onOpenChange(false); 
+          },
+          onError: (error: any) => {
+            toast.error(error?.response?.data?.message || 'Failed to update game position');
+          }
+        }
+      );
     }
   };
 

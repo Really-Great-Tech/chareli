@@ -36,10 +36,10 @@ export function OTPModal({ open, onClose }: OTPModalProps) {
           onSubmit={handleSubmit}
         >
           <div>
-            <label className="block text-4xl mb-2 font-dmmono tracking-wider">
+            <label className="block text-3xl mb-2 font-dmmono tracking-wider">
               Verify Account
             </label>
-            <p className="font-worksans text-xl tracking-wider mb-8">
+            <p className="font-worksans text-lg tracking-wider mb-8">
               Enter the verification code we just sent via email
             </p>
             <div className="flex justify-start">
@@ -54,7 +54,7 @@ export function OTPModal({ open, onClose }: OTPModalProps) {
                       <input
                         {...props}
                         readOnly={isFilled}
-                        className="w-12 h-12 text-center bg-transparent rounded-none dark:text-white text-black font-dmmono text-2xl font-bold mx-1 focus:outline-none focus:ring-0"
+                        className="w-12 h-12 text-center bg-transparent rounded-none dark:text-white text-black font-dmmono text-xl font-bold mx-1 focus:outline-none focus:ring-0"
                       />
                     </div>
                   );
@@ -74,7 +74,7 @@ export function OTPModal({ open, onClose }: OTPModalProps) {
           </button>
         </form>
         <div className="flex mt-4 items-center gap-2">
-          <p className="font-worksans text-xl tracking-wider">
+          <p className="font-worksans text-lg tracking-wider">
             Didn't recieve a code?
           </p>
           <p className="text-[#D946EF] hover:underline">Resend</p>

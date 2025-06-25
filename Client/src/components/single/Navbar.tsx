@@ -67,7 +67,7 @@ const Navbar: React.FC = () => {
     <header className="relative flex justify-between p-4 items-center bg-white dark:bg-[#0f1221] transition-colors duration-300">
       <div
         onClick={() => navigate('/')}
-        className="text-2xl font-extrabold text-[#D946EF] dark:text-[#E879F9] cursor-pointer"
+        className="text-3xl font-extrabold text-[#D946EF] dark:text-[#D946EF] cursor-pointer font-ponggame tracking-wider"
       >
         CHARELI
       </div>

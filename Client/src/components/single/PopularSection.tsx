@@ -32,7 +32,7 @@ const PopularSection = ({
   return (
     <div className="p-4">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-        <h1 className="text-[#D946EF] text-4xl font-dmmono tracking-wide">
+        <h1 className="text-[#D946EF] text-2xl font-dmmono tracking-wide">
           Popular
         </h1>
         <div className="relative w-full md:w-[400px]">

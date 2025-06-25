@@ -23,6 +23,11 @@
   src: url('./fonts/work sans/WorkSans-Regular.ttf'),
 }
 
+@font-face {
+  font-family: 'Pong Game';
+  src: url('./fonts/pong game/Pong-Game.ttf'),
+}
+
 @layer base {
   :root {
     --chart-1: 12 76% 61%;
@@ -51,6 +56,11 @@
 /* sub texts */
 .font-worksans {
   font-family: 'Work Sans', cursive;
+}
+
+/* logo text */
+.font-ponggame {
+  font-family: 'Pong Game', cursive;
 }
 
 body {

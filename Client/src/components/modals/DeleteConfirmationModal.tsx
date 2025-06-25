@@ -38,7 +38,7 @@ export function DeleteConfirmationModal({
         hideClose
       >
         <DialogHeader>
-          <DialogTitle className="text-2xl tracking-wider mb-2">
+          <DialogTitle className="text-xl tracking-wider mb-2">
             {title}
           </DialogTitle>
         </DialogHeader>
@@ -49,14 +49,14 @@ export function DeleteConfirmationModal({
           <DialogClose asChild>
             <Button
               variant="outline"
-              className="w-20 h-12 text-lg rounded-lg dark:bg-white dark:text-black"
+              className="w-20 h-12 text-sm rounded-lg dark:bg-white dark:text-black"
             >
               Cancel
             </Button>
           </DialogClose>
           <Button
             variant="destructive"
-            className="w-20 h-12 text-lg rounded-lg dark:bg-[#EF4444]"
+            className="w-20 h-12 text-sm rounded-lg dark:bg-[#EF4444]"
             onClick={onConfirm}
             disabled={isDeleting}
           >

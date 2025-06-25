@@ -177,7 +177,7 @@ export default function Categories() {
               <ul className="flex flex-col gap-1">
                 <li>
                   <button
-                    className={`w-full flex items-center gap-2 px-4 py-2 text-2xl rounded-lg font-bold tracking-widest transition
+                    className={`w-full flex items-center gap-2 px-4 py-2 text-xl rounded-lg font-bold tracking-widest transition
                       ${
                         !selectedCategory && !selectedSecondary
                           ? "bg-[#D946EF] text-white dark:text-white tracking-wider"
@@ -195,7 +195,7 @@ export default function Categories() {
                 {categories.map((cat) => (
                   <li key={cat.id}>
                     <button
-                      className={`w-full text-left text-2xl px-4 py-2 rounded-lg font-semibold transition
+                      className={`w-full text-left text-xl px-4 py-2 rounded-lg font-semibold transition
                         ${
                           selectedCategory === cat.id
                             ? "bg-[#D946EF] text-white shadow dark:text-white tracking-wider"
@@ -219,7 +219,7 @@ export default function Categories() {
                 {secondary.map((sec) => (
                   <li key={sec}>
                     <button
-                      className={`w-full text-left text-2xl px-4 py-2 rounded-lg font-semibold text-[#121C2D] hover:bg-[#F3E8FF] hover:text-[#D946EF] dark:text-white tracking-wider transition dark:hover:text-[#D946EF] ${
+                      className={`w-full text-left text-xl px-4 py-2 rounded-lg font-semibold text-[#121C2D] hover:bg-[#F3E8FF] hover:text-[#D946EF] dark:text-white tracking-wider transition dark:hover:text-[#D946EF] ${
                         selectedSecondary === sec
                           ? "bg-[#D946EF] text-white"
                           : ""
@@ -249,7 +249,7 @@ export default function Categories() {
         ) : (
           <div className="flex flex-col">
             {games.length === 0 ? (
-              <div className="text-center py-8 min-h-[60vh] flex flex-col items-center justify-center gap-4 text-[#C026D3] text-2xl lg:text-4xl">
+              <div className="text-center py-8 min-h-[60vh] flex flex-col items-center justify-center gap-4 text-[#C026D3] text-xl lg:text-xl">
                 <img
                   src={emptyGameImg}
                   alt="No games"

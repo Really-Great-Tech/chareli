@@ -243,7 +243,7 @@ export function ForgotPasswordModal({
               >
                 {({ isSubmitting }) => (
                   <Form className="space-y-6">
-                    <p className="text-center text-black dark:text-white font-worksans text-[18px] tracking-wider my-4">
+                    <p className="text-center text-black dark:text-white font-worksans text-[15px] tracking-wider my-4">
                       {activeTab === "email"
                         ? "Enter your email to reset your password."
                         : "Enter your phone number to reset your password."}

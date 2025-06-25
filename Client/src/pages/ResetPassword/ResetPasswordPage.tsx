@@ -118,7 +118,7 @@ export function ResetPasswordPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-200">
       <div className="bg-white dark:bg-[#0F1221] rounded-lg shadow-xl p-8 max-w-md w-full">
-        <h1 className="text-3xl font-bold mb-6 text-center text-[#E328AF] font-dmmono">
+        <h1 className="text-xl font-bold mb-6 text-center text-[#E328AF] font-dmmono">
           {isSuccess ? "Password Reset Successful" : "Reset Your Password"}
         </h1>
 

@@ -202,7 +202,7 @@ export function SignUpModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <CustomDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221] h-[80vh]">
+      <CustomDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221]">
         {/* Custom Close Button */}
         <button
           className="absolute -top-2 -right-2 sm:-top-4 sm:-right-4 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#C026D3] flex items-center justify-center shadow-lg hover:bg-[#a21caf] transition-colors"

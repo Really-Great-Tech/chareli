@@ -34,7 +34,7 @@ export default function LoginModal({ open, email }: AdminLoginModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-white">
       <div className="bg-[#F1F5F9] rounded-2xl p-10 w-[420px] max-w-full shadow-none border border-[#E2E8F0] flex flex-col items-center relative">
-        <h2 className="text-3xl font-bold text-[#D946EF] mb-6 underline underline-offset-4 text-center font-dmmono tracking-wider">
+        <h2 className="text-2xl font-bold text-[#D946EF] mb-6 underline underline-offset-4 text-center font-dmmono tracking-wider">
           Login
         </h2>
         <form className="w-full flex flex-col gap-4" onSubmit={handleSubmit}>

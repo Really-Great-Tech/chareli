@@ -129,7 +129,7 @@ export function StatsModal({ open, onClose }: StatsModalProps) {
             </div>
           ) : !stats ? null : (
             <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-xl p-4 sm:p-6">
-              <h3 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-[#C026D3]">
+              <h3 className="text-2xl sm:text-2xl font-bold mb-4 sm:mb-6 text-[#C026D3]">
                 Games Played
               </h3>
 
@@ -137,10 +137,10 @@ export function StatsModal({ open, onClose }: StatsModalProps) {
                 <div className="text-lg sm:text-xl font-bold dark:text-white text-[#0F1621] hidden sm:block">
                   Game
                 </div>
-                <div className="text-lg sm:text-xl font-bold dark:text-white text-[#0F1621] hidden sm:block">
+                <div className="text-lg sm:text-lg font-bold dark:text-white text-[#0F1621] hidden sm:block">
                   Total Time Spent
                 </div>
-                <div className="text-lg sm:text-xl font-bold dark:text-white text-[#0F1621] hidden sm:block">
+                <div className="text-lg sm:text-lg font-bold dark:text-white text-[#0F1621] hidden sm:block">
                   Last Played
                 </div>
               </div>

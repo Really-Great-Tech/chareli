@@ -126,7 +126,7 @@ export default function GameManagement() {
         <h1 className="text-[#D946EF] text-2xl sm:text-3xl font-worksans">
           All Games
         </h1>
-        <div className="flex flex-wrap gap-3 justify-end">
+        <div className="flex flex-wrap gap-3 justify-end ">
           {!reorderHistoryOpen ? (
             <FilterSheet
               onFilter={setFilters}
@@ -193,7 +193,7 @@ export default function GameManagement() {
         </div>
       </div>
       {reorderOpen && (
-        <div className="flex bg-[#F5D0FE] dark:bg-[#F5D0FE]/70 text-[#86198F] text-[18px] font-bolde justify-center items-center h-[52px] mb-[20px] px-4">
+        <div className="flex bg-[#F5D0FE] dark:bg-[#F5D0FE]/70 text-[#86198F] text-sm sm:text-[18px] font-bolde justify-center items-center h-[52px] mb-[20px]">
           <p>Reorder-mode: Click game to reorder</p>
         </div>
       )}
@@ -202,12 +202,24 @@ export default function GameManagement() {
           <table className="min-w-full bg-transparent font-worksans">
             <thead>
               <tr className="dark:bg-[#18192b] text-base sm:text-lg tracking-wide">
-                <th className="px-4 py-3 text-left font-normal">Game</th>
-                <th className="px-4 py-3 text-left font-normal">Category</th>
-                <th className="px-4 py-3 text-left font-normal">Minutes played</th>
-                <th className="px-4 py-3 text-left font-normal">Position</th>
-                <th className="px-4 py-3 text-left font-normal">Game Status</th>
-                <th className="px-4 py-3 text-left font-normal">Action</th>
+                <th className="px-4 py-3 text-left font-normal text-nowrap">
+                  Game
+                </th>
+                <th className="px-4 py-3 text-left font-normal text-nowrap">
+                  Category
+                </th>
+                <th className="px-4 py-3 text-left font-normal text-nowrap">
+                  Minutes played
+                </th>
+                <th className="px-4 py-3 text-left font-normal text-nowrap">
+                  Position
+                </th>
+                <th className="px-4 py-3 text-left font-normal text-nowrap">
+                  Game Status
+                </th>
+                <th className="px-4 py-3 text-left font-normal text-nowrap">
+                  Action
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -245,48 +257,50 @@ export default function GameManagement() {
                   <tr
                     key={game.id}
                     className={cn(
-                      "border-b dark:border-[#23243a] hover:bg-[#f3e8ff]/40 dark:hover:bg-[#23243a]/40 transition  text-sm cursor-pointer",
+                      "border-b dark:border-[#23243a] hover:bg-[#f3e8ff]/40 dark:hover:bg-[#23243a]/40 transition  text-sm cursor-pointer space-x-12",
                       idx % 2 === 0 ? "dark:bg-[#18192b]" : "dark:bg-[#23243a]"
                     )}
                     onClick={() => {
-                    if (reorderOpen) {
-                      setSelectedGame({
-                        id: game.id,
-                        title: game.title,
-                        category: game.category,
-                        thumbnailFile: game.thumbnailFile,
-                        position: game.position
-                      });
-                      setReOrderModalOpen(true);
-                    }
-                  }}
-                >
+                      if (reorderOpen) {
+                        setSelectedGame({
+                          id: game.id,
+                          title: game.title,
+                          category: game.category,
+                          thumbnailFile: game.thumbnailFile,
+                          position: game.position,
+                        });
+                        setReOrderModalOpen(true);
+                      }
+                    }}
+                  >
                     <td className="px-4 py-3 flex items-center gap-3">
                       <GameThumbnail
                         src={(game.thumbnailFile as any)?.url || ""}
                         alt={game.title}
                       />
-                      <span className="font-light">{game.title}</span>
+                      <span className="font-light text-nowrap">
+                        {game.title}
+                      </span>
                     </td>
-                    <td className="px-4 py-3  tracking-wider">
+                    <td className="px-4 py-3  tracking-wider text-nowrap">
                       {game.category?.name || "-"}
                     </td>
-                    <td className="px-4 py-3  tracking-wider">
+                    <td className="px-4 py-3  tracking-wider text-nowrap">
                       {game.analytics?.totalPlayTime != null
                         ? formatTime(game.analytics.totalPlayTime || 0)
                         : "-"}
                     </td>
-                    <td className="px-4 py-3  tracking-wider">
+                    <td className="px-4 py-3  tracking-wider text-nowrap">
                       {`#${game.position ?? "-"}`}
                     </td>
                     <td className="px-4 py-3">
                       {game.status === "active" ? (
-                        <span className="inline-flex items-center gap-2 p-1 rounded bg-[#419E6A] text-white  tracking-wider">
+                        <span className="inline-flex items-center gap-2 p-1 rounded bg-[#419E6A] text-white  tracking-wider text-nowrap">
                           <span className="w-2 h-2 bg-white rounded-full inline-block"></span>
                           Active
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-2  p-1 rounded bg-[#CBD5E0] text-[#22223B]  tracking-wider">
+                        <span className="inline-flex items-center gap-2  p-1 rounded bg-[#CBD5E0] text-[#22223B]  tracking-wider text-nowrap">
                           <span className="w-2 h-2 bg-red-500 rounded-full inline-block"></span>
                           Inactive
                         </span>
@@ -367,11 +381,13 @@ export default function GameManagement() {
           <table className="min-w-full bg-transparent">
             <thead>
               <tr className="dark:bg-[#18192b] text-base tracking-wide">
-                <th className="px-4 py-3 text-left font-normal text-base sm:text-lg">Game</th>
-                <th className="px-4 py-3 text-left font-normal text-base sm:text-lg">
+                <th className="px-4 py-3 text-left font-normal text-nowrap">
+                  Game
+                </th>
+                <th className="px-4 py-3 text-left font-normal text-nowrap">
                   Order number
                 </th>
-                <th className="px-4 py-3 text-left font-normal text-base sm:text-lg">
+                <th className="px-4 py-3 text-left font-normal text-nowrap">
                   Number of Clicks
                 </th>
               </tr>
@@ -408,7 +424,7 @@ export default function GameManagement() {
                   <tr
                     key={game.id}
                     className={cn(
-                      "border-b dark:border-[#23243a] hover:bg-[#f3e8ff]/40 dark:hover:bg-[#23243a]/40 transition",
+                      "border-b dark:border-[#23243a] hover:bg-[#f3e8ff]/40 dark:hover:bg-[#23243a]/40 transition space-x-12",
                       idx % 2 === 0 ? "dark:bg-[#18192b]" : "dark:bg-[#23243a]"
                     )}
                   >
@@ -417,14 +433,14 @@ export default function GameManagement() {
                         src={game.game?.thumbnailFile?.s3Key ?? ""}
                         alt={game.game?.title ?? ""}
                       />
-                      <span className=" font-light text-sm">
+                      <span className=" font-light text-sm text-nowrap">
                         {game?.game?.title}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm tracking-wider">
+                    <td className="px-4 py-3 text-sm tracking-wider text-nowrap">
                       {`#${game?.position ?? "-"}`}
                     </td>
-                    <td className="px-4 py-3 text-sm tracking-wider">
+                    <td className="px-4 py-3 text-sm tracking-wider text-nowrap">
                       {game?.clickCount ?? "-"}
                     </td>
                   </tr>
@@ -437,7 +453,8 @@ export default function GameManagement() {
             <div className="flex justify-between items-center px-4 py-3 bg-[#F1F5F9] dark:bg-[#18192b] rounded-b-xl">
               <span className="text-sm">
                 Showing {(historyPage - 1) * pageSize + 1}-
-                {Math.min(historyPage * pageSize, historyTotal)} from {historyTotal} history records
+                {Math.min(historyPage * pageSize, historyTotal)} from{" "}
+                {historyTotal} history records
               </span>
               {historyTotalPages > 1 && (
                 <div className="flex items-center gap-2 rounded-xl pr-1 pl-0.5 border border-[#D946EF] dark:text-white">

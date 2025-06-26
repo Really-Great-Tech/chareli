@@ -50,9 +50,18 @@ export function MostPlayedGames() {
         <Table>
           <TableHeader>
             <TableRow className="text-base font">
-              <TableHead>Game</TableHead>
-              <TableHead>Total Plays</TableHead>
-              <TableHead>Minutes played</TableHead>
+              <TableHead>
+                {" "}
+                <p className="pr-12">Game</p>
+              </TableHead>
+              <TableHead>
+                {" "}
+                <p className="pr-12">Total Plays</p>
+              </TableHead>
+              <TableHead>
+                {" "}
+                <p className="pr-12">Minutes played</p>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -82,7 +91,7 @@ export function MostPlayedGames() {
               gamesToShow.map((game, idx) => (
                 <TableRow key={idx} className="text-sm font-worksans">
                   <TableCell>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 pr-12">
                       <img
                         src={game.thumbnailFile?.url}
                         alt={game.title}
@@ -92,10 +101,12 @@ export function MostPlayedGames() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    {game.analytics?.totalSessions || 0}
+                    <p className="pr-12">{game.analytics?.totalSessions || 0}</p>
                   </TableCell>
                   <TableCell>
-                    {formatTime(game.analytics?.totalPlayTime || 0)}
+                    <p className="pr-12">
+                      {formatTime(game.analytics?.totalPlayTime || 0)}
+                    </p>
                   </TableCell>
                 </TableRow>
               ))

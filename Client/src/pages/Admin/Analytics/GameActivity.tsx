@@ -105,12 +105,26 @@ export default function GameActivity() {
         <Table>
           <TableHeader>
             <TableRow className="text-base">
-              <TableHead>Game</TableHead>
-              <TableHead>Total Plays</TableHead>
-              <TableHead>Average Play Time</TableHead>
+              <TableHead>
+                <p className="pr-8">Game</p>
+              </TableHead>
+              <TableHead>
+                {" "}
+                <p className="pr-8">Total Plays</p>
+              </TableHead>
+              <TableHead>
+                {" "}
+                <p className="pr-8">Average Play Time</p>
+              </TableHead>
               <TableHead>Most Played At</TableHead>
-              <TableHead>Game Status</TableHead>
-              <TableHead>Popularity</TableHead>
+              <TableHead>
+                {" "}
+                <p className="pr-8">Game Status</p>
+              </TableHead>
+              <TableHead>
+                {" "}
+                <p className="pr-8">Popularity</p>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -131,16 +145,18 @@ export default function GameActivity() {
               gamesToShow.map((game: any) => (
                 <TableRow key={game.id} className="text-sm tracking-wider">
                   <TableCell>
-                    <div className="flex items-center gap-3 ">
+                    <div className="flex items-center gap-3 pr-12">
                       <GameThumbnail src={game.thumbnailUrl} alt={game.title} />
                       <span className="font-dmmono">{game.title ?? '-'}</span>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <p className="font-dmmono">{game.metrics.totalPlays ?? '-'}</p>
+                    <p className="font-dmmono pr-8">
+                      {game.metrics.totalPlays ?? '-'}
+                    </p>
                   </TableCell>
                   <TableCell>
-                    <p className="font-dmmono">
+                    <p className="font-dmmono pr-8">
                       {game.metrics.averagePlayTime} min
                     </p>
                   </TableCell>

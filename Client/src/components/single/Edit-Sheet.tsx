@@ -297,7 +297,7 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
                     name="position"
                     min="1"
                     className="mt-1 font-worksans text-sm tracking-wider bg-[#F1F5F9] shadow-none dark:bg-[#121C2D]"
-                    placeholder="#234"
+                    placeholder="e.g., #234"
                   />
                   <ErrorMessage
                     name="position"

@@ -43,19 +43,19 @@ export default function ViewProfile() {
       <div className="flex flex-col md:flex-row gap-8">
         {/* LEFT: Profile Card */}
         <div className="flex flex-col items-center">
-          <div className="w-96 bg-[#f6f8fc] rounded-2xl p-6 flex flex-col items-center mb-8 dark:bg-[#334154]">
+          <div className="w-full max-w-96 bg-[#f6f8fc] rounded-2xl p-6 flex flex-col items-center mb-8 dark:bg-[#334154]">
             <img
               src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y"
               alt="Profile"
               className="w-20 h-20 rounded-full border-2 border-[#D946EF]"
             />
-            <div className="flex gap-3 items-center mt-4">
-              <h2 className="mb-0 text-lg  text-[#121C2D] dark:text-white tracking-wider">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-center mt-4 w-full">
+              <h2 className="mb-0 text-base sm:text-lg text-[#121C2D] dark:text-white tracking-wider text-center sm:text-left truncate max-w-full">
                 {user.firstName} {user.lastName}
               </h2>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-shrink-0">
                 <span className="text-green-500 font-bold text-lg">●</span>
-                <span className="text-gray-700 dark:text-white font-worksans text-lg tracking-wider">
+                <span className="text-gray-700 dark:text-white font-worksans text-sm sm:text-lg tracking-wider">
                   {user.role?.name || "User"}
                 </span>
               </div>
@@ -84,21 +84,21 @@ export default function ViewProfile() {
             <h3 className="text-lg mb-4 text-[#121C2D] tracking-wide dark:text-white">
               Profile Details
             </h3>
-            <div className="grid grid-cols-2 gap-y-6 gap-x-8 dark:text-white space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-4 sm:gap-x-8 dark:text-white">
               <div className="text-fuchsia-500 tracking-wide text-base">Name</div>
-              <div className="text-[#334154] font-worksans text-sm tracking-wider dark:text-white whitespace-pre-line">
+              <div className="text-[#334154] font-worksans text-sm tracking-wider dark:text-white break-words">
                 {user.firstName} {user.lastName}
               </div>
               <div className="text-fuchsia-500 tracking-wide text-base">
                 Email
               </div>
-              <div className="text-[#334154] font-worksans text-sm tracking-wider dark:text-white">
+              <div className="text-[#334154] font-worksans text-sm tracking-wider dark:text-white break-all overflow-hidden">
                 {user.email}
               </div>
               <div className="text-fuchsia-500 tracking-wide text-base">
                 Mobile number
               </div>
-              <div className="text-[#334154] font-worksans text-sm tracking-wider dark:text-white">
+              <div className="text-[#334154] font-worksans text-sm tracking-wider dark:text-white break-words">
                 {user.phoneNumber || "Not provided"}
               </div>
             </div>

@@ -1,7 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
 import { Role } from './Role';
 
 @Entity('users')
+@Index(['isActive', 'isVerified'])
+@Index(['roleId', 'isActive'])
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -13,12 +15,14 @@ export class User {
   lastName: string;
 
   @Column({ unique: true, nullable: true })
+  @Index()
   email: string;
 
   @Column({ select: false })
   password: string;
 
   @Column({ unique: true, nullable: true })
+  @Index()
   phoneNumber: string;
 
   @Column({ nullable: true })
@@ -32,15 +36,18 @@ export class User {
   role: Role;
 
   @Column()
+  @Index()
   roleId: string;
 
   @Column({ default: false })
   isAdmin: boolean;
 
   @Column({ default: true })
+  @Index()
   isActive: boolean;
 
   @Column({ default: false })
+  @Index()
   isVerified: boolean;
 
   @Column({ default: false })
@@ -56,6 +63,7 @@ export class User {
   lastLoggedIn: Date;
 
   @Column({ nullable: true })
+  @Index()
   lastSeen: Date;
 
   @Column({ nullable: true, select: false })

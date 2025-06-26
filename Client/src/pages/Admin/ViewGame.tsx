@@ -62,27 +62,29 @@ export default function ViewGame() {
             alt={(game as any).game?.description || "Game"}
             className="w-28 h-28 rounded-full object-cover mb-4"
           />
-          <div className="flex gap-2 items-center">
-            <h2 className="text-base font-normal font-dmmono mb-2 text-[#121C2D] tracking-wider dark:text-white">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-center sm:justify-center w-full">
+            <h2 className="text-sm sm:text-base font-normal font-dmmono text-[#121C2D] tracking-wider dark:text-white text-center truncate">
               {(game as any).game?.title || "-"}
             </h2>
-            <span
-              className={`inline-flex items-center gap-2 px-3 py-1 rounded font-dmmono text-base tracking-wider mb-2 ${
-                (game as any).game?.status === "active"
-                  ? "bg-[#D946EF]/20 dark:bg-[#E879F9] text-[#121C2D]"
-                  : "bg-[#CBD5E0] text-[#121C2D]"
-              }`}
-            >
+            <div className="flex items-center gap-2 flex-shrink-0">
               <span
-                className={`w-2 h-2 rounded inline-block ${
+                className={`inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 rounded font-dmmono text-xs sm:text-sm tracking-wider ${
                   (game as any).game?.status === "active"
-                    ? "bg-[#419E6A]"
-                    : "bg-red-500"
+                    ? "bg-[#D946EF]/20 dark:bg-[#E879F9] text-[#121C2D]"
+                    : "bg-[#CBD5E0] text-[#121C2D]"
                 }`}
-              ></span>
-              {(game as any).game?.status === "active" ? "Active" : "Inactive"}
-            </span>
-            <RiDeleteBin6Line className="text-[#121C2D] w-4 h-6 dark:text-white" />
+              >
+                <span
+                  className={`w-2 h-2 rounded inline-block ${
+                    (game as any).game?.status === "active"
+                      ? "bg-[#419E6A]"
+                      : "bg-red-500"
+                  }`}
+                ></span>
+                {(game as any).game?.status === "active" ? "Active" : "Inactive"}
+              </span>
+              <RiDeleteBin6Line className="text-[#121C2D] w-4 h-5 sm:h-6 dark:text-white" />
+            </div>
           </div>
           {/* <p className="text-center text-[#475568] mb-4 text-sm dark:text-white tracking-wider font-worksans text-xl tracking-wider">{(game as any).game?.description || "N/A"}</p> */}
           <div className="flex flex-col gap-2 w-full">
@@ -143,7 +145,7 @@ export default function ViewGame() {
               </h3>
               <a
                 href={(game as any).game?.gameFile?.url || "#"}
-                className="text-[#475568]  underline dark:text-white  font-dmmono text-base tracking-wider text-sm"
+                className="text-[#475568]  underline dark:text-white  font-dmmono tracking-wider text-sm"
                 target="_blank"
                 rel="noopener noreferrer"
               >

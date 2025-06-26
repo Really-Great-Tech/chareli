@@ -100,10 +100,10 @@ export default function TeamManagement() {
         </InviteSheet>
       </div>
 
-      <div className="flex gap-2 sm:gap-4 mb-6 overflow-x-auto font-dmmono">
+      <div className="flex gap-2 sm:gap-4 mb-6 overflow-x-auto font-dmmono pb-2">
         <button
           onClick={() => setActiveTab("members")}
-          className={`px-3 sm:px-4 py-2 rounded-lg transition-all whitespace-nowrap text-sm sm:text-base ${
+          className={`px-4 py-2 sm:py-3 rounded-lg transition-all whitespace-nowrap text-xs sm:text-sm md:text-base flex-shrink-0 ${
             activeTab === "members"
               ? "bg-[#D946EF] text-white"
               : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200"
@@ -113,7 +113,7 @@ export default function TeamManagement() {
         </button>
         <button
           onClick={() => setActiveTab("invitations")}
-          className={`px-3 sm:px-4 py-2 rounded-lg transition-all whitespace-nowrap text-sm sm:text-base ${
+          className={`px-4 py-2 sm:py-3 rounded-lg transition-all whitespace-nowrap text-xs sm:text-sm md:text-base flex-shrink-0 ${
             activeTab === "invitations"
               ? "bg-[#D946EF] text-white"
               : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200"
@@ -229,17 +229,17 @@ export default function TeamManagement() {
           </div>
         </div>
       ) : (
-        <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl shadow-none border-none w-full p-6 overflow-x-auto">
-          <div className="min-w-[750px]">
+        <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl shadow-none border-none w-full p-3 sm:p-6 overflow-x-auto">
+          <div className="min-w-[600px] sm:min-w-[750px]">
             <table className="w-full text-left">
               <thead>
-                <tr className="text-base sm:text-lg text-[#121C2D] dark:text-white tracking-wide dark:font-none dark:tracking-wider">
-                  <th className="pb-4 font-normal">Email</th>
-                  <th className="pb-4 font-normal">Role</th>
-                  <th className="pb-4 font-normal">Status</th>
-                  <th className="pb-4 font-normal">Invited By</th>
-                  <th className="pb-4 font-normal">Expires At</th>
-                  <th className="pb-4 font-normal">Action</th>
+                <tr className="text-xs sm:text-base lg:text-lg text-[#121C2D] dark:text-white tracking-wide dark:font-none dark:tracking-wider">
+                  <th className="pb-2 sm:pb-4 font-normal pr-1 sm:pr-2">Email</th>
+                  <th className="pb-2 sm:pb-4 font-normal pr-1 sm:pr-2">Role</th>
+                  <th className="pb-2 sm:pb-4 font-normal pr-1 sm:pr-2">Status</th>
+                  <th className="pb-2 sm:pb-4 font-normal pr-1 sm:pr-2">Invited By</th>
+                  <th className="pb-2 sm:pb-4 font-normal pr-1 sm:pr-2">Expires At</th>
+                  <th className="pb-2 sm:pb-4 font-normal">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -275,14 +275,14 @@ export default function TeamManagement() {
                     .map((invitation: any) => (
                       <tr
                         key={invitation.id}
-                        className="border-t border-[#d8d9da] font-worksans text-sm tracking-wider"
+                        className="border-t border-[#d8d9da] font-worksans text-xs sm:text-sm tracking-wider"
                       >
-                        <td className="py-6 text-[#121C2D] dark:text-white">
+                        <td className="py-3 sm:py-6 text-[#121C2D] dark:text-white pr-2 max-w-[120px] sm:max-w-none truncate">
                           {invitation.email}
                         </td>
-                        <td className="py-6">
+                        <td className="py-3 sm:py-6 pr-1 sm:pr-2">
                           <span
-                            className={`px-3 py-2 rounded-lg text-md ${
+                            className={`px-1 sm:px-2 py-1 rounded text-xs ${
                               invitation.role.name.toLowerCase() === "admin"
                                 ? "bg-[#D946EF] text-white"
                                 : "bg-[#334154] text-white"
@@ -291,28 +291,22 @@ export default function TeamManagement() {
                             {invitation.role.name}
                           </span>
                         </td>
-                        <td className="py-6">
-                          <span
-                            className={`px-3 py-2 rounded-lg text-md ${
-                              invitation.isAccepted
-                                ? "bg-green-500 text-white"
-                                : "bg-yellow-500 text-white"
-                            }`}
-                          >
-                            {invitation.isAccepted ? "Accepted" : "Pending"}
+                        <td className="py-3 sm:py-6 pr-1 sm:pr-2">
+                          <span className="px-1 sm:px-2 py-1 rounded text-xs bg-yellow-500 text-white">
+                            Pending
                           </span>
                         </td>
-                        <td className="py-6 text-[#121C2D] dark:text-white">
+                        <td className="py-3 sm:py-6 text-[#121C2D] dark:text-white pr-1 sm:pr-2 text-xs sm:text-sm">
                           {invitation.invitedBy.firstName}{" "}
                           {invitation.invitedBy.lastName}
                         </td>
-                        <td className="py-6 text-[#121C2D] dark:text-white">
+                        <td className="py-3 sm:py-6 text-[#121C2D] dark:text-white pr-1 sm:pr-2 text-xs sm:text-sm">
                           {format(
                             new Date(invitation.expiresAt),
-                            "MMM d, yyyy h:mm a"
+                            "MMM d, h:mm a"
                           )}
                         </td>
-                        <td className="py-6">
+                        <td className="py-3 sm:py-6">
                           <button
                             onClick={() =>
                               handleDeleteInviteClick(invitation.id)

@@ -275,7 +275,7 @@ export function LoginModal({
                               fontFamily: "boogaloo",
                               fontSize: "11px",
                             }}
-                            containerClass="dark:bg-[#191c2b]"
+                            containerClass="dark:bg-[#191c2b] relative z-50"
                             buttonStyle={{
                               backgroundColor: "#E2E8F0",
                               border: "0",
@@ -284,6 +284,7 @@ export function LoginModal({
                             dropdownStyle={{
                               backgroundColor: "#E2E8F0",
                               color: "#000",
+                              zIndex: 999,
                             }}
                             searchStyle={{
                               backgroundColor: "#E2E8F0",

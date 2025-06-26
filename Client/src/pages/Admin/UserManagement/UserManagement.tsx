@@ -81,10 +81,13 @@ export default function UserManagement() {
     )
       return false;
     if (
-      filters.registrationDates.endDate &&
-      new Date(user.createdAt) > new Date(filters.registrationDates.endDate)
-    )
-      return false;
+      filters.registrationDates.endDate
+    ) {
+      const endDate = new Date(filters.registrationDates.endDate);
+      endDate.setHours(23, 59, 59, 999);
+      if (new Date(user.createdAt) > endDate)
+        return false;
+    }
     if (
       filters.sessionCount &&
       user.analytics?.totalSessionCount < parseInt(filters.sessionCount)

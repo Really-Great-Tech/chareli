@@ -288,7 +288,7 @@ export function SignUpModal({
                                         backgroundColor: "#E2E8F0",
                                         border: "0",
                                         borderRadius: "0.375rem",
-                                        fontFamily: "boogaloo",
+                                        fontFamily: "Work Sans",
                                         fontSize: "11px",
                                       }}
                                       containerClass="dark:bg-[#191c2b]"
@@ -300,6 +300,7 @@ export function SignUpModal({
                                       dropdownStyle={{
                                         backgroundColor: "#E2E8F0",
                                         color: "#000",
+                                        zIndex: 50,
                                       }}
                                       searchStyle={{
                                         backgroundColor: "##E2E8F0",
@@ -536,7 +537,7 @@ export function SignUpModal({
             <p className=" text-center text-black dark:text-white font-dmmono text-sm tracking-wider">
               Already have an account?{" "}
               <button
-                className="underline text-[#C026D3] cursor-pointer font-dmmono text-lg"
+                className="underline text-[#C026D3] cursor-pointer font-dmmono text-sm"
                 onClick={openLoginModal}
               >
                 Login

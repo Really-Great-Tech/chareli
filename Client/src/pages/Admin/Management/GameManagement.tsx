@@ -295,37 +295,40 @@ export default function GameManagement() {
                     <td className="px-4 py-3">
                       <div className="flex gap-3 items-center">
                         <button
-                          className="text-black hover:text-black p-1 dark:text-white"
+                          className="text-black hover:text-black p-1 dark:text-white cursor-pointer"
                           title="Edit"
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setSelectedGameId(game.id);
                             setEditOpen(true);
                           }}
                         >
-                          <CiEdit />
+                          <CiEdit className="cursor-pointer" />
                         </button>
                         <button
-                          className="text-black hover:text-black p-1 dark:text-white"
+                          className="text-black hover:text-black p-1 dark:text-white cursor-pointer"
                           title="View"
-                          onClick={() =>
-                            navigate(`/admin/view-game/${game.id}`)
-                          }
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/admin/view-game/${game.id}`);
+                          }}
                         >
                           {game.status === "active" ? (
-                            <IoEyeOutline />
+                            <IoEyeOutline className="cursor-pointer" />
                           ) : (
-                            <IoEyeOffOutline />
+                            <IoEyeOffOutline className="cursor-pointer" />
                           )}
                         </button>
                         <button
-                          className="text-black hover:text-black p-1 dark:text-white"
+                          className="text-black hover:text-black p-1 dark:text-white cursor-pointer"
                           title="Delete"
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setSelectedGameId(game.id);
                             setDeleteModalOpen(true);
                           }}
                         >
-                          <RiDeleteBin6Line />
+                          <RiDeleteBin6Line className="cursor-pointer" />
                         </button>
                       </div>
                     </td>

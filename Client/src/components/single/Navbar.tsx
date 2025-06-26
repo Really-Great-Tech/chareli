@@ -14,7 +14,7 @@ import bolt from '../../assets/bolt.svg';
 import profileImg from '../../assets/profile.svg'
 
 import { SignUpModal } from '../modals/SignUpModal';
-import { LoginModal } from '../modals/LoginModal';
+import { LoginModal } from '../modals/LoginModal';  
 
 
 const Navbar: React.FC = () => {
@@ -22,7 +22,10 @@ const Navbar: React.FC = () => {
   const { mutate: trackSignup } = useTrackSignupClick();
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedMode = localStorage.getItem('darkMode');
-    return savedMode ? JSON.parse(savedMode) : false;
+    if (savedMode) {
+      return JSON.parse(savedMode);
+    }
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
   });
 
   const navigate = useNavigate();

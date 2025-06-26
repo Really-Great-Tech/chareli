@@ -57,15 +57,15 @@ export class S3Service implements S3ServiceInterface {
 
   constructor() {
     this.s3Client = new S3Client({
-      region: "eu-central-1",
+      region: config.s3.region,
       credentials: {
-        accessKeyId: "AKIAU2CFV3CEC25FE4J2",
-        secretAccessKey: "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",
+        accessKeyId: config.s3.accessKeyId,
+        secretAccessKey: config.s3.secretAccessKey,
       },
       endpoint: config.s3.endpoint,
       forcePathStyle: config.s3.forcePathStyle
     });
-    this.bucket = "chareli-games-dev-ea15b364";
+    this.bucket = config.s3.bucket;
   }
 
   

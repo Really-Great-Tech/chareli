@@ -29,10 +29,10 @@ export default function Home() {
         {/* pop up */}
         <div className="col-span-1 md:col-span-2 lg:col-span-4 my-6">
           <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
-            <div className="justify-between items-center flex p-3">
-              <p className="text-2xl dark:text-[#D946EF]">Dynamic Popup System</p>
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0 p-3">
+              <p className="text-lg sm:text-2xl dark:text-[#D946EF] text-center sm:text-left">Dynamic Popup System</p>
               <PopUpSheet>
-                <Button className="bg-[#D946EF] hover:bg-[#C026D3] text-white transition-colors duration-200">
+                <Button className="bg-[#D946EF] hover:bg-[#C026D3] text-white transition-colors duration-200 w-auto text-sm sm:text-base px-4 py-2">
                   Create New Pop-up
                 </Button>
               </PopUpSheet>
@@ -55,17 +55,17 @@ export default function Home() {
         {/* insights */}
         <div className="col-span-1 md:col-span-2 lg:col-span-4 mb-6">
           <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
-            <div className="justify-between items-center flex p-3">
-              <p className="text-2xl">Click insights</p>
+            <div className="flex p-3">
+              <p className="text-lg sm:text-2xl">Click insights</p>
             </div>
             {/* inner card */}
             <Card className="bg-[#F8FAFC] dark:bg-[#0F1221] shadow-none border-none mx-3 p-4">
               <div className="flex flex-col space-y-8">
 
                 <div className="">
-                  <div className="justify-start flex items-center gap-4">
-                    <img src={click} alt="click" className="w-10 h-10 dark:text-white" />
-                    <p className="text-lg text-[#64748A] dark:text-white">Total clicks on Sign-up form</p>
+                  <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
+                    <img src={click} alt="click" className="w-8 h-8 sm:w-10 sm:h-10 dark:text-white flex-shrink-0" />
+                    <p className="text-sm sm:text-lg text-[#64748A] dark:text-white">Total clicks on Sign-up form</p>
                   </div>
                   
                   <SignupClickInsights />

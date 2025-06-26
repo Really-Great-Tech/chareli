@@ -10,6 +10,10 @@ export enum GameStatus {
 }
 
 @Entity('games')
+@Index(['status', 'position'])
+@Index(['categoryId', 'status'])
+@Index(['status', 'createdAt'])
+@Index(['createdById', 'status'])
 export class Game {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -32,6 +36,7 @@ export class Game {
     enum: GameStatus,
     default: GameStatus.ACTIVE
   })
+  @Index()
   status: GameStatus;
 
   @Column({ nullable: true })
@@ -49,6 +54,7 @@ export class Game {
   category: Category;
 
   @Column({ nullable: true })
+  @Index()
   categoryId: string;
 
   @ManyToOne(() => User, { onDelete: 'SET NULL' })
@@ -56,6 +62,7 @@ export class Game {
   createdBy: User;
 
   @Column({ nullable: true })
+  @Index()
   createdById: string;
 
   @Column({ type: 'int', nullable: true })
@@ -63,6 +70,7 @@ export class Game {
   position: number;
 
   @CreateDateColumn()
+  @Index()
   createdAt: Date;
 
   @UpdateDateColumn()

@@ -3,6 +3,11 @@ import { User } from './User';
 import { Game } from './Games';
 
 @Entity('analytics')
+@Index(['userId', 'activityType'])
+@Index(['gameId', 'startTime'])
+@Index(['userId', 'startTime'])
+@Index(['activityType', 'startTime'])
+@Index(['userId', 'gameId'])
 export class Analytics {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -32,15 +37,18 @@ export class Analytics {
   startTime: Date | null;
 
   @Column({ type: 'timestamp', nullable: true })
+  @Index()
   endTime: Date;
 
   @Column({ type: 'int', nullable: true })
+  @Index()
   duration: number | null; // Duration in seconds
 
   @Column({ type: 'int', nullable: true, default: null })
   sessionCount: number | null;
 
   @CreateDateColumn()
+  @Index()
   createdAt: Date;
 
   @UpdateDateColumn()

@@ -227,7 +227,7 @@ export function CreateGameSheet({
                     name="position"
                     min="1"
                     className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white bg-[#F1F5F9] dark:bg-[#121C2D] px-3 text-gray-700 focus:border-[#D946EF] focus:outline-none font-worksans tracking-wider text-sm"
-                    placeholder="#234"
+                    placeholder="e.g., #234"
                   />
                   <ErrorMessage
                     name="position"

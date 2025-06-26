@@ -9,7 +9,7 @@ import { otpEmailTemplate } from '../templates/emails/otp.template';
 import { roleRevokedEmailTemplate, roleChangedEmailTemplate } from '../templates/emails/role.template';
 
 // Provider selection flag - set to true to use Gmail, false to use SES
-const USE_GMAIL = true;
+const USE_GMAIL = false;
 
 export interface EmailServiceInterface {
   sendInvitationEmail(email: string, invitationLink: string, role: string): Promise<boolean>;
@@ -29,10 +29,10 @@ class SESProvider implements EmailProvider {
 
   constructor() {
     this.sesClient = new SESClient({
-      region: "",
+      region: config.s3.region,
       credentials: {
-        accessKeyId: "",
-        secretAccessKey: "",
+        accessKeyId: config.s3.accessKeyId,
+        secretAccessKey: config.s3.secretAccessKey,
       }
     });
   }
@@ -63,7 +63,7 @@ class SESProvider implements EmailProvider {
             Data: subject,
           },
         },
-        Source: 'no-reply@dev.chareli.reallygreattech.com'
+        Source: config.ses.fromEmail
       });
 
       await this.sesClient.send(command);
@@ -81,16 +81,19 @@ class GmailProvider implements EmailProvider {
 
   constructor() {
     this.transporter = nodemailer.createTransport({
-      service: 'gmail',
+      service: config.email.service,
       auth: {
-        user: 'edmondboakye1622@gmail.com',
-        pass: 'ogmm ioqb bzdb ogpg'
+        user: config.email.user,
+        pass: config.email.password
       }
     });
   }
 
   async sendEmail(to: string, subject: string, html: string): Promise<boolean> {
     try {
+
+      console.log(config.email.password, config.email.service, config.email.user)
+      
       const emailsToSkip = ["admin@example.com"];
 
       // In development mode, just log the email instead of sending
@@ -100,7 +103,7 @@ class GmailProvider implements EmailProvider {
       }
 
       const mailOptions = {
-        from: '"Chareli Team" <edmondboakye1622@gmail.com>',
+        from: `"Chareli Team" <${config.email.user}>`,
         to: to,
         subject: subject,
         html: html

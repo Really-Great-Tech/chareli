@@ -16,12 +16,15 @@ export class GamePositionHistory {
   game: Game;
 
   @Column({ type: 'int' })
+  @Index()
   position: number;
 
   @Column({ type: 'int', default: 0 })
+  @Index()
   clickCount: number;
 
   @CreateDateColumn()
+  @Index()
   createdAt: Date;
 
   @UpdateDateColumn()

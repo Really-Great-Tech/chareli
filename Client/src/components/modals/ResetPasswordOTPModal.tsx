@@ -89,10 +89,10 @@ export function ResetPasswordOTPModal({
           <span className="text-white text-2xl font-bold">×</span>
         </button>
         <AlertDialogHeader className="text-center">
-          <AlertDialogTitle className="text-2xl font-bold dark:text-white text-black font-dmmono">
+          <AlertDialogTitle className="text-[20px] font-bold dark:text-white text-black font-dmmono">
             Reset Password Verification
           </AlertDialogTitle>
-          <AlertDialogDescription className="dark:text-white text-black font-worksans text-xl tracking-wider  mt-1">
+          <AlertDialogDescription className="dark:text-white text-black font-worksans text-[14px] tracking-wider mt-1">
             Enter the verification code we just sent to {contactMethod}
           </AlertDialogDescription>
         </AlertDialogHeader>
@@ -130,7 +130,7 @@ export function ResetPasswordOTPModal({
         >
           {isVerifying ? "Verifying..." : "Verify"}
         </Button>
-        <p className=" text-center text-black dark:text-white font-worksans text-xl tracking-wider mt-2">
+        <p className=" text-center text-black dark:text-white font-worksans text-[16px] tracking-wider mt-2">
           Didn't receive a code?{" "}
           <button
             onClick={handleResendOtp}

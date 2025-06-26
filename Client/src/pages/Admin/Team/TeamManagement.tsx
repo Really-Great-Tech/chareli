@@ -123,15 +123,15 @@ export default function TeamManagement() {
         </button>
       </div>
       {activeTab === "members" ? (
-        <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl shadow-none border-none w-full p-6 overflow-x-auto">
-          <div className="min-w-[650px]">
+        <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl shadow-none border-none p-4">
+          <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
                 <tr className="text-base text-[#121C2D] dark:text-white tracking-wide dark:font-none dark:tracking-wider sm:text-lg">
-                  <th className="pb- font-normal">Name</th>
-                  <th className="pb- font-normal">Email</th>
-                  <th className="pb- font-normal">Role</th>
-                  {isSuperAdmin && <th className="pb- font-normal">Action</th>}
+                  <th className="px-4 font-normal">Name</th>
+                  <th className="px-4 font-normal">Email</th>
+                  <th className="px-4 font-normal">Role</th>
+                  {isSuperAdmin && <th className="px-4 font-normal">Action</th>}
                 </tr>
               </thead>
               <tbody>
@@ -173,15 +173,15 @@ export default function TeamManagement() {
                         key={member.id}
                         className="border-t border-[#d8d9da] text-sm font-worksans font-normal tracking-wider"
                       >
-                        <td className="py-6 text-[#121C2D] dark:text-white">
+                        <td className="py-6 px-4 text-[#121C2D] dark:text-white text-nowrap">
                           {member.firstName || ""} {member.lastName || ""}
                         </td>
-                        <td className="py-6 text-[#121C2D] dark:text-white">
+                        <td className="py-6 px-4 text-[#121C2D] dark:text-white text-nowrap">
                           {member.email}
                         </td>
-                        <td className="py-6">
+                        <td className="py-6 px-4">
                           {member.role.name.toLowerCase() === "admin" ? (
-                            <span className="bg-[#D946EF] text-white px-3 py-2 rounded-lg text-md">
+                            <span className="bg-[#D946EF] text-white px-3 py-2 rounded-lg text-md text-nowrap">
                               Admin
                             </span>
                           ) : member.role.name.toLowerCase() ===
@@ -190,13 +190,13 @@ export default function TeamManagement() {
                               SuperAdmin
                             </span>
                           ) : (
-                            <span className="bg-[#334154] text-white px-3 py-2 rounded-lg text-md">
+                            <span className="bg-[#334154] text-white px-3 py-2 rounded-lg text-md text-nowrap">
                               {member.role.name}
                             </span>
                           )}
                         </td>
                         {isSuperAdmin && (
-                          <td className="py-6">
+                          <td className="py-6 px-4">
                             {member.id !== user?.id ? (
                               <button
                                 onClick={() => handleRevokeClick(member)}
@@ -215,7 +215,7 @@ export default function TeamManagement() {
                                   : "Revoke"}
                               </button>
                             ) : (
-                              <span className="text-gray-400 text-sm">
+                              <span className="text-gray-400 text-sm text-nowrap">
                                 Cannot revoke self
                               </span>
                             )}
@@ -234,12 +234,12 @@ export default function TeamManagement() {
             <table className="w-full text-left">
               <thead>
                 <tr className="text-base sm:text-lg text-[#121C2D] dark:text-white tracking-wide dark:font-none dark:tracking-wider">
-                  <th className="pb-4 font-normal">Email</th>
-                  <th className="pb-4 font-normal">Role</th>
-                  <th className="pb-4 font-normal">Status</th>
-                  <th className="pb-4 font-normal">Invited By</th>
-                  <th className="pb-4 font-normal">Expires At</th>
-                  <th className="pb-4 font-normal">Action</th>
+                  <th className="pb-4 pr-4 font-normal">Email</th>
+                  <th className="pb-4 pr-4 font-normal">Role</th>
+                  <th className="pb-4 pr-4 font-normal">Status</th>
+                  <th className="pb-4 pr-4 font-normal">Invited By</th>
+                  <th className="pb-4 pr-4 font-normal">Expires At</th>
+                  <th className="pb-4 pr-4 font-normal">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -277,12 +277,12 @@ export default function TeamManagement() {
                         key={invitation.id}
                         className="border-t border-[#d8d9da] font-worksans text-sm tracking-wider"
                       >
-                        <td className="py-6 text-[#121C2D] dark:text-white">
+                        <td className="py-6 pr-4 text-[#121C2D] dark:text-white text-nowrap">
                           {invitation.email}
                         </td>
-                        <td className="py-6">
+                        <td className="py-6 pr-4">
                           <span
-                            className={`px-3 py-2 rounded-lg text-md ${
+                            className={`px-3 py-2 rounded-lg text-md text-nowrap ${
                               invitation.role.name.toLowerCase() === "admin"
                                 ? "bg-[#D946EF] text-white"
                                 : "bg-[#334154] text-white"
@@ -291,9 +291,9 @@ export default function TeamManagement() {
                             {invitation.role.name}
                           </span>
                         </td>
-                        <td className="py-6">
+                        <td className="py-6 pr-4">
                           <span
-                            className={`px-3 py-2 rounded-lg text-md ${
+                            className={`px-3 py-2 rounded-lg text-md text-nowrap ${
                               invitation.isAccepted
                                 ? "bg-green-500 text-white"
                                 : "bg-yellow-500 text-white"
@@ -302,17 +302,17 @@ export default function TeamManagement() {
                             {invitation.isAccepted ? "Accepted" : "Pending"}
                           </span>
                         </td>
-                        <td className="py-6 text-[#121C2D] dark:text-white">
+                        <td className="py-6 pr-4 text-nowrap text-[#121C2D] dark:text-white">
                           {invitation.invitedBy.firstName}{" "}
                           {invitation.invitedBy.lastName}
                         </td>
-                        <td className="py-6 text-[#121C2D] dark:text-white">
+                        <td className="py-6 pr-4 text-nowrap text-[#121C2D] dark:text-white">
                           {format(
                             new Date(invitation.expiresAt),
                             "MMM d, yyyy h:mm a"
                           )}
                         </td>
-                        <td className="py-6">
+                        <td className="py-6 pr-4">
                           <button
                             onClick={() =>
                               handleDeleteInviteClick(invitation.id)

@@ -128,10 +128,10 @@ export default function TeamManagement() {
             <table className="w-full text-left">
               <thead>
                 <tr className="text-base text-[#121C2D] dark:text-white tracking-wide dark:font-none dark:tracking-wider sm:text-lg">
-                  <th className="px-4 font-normal">Name</th>
-                  <th className="px-4 font-normal">Email</th>
-                  <th className="px-4 font-normal">Role</th>
-                  {isSuperAdmin && <th className="px-4 font-normal">Action</th>}
+                  <th className="pr-4 font-normal">Name</th>
+                  <th className="pr-4 font-normal">Email</th>
+                  <th className="pr-4 font-normal">Role</th>
+                  {isSuperAdmin && <th className="pr-4 font-normal">Action</th>}
                 </tr>
               </thead>
               <tbody>
@@ -173,13 +173,13 @@ export default function TeamManagement() {
                         key={member.id}
                         className="border-t border-[#d8d9da] text-sm font-worksans font-normal tracking-wider"
                       >
-                        <td className="py-6 px-4 text-[#121C2D] dark:text-white text-nowrap">
+                        <td className="py-6 pr-4 text-[#121C2D] dark:text-white text-nowrap">
                           {member.firstName || ""} {member.lastName || ""}
                         </td>
-                        <td className="py-6 px-4 text-[#121C2D] dark:text-white text-nowrap">
+                        <td className="py-6 pr-4 text-[#121C2D] dark:text-white text-nowrap">
                           {member.email}
                         </td>
-                        <td className="py-6 px-4">
+                        <td className="py-6 pr-4">
                           {member.role.name.toLowerCase() === "admin" ? (
                             <span className="bg-[#D946EF] text-white px-3 py-2 rounded-lg text-md text-nowrap">
                               Admin
@@ -196,7 +196,7 @@ export default function TeamManagement() {
                           )}
                         </td>
                         {isSuperAdmin && (
-                          <td className="py-6 px-4">
+                          <td className="py-6 pr-4">
                             {member.id !== user?.id ? (
                               <button
                                 onClick={() => handleRevokeClick(member)}

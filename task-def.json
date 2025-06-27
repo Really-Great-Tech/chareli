@@ -1,5 +1,5 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:us-east-1:330858616968:task-definition/chareli-task-testing:3",
+    "taskDefinitionArn": "arn:aws:ecs:us-east-1:330858616968:task-definition/chareli-task-testing:16",
     "containerDefinitions": [
         {
             "name": "chareli-ecs-backend-testing-server",
@@ -19,8 +19,16 @@
                     "value": "us-east-1"
                 },
                 {
+                    "name": "AWS_SECRET_NAME",
+                    "value": "chareli/testing/application-secrets"
+                },
+                {
                     "name": "CLOUDFRONT_DISTRIBUTION_DOMAIN",
                     "value": "d3b3po1ho93xx6.cloudfront.net"
+                },
+                {
+                    "name": "CLIENT_URL",
+                    "value": "https://testing.chareli.reallygreattech.com"
                 },
                 {
                     "name": "CLOUDFRONT_KEY_PAIR_ID",
@@ -59,6 +67,10 @@
                     "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/testing/application-secrets-BKqJx9:DB_DATABASE::"
                 },
                 {
+                    "name": "SENTRY_DSN",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/testing/application-secrets-BKqJx9:SENTRY_DSN::"
+                },
+                {
                     "name": "JWT_SECRET",
                     "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/testing/application-secrets-BKqJx9:JWT_SECRET::"
                 },
@@ -81,14 +93,6 @@
                 {
                     "name": "EMAIL_PASSWORD",
                     "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/testing/application-secrets-BKqJx9:EMAIL_PASSWORD::"
-                },
-                {
-                    "name": "SMS_PROVIDER_ID",
-                    "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/testing/application-secrets-BKqJx9:SMS_PROVIDER_ID::"
-                },
-                {
-                    "name": "SMS_AUTH_TOKEN",
-                    "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/testing/application-secrets-BKqJx9:SMS_AUTH_TOKEN::"
                 },
                 {
                     "name": "TWILIO_ACCOUNT_SID",
@@ -122,7 +126,7 @@
     "taskRoleArn": "arn:aws:iam::330858616968:role/chareli-ecs-task-role-testing",
     "executionRoleArn": "arn:aws:iam::330858616968:role/chareli-ecs-task-execution-testing",
     "networkMode": "awsvpc",
-    "revision": 3,
+    "revision": 16,
     "volumes": [],
     "status": "ACTIVE",
     "requiresAttributes": [
@@ -164,6 +168,6 @@
     ],
     "cpu": "256",
     "memory": "512",
-    "registeredAt": "2025-06-27T06:19:59.517000+00:00",
+    "registeredAt": "2025-06-27T18:17:14.026000+00:00",
     "registeredBy": "arn:aws:iam::330858616968:user/christian_k"
 }

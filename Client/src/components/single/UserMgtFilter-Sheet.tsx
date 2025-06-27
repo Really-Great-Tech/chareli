@@ -179,7 +179,6 @@ export function UserManagementFilterSheet({
               placeholder="All Categories"
               searchPlaceholder="Search categories..."
               emptyText="No categories found."
-              className="w-full bg-[#F1F5F9] border border-[#CBD5E0] h-12 sm:h-14 text-gray-400 font-thin font-worksans text-sm tracking-wider dark:bg-[#121C2D] hover:bg-[#F1F5F9] dark:hover:bg-[#121C2D]"
             />
           </div>
 
@@ -193,7 +192,6 @@ export function UserManagementFilterSheet({
               placeholder="All Games"
               searchPlaceholder="Search games..."
               emptyText="No games found."
-              className="w-full bg-[#F1F5F9] border border-[#CBD5E0] h-12 sm:h-14 text-gray-400 font-thin font-worksans text-sm tracking-wider dark:bg-[#121C2D] hover:bg-[#F1F5F9] dark:hover:bg-[#121C2D]"
             />
           </div>
 
@@ -210,7 +208,6 @@ export function UserManagementFilterSheet({
               placeholder="All Countries"
               searchPlaceholder="Search countries..."
               emptyText="No countries found."
-              className="w-full bg-[#F1F5F9] border border-[#CBD5E0] h-12 sm:h-14 text-gray-400 font-thin font-worksans text-sm tracking-wider dark:bg-[#121C2D] hover:bg-[#F1F5F9] dark:hover:bg-[#121C2D]"
             />
           </div>
 

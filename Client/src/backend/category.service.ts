@@ -43,6 +43,9 @@ export const useCreateCategory = () => {
       backendService.post(BackendRoute.CATEGORIES, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [BackendRoute.CATEGORIES] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES] });
     },
   });
 };
@@ -59,6 +62,9 @@ export const useUpdateCategory = () => {
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: [BackendRoute.CATEGORIES] });
       queryClient.invalidateQueries({ queryKey: [BackendRoute.CATEGORIES, id] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES] });
     },
   });
 };

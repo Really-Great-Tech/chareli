@@ -53,7 +53,7 @@ const GameLoadingScreen = ({
 
   return (
     <div
-      className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden rounded-2xl"
+      className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden"
       style={{
         backgroundImage: game.thumbnailFile?.s3key
           ? `url(${game.thumbnailFile.s3key})`

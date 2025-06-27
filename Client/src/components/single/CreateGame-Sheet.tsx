@@ -5,6 +5,7 @@ import * as Yup from "yup";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import { SearchableSelect } from "../ui/searchable-select";
 import uploadImg from "../../assets/fetch-upload.svg";
 import { useCreateGame } from "../../backend/games.service";
 import { useCategories } from "../../backend/category.service";
@@ -315,29 +316,28 @@ export function CreateGameSheet({
 
               {/* Category Dropdown */}
               <div>
-                <Label
-                  htmlFor="categoryId"
-                  className="text-base mb-2 block dark:text-white"
-                >
+                <Label className="text-base mb-2 block dark:text-white">
                   Game Category
                 </Label>
-                <Field
-                  as="select"
-                  id="categoryId"
-                  name="categoryId"
-                  className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white dark:bg-[#121C2D] bg-[#F1F5F9] px-3 font-worksans tracking-wider  text-gray-700 text-sm focus:border-[#D946EF] focus:outline-none"
-                >
-                  <option value="" className="text-sm">Select category</option>
-                  {categories?.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
+                <Field name="categoryId">
+                  {({ field, form }: any) => (
+                    <SearchableSelect
+                      value={field.value}
+                      onValueChange={(value: string) => form.setFieldValue("categoryId", value)}
+                      options={categories?.map((category) => ({
+                        value: category.id,
+                        label: category.name
+                      })) || []}
+                      placeholder="Select category"
+                      searchPlaceholder="Search categories..."
+                      emptyText="No categories found"
+                    />
+                  )}
                 </Field>
                 <ErrorMessage
                   name="categoryId"
                   component="div"
-                  className="text-red-500  mt-1 font-worksans text-sm tracking-wider"
+                  className="text-red-500 mt-1 font-worksans text-sm tracking-wider"
                 />
               </div>
 

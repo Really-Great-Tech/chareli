@@ -282,8 +282,28 @@ export default function GameManagement() {
                         {game.title}
                       </span>
                     </td>
-                    <td className="px-4 py-3  tracking-wider text-nowrap">
-                      {game.category?.name || "-"}
+                    <td className="px-4 py-3 tracking-wider">
+                      {game.category?.name ? (
+                        <div className="relative group">
+                          <span 
+                            className="block truncate max-w-[150px]"
+                            title={game.category.name.length > 20 ? game.category.name : undefined}
+                          >
+                            {game.category.name.length > 20 
+                              ? `${game.category.name.substring(0, 20)}...` 
+                              : game.category.name
+                            }
+                          </span>
+                          {game.category.name.length > 20 && (
+                            <div className="absolute left-0 top-full mt-1 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 shadow-lg max-w-xs">
+                              {game.category.name}
+                              <div className="absolute bottom-full left-4 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-900"></div>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        "-"
+                      )}
                     </td>
                     <td className="px-4 py-3  tracking-wider text-nowrap">
                       {game.analytics?.totalPlayTime != null

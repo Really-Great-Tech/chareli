@@ -11,6 +11,7 @@ import {
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Button } from "../ui/button";
+import { SearchableSelect } from "../ui/searchable-select";
 import { DeleteConfirmationModal } from "../modals/DeleteConfirmationModal";
 import { XIcon } from "lucide-react";
 import {
@@ -431,35 +432,24 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
               </div>
 
               <div className="mt-8">
-                <Label htmlFor="categoryId" className="text-base">
+                <Label className="text-base mb-2 block">
                   Game Category
                 </Label>
-                <div className="relative">
-                  <Field
-                    as="select"
-                    id="categoryId"
-                    name="categoryId"
-                    className="mt-1 w-full rounded-lg dark:bg-[#121C2D] dark:text-white bg-[#F1F5F9] text-[#64748b] px-4 py-3 font-worksans text-sm tracking-wider outline-none border-none appearance-none pr-10"
-                  >
-                    <option value="">Select category</option>
-                    {categories?.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </Field>
-                  <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#64748b]">
-                    <svg width="20" height="20" fill="none" viewBox="0 0 20 20">
-                      <path
-                        d="M6 8l4 4 4-4"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </span>
-                </div>
+                <Field name="categoryId">
+                  {({ field, form }: any) => (
+                    <SearchableSelect
+                      value={field.value}
+                      onValueChange={(value: string) => form.setFieldValue("categoryId", value)}
+                      options={categories?.map((category) => ({
+                        value: category.id,
+                        label: category.name
+                      })) || []}
+                      placeholder="Select category"
+                      searchPlaceholder="Search categories..."
+                      emptyText="No categories found"
+                    />
+                  )}
+                </Field>
                 <ErrorMessage
                   name="categoryId"
                   component="div"

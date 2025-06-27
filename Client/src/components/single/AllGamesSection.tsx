@@ -52,23 +52,80 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
         <h1 className="text-[#D946EF] text-3xl mb-4 font-worksans">All Games</h1>
       </div>
       {/* filtering tabs */}
-      <div className="flex gap-3 mb-8 flex-wrap">
+      <div className="relative mb-8">
         {categoriesLoading ? (
           <div>Loading categories...</div>
         ) : (
-          allCategories.map((category) => (
-            <Button
-              key={category.id}
-              className={`text-white cursor-pointer ${
-                selectedCategory === category.id
-                  ? "bg-[#C026D3]"
-                  : "bg-[#94A3B7]"
-              }`}
-              onClick={() => setSelectedCategory(category.id)}
+          <div className="relative">
+            {/* Fade effect for left edge */}
+            <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white dark:from-[#0f1221] to-transparent z-10 pointer-events-none opacity-0 transition-opacity duration-300" id="left-fade"></div>
+            
+            {/* Fade effect for right edge */}
+            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white dark:from-[#0f1221] to-transparent z-10 pointer-events-none opacity-0 transition-opacity duration-300" id="right-fade"></div>
+            
+            {/* Scrollable container */}
+            <div 
+              className="flex gap-3 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
+              onScroll={(e) => {
+                const container = e.currentTarget;
+                const leftFade = document.getElementById('left-fade');
+                const rightFade = document.getElementById('right-fade');
+                
+                if (leftFade && rightFade) {
+                  // Show left fade if scrolled right
+                  leftFade.style.opacity = container.scrollLeft > 10 ? '1' : '0';
+                  
+                  // Show right fade if not at the end
+                  const isAtEnd = container.scrollLeft >= container.scrollWidth - container.clientWidth - 10;
+                  rightFade.style.opacity = isAtEnd ? '0' : '1';
+                }
+              }}
+              ref={(el) => {
+                if (el) {
+                  // Initial fade state check
+                  setTimeout(() => {
+                    const leftFade = document.getElementById('left-fade');
+                    const rightFade = document.getElementById('right-fade');
+                    
+                    if (leftFade && rightFade) {
+                      leftFade.style.opacity = el.scrollLeft > 10 ? '1' : '0';
+                      const isAtEnd = el.scrollLeft >= el.scrollWidth - el.clientWidth - 10;
+                      rightFade.style.opacity = isAtEnd ? '0' : '1';
+                    }
+                  }, 100);
+                }
+              }}
             >
-              {category.name}
-            </Button>
-          ))
+              {allCategories.map((category) => {
+                const truncatedName = category.name.length > 18 
+                  ? `${category.name.substring(0, 18)}...` 
+                  : category.name;
+                
+                return (
+                  <Button
+                    key={category.id}
+                    className={`text-white cursor-pointer min-w-[120px] max-w-[200px] px-4 py-2 relative group flex-shrink-0 ${
+                      selectedCategory === category.id
+                        ? "bg-[#C026D3]"
+                        : "bg-[#94A3B7]"
+                    }`}
+                    onClick={() => setSelectedCategory(category.id)}
+                    title={category.name.length > 18 ? category.name : undefined}
+                  >
+                    <span className="block truncate text-sm font-medium">
+                      {truncatedName}
+                    </span>
+                    {category.name.length > 18 && (
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-20 shadow-lg">
+                        {category.name}
+                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                      </div>
+                    )}
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
         )}
       </div>
 

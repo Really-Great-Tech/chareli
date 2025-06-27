@@ -1,6 +1,5 @@
 import winston from 'winston';
 import path from 'path';
-import config from '../config/config';
 
 // Define log levels
 const levels = {
@@ -13,7 +12,7 @@ const levels = {
 
 // Define level based on environment
 const level = () => {
-  const env = config.env || 'development';
+  const env = process.env.NODE_ENV || 'development';
   return env === 'development' ? 'debug' : 'warn';
 };
 
@@ -56,13 +55,13 @@ const logger = winston.createLogger({
     new winston.transports.Console({
       format: consoleFormat,
     }),
-    
+
     // File transport for all logs
     new winston.transports.File({
       filename: path.join(logDir, 'all.log'),
       format: fileFormat,
     }),
-    
+
     // File transport for error logs
     new winston.transports.File({
       filename: path.join(logDir, 'error.log'),

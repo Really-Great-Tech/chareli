@@ -4,7 +4,6 @@ import logger from '../utils/logger';
 
 // Load environment variables from .env file
 dotenv.config({ path: path.join(__dirname, '../../.env') });
-
 interface Config {
   env: string;
   port: number;

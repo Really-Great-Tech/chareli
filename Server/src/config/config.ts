@@ -8,6 +8,9 @@ dotenv.config({ path: path.join(__dirname, '../../.env') });
 interface Config {
   env: string;
   port: number;
+  app: {
+    clientUrl: string;
+  };
   database: {
     host: string;
     port: number;
@@ -95,6 +98,7 @@ function getEnv(key: string, defaultValue?: string): string {
 
 const config: Config = {
   env: getEnv('NODE_ENV', 'development'),
+  app: { clientUrl: getEnv('CLIENT_URL', 'http://localhost:5173') },
   port: parseInt(getEnv('PORT', '5000'), 10),
   database: {
     host: getEnv('DB_HOST', 'localhost'),
@@ -144,7 +148,7 @@ const config: Config = {
     dsn: getEnv('SENTRY_DSN', ''),
     environment: getEnv('NODE_ENV', 'development'),
     tracesSampleRate: parseFloat(getEnv('SENTRY_TRACES_SAMPLE_RATE', '0.2')),
-    enabled: getEnv('NODE_ENV', 'development') === 'production',
+    enabled: getEnv('USE_SENTRY', 'false') === 'true',
   },
   s3: {
     region: getEnv('AWS_REGION', 'us-east-1'),

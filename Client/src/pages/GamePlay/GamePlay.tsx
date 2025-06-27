@@ -157,7 +157,7 @@ export default function GamePlay() {
 
   const gameUrl = game?.gameFile?.s3Key
     ? `${import.meta.env.VITE_GAMES_CDN_URL}/${game.gameFile.s3Key}`
-    : '';
+    : `${import.meta.env.VITE_GAMES_S3_BASE_URL}/${game.gameFile.s3Key}`;
   // Handle game loading progress
   const handleLoadProgress = (progress: number) => {
     setLoadProgress(progress);

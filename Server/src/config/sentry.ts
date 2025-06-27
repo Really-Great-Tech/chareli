@@ -46,7 +46,7 @@ export const initializeSentry = (app: Express): void => {
  * Captures request data for error reporting
  */
 export const sentryRequestHandler = () => {
-  if (config.env === 'production') {
+  if (config.sentry.enabled) {
     // @ts-ignore - Ignore TypeScript errors for Sentry API
     return Sentry.Handlers.requestHandler();
   }
@@ -58,7 +58,7 @@ export const sentryRequestHandler = () => {
  * Enables performance monitoring
  */
 export const sentryTracingHandler = () => {
-  if (config.env === 'production') {
+  if (config.sentry.enabled) {
     // @ts-ignore - Ignore TypeScript errors for Sentry API
     return Sentry.Handlers.tracingHandler();
   }
@@ -70,7 +70,7 @@ export const sentryTracingHandler = () => {
  * Captures and reports errors to Sentry
  */
 export const sentryErrorHandler = () => {
-  if (config.env === 'production') {
+  if (config.sentry.enabled) {
     // @ts-ignore - Ignore TypeScript errors for Sentry API
     return Sentry.Handlers.errorHandler();
   }
@@ -83,7 +83,7 @@ export const sentryErrorHandler = () => {
  * @param error Error to capture
  */
 export const captureException = (error: Error): string => {
-  if (config.env === 'production') {
+  if (config.sentry.enabled) {
     return Sentry.captureException(error);
   }
   return '';
@@ -98,7 +98,7 @@ export const captureMessage = (
   message: string,
   level?: Sentry.SeverityLevel
 ): string => {
-  if (config.env === 'production') {
+  if (config.sentry.enabled) {
     return Sentry.captureMessage(message, level);
   }
   return '';
@@ -109,7 +109,7 @@ export const captureMessage = (
  * @param user User information
  */
 export const setUser = (user: Sentry.User | null): void => {
-  if (config.env === 'production') {
+  if (config.sentry.enabled) {
     Sentry.setUser(user);
   }
 };
@@ -123,7 +123,7 @@ export const setContext = (
   name: string,
   context: Record<string, unknown>
 ): void => {
-  if (config.env === 'production') {
+  if (config.sentry.enabled) {
     Sentry.setContext(name, context);
   }
 };
@@ -134,7 +134,7 @@ export const setContext = (
  * @param value Tag value
  */
 export const setTag = (key: string, value: string): void => {
-  if (config.env === 'production') {
+  if (config.sentry.enabled) {
     Sentry.setTag(key, value);
   }
 };

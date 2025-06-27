@@ -1157,6 +1157,14 @@ export const grantGameAccess = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    if (config.env !== 'production') {
+      logger.info('Skipping cookie generation in non-production environment');
+      res
+        .status(200)
+        .json({ success: true, message: 'Access granted for development' });
+      return;
+    }
+
     const signedCookieHeaders =
       await cloudFrontService.getSignedCookieHeaders();
     const rootDomain = '.chareli.reallygreattech.com';

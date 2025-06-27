@@ -7,11 +7,14 @@ import routes from './routes';
 import { errorHandler } from './middlewares/errorHandler';
 import { requestLogger } from './middlewares/requestLogger';
 import { sanitizeInput } from './middlewares/sanitizationMiddleware';
-import { sentryRequestHandler, sentryTracingHandler, sentryErrorHandler } from './config/sentry';
+import {
+  sentryRequestHandler,
+  sentryTracingHandler,
+  sentryErrorHandler,
+} from './config/sentry';
 import logger from './utils/logger';
 import { specs } from './config/swagger';
 import config from './config/config';
-// import { cloudFrontService } from './services/cloudfront.service';
 
 const app: Express = express();
 
@@ -23,15 +26,18 @@ app.use(sentryRequestHandler());
 
 // Security middleware
 app.use(helmet()); // Adds various HTTP headers for security
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://yourfrontenddomain.com'] // Restrict in production
-    : '*', // Allow all in development
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
-  maxAge: 86400 // 24 hours
-})); 
+app.use(
+  cors({
+    origin:
+      process.env.NODE_ENV === 'production'
+        ? ['https://yourfrontenddomain.com'] // Restrict in production
+        : '*', // Allow all in development
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+    maxAge: 86400, // 24 hours
+  })
+);
 
 // Content Security Policy
 app.use((req, res, next) => {
@@ -53,103 +59,17 @@ app.use(sanitizeInput);
 app.use(sentryTracingHandler());
 
 // Swagger documentation
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
-  explorer: true,
-  customCss: '.swagger-ui .topbar { display: none }',
-  swaggerOptions: {
-    docExpansion: 'none',
-  },
-}));
-
-
-
-// test/cloudfront.test.ts
-
-
-
-// async function testSignedUrl() {
-//    const s3Key = 'games/200274ce-df18-4160-96c1-09efe2e71cd8/glass-city/index.html';
-
-//   const signedUrl = cloudFrontService.transformS3KeyToCloudFront(s3Key);
-
-//   console.log('Generated Signed URL:');
-//   console.log(signedUrl);
-// }
-
-// testSignedUrl();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+app.use(
+  '/api-docs',
+  swaggerUi.serve,
+  swaggerUi.setup(specs, {
+    explorer: true,
+    customCss: '.swagger-ui .topbar { display: none }',
+    swaggerOptions: {
+      docExpansion: 'none',
+    },
+  })
+);
 
 // API Routes
 app.use('/api', routes);

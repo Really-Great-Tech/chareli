@@ -68,7 +68,7 @@ const UserManagementView = () => {
               className="w-20 h-20 rounded-full border-2 border-[#D946EF]"
             />
             <div className="flex flex-col sm:flex-row gap-3 items-center mt-4 text-center sm:text-left flex-wrap justify-center">
-              <p className="mb-0 text-xl font-normal text-[#121C2D] dark:text-white tracking-wide text-nowrap">
+              <p className="mb-0 text-xl font-normal text-[#121C2D] dark:text-white tracking-wide text-center text-wrap flex">
                 {`${response.user.firstName ?? ""} ${
                   response.user.lastName ?? ""
                 }`}
@@ -207,7 +207,10 @@ const UserManagementView = () => {
                     </tr>
                   ) : (
                     paginatedGames.map((game: GameActivity, idx: number) => (
-                      <tr key={idx} className="border-t border-gray-200 text-sm">
+                      <tr
+                        key={idx}
+                        className="border-t border-gray-200 text-sm"
+                      >
                         <td className="flex items-center gap-3 py-2">
                           {/* Default game icon */}
                           <div className="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center">

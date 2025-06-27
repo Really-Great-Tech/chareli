@@ -55,7 +55,7 @@ const validationSchema = Yup.object({
 const initialValues: FormValues = {
   title: "",
   description: "",
-  config: 0,
+  config: 1,
   categoryId: "",
 };
 
@@ -347,16 +347,16 @@ export function CreateGameSheet({
                   htmlFor="config"
                   className="text-base mb-2 block dark:text-white"
                 >
-                  Game Config
+                  Free Game Time (mins)
                 </Label>
                 <Field
                   as={Input}
                   type="number"
                   id="config"
                   name="config"
-                  min="0"
+                  min="1"
                   className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white dark:bg-[#121C2D] bg-[#F1F5F9] px-3 font-worksans text-sm tracking-wider  text-gray-700 focus:border-[#D946EF] focus:outline-none"
-                  placeholder="Enter config number"
+                  placeholder="Enter config number eg. (1)"
                 />
                 <ErrorMessage
                   name="config"

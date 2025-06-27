@@ -272,7 +272,7 @@ export function LoginModal({
                               backgroundColor: "#E2E8F0",
                               border: "0",
                               borderRadius: "0.375rem",
-                              fontFamily: "boogaloo",
+                              fontFamily: "Work Sans, cursive",
                               fontSize: "11px",
                             }}
                             containerClass="dark:bg-[#191c2b] relative z-50"
@@ -309,7 +309,7 @@ export function LoginModal({
                             ? "Enter your email"
                             : "Enter your phone number"
                         }
-                        className={`mt-1 bg-[#E2E8F0] border-0 pl-10 font-dmmono text-lg tracking-wider font-normal h-[48px] ${
+                        className={`mt-1 bg-[#E2E8F0] border-0 pl-10 font-dmmono text-sm tracking-wider font-normal h-[48px] ${
                           activeTab === "email" ? "pl-10" : ""
                         }`}
                       />
@@ -349,7 +349,7 @@ export function LoginModal({
                       name="password"
                       type={showPassword ? "text" : "password"}
                       placeholder="password"
-                      className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-dmmono text-lg tracking-wider font-normal h-[48px]"
+                      className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-dmmono text-sm tracking-wider font-normal h-[48px]"
                     />
                   </div>
                   <ErrorMessage

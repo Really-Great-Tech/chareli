@@ -469,7 +469,7 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
 
               <div>
                 <Label htmlFor="config" className="mt-8 text-base">
-                  Game Config
+                  Free Game Time
                 </Label>
                 <Field
                   as={Input}
@@ -478,6 +478,7 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
                   name="config"
                   min="0"
                   className="mt-1 bg-[#F1F5F9] shadow-none border-none text-sm dark:bg-[#121C2D]"
+                  placeholder="Enter config number eg. (1)"
                 />
                 <ErrorMessage
                   name="config"

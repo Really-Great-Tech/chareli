@@ -141,9 +141,9 @@ export default function StatsCard() {
             </div>
 
             {/* bottom */}
-            <div className="flex md:flex-1 justify-between items-end pr-2">
+            <div className="flex md:flex-1 justify-between items-end pr-2 gap-2 min-h-[24px]">
               <div
-                className={`flex flex-row gap-1 items-center text-[14px] ${
+                className={`flex flex-row gap-1 items-center text-[14px] flex-shrink-0 ${
                   card.changeType === "up"
                     ? "text-white bg-[#D946EF] pl-1 pr-1 pt-1 pb-1 rounded-lg dark:bg-[#64748A]"
                     : "text-white bg-[#D946EF] dark:bg-[#64748A] pl-2 pr-2 pt-1 pb-1 rounded-lg"
@@ -156,7 +156,7 @@ export default function StatsCard() {
                 )}
                 <span>{card.change}</span>
               </div>
-              <span className="text-gray-400 text-[13px] font-worksans text-xl tracking-wider dark:text-white lg:line-clamp-2 lg:w-[100px] leading-4">
+              <span className="text-gray-400 text-[13px] font-worksans tracking-wider dark:text-white lg:line-clamp-2 lg:w-[100px] leading-4 text-right flex-shrink min-w-0">
                 {card.description}
               </span>
             </div>

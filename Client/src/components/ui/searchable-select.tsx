@@ -72,7 +72,14 @@ const SearchableSelect = React.forwardRef<
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[--radix-popper-anchor-width] min-w-[300px] p-0" align="start">
+        <PopoverContent 
+          className="w-[--radix-popper-anchor-width] min-w-[200px] max-w-[calc(100vw-2rem)] p-0" 
+          align="start"
+          side="bottom"
+          sideOffset={4}
+          avoidCollisions={true}
+          collisionPadding={8}
+        >
           <Command>
             <CommandInput placeholder={searchPlaceholder} />
             <CommandList className="max-h-[250px] overflow-y-auto">

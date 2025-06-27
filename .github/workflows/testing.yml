@@ -14,6 +14,10 @@ env:
   AWS_REGION: us-east-1
   ECR_REGISTRY: 330858616968.dkr.ecr.us-east-1.amazonaws.com
   ECR_REPO_SERVER: chareli-server-testing
+  ECS_SERVICE: chareli-service-testing
+  ECS_CLUSTER: chareli-cluster-testing
+  ECS_TASK_DEFINITION: ./task-def.json
+  CONTAINER_NAME: chareli-ecs-backend-testing-server
   IMAGE_TAG_SERVER_COMMIT: server-testing-${{ github.sha }}
   IMAGE_TAG_SERVER_FIXED: latest
 
@@ -114,6 +118,7 @@ jobs:
 
       - name: Build and Push Backend Docker Image
         uses: docker/build-push-action@v6
+        id: build-image
         with:
           context: ./Server
           file: ./Server/Dockerfile
@@ -123,6 +128,22 @@ jobs:
             ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO_SERVER }}:${{ env.IMAGE_TAG_SERVER_FIXED }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ${{ env.ECS_TASK_DEFINITION }}
+          container_name: ${{ env.CONTAINER_NAME }}
+          image: ${{ steps.build-image.outputs.image }}
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
 
   deploy-frontend:
     name: Deploy Frontend to S3 & Invalidate CloudFront
@@ -173,11 +194,11 @@ jobs:
         id: backend-status
         run: |
           if [[ "${{ needs.deploy-backend.result }}" == "success" ]]; then
-            echo "backend_msg=:white_check_mark: Backend deployment to App Runner SUCCESSFUL" >> $GITHUB_OUTPUT
+            echo "backend_msg=:white_check_mark: Backend deployment to ECS SUCCESSFUL" >> $GITHUB_OUTPUT
           elif [[ "${{ needs.deploy-backend.result }}" == "skipped" ]]; then
             echo "backend_msg=:warning: Backend deployment SKIPPED" >> $GITHUB_OUTPUT
           else
-            echo "backend_msg=:x: Backend deployment to App Runner FAILED" >> $GITHUB_OUTPUT
+            echo "backend_msg=:x: Backend deployment to ECS FAILED" >> $GITHUB_OUTPUT
           fi
 
       - name: Generate Frontend Deploy Status
@@ -205,7 +226,7 @@ jobs:
             🏗️ Event: `${{ github.event_name }}`
 
             🧪 **Build & Test:** ${{ steps.build-status.outputs.build_msg }}
-            🖥️ **Backend (App Runner):** ${{ steps.backend-status.outputs.backend_msg }}
+            🖥️ **Backend (ECS):** ${{ steps.backend-status.outputs.backend_msg }}
             🌐 **Frontend (S3/CloudFront):** ${{ steps.frontend-status.outputs.frontend_msg }}
 
             🔗 [View Run on GitHub](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})

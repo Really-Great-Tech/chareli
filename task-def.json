@@ -1,0 +1,169 @@
+{
+    "taskDefinitionArn": "arn:aws:ecs:us-east-1:330858616968:task-definition/chareli-task-testing:3",
+    "containerDefinitions": [
+        {
+            "name": "chareli-ecs-backend-testing-server",
+            "image": "330858616968.dkr.ecr.us-east-1.amazonaws.com/chareli-server-testing:latest",
+            "cpu": 0,
+            "portMappings": [
+                {
+                    "containerPort": 5000,
+                    "hostPort": 5000,
+                    "protocol": "tcp"
+                }
+            ],
+            "essential": true,
+            "environment": [
+                {
+                    "name": "AWS_REGION",
+                    "value": "us-east-1"
+                },
+                {
+                    "name": "CLOUDFRONT_DISTRIBUTION_DOMAIN",
+                    "value": "d3b3po1ho93xx6.cloudfront.net"
+                },
+                {
+                    "name": "CLOUDFRONT_KEY_PAIR_ID",
+                    "value": "K37ZAD8XCQQIPX"
+                },
+                {
+                    "name": "AWS_S3_BUCKET",
+                    "value": "chareli-games-testing-a2373fec"
+                },
+                {
+                    "name": "SES_REGION",
+                    "value": "eu-central-1"
+                }
+            ],
+            "mountPoints": [],
+            "volumesFrom": [],
+            "secrets": [
+                {
+                    "name": "DB_HOST",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/testing/application-secrets-BKqJx9:DB_HOST::"
+                },
+                {
+                    "name": "DB_PORT",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/testing/application-secrets-BKqJx9:DB_PORT::"
+                },
+                {
+                    "name": "DB_USERNAME",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/testing/application-secrets-BKqJx9:DB_USERNAME::"
+                },
+                {
+                    "name": "DB_PASSWORD",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/testing/application-secrets-BKqJx9:DB_PASSWORD::"
+                },
+                {
+                    "name": "DB_DATABASE",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/testing/application-secrets-BKqJx9:DB_DATABASE::"
+                },
+                {
+                    "name": "JWT_SECRET",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/testing/application-secrets-BKqJx9:JWT_SECRET::"
+                },
+                {
+                    "name": "JWT_REFRESH_SECRET",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/testing/application-secrets-BKqJx9:JWT_REFRESH_SECRET::"
+                },
+                {
+                    "name": "SUPERADMIN_EMAIL",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/testing/application-secrets-BKqJx9:SUPERADMIN_EMAIL::"
+                },
+                {
+                    "name": "SUPERADMIN_PASSWORD",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/testing/application-secrets-BKqJx9:SUPERADMIN_PASSWORD::"
+                },
+                {
+                    "name": "EMAIL_USER",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/testing/application-secrets-BKqJx9:EMAIL_USER::"
+                },
+                {
+                    "name": "EMAIL_PASSWORD",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/testing/application-secrets-BKqJx9:EMAIL_PASSWORD::"
+                },
+                {
+                    "name": "SMS_PROVIDER_ID",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/testing/application-secrets-BKqJx9:SMS_PROVIDER_ID::"
+                },
+                {
+                    "name": "SMS_AUTH_TOKEN",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/testing/application-secrets-BKqJx9:SMS_AUTH_TOKEN::"
+                },
+                {
+                    "name": "TWILIO_ACCOUNT_SID",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/testing/application-secrets-BKqJx9:TWILIO_ACCOUNT_SID::"
+                },
+                {
+                    "name": "TWILIO_AUTH_TOKEN",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/testing/application-secrets-BKqJx9:TWILIO_AUTH_TOKEN::"
+                },
+                {
+                    "name": "TWILIO_FROM_NUMBER",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/testing/application-secrets-BKqJx9:TWILIO_FROM_NUMBER::"
+                },
+                {
+                    "name": "CLOUDFRONT_PRIVATE_KEY_SECRET_ARN",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/testing/cloudfront_private_key-YKjcB7"
+                }
+            ],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/chareli-testing",
+                    "awslogs-region": "us-east-1",
+                    "awslogs-stream-prefix": "ecs"
+                }
+            },
+            "systemControls": []
+        }
+    ],
+    "family": "chareli-task-testing",
+    "taskRoleArn": "arn:aws:iam::330858616968:role/chareli-ecs-task-role-testing",
+    "executionRoleArn": "arn:aws:iam::330858616968:role/chareli-ecs-task-execution-testing",
+    "networkMode": "awsvpc",
+    "revision": 3,
+    "volumes": [],
+    "status": "ACTIVE",
+    "requiresAttributes": [
+        {
+            "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
+        },
+        {
+            "name": "ecs.capability.execution-role-awslogs"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.ecr-auth"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+        },
+        {
+            "name": "ecs.capability.secrets.asm.environment-variables"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.task-iam-role"
+        },
+        {
+            "name": "ecs.capability.execution-role-ecr-pull"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
+        },
+        {
+            "name": "ecs.capability.task-eni"
+        }
+    ],
+    "placementConstraints": [],
+    "compatibilities": [
+        "EC2",
+        "FARGATE"
+    ],
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "cpu": "256",
+    "memory": "512",
+    "registeredAt": "2025-06-27T06:19:59.517000+00:00",
+    "registeredBy": "arn:aws:iam::330858616968:user/christian_k"
+}

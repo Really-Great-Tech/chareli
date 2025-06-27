@@ -97,15 +97,11 @@ const AdminLayout: React.FC = () => {
 
   return (
     <div className="admin-layout min-h-screen bg-white dark:bg-[#0f1221] text-gray-900 dark:text-white transition-colors duration-300">
-      {/* Fixed header */}
       <div className="fixed top-0 left-0 right-0 z-50">
         <AdminNavbar />
       </div>
 
       <div className="flex pt-[73px]">
-        {" "}
-        {/* Add padding-top to account for fixed header */}
-        {/* Fixed sidebar with overlay on mobile */}
         <div
           className={`fixed h-[calc(100vh-73px)] z-30 transition-all duration-300 transform ${
             isSidebarCollapsed
@@ -130,7 +126,6 @@ const AdminLayout: React.FC = () => {
                           } ${isSidebarCollapsed ? "justify-center" : ""}`
                         }
                         onClick={() => {
-                          // Close sidebar on mobile when item is selected
                           if (isMobile) {
                             setIsSidebarCollapsed(true);
                           }
@@ -157,9 +152,9 @@ const AdminLayout: React.FC = () => {
                   style={{ bottom: "20px" }}
                 >
                   {isSidebarCollapsed ? (
-                    <IoChevronForwardOutline size={18} />
+                    <IoChevronForwardOutline size={18} className="cursor-pointer"/>
                   ) : (
-                    <IoChevronBackOutline size={18} />
+                    <IoChevronBackOutline size={18} className="cursor-pointer"/>
                   )}
                 </button>
               </div>

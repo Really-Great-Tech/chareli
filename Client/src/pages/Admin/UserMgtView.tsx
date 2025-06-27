@@ -37,6 +37,7 @@ const UserManagementView = () => {
       </div>
     );
   }
+  
 
   if (isError || !response) {
     return (
@@ -212,12 +213,20 @@ const UserManagementView = () => {
                         className="border-t border-gray-200 text-sm"
                       >
                         <td className="flex items-center gap-3 py-2">
-                          {/* Default game icon */}
-                          <div className="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center">
-                            <LuGamepad2 className="w-6 h-6 text-gray-400" />
-                          </div>
+                          {/* Game thumbnail */}
+                          {game.thumbnailUrl ? (
+                            <img
+                              src={game.thumbnailUrl}
+                              alt={game.gameTitle}
+                              className="w-10 h-10 rounded-lg object-cover"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center">
+                              <LuGamepad2 className="w-6 h-6 text-gray-400" />
+                            </div>
+                          )}
                           <span className="text-[#121C2D]  tracking-wider dark:text-white">
-                            {game.gameTitle ?? "Unknown Game"}
+                            {game.gameTitle ?? "-"}
                           </span>
                         </td>
                         <td className="py-2  text-[#334154] font-worksans tracking-wider dark:text-white">

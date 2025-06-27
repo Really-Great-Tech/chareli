@@ -43,7 +43,6 @@ export default function ViewGame() {
     );
   }
 
-  console.log("game data", game);
 
   return (
     <div className="p-8 flex flex-col gap-6">
@@ -66,7 +65,7 @@ export default function ViewGame() {
             <h2 className="text-sm sm:text-base font-normal font-dmmono text-[#121C2D] tracking-wider dark:text-white text-center truncate">
               {(game as any).game?.title || "-"}
             </h2>
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex items-center gap-2 flex-shrink-0 mb-2">
               <span
                 className={`inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 rounded font-dmmono text-xs sm:text-sm tracking-wider ${
                   (game as any).game?.status === "active"
@@ -81,7 +80,9 @@ export default function ViewGame() {
                       : "bg-red-500"
                   }`}
                 ></span>
-                {(game as any).game?.status === "active" ? "Active" : "Inactive"}
+                {(game as any).game?.status === "active"
+                  ? "Active"
+                  : "Inactive"}
               </span>
               <RiDeleteBin6Line className="text-[#121C2D] w-4 h-5 sm:h-6 dark:text-white" />
             </div>
@@ -116,7 +117,7 @@ export default function ViewGame() {
             <h3 className="text-base font-normal mb-2 text-[#475568] tracking-wider dark:text-white">
               Overview
             </h3>
-            <p className="text-[#475568]  whitespace-pre-line dark:text-white  font-dmmono text-sm tracking-wider">
+            <p className="text-[#475568] whitespace-pre-line dark:text-white font-dmmono text-sm tracking-wider break-words overflow-wrap-anywhere">
               {(game as any).game?.description || "-"}
             </p>
           </div>
@@ -145,9 +146,10 @@ export default function ViewGame() {
               </h3>
               <a
                 href={(game as any).game?.gameFile?.url || "#"}
-                className="text-[#475568]  underline dark:text-white  font-dmmono tracking-wider text-sm"
+                className="text-[#475568] underline dark:text-white font-dmmono tracking-wider text-sm break-all overflow-wrap-anywhere block"
                 target="_blank"
                 rel="noopener noreferrer"
+                title={(game as any).game?.gameFile?.url || "#"}
               >
                 {(game as any).game?.gameFile?.url || "#"}
               </a>

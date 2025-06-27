@@ -1190,28 +1190,52 @@ export const getUsersWithAnalytics = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    // Get all users with their basic information
-    const users = await userRepository.find({
-      relations: ['role'],
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        country: true,
-        phoneNumber: true,
-        isActive: true,
-        isVerified: true,
-        lastLoggedIn: true,
-        createdAt: true,
-        updatedAt: true,
-        role: {
-          id: true,
-          name: true,
-          description: true
-        }
-      }
-    });
+    const { 
+      startDate, 
+      endDate, 
+      sessionCount, 
+      minTimePlayed, 
+      maxTimePlayed, 
+      gameTitle, 
+      gameCategory,
+      country,
+      sortByMaxTimePlayed
+    } = req.query;
+
+    // Build base query for users
+    let userQueryBuilder = userRepository.createQueryBuilder('user')
+      .leftJoinAndSelect('user.role', 'role')
+      .select([
+        'user.id',
+        'user.firstName', 
+        'user.lastName',
+        'user.email',
+        'user.country',
+        'user.phoneNumber',
+        'user.isActive',
+        'user.isVerified',
+        'user.lastLoggedIn',
+        'user.createdAt',
+        'user.updatedAt',
+        'role.id',
+        'role.name',
+        'role.description'
+      ]);
+
+    // Apply date range filter if provided
+    if (startDate && endDate) {
+      userQueryBuilder = userQueryBuilder.andWhere('user.createdAt BETWEEN :startDate AND :endDate', {
+        startDate: new Date(startDate as string),
+        endDate: new Date(endDate as string)
+      });
+    } else if (startDate) {
+      userQueryBuilder = userQueryBuilder.andWhere('user.createdAt >= :startDate', {
+        startDate: new Date(startDate as string)
+      });
+    }
+
+    // Get all users first (we'll filter by analytics later)
+    const users = await userQueryBuilder.getMany();
 
     // Get analytics data for all users
     const usersAnalytics = await analyticsRepository
@@ -1269,12 +1293,13 @@ export const getUsersWithAnalytics = async (
       });
     });
 
-    // Combine user data with analytics data
-    const usersWithAnalytics = users.map(user => {
+    // Apply additional filters based on analytics data
+    let filteredUsers = users.map(user => {
       const analytics = analyticsMap.get(user.id) || {
         totalGamesPlayed: 0,
         totalSessionCount: 0,
-        totalTimePlayed: 0
+        totalTimePlayed: 0,
+        mostPlayedGame: null
       };
 
       return {
@@ -1283,10 +1308,82 @@ export const getUsersWithAnalytics = async (
       };
     });
 
+    // Filter by session count
+    if (sessionCount) {
+      const minSessions = parseInt(sessionCount as string);
+      filteredUsers = filteredUsers.filter(user => 
+        user.analytics.totalSessionCount >= minSessions
+      );
+    }
+
+    // Filter by time played (in seconds, converted from minutes)
+    if (minTimePlayed) {
+      const minSeconds = parseInt(minTimePlayed as string);
+      filteredUsers = filteredUsers.filter(user => 
+        user.analytics.totalTimePlayed >= minSeconds
+      );
+    }
+
+    if (maxTimePlayed) {
+      const maxSeconds = parseInt(maxTimePlayed as string);
+      filteredUsers = filteredUsers.filter(user => 
+        user.analytics.totalTimePlayed <= maxSeconds
+      );
+    }
+
+    // Filter by game title - check if user has played the specific game
+    if (gameTitle) {
+      const usersWhoPlayedGame = await analyticsRepository
+        .createQueryBuilder('analytics')
+        .select('DISTINCT analytics.userId', 'userId')
+        .leftJoin('analytics.game', 'game')
+        .where('game.title = :gameTitle', { gameTitle })
+        .andWhere('analytics.gameId IS NOT NULL')
+        .getRawMany();
+
+      const userIdsWhoPlayedGame = new Set(usersWhoPlayedGame.map(item => item.userId));
+      
+      filteredUsers = filteredUsers.filter(user => 
+        userIdsWhoPlayedGame.has(user.id)
+      );
+    }
+
+    // Filter by game category - check if user has played games from the specific category
+    if (gameCategory) {
+      const usersWhoPlayedCategory = await analyticsRepository
+        .createQueryBuilder('analytics')
+        .select('DISTINCT analytics.userId', 'userId')
+        .leftJoin('analytics.game', 'game')
+        .leftJoin('game.category', 'category')
+        .where('category.name = :gameCategory', { gameCategory })
+        .andWhere('analytics.gameId IS NOT NULL')
+        .getRawMany();
+
+      const userIdsWhoPlayedCategory = new Set(usersWhoPlayedCategory.map(item => item.userId));
+      
+      filteredUsers = filteredUsers.filter(user => 
+        userIdsWhoPlayedCategory.has(user.id)
+      );
+    }
+
+    // Filter by country
+    if (country) {
+      filteredUsers = filteredUsers.filter(user => 
+        user.country === country
+      );
+    }
+
+    // Sort by max time played if requested
+    if (sortByMaxTimePlayed === 'true') {
+      filteredUsers = filteredUsers.sort((a, b) => 
+        (b.analytics.totalTimePlayed || 0) - (a.analytics.totalTimePlayed || 0)
+      );
+    }
+
     res.status(200).json({
       success: true,
-      count: users.length,
-      data: usersWithAnalytics
+      count: filteredUsers.length,
+      data: filteredUsers
     });
   } catch (error) {
     next(error);

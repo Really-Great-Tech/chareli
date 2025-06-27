@@ -107,8 +107,8 @@ const SearchableSelect = React.forwardRef<
                     key={option.value}
                     value={option.value}
                     className="cursor-pointer"
-                    onSelect={(currentValue) => {
-                      onValueChange?.(currentValue === value ? "" : currentValue);
+                    onSelect={() => {
+                      onValueChange?.(option.value === value ? "" : option.value);
                       setOpen(false);
                     }}
                   >

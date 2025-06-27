@@ -178,13 +178,13 @@ export default function ReOrderModal({
         </div>
         <div className="flex justify-end">
           <button
-            className="bg-[#F8FAFC] border text-[#0F1621] rounded-md py-2 px-4 mr-2 hover:bg-gray-100"
+            className="bg-[#F8FAFC] border text-[#0F1621] rounded-md py-2 px-4 mr-2 hover:bg-gray-100 cursor-pointer"
             onClick={() => onOpenChange(false)}
           >
             Cancel
           </button>
           <button
-            className="bg-[#D946EF] text-white rounded-md py-2 px-4 hover:bg-[#D946EF]"
+            className="bg-[#D946EF] text-white rounded-md py-2 px-4 hover:bg-[#D946EF] cursor-pointer"
             onClick={handleReorder}
           >
             Reorder

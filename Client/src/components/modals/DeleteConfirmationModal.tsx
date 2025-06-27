@@ -55,14 +55,14 @@ export function DeleteConfirmationModal({
         <div className="flex flex-col sm:flex-row sm:justify-end gap-3 sm:gap-4">
           <Button
             variant="outline"
-            className="w-full sm:w-auto h-10 sm:h-12 text-sm rounded-lg dark:bg-white dark:text-black order-2 sm:order-1"
+            className="w-full sm:w-auto h-10 sm:h-12 text-sm rounded-lg dark:bg-white dark:text-black order-2 sm:order-1 cursor-pointer"
             onClick={() => onOpenChange(false)}
           >
             Cancel
           </Button>
           <Button
             variant="destructive"
-            className="w-full sm:w-auto h-10 sm:h-12 text-sm rounded-lg dark:bg-[#EF4444] order-1 sm:order-2"
+            className="w-full sm:w-auto h-10 sm:h-12 text-sm rounded-lg dark:bg-[#EF4444] order-1 sm:order-2 cursor-pointer"
             onClick={onConfirm}
             disabled={isDeleting}
           >

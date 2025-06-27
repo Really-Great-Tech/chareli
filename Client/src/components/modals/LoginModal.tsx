@@ -378,7 +378,7 @@ export function LoginModal({
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-dmmono"
+                  className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-dmmono cursor-pointer"
                 >
                   Login
                 </Button>

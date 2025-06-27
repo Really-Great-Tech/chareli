@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import AdminNavbar from "../components/single/AdminNavbar";
 import { NavLink } from "react-router-dom";
 import { IoGameControllerOutline } from "react-icons/io5";
@@ -52,7 +52,6 @@ const menuItems = [
 const AdminLayout: React.FC = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const location = useLocation();
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
@@ -79,21 +78,7 @@ const AdminLayout: React.FC = () => {
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
-  // Check if current route is admin route and manage cursor override
-  useEffect(() => {
-    const isAdminRoute = location.pathname.startsWith("/admin");
-
-    if (isAdminRoute) {
-      document.body.classList.add("admin-route");
-    } else {
-      document.body.classList.remove("admin-route");
-    }
-
-    // Cleanup function to remove class when component unmounts
-    return () => {
-      document.body.classList.remove("admin-route");
-    };
-  }, [location.pathname]);
+  // Admin route cursor override logic removed - using normal system cursors throughout
 
   return (
     <div className="admin-layout min-h-screen bg-white dark:bg-[#0f1221] text-gray-900 dark:text-white transition-colors duration-300">

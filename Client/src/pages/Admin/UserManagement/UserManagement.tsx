@@ -86,7 +86,7 @@ export default function UserManagement() {
           >
             <Button
               variant="outline"
-              className="border-[#475568] text-[#475568] flex items-center gap-2 dark:text-white py-5"
+              className="border-[#475568] text-[#475568] flex items-center gap-2 dark:text-white py-5 cursor-pointer"
             >
               Filter
               <div className="text-[#D946EF] bg-[#FAE8FF] px-2 sm:px-3 py-1 rounded-full text-sm">

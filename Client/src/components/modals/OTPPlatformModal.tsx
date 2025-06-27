@@ -103,7 +103,7 @@ export function OTPPlatformModal({
 
         <Button
           onClick={handleSendOTP}
-          className="w-full mt-6 bg-[#E328AF] hover:bg-[#C026D3] text-white font-dmmono py-3 rounded-md text-lg"
+          className="w-full mt-6 bg-[#E328AF] hover:bg-[#C026D3] text-white font-dmmono py-3 cursor-pointer rounded-md text-lg"
         >
           Next
         </Button>

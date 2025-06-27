@@ -59,7 +59,7 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
           allCategories.map((category) => (
             <Button
               key={category.id}
-              className={`text-white ${
+              className={`text-white cursor-pointer ${
                 selectedCategory === category.id
                   ? "bg-[#C026D3]"
                   : "bg-[#94A3B7]"

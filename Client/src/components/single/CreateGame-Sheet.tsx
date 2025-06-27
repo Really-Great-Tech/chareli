@@ -369,7 +369,7 @@ export function CreateGameSheet({
                 <SheetClose asChild>
                   <Button
                     type="button"
-                    className="w-24 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-slate-100"
+                    className="w-24 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-[#E2E8F0] dark:text-gray-300 dark:bg-[#1E293B] dark:border-[#334155] dark:hover:bg-[#334155] cursor-pointer"
                     onClick={() => {
                       formikRef.current?.resetForm();
                       setThumbnailPreview(null);
@@ -382,7 +382,7 @@ export function CreateGameSheet({
                 <Button
                   type="submit"
                   disabled={isSubmitting || !isValid || !dirty}
-                  className="w-24 h-12 bg-[#D946EF] dark:text-white hover:text-[#D946EF] hover:bg-[#F3E8FF] dark:hover:bg-[#c026d3]"
+                  className="w-24 h-12 bg-[#D946EF] text-white hover:bg-[#C026D3] dark:text-white dark:hover:bg-[#C026D3] cursor-pointer"
                 >
                   {isSubmitting ? "Creating..." : "Create"}
                 </Button>

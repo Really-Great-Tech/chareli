@@ -1,4 +1,3 @@
-import { Button } from "../../components/ui/button";
 
 const About: React.FC = () => {
   return (
@@ -32,12 +31,6 @@ const About: React.FC = () => {
             action-packed adventures to brain-teasing puzzles.
           </p>
         </section>
-
-        <div className="flex justify-center">
-          <Button className="bg-[#C026D3] border border-[#C026D3] text-white text-sm sm:text-base md:text-lg text-center px-6 py-2 sm:px-8 sm:py-3">
-            Join our Community
-          </Button>
-        </div>
       </div>
     </div>
   );

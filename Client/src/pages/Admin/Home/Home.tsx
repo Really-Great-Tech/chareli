@@ -32,7 +32,7 @@ export default function Home() {
             <div className="justify-between sm:items-center flex sm:flex-row flex-col gap-4 sm:gap-0 p-3">
               <p className="text-2xl dark:text-[#D946EF]">Dynamic Popup System</p>
               <PopUpSheet>
-                <Button className="bg-[#D946EF] hover:bg-[#C026D3] text-white transition-colors duration-200 w-auto text-sm sm:text-base px-4 py-2">
+                <Button className="bg-[#D946EF] hover:bg-[#C026D3] text-white transition-colors duration-200 w-auto text-sm sm:text-base px-4 py-2 cursor-pointer">
                   Create New Pop-up
                 </Button>
               </PopUpSheet>
@@ -43,7 +43,7 @@ export default function Home() {
                 <p className="text-lg">User View</p>
                 <Button 
                   onClick={handleShowPopup}
-                  className="w-32 bg-[#D946EF] hover:bg-[#C026D3] text-white transition-colors duration-200"
+                  className="w-32 bg-[#D946EF] hover:bg-[#C026D3] text-white transition-colors duration-200 cursor-pointer"
                 >
                   Pop-up Preview
                 </Button>

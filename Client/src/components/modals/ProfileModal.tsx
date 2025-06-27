@@ -93,7 +93,7 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
         {/* Logout Button */}
         <div className="flex justify-end pt-4">
           <button
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#EF4444] hover:bg-[#dc2626] text-white font-dmmono text-base transition-colors focus:outline-none focus:ring-2 focus:ring-[#EF4444] focus:ring-offset-2"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#EF4444] hover:bg-[#dc2626] text-white font-dmmono text-base transition-colors focus:outline-none focus:ring-2 focus:ring-[#EF4444] focus:ring-offset-2 cursor-pointer"
             onClick={handleLogout}
           >
             Logout

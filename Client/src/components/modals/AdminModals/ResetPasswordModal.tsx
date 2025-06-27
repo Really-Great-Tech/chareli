@@ -52,7 +52,7 @@ export default function ResetPasswordModal({
           </div>
           <button
             type="submit"
-            className="w-full mt-2 bg-[#D946EF] text-white py-3 rounded-xl text-lg tracking-wider"
+            className="w-full mt-2 bg-[#D946EF] text-white py-3 rounded-xl text-lg tracking-wider cursor-pointer"
             onClick={() => setOTPOpen(true)}
           >
             Send email

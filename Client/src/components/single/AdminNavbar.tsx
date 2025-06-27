@@ -60,7 +60,7 @@ const AdminNavbar: React.FC = () => {
     <header className="flex justify-between p-4 items-center bg-white dark:bg-[#0f1221] transition-colors duration-300">
       <div
         onClick={() => navigate('/')}
-        className="text-2xl font-extrabold text-[#D946EF] dark:text-[#E879F9] cursor-pointer"
+        className="text-2xl font-extrabold text-[#D946EF] dark:text-[#E879F9] font-ponggame cursor-pointer tracking-wider"
       >
         CHARELI
       </div>
@@ -103,7 +103,7 @@ const AdminNavbar: React.FC = () => {
           )} */}
           <IoMdSettings className='w-6 h-6 cursor-pointer' onClick={() => navigate('/admin/settings')} />
         </div>
-        <div className="space-x-4 flex items-center">
+        <div className="space-x-4 flex items-center cursor-pointer">
           <img
             onClick={toggleDarkMode}
             src={isDarkMode ? moon : sun}
@@ -115,7 +115,7 @@ const AdminNavbar: React.FC = () => {
               logout();
               navigate('/');
             }}
-            className="bg-transparent flex items-center gap-2 text-red-500 hover:bg-red-500 hover:text-white"
+            className="bg-transparent flex items-center gap-2 text-red-500 hover:bg-red-500 hover:text-white cursor-pointer"
           >
             <IoExitOutline className="w-5 h-5" />
             Logout

@@ -84,7 +84,7 @@ export default function CreateNewPassModal({
           </div>
           <button
             type="submit"
-            className="w-full mt-4 bg-[#D946EF] text-white font-bold py-3 rounded-lg text-lg tracking-wider"
+            className="w-full mt-4 bg-[#D946EF] text-white font-bold py-3 rounded-lg cursor-pointer text-lg tracking-wider"
           >
             Login
           </button>

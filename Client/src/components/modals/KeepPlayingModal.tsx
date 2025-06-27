@@ -40,7 +40,7 @@ export default function KeepPlayingModal({ open, isGameLoading }: KeepPlayingMod
           <div className='flex items-center justify-center'>
             <button
               onClick={handleSignupClick}
-              className='bg-[#C026D3] hover:bg-[#a21caf] text-white text-base sm:text-md lg:text-lg font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-xl transition-colors'
+              className='bg-[#C026D3] hover:bg-[#a21caf] text-white text-base sm:text-md lg:text-lg font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-xl transition-colors cursor-pointer'
             >
               Sign Up Now
             </button>

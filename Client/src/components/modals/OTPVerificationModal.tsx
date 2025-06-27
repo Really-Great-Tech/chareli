@@ -193,7 +193,7 @@ export function OTPVerificationModal({
         <Button
           onClick={handleVerify}
           disabled={isVerifying || otp.length !== 6}
-          className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-dmmono text-base sm:text-lg py-2 sm:py-3 mt-4 sm:mt-6"
+          className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-dmmono text-base sm:text-lg py-2 sm:py-3 mt-4 sm:mt-6 cursor-pointer"
         >
           {isVerifying ? "Verifying..." : "Verify"}
         </Button>

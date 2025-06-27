@@ -44,7 +44,7 @@ export default function GameCategories() {
           Game category
         </h1>
         <button
-          className="bg-[#D946EF] text-white px-3 py-2 sm:py-3 rounded-lg text-sm sm:text-base tracking-wide hover:bg-[#D946EF] transition self-start sm:self-auto font-dmmono"
+          className="bg-[#D946EF] text-white px-3 py-2 sm:py-3 rounded-lg text-sm sm:text-base tracking-wide hover:bg-[#D946EF] transition self-start sm:self-auto font-dmmono cursor-pointer"
           onClick={() => setCreateOpen(true)}
         >
           Create New Category
@@ -75,7 +75,7 @@ export default function GameCategories() {
                 <div className="flex gap-2">
                   <button className="p-1 rounded transition">
                     <CiEdit
-                      className="dark:text-white w-5 h-5 text-black"
+                      className="dark:text-white w-5 h-5 text-black cursor-pointer"
                       onClick={() => {
                         setSelectedCategoryId(cat.id);
                         setEditOpen(true);
@@ -84,7 +84,7 @@ export default function GameCategories() {
                   </button>
                   <button className="p-1 rounded transition">
                     <FiTrash2
-                      className="text-black w-5 h-5 dark:text-white"
+                      className="text-black w-5 h-5 dark:text-white cursor-pointer"
                       onClick={() => {
                         setSelectedCategoryId(cat.id);
                         setShowDeleteModal(true);

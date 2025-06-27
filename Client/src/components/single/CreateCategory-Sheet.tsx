@@ -125,7 +125,7 @@ export function CreateCategory({ open, onOpenChange }: CreateCategoryProps) {
                   <Button
                     type="button"
                     variant="outline"
-                    className="dark:text-black dark:bg-white"
+                    className="text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-[#E2E8F0] dark:text-gray-300 dark:bg-[#1E293B] dark:border-[#334155] dark:hover:bg-[#334155] cursor-pointer"
                     onClick={() => {
                       formikRef.current?.resetForm();
                     }}
@@ -138,7 +138,7 @@ export function CreateCategory({ open, onOpenChange }: CreateCategoryProps) {
                   type="submit"
                   disabled={isSubmitting || !isValid || !dirty}
                   variant="default"
-                  className="bg-[#D946EF] hover:bg-accent dark:text-white"
+                  className="bg-[#D946EF] text-white hover:bg-[#C026D3] dark:text-white dark:hover:bg-[#C026D3] cursor-pointer"
                 >
                   {isSubmitting ? "Creating..." : "Create"}
                 </Button>

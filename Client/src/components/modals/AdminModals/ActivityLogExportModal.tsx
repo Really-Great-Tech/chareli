@@ -319,7 +319,7 @@ const ActivityLogExportModal = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-[#D946EF] text-white hover:bg-[#c026d3] tracking-wider py-2">
+        <Button className="bg-[#D946EF] text-white hover:bg-[#c026d3] tracking-wider py-2 cursor-pointer">
           <Download size={16} className="mr-2" />
           Export
         </Button>
@@ -374,7 +374,7 @@ const ActivityLogExportModal = ({
             <Card className="flex items-center p-6 hover:bg-gray-50 cursor-pointer transition-colors dark:bg-[#121C2D]">
               <button
                 onClick={handleExportPDF}
-                className="w-full flex items-center gap-4 justify-center"
+                className="w-full flex items-center gap-4 justify-center cursor-pointer"
               >
                 <File className="h-12 w-12 text-red-600" />
                 <div className="text-left">

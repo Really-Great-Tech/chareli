@@ -34,7 +34,7 @@ export default function ViewProfile() {
   return (
     <div className="px-8 flex flex-col gap-6">
       <Button
-        className="flex items-center justify-center gap-2 text-[#121C2D] mb-2 border border-gray-400 rounded-lg w-22 py-2 px-1 hover:bg-transparent bg-transparent dark:text-white"
+        className="flex items-center justify-center gap-2 text-[#121C2D] mb-2 border border-gray-400 rounded-lg w-22 py-2 px-1 hover:bg-transparent bg-transparent dark:text-white cursor-pointer"
         onClick={handleBack}
       >
         <IoChevronBack />
@@ -61,7 +61,7 @@ export default function ViewProfile() {
               </div>
             </div>
             <Button
-              className="w-full mt-3 border border-white bg-transparent shadow-none text-[#121C2D] h-14 hover:bg-fuchsia-500 dark:text-white"
+              className="w-full mt-3 border border-white bg-transparent shadow-none text-[#121C2D] h-14 hover:bg-fuchsia-500 dark:text-white cursor-pointer"
               onClick={() => setEditOpen(true)}
             >
               Edit <CiEdit />

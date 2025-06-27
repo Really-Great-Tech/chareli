@@ -57,13 +57,13 @@ export function ToggleGameStatusModal({
         <div className="flex flex-col sm:flex-row sm:justify-end gap-3 sm:gap-4">
           <Button
             variant="outline"
-            className="w-full sm:w-auto h-10 sm:h-12 text-sm rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-[#232B3B] dark:bg-white dark:text-[#232B3B] order-2 sm:order-1"
+            className="w-full sm:w-auto h-10 sm:h-12 text-sm rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-[#232B3B] dark:bg-white dark:text-[#232B3B] order-2 sm:order-1 cursor-pointer"
             onClick={() => onOpenChange(false)}
           >
             Cancel
           </Button>
           <Button
-            className="w-full sm:w-auto h-10 sm:h-12 text-sm rounded-lg bg-[#D946EF] text-white tracking-wider hover:bg-[#c026d3] order-1 sm:order-2"
+            className="w-full sm:w-auto h-10 sm:h-12 text-sm rounded-lg bg-[#D946EF] text-white tracking-wider hover:bg-[#c026d3] order-1 sm:order-2 cursor-pointer"
             onClick={onConfirm}
             disabled={isToggling}
           >

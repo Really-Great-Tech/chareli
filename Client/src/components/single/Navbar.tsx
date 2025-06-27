@@ -240,7 +240,7 @@ const Navbar: React.FC = () => {
             {isAdmin && (
               <Button
                 onClick={() => navigate('/admin')}
-                className="bg-[#E328AF] text-white hover:bg-[#C026D3]"
+                className="bg-[#E328AF] text-white hover:bg-[#C026D3] cursor-pointer"
               >
                 Admin Dashboard
               </Button>
@@ -265,7 +265,7 @@ const Navbar: React.FC = () => {
                 logout();
                 navigate('/');
               }}
-              className="bg-transparent border border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+              className="bg-transparent border border-red-500 text-red-500 hover:bg-red-500 hover:text-white cursor-pointer"
             >
               Logout
             </Button>
@@ -285,7 +285,7 @@ const Navbar: React.FC = () => {
                 });
                 setIsSignUpModalOpen(true);
               }}
-              className="bg-transparent border border-[#C026D3] dark:border-purple-400 text-[#C026D3] dark:text-purple-300 text-lg hover:bg-accent hover:text-[#C026D3]">
+              className="bg-transparent border border-[#C026D3] dark:border-purple-400 text-[#C026D3] dark:text-purple-300 text-lg hover:bg-accent hover:text-[#C026D3] cursor-pointer">
               Sign up
             </Button>
           </>

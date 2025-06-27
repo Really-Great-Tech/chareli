@@ -159,7 +159,7 @@ export function EditCategory({
                     <Button
                       type="button"
                       variant="outline"
-                      className="dark:text-black dark:bg-white"
+                      className="dark:text-black dark:bg-white cursor-pointer"
                     >
                       Cancel
                     </Button>
@@ -169,7 +169,7 @@ export function EditCategory({
                     type="submit"
                     disabled={isSubmitting}
                     variant="default"
-                    className="bg-[#D946EF] hover:bg-accent dark:text-white"
+                    className="bg-[#D946EF] hover:bg-accent dark:text-white cursor-pointer"
                   >
                     {isSubmitting ? "Updating..." : "Update"}
                   </Button>

@@ -109,14 +109,14 @@ export function TermsSheet({ open, onOpenChange }: TermsSheetProps) {
           <SheetClose asChild>
             <Button
               type="button"
-              className="w-20 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-accent shadow-none"
+              className="w-20 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-[#E2E8F0] dark:text-gray-300 dark:bg-[#1E293B] dark:border-[#334155] dark:hover:bg-[#334155] shadow-none cursor-pointer"
             >
               Cancel
             </Button>
           </SheetClose>
           <Button
             type="submit"
-            className="w-20 h-12 bg-[#D946EF] dark:text-white hover:text-[#D946EF] hover:bg-[#F3E8FF] shadow-none"
+            className="w-20 h-12 bg-[#D946EF] text-white hover:bg-[#C026D3] dark:text-white dark:hover:bg-[#C026D3] shadow-none cursor-pointer"
             onClick={handleSubmit}
             disabled={!selectedFile || createConfig.isPending}
           >

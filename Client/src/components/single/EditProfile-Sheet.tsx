@@ -221,14 +221,14 @@ export function EditProfileSheet({
                 <SheetClose asChild>
                   <Button
                     variant="outline"
-                    className="w-20 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] dark:text-white"
+                    className="w-20 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] dark:text-white cursor-pointer"
                   >
                     Cancel
                   </Button>
                 </SheetClose>
                 <Button
                   type="submit"
-                  className="w-20 h-12 bg-[#D946EF] text-white tracking-wide"
+                  className="w-20 h-12 bg-[#D946EF] text-white tracking-wide cursor-pointer"
                   disabled={updateUser.isPending}
                 >
                   {updateUser.isPending ? "..." : "Update"}

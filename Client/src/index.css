@@ -60,7 +60,8 @@
   font-family: 'Pong Game', cursive;
 }
 
-body {
+/* Custom cursor disabled - using normal system cursors */
+/* body {
   cursor: url("./assets/icn_hand.svg"), auto;
 }
 
@@ -76,7 +77,7 @@ a,
 
 img.cursor-pointer {
   cursor: url("./assets/icn_hand.svg"), pointer;
-}
+} */
 
 p,
 span,
@@ -97,33 +98,7 @@ h6 {
   font-family: "Dm Mono", cursive;
 }
 
-/* Override custom cursor for admin routes */
-body.admin-route,
-body.admin-route *,
-body.admin-route button,
-body.admin-route [role="button"],
-body.admin-route a,
-body.admin-route .cursor-pointer,
-body.admin-route img.cursor-pointer {
-  cursor: default !important;
-}
-
-body.admin-route a:hover,
-body.admin-route button:hover,
-body.admin-route [role="button"]:hover,
-body.admin-route .cursor-pointer:hover {
-  cursor: pointer !important;
-}
-
-/* Ensure input fields have text cursor in admin */
-body.admin-route input[type="text"],
-body.admin-route input[type="email"],
-body.admin-route input[type="password"],
-body.admin-route input[type="search"],
-body.admin-route input[type="number"],
-body.admin-route textarea {
-  cursor: text !important;
-}
+/* Admin route cursor overrides removed - using normal system cursors throughout */
 
 /* card hover box shadow */
 .gradient-shadow-hover {

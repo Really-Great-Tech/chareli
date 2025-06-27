@@ -281,7 +281,7 @@ const ExportModal = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="flex items-center gap-2 bg-[#D946EF] text-white hover:bg-[#c026d3]">
+        <Button className="flex items-center gap-2 bg-[#D946EF] text-white hover:bg-[#c026d3] cursor-pointer">
           <Download size={16} />
           Export Data
         </Button>
@@ -303,7 +303,7 @@ const ExportModal = ({
               <Card className="flex flex-col items-center p-4 hover:bg-gray-50 cursor-pointer dark:bg-[#121C2D] transition-colors shadow-sm">
                 <button
                   onClick={handleExportCSV}
-                  className="w-full h-full flex flex-col items-center"
+                  className="w-full h-full flex flex-col items-center cursor-pointer"
                 >
                   <FileSpreadsheet className="h-12 w-12 text-green-600 mb-2" />
                   <span className="text-sm font-medium">CSV</span>
@@ -313,7 +313,7 @@ const ExportModal = ({
               <Card className="flex flex-col items-center p-4 hover:bg-gray-50 cursor-pointer transition-colors shadow-sm dark:bg-[#121C2D]">
                 <button
                   onClick={handleExportXLS}
-                  className="w-full h-full flex flex-col items-center"
+                  className="w-full h-full flex flex-col items-center cursor-pointer"
                 >
                   <FileSpreadsheet className="h-12 w-12 text-blue-600 mb-2" />
                   <span className="text-sm font-medium">XLS</span>
@@ -323,7 +323,7 @@ const ExportModal = ({
               <Card className="flex flex-col items-center p-4 hover:bg-gray-50 cursor-pointer transition-colors shadow-sm dark:bg-[#121C2D]">
                 <button
                   onClick={handleExportJSON}
-                  className="w-full h-full flex flex-col items-center"
+                  className="w-full h-full flex flex-col items-center cursor-pointer"
                 >
                   <FileJson className="h-12 w-12 text-amber-600 mb-2" />
                   <span className="text-sm font-medium">JSON</span>
@@ -336,7 +336,7 @@ const ExportModal = ({
             <Card className="flex items-center p-6 hover:bg-gray-50 cursor-pointer transition-colors dark:bg-[#121C2D]">
               <button
                 onClick={handleExportPDF}
-                className="w-full flex items-center gap-4 justify-center"
+                className="w-full flex items-center gap-4 justify-center cursor-pointer"
               >
                 <File className="h-12 w-12 text-red-600" />
                 <div className="text-left">

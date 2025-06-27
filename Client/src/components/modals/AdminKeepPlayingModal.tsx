@@ -61,7 +61,7 @@ export default function AdminKeepPlayingModal({ open, onClose, isGameLoading }: 
           <div className='flex items-center justify-center'>
             <button
               onClick={onClose}
-              className='bg-[#C026D3] hover:bg-[#a21caf] text-white text-base sm:text-lg lg:text-lg font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-xl transition-colors'
+              className='bg-[#C026D3] hover:bg-[#a21caf] text-white text-base sm:text-lg lg:text-lg font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-xl transition-colors cursor-pointer'
             >
               Close Preview
             </button>

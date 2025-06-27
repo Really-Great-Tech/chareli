@@ -212,7 +212,7 @@ export function SignUpModal({
         >
           <span className="text-white text-2xl font-bold">×</span>
         </button>
-        <DialogHeader className="h-full overflow-auto custom-scrollbar">
+        <DialogHeader className="max-h-[80vh] overflow-y-auto custom-scrollbar">
           <DialogTitle className="text-2xl font-bold text-[#E328AF] text-center font-dmmono">
             Sign Up
           </DialogTitle>
@@ -272,7 +272,7 @@ export function SignUpModal({
                               </Label>
                               <Field name="phoneNumber">
                                 {({ field, form }: FieldProps) => (
-                                  <div className="w-full mt-1">
+                                  <div className="w-full mt-2">
                                     <PhoneInput
                                       country="us"
                                       value={field.value}
@@ -525,7 +525,7 @@ export function SignUpModal({
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-dmmono"
+                    className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-dmmono cursor-pointer"
                   >
                     {isSubmitting ? "Creating Account..." : "Sign Up"}
                   </Button>

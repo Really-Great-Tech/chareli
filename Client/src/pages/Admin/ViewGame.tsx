@@ -84,27 +84,27 @@ export default function ViewGame() {
                   ? "Active"
                   : "Inactive"}
               </span>
-              <RiDeleteBin6Line className="text-[#121C2D] w-4 h-5 sm:h-6 dark:text-white" />
+              {/* <RiDeleteBin6Line className="text-[#121C2D] w-4 h-5 sm:h-6 dark:text-white" /> */}
             </div>
           </div>
           {/* <p className="text-center text-[#475568] mb-4 text-sm dark:text-white tracking-wider font-worksans text-xl tracking-wider">{(game as any).game?.description || "N/A"}</p> */}
           <div className="flex flex-col gap-2 w-full">
             <Button
               variant="outline"
-              className="flex items-center justify-center gap-2 w-full border-2 border-[white] text-[#475568] bg-transparent dark:border-2 dark:border-white dark:text-white"
+              className="flex items-center justify-center gap-2 w-full border-2 border-[white] text-[#475568] bg-transparent dark:border-2 dark:border-white dark:text-white cursor-pointer"
               onClick={() => setEditOpen(true)}
             >
               Edit <CiEdit className="dark:text-white" />
             </Button>
             <Button
-              className="flex items-center justify-center gap-2 w-full bg-[#D946EF] text-white tracking-wider hover:bg-[#c026d3]"
+              className="flex items-center justify-center gap-2 w-full bg-[#D946EF] text-white tracking-wider hover:bg-[#c026d3] cursor-pointer"
               onClick={() => setShowDisableModal(true)}
             >
               {(game as any).game?.status === "active" ? "Disable" : "Enable"}{" "}
               <IoEyeOutline />
             </Button>
             <Button
-              className="flex items-center justify-center gap-2 w-full bg-[#EF4444] text-white tracking-wider hover:bg-[#dc2626]"
+              className="flex items-center justify-center gap-2 w-full bg-[#EF4444] text-white tracking-wider hover:bg-[#dc2626] cursor-pointer"
               onClick={() => setShowDeleteModal(true)}
             >
               Delete <RiDeleteBin6Line />

@@ -126,11 +126,11 @@ export function ResetPasswordOTPModal({
         <Button
           onClick={handleVerify}
           disabled={isVerifying || otp.length !== 6}
-          className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-dmmono"
+          className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-dmmono cursor-pointer"
         >
           {isVerifying ? "Verifying..." : "Verify"}
         </Button>
-        <p className=" text-center text-black dark:text-white font-worksans text-[16px] tracking-wider mt-2">
+        <p className=" text-center text-black dark:text-white font-worksans text-[16px] tracking-wider mt-2 cursor-pointer">
           Didn't receive a code?{" "}
           <button
             onClick={handleResendOtp}

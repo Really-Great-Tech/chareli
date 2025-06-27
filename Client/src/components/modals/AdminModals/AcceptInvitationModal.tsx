@@ -83,7 +83,7 @@ export const AcceptInvitationModal: React.FC<AcceptInvitationModalProps> = ({
               </div>
               <button
                 type="submit"
-                className="w-full mt-4 bg-[#D946EF] text-white font-bold py-2 sm:py-3 rounded-lg text-base sm:text-lg tracking-wider"
+                className="w-full mt-4 bg-[#D946EF] text-white font-bold py-2 sm:py-3 rounded-lg text-base sm:text-lg tracking-wider cursor-pointer"
               >
                 Login
               </button>
@@ -168,7 +168,7 @@ export const AcceptInvitationModal: React.FC<AcceptInvitationModalProps> = ({
               </div>
               <button
                 type="submit"
-                className="w-full mt-4 bg-[#D946EF] text-white font-bold py-2 sm:py-3 rounded-lg text-base sm:text-lg tracking-wider"
+                className="w-full mt-4 bg-[#D946EF] text-white font-bold py-2 sm:py-3 rounded-lg text-base sm:text-lg tracking-wider cursor-pointer"
               >
                 Sign Up
               </button>
@@ -176,7 +176,7 @@ export const AcceptInvitationModal: React.FC<AcceptInvitationModalProps> = ({
           )}
         </form>
         <button
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl"
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl cursor-pointer"
           onClick={() => onOpenChange(false)}
           aria-label="Close"
         >

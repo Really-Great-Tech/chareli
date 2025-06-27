@@ -134,7 +134,7 @@ export default function GameManagement() {
             >
               <Button
                 variant="outline"
-                className="border-[#475568] text-[#475568] flex items-center gap-2 dark:text-white py-2 sm:py-[14px] text-sm sm:text-base h-[48px] font-dmmono"
+                className="border-[#475568] text-[#475568] flex items-center gap-2 dark:text-white py-2 sm:py-[14px] text-sm sm:text-base h-[48px] font-dmmono cursor-pointer"
               >
                 Filter Games
                 <RiEqualizer2Line size={24} className="sm:size-8" />
@@ -147,7 +147,7 @@ export default function GameManagement() {
             >
               <Button
                 variant="outline"
-                className="border-[#475568] text-[#475568] flex items-center gap-2 dark:text-white py-2 sm:py-[14px] text-sm sm:text-base h-[48px] font-dmmono"
+                className="border-[#475568] text-[#475568] flex items-center gap-2 dark:text-white py-2 sm:py-[14px] text-sm sm:text-base h-[48px] font-dmmono cursor-pointer"
               >
                 Filter History
                 <RiEqualizer2Line size={24} className="sm:size-8" />
@@ -168,12 +168,12 @@ export default function GameManagement() {
                 Re-order mode <X size={16} color="white" />
               </span>
             ) : (
-              "Reorder Games"
+              <span className="cursor-pointer">Reorder Games</span>
             )}
           </Button>
           {reorderOpen && (
             <Button
-              className={`font-normal text-sm sm:text-base px-[16px] py-[14px] h-[48px] bg-white hover:bg-[#F8FAFC]  text-black border-[#E2E8F0] border-1 dark:border-none font-dmmono ${
+              className={`font-normal text-sm sm:text-base px-[16px] py-[14px] h-[48px] bg-white hover:bg-[#F8FAFC]  text-black border-[#E2E8F0] border-1 dark:border-none font-dmmono cursor-pointer ${
                 reorderHistoryOpen
                   ? "bg-[#86198F] hover:bg-[#86198F] text-white"
                   : ""
@@ -185,7 +185,7 @@ export default function GameManagement() {
           )}
           {!reorderOpen && (
             <CreateGameSheet>
-              <Button className="bg-[#D946EF] text-white hover:bg-[#c026d3] tracking-wider py-2 sm:py-[14px] text-sm sm:text-base h-[48px] font-dmmono">
+              <Button className="bg-[#D946EF] text-white hover:bg-[#c026d3] tracking-wider py-2 sm:py-[14px] text-sm sm:text-base h-[48px] font-dmmono cursor-pointer">
                 Create New Game
               </Button>
             </CreateGameSheet>

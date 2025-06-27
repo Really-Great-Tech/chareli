@@ -234,7 +234,7 @@ export function HistoryFilterSheet({
                   resetFilters();
                   onReset();
                 }}
-                className="w-20 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-accent dark:hover:bg-[#F8FAFC]"
+                className="w-20 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-accent dark:hover:bg-[#F8FAFC] cursor-pointer"
               >
                 Reset
               </Button>
@@ -242,7 +242,7 @@ export function HistoryFilterSheet({
             <SheetClose asChild>
               <Button
                 type="submit"
-                className="w-20 h-12 bg-[#D946EF] dark:text-white hover:text-[#D946EF] hover:bg-[#F3E8FF] dark:hover:text-[#D946EF]"
+                className="w-20 h-12 bg-[#D946EF] dark:text-white hover:text-[#D946EF] hover:bg-[#F3E8FF] dark:hover:text-[#D946EF] cursor-pointer"
               >
                 Filter
               </Button>

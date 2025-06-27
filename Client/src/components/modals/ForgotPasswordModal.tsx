@@ -324,14 +324,14 @@ export function ForgotPasswordModal({
                     <Button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-dmmono"
+                      className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-dmmono cursor-pointer"
                     >
                       {isSubmitting ? "Sending..." : "Send Reset Instructions"}
                     </Button>
                     <Button
                       type="button"
                       onClick={handleBackToLogin}
-                      className="w-full bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-black dark:text-white border border-gray-300 dark:border-gray-700 font-dmmono"
+                      className="w-full bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-black dark:text-white border border-gray-300 dark:border-gray-700 font-dmmono cursor-pointer"
                     >
                       Back to Login
                     </Button>

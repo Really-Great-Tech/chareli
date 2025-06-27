@@ -336,7 +336,7 @@ export default function Configuration() {
       </div>
       <div className="flex justify-end mt-4">
         <button
-          className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
           onClick={handleSave}
           disabled={isSubmitting || isLoadingConfig}
         >

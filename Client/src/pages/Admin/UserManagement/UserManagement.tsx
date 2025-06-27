@@ -15,11 +15,9 @@ import ExportModal from "../../../components/modals/AdminModals/ExportModal";
 import { useNavigate } from "react-router-dom";
 import {
   useUsersAnalytics,
-  useGamesAnalytics,
 } from "../../../backend/analytics.service";
 import type {
   FilterState,
-  GameAnalytics,
 } from "../../../backend/analytics.service";
 import { NoResults } from "../../../components/single/NoResults";
 import { formatTime } from "../../../utils/main";
@@ -44,10 +42,7 @@ export default function UserManagement() {
   });
 
   const { data: users, isLoading } = useUsersAnalytics(filters);
-  const { data: games } = useGamesAnalytics();
   const usersPerPage = 12;
-
-  console.log("users for analytics", users);
 
   const handleFiltersChange = (newFilters: FilterState) => {
     setFilters(newFilters);
@@ -73,62 +68,8 @@ export default function UserManagement() {
     setPage(1);
   };
 
-  // Filter users based on criteria
-  let filteredUsers = users?.filter((user) => {
-    if (
-      filters.registrationDates.startDate &&
-      new Date(user.createdAt) < new Date(filters.registrationDates.startDate)
-    )
-      return false;
-    if (
-      filters.registrationDates.endDate
-    ) {
-      const endDate = new Date(filters.registrationDates.endDate);
-      endDate.setHours(23, 59, 59, 999);
-      if (new Date(user.createdAt) > endDate)
-        return false;
-    }
-    if (
-      filters.sessionCount &&
-      user.analytics?.totalSessionCount < parseInt(filters.sessionCount)
-    )
-      return false;
-    if (
-      filters.timePlayed.min &&
-      (user.analytics?.totalTimePlayed || 0) / 60 < filters.timePlayed.min
-    )
-      return false;
-    if (
-      filters.timePlayed.max &&
-      (user.analytics?.totalTimePlayed || 0) / 60 > filters.timePlayed.max
-    )
-      return false;
-    if (
-      filters.gameCategory &&
-      user.analytics?.mostPlayedGame?.gameId &&
-      !games?.find(
-        (g: GameAnalytics) =>
-          g.id === user.analytics?.mostPlayedGame?.gameId &&
-          g.category?.name === filters.gameCategory
-      )
-    )
-      return false;
-    if (
-      filters.gameTitle &&
-      user.analytics?.mostPlayedGame?.gameTitle !== filters.gameTitle
-    )
-      return false;
-    if (filters.country && user.country !== filters.country) return false;
-    return true;
-  });
-
-  if (filters.sortByMaxTimePlayed && filteredUsers) {
-    filteredUsers = [...filteredUsers].sort(
-      (a, b) =>
-        (b.analytics?.totalTimePlayed || 0) -
-        (a.analytics?.totalTimePlayed || 0)
-    );
-  }
+  // All filtering and sorting is now handled server-side by useUsersAnalytics
+  const filteredUsers = users;
 
   return (
     <div className="px-3">

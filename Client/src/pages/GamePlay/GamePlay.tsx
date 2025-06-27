@@ -33,6 +33,13 @@ export default function GamePlay() {
 
   console.log(isSignUpModalOpen, timeRemaining);
 
+  // Reset loading states when gameId changes (for similar games navigation)
+  useEffect(() => {
+    setIsGameLoading(true);
+    setLoadProgress(0);
+    setTimeRemaining(null);
+  }, [gameId]);
+
   useEffect(() => {
     if (game?.gameFile?.s3Key) {
       const timer = setTimeout(() => {

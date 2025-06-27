@@ -10,7 +10,7 @@ import {
   SheetTrigger,
 } from "../ui/sheet";
 import { SearchableSelect } from "../ui/searchable-select";
-import { useGamesAnalytics } from "../../backend/analytics.service";
+import { useGamesAnalytics, useUsersAnalytics } from "../../backend/analytics.service";
 
 interface FilterState {
   registrationDates: {
@@ -41,9 +41,11 @@ export function UserManagementFilterSheet({
   filters,
   onFiltersChange,
   onReset,
-  users,
 }: UserManagementFilterSheetProps) {
   const { data: games } = useGamesAnalytics();
+  
+  // Get ALL users (unfiltered) to populate dropdown options
+  const { data: allUsers } = useUsersAnalytics();
 
   // Get unique categories from games
   const categories = [
@@ -54,9 +56,9 @@ export function UserManagementFilterSheet({
   const titles = (games?.map((game) => game.title).filter(Boolean) ||
     []) as string[];
 
-  // Get unique countries from users
+  // Get unique countries from ALL users (not filtered users)
   const countries = [
-    ...new Set(users?.map((user) => user.country).filter(Boolean)),
+    ...new Set(allUsers?.map((user) => user.country).filter(Boolean)),
   ].sort() as string[];
 
   const handleChange = (field: keyof FilterState, value: unknown) => {
@@ -65,6 +67,8 @@ export function UserManagementFilterSheet({
       [field]: value,
     });
   };
+
+  console.log("filters:::: ------", filters)
 
   return (
     <Sheet>

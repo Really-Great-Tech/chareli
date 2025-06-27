@@ -131,15 +131,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const message = (response as any)?.message
 
-    console.log(response.data, "login response")
-
-    // If tokens are provided (no OTP case), save them and refresh user
     if (tokens) {
       localStorage.setItem('token', tokens.accessToken);
       localStorage.setItem('refreshToken', tokens.refreshToken);
       await refreshUser();
-      // Invalidate stats to trigger a refetch
       queryClient.invalidateQueries({ queryKey: [BackendRoute.USER_STATS] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_USERS_ANALYTICS] });
     }
     
     return { 

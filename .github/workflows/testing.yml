@@ -91,7 +91,7 @@ jobs:
           path: ./Client/dist
 
   deploy-backend:
-    name: Deploy Backend to App Runner
+    name: Deploy Backend to ECS
     needs: build-and-test
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/test/new-infra'
@@ -128,14 +128,9 @@ jobs:
     name: Deploy Frontend to S3 & Invalidate CloudFront
     needs: build-and-test
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/feat/signedcookies'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/test/new-infra'
 
     steps:
-      # Checkout code is not strictly needed here if the artifact contains everything for deployment
-      # but can be useful if scripts or other files from the repo are needed for the deploy steps.
-      # - name: Checkout Code
-      #   uses: actions/checkout@v4
-
       - name: Download Frontend Build Artifact
         uses: actions/download-artifact@v4
         with:

@@ -22,14 +22,14 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <CustomDialogContent className="bg-white dark:bg-[#18192b] rounded-2xl shadow-lg p-6 sm:p-8 min-w-[320px] max-w-[90vw] w-full sm:w-[420px] border-none">
+      <CustomDialogContent className="bg-white dark:bg-[#18192b] rounded-2xl shadow-lg p-6 sm:p-8 min-w-[320px] max-w-[90vw] w-full sm:w-[420px] max-h-[80vh] overflow-y-auto overflow-x-hidden border-none">
         {/* Custom Close Button */}
         <button
-          className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#C026D3] flex items-center justify-center shadow-lg hover:bg-[#a21caf] transition-colors z-10"
+          className="absolute top-2 right-2 w-8 h-8 rounded-full bg-[#C026D3] flex items-center justify-center shadow-lg hover:bg-[#a21caf] transition-colors z-10"
           onClick={onClose}
           aria-label="Close"
         >
-          <span className="text-white text-xl font-bold">×</span>
+          <span className="text-white text-lg font-bold">×</span>
         </button>
 
         {/* Profile Header */}

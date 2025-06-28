@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { LuExpand, LuX } from 'react-icons/lu';
 import KeepPlayingModal from '../../components/modals/KeepPlayingModal';
@@ -17,10 +18,9 @@ export default function GamePlay() {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
-  const { data: gameData, isLoading, error } = useGameById(gameId || '');
+  const { data: game, isLoading, error } = useGameById(gameId || '');
   const { mutate: createAnalytics } = useCreateAnalytics();
   const analyticsIdRef = useRef<string | null>(null);
-  const game = gameData?.data;
 
   const handleOpenSignUpModal = () => {
     setIsSignUpModalOpen(true);
@@ -173,7 +173,9 @@ export default function GamePlay() {
         <span className="text-xl">Loading game...</span>
       </div>
     );
-  } else if (error) {
+  }
+
+  if (error) {
     content = (
       <div className="flex items-center justify-center h-[80vh]">
         <span className="text-xl text-red-500">
@@ -181,7 +183,28 @@ export default function GamePlay() {
         </span>
       </div>
     );
-  } else if (gameUrl) {
+  }
+
+  if (!game || !gameUrl) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen text-center p-4">
+        <h2 className="text-2xl font-bold text-gray-500 mb-4">
+          Game Not Found
+        </h2>
+        <p className="text-gray-600 dark:text-gray-400">
+          The game you are looking for is either unavailable or does not exist.
+        </p>
+        <Button
+          onClick={() => navigate('/')}
+          className="mt-6 bg-[#D946EF] hover:bg-[#c026d3]"
+        >
+          Return to Home
+        </Button>
+      </div>
+    );
+  }
+
+  if (gameUrl) {
     content = (
       <>
         <div className={expanded ? 'fixed inset-0 z-40 bg-black' : 'relative'}>
@@ -192,7 +215,19 @@ export default function GamePlay() {
           >
             {isGameLoading && (
               <GameLoadingScreen
-                game={game}
+                game={{
+                  title: game.title,
+                  thumbnailFile: game.thumbnailFile
+                    ? {
+                        s3key:
+                          (game.thumbnailFile as any).s3key ??
+                          (game.thumbnailFile as any).s3Key,
+                      }
+                    : undefined,
+                  gameFile: game.gameFile
+                    ? { s3Key: (game.gameFile as any).s3Key }
+                    : undefined,
+                }}
                 onProgress={handleLoadProgress}
                 progress={loadProgress}
               />

@@ -1,7 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { backendService } from './api.service';
 import { BackendRoute } from './constants';
-import type { GameResponse, GameStatus, PaginatedResponse } from './types';
+import type {
+  GameData,
+  GameResponse,
+  GameStatus,
+  PaginatedResponse,
+} from './types';
 
 export const useGames = (params?: {
   categoryId?: string;
@@ -20,14 +25,14 @@ export const useGames = (params?: {
 };
 
 export const useGameById = (id: string) => {
-  return useQuery<any>({
+  return useQuery<GameData>({
     queryKey: [BackendRoute.GAMES, id],
     queryFn: async () => {
       const response = await backendService.get(
         BackendRoute.GAME_BY_ID.replace(':id', id)
       );
-      console.log('Game API Response:', response.data);
-      return response.data as GameResponse;
+      console.log('Game API Response:', response);
+      return response.data;
     },
     enabled: !!id, // Only run the query if an ID string is actually present
     refetchOnWindowFocus: false, // Prevent unnecessary refetches

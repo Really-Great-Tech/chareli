@@ -154,8 +154,8 @@ const config: Config = {
     accessKeyId: getEnv('AWS_ACCESS_KEY_ID', ''),
     secretAccessKey: getEnv('AWS_SECRET_ACCESS_KEY', ''),
     bucket: getEnv('AWS_S3_BUCKET', 'chareli-bucket'),
-    endpoint: process.env.AWS_S3_ENDPOINT,
-    forcePathStyle: getEnv('AWS_S3_FORCE_PATH_STYLE', 'false') === 'true',
+    // endpoint: process.env.AWS_S3_ENDPOINT,
+    // forcePathStyle: getEnv('AWS_S3_FORCE_PATH_STYLE', 'false') === 'true',
     signedUrlExpiration: parseInt(
       getEnv('AWS_SIGNED_URL_EXPIRATION', '3600'),
       10

@@ -5,6 +5,7 @@ import {
   GetObjectCommand,
   HeadObjectCommand,
   S3ServiceException,
+  S3ClientConfig,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import config from '../config/config';
@@ -75,15 +76,28 @@ export class S3Service implements S3ServiceInterface {
   private bucket: string;
 
   constructor() {
-    this.s3Client = new S3Client({
-      region: 'eu-central-1',
-      credentials: {
+    const s3ClientConfig: S3ClientConfig = {
+      region: config.s3.region,
+      // endpoint: config.s3.endpoint,
+      // forcePathStyle: config.s3.forcePathStyle,
+    };
+
+    if (
+      config.env === 'development' &&
+      config.s3.accessKeyId &&
+      config.s3.secretAccessKey
+    ) {
+      logger.info('Using local development credentials for S3');
+      s3ClientConfig.credentials = {
         accessKeyId: config.s3.accessKeyId,
         secretAccessKey: config.s3.secretAccessKey,
-      },
-      endpoint: config.s3.endpoint,
-      forcePathStyle: config.s3.forcePathStyle,
-    });
+      };
+    } else {
+      logger.info(
+        'Initializing S3 client without explicit credentials (expecting IAM Role)'
+      );
+    }
+    this.s3Client = new S3Client(s3ClientConfig);
     this.bucket = config.s3.bucket;
   }
 

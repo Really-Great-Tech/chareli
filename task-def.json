@@ -1,5 +1,5 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:us-east-1:330858616968:task-definition/chareli-task-testing:18",
+    "taskDefinitionArn": "arn:aws:ecs:us-east-1:330858616968:task-definition/chareli-task-testing:22",
     "containerDefinitions": [
         {
             "name": "chareli-ecs-backend-testing-server",
@@ -107,8 +107,8 @@
                     "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/testing/application-secrets-BKqJx9:TWILIO_FROM_NUMBER::"
                 },
                 {
-                    "name": "CLOUDFRONT_PRIVATE_KEY_SECRET_NAME",
-                    "valueFrom": "chareli/testing/cloudfront_private_key"
+                    "name": "CLOUDFRONT_PRIVATE_KEY",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/testing/cloudfront_private_key-YKjcB7"
                 }
             ],
             "logConfiguration": {
@@ -126,7 +126,7 @@
     "taskRoleArn": "arn:aws:iam::330858616968:role/chareli-ecs-task-role-testing",
     "executionRoleArn": "arn:aws:iam::330858616968:role/chareli-ecs-task-execution-testing",
     "networkMode": "awsvpc",
-    "revision": 18,
+    "revision": 22,
     "volumes": [],
     "status": "ACTIVE",
     "requiresAttributes": [
@@ -152,9 +152,6 @@
             "name": "ecs.capability.execution-role-ecr-pull"
         },
         {
-            "name": "ecs.capability.secrets.ssm.environment-variables"
-        },
-        {
             "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
         },
         {
@@ -169,8 +166,8 @@
     "requiresCompatibilities": [
         "FARGATE"
     ],
-    "cpu": "256",
-    "memory": "512",
-    "registeredAt": "2025-06-27T18:50:06.488000+00:00",
+    "cpu": "1024",
+    "memory": "2048",
+    "registeredAt": "2025-06-28T14:12:07.676000+00:00",
     "registeredBy": "arn:aws:iam::330858616968:user/christian_k"
 }

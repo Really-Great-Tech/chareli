@@ -85,7 +85,8 @@ jobs:
       - name: Build Frontend
         working-directory: ./Client
         env:
-          VITE_API_URL: ""
+          VITE_API_URL: "https://testing.chareli.reallygreattech.com"
+          VITE_GAMES_CDN_URL: "https://games-cdn.testing.chareli.reallygreattech.com"
         run: npm run build
 
       - name: Archive Frontend Build

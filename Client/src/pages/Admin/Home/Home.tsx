@@ -108,10 +108,10 @@ function SignupClickInsights() {
     return <div className="text-center py-4">No data available</div>;
   }
 
-  // Total registered users is the verified count
-  // Defaulting to one because Super Admin is created behind the system as part of all users 
-  const verifiedCount = dashboardAnalytics?.totalRegisteredUsers?.current;
-  const didntRegisterCount = (signupAnalytics.totalClicks) - verifiedCount;
+  const verifiedCount = dashboardAnalytics?.totalRegisteredUsers?.current || 0;
+  const totalClicks = signupAnalytics?.totalClicks || 0;
+
+  const didntRegisterCount = Math.max(0, totalClicks - verifiedCount);
 
   const chartData = [
     { name: "Didn't register", value: didntRegisterCount, fill: "#F3C7FA" },

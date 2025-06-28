@@ -9,44 +9,52 @@ import logger from '../utils/logger';
 export class CloudFrontService {
   private readonly keyPairId: string;
   private readonly distributionDomain: string;
-  private readonly secretsManager: SecretsManagerClient;
+  // private readonly secretsManager: SecretsManagerClient;
   private privateKeyPromise: Promise<string>;
 
   constructor() {
     this.distributionDomain = config.cloudfront.distributionDomain;
     this.keyPairId = config.cloudfront.keyPairId;
-    this.secretsManager = new SecretsManagerClient({
-      region: config.s3.region,
-    });
+    // this.secretsManager = new SecretsManagerClient({
+    //   region: config.s3.region,
+    // });
 
-    this.privateKeyPromise = this.fetchPrivateKey();
+    this.privateKeyPromise = this.fetchPrivateKeyFromEnv();
   }
 
-  private async fetchPrivateKey(): Promise<string> {
-    const secretArn = process.env.CLOUDFRONT_PRIVATE_KEY_SECRET_NAME;
+  private async fetchPrivateKeyFromEnv(): Promise<string> {
+    const privateKey = process.env.CLOUDFRONT_PRIVATE_KEY;
 
-    if (!secretArn) {
+    if (!privateKey) {
       logger.error(
-        'CLOUDFRONT_PRIVATE_KEY_SECRET_NAME environment variable is not set'
+        'FATAL: CLOUDFRONT_PRIVATE_KEY environment variable is not set. The ECS task definition is likely misconfigured'
       );
-      throw new Error('Cloudfront private key secret name is not configured.');
+      throw new Error(
+        'Cloudfront private key secret name is not configured in the environment.'
+      );
     }
 
-    try {
-      const command = new GetSecretValueCommand({ SecretId: secretArn });
-      const response = await this.secretsManager.send(command);
+    logger.info(
+      'Successfully loaded CloudFront Private key from environment variable'
+    );
 
-      if (!response.SecretString) {
-        throw new Error('Private key not found in Secrets Manager');
-      }
-      logger.info(
-        'Successfully fetched CloudFront private key from Secrets Manager'
-      );
-      return response.SecretString;
-    } catch (error) {
-      logger.error('Failed to fetch CloudFront private key.', error);
-      throw error;
-    }
+    return privateKey;
+
+    // try {
+    //   const command = new GetSecretValueCommand({ SecretId: secretArn });
+    //   const response = await this.secretsManager.send(command);
+
+    //   if (!response.SecretString) {
+    //     throw new Error('Private key not found in Secrets Manager');
+    //   }
+    //   logger.info(
+    //     'Successfully fetched CloudFront private key from Secrets Manager'
+    //   );
+    //   return response.SecretString;
+    // } catch (error) {
+    //   logger.error('Failed to fetch CloudFront private key.', error);
+    //   throw error;
+    // }
   }
 
   /**

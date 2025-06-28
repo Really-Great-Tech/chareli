@@ -1,0 +1,150 @@
+/* React Select Dark/Light Mode Styles */
+
+/* Light Mode (Default) */
+.react-select-container .react-select__control {
+  background-color: #F1F5F9;
+  border-color: #CBD5E0;
+  min-height: 48px;
+  font-family: var(--font-worksans), sans-serif;
+  font-size: 14px;
+  letter-spacing: 0.025em;
+}
+
+.react-select-container .react-select__control:hover {
+  border-color: #D946EF;
+}
+
+.react-select-container .react-select__control--is-focused {
+  border-color: #D946EF;
+  box-shadow: 0 0 0 1px #D946EF;
+}
+
+.react-select-container .react-select__value-container {
+  padding: 0 12px;
+}
+
+.react-select-container .react-select__placeholder {
+  color: #9CA3AF;
+  font-family: var(--font-worksans), sans-serif;
+  font-size: 14px;
+  letter-spacing: 0.025em;
+}
+
+.react-select-container .react-select__single-value {
+  color: #374151;
+  font-family: var(--font-worksans), sans-serif;
+  font-size: 14px;
+  letter-spacing: 0.025em;
+}
+
+.react-select-container .react-select__input-container {
+  color: #374151;
+  font-family: var(--font-worksans), sans-serif;
+  font-size: 14px;
+  letter-spacing: 0.025em;
+}
+
+.react-select-container .react-select__menu {
+  background-color: white;
+  border: 1px solid #CBD5E0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.react-select-container .react-select__option {
+  color: #374151;
+  font-family: var(--font-worksans), sans-serif;
+  font-size: 14px;
+  letter-spacing: 0.025em;
+}
+
+.react-select-container .react-select__option--is-selected {
+  background-color: #D946EF;
+  color: white;
+}
+
+.react-select-container .react-select__option--is-focused {
+  background-color: #F3E8FF;
+  color: #374151;
+}
+
+.react-select-container .react-select__indicator-separator {
+  display: none;
+}
+
+.react-select-container .react-select__dropdown-indicator {
+  color: #9CA3AF;
+}
+
+.react-select-container .react-select__dropdown-indicator:hover {
+  color: #D946EF;
+}
+
+.react-select-container .react-select__clear-indicator {
+  color: #9CA3AF;
+}
+
+.react-select-container .react-select__clear-indicator:hover {
+  color: #D946EF;
+}
+
+/* Dark Mode */
+.dark .react-select-container .react-select__control {
+  background-color: #121C2D;
+  border-color: #374151;
+}
+
+.dark .react-select-container .react-select__control:hover {
+  border-color: #D946EF;
+}
+
+.dark .react-select-container .react-select__control--is-focused {
+  border-color: #D946EF;
+  box-shadow: 0 0 0 1px #D946EF;
+}
+
+.dark .react-select-container .react-select__placeholder {
+  color: #9CA3AF;
+}
+
+.dark .react-select-container .react-select__single-value {
+  color: white;
+}
+
+.dark .react-select-container .react-select__input-container {
+  color: white;
+}
+
+.dark .react-select-container .react-select__menu {
+  background-color: #121C2D;
+  border-color: #374151;
+}
+
+.dark .react-select-container .react-select__option {
+  color: white;
+}
+
+.dark .react-select-container .react-select__option--is-selected {
+  background-color: #D946EF;
+  color: white;
+}
+
+.dark .react-select-container .react-select__option--is-focused {
+  background-color: #374151;
+  color: white;
+}
+
+.dark .react-select-container .react-select__dropdown-indicator {
+  color: #9CA3AF;
+}
+
+.dark .react-select-container .react-select__dropdown-indicator:hover {
+  color: #D946EF;
+}
+
+.dark .react-select-container .react-select__clear-indicator {
+  color: #9CA3AF;
+}
+
+.dark .react-select-container .react-select__clear-indicator:hover {
+  color: #D946EF;
+}

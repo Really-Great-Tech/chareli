@@ -9,13 +9,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "../ui/sheet";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
+import { SearchableSelect } from "../ui/searchable-select";
 import { useCategories } from "../../backend/category.service";
 import type { GameStatus } from "../../backend/types";
 
@@ -59,22 +53,20 @@ export function FilterSheet({ children, onFilter, onReset }: FilterSheetProps) {
               <Label htmlFor="category" className="text-right text-base">
                 Select Category
               </Label>
-              <Select
+              <SearchableSelect
                 value={selectedCategory}
                 onValueChange={setSelectedCategory}
-              >
-                <SelectTrigger className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-worksans text-sm tracking-wider w-full">
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent className="dark:bg-[#121C2D]">
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {categories?.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                options={[
+                  { value: "all", label: "All Categories" },
+                  ...(categories?.map((category) => ({
+                    value: category.id,
+                    label: category.name
+                  })) || [])
+                ]}
+                placeholder="Select category"
+                searchPlaceholder="Search categories..."
+                emptyText="No categories found"
+              />
             </div>
           </div>
           {/* status */}
@@ -83,16 +75,18 @@ export function FilterSheet({ children, onFilter, onReset }: FilterSheetProps) {
               <Label htmlFor="status" className="text-right text-base">
                 Select Game Status
               </Label>
-              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                <SelectTrigger className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-worksans text-sm tracking-wider w-full">
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent className="dark:bg-[#121C2D]">
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="disabled">Disabled</SelectItem>
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={selectedStatus}
+                onValueChange={setSelectedStatus}
+                options={[
+                  { value: "all", label: "All Status" },
+                  { value: "active", label: "Active" },
+                  { value: "disabled", label: "Disabled" }
+                ]}
+                placeholder="Select status"
+                searchPlaceholder="Search status..."
+                emptyText="No status found"
+              />
             </div>
           </div>
           <div className="flex gap-3 justify-end px-2">

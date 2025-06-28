@@ -9,6 +9,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "../ui/sheet";
+import { SearchableSelect } from "../ui/searchable-select";
 import React from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { useInviteTeamMember } from "../../backend/teams.service";
@@ -102,16 +103,22 @@ export function InviteSheet({ children }: { children: React.ReactNode }) {
                 />
               </div>
               <div className="flex flex-col space-y-2">
-                <Label htmlFor="role" className="text-base">
+                <Label className="text-base">
                   Role
                 </Label>
-                <Field
-                  as="select"
-                  id="role"
-                  name="role"
-                  className="col-span-3 shadow-none text-gray-400 font-thin font-worksans text-sm tracking-wider h-14 bg-[#F1F5F9] border border-[#CBD5E0] rounded-lg dark:bg-[#121C2D] dark:text-white p-2"
-                >
-                  <option value="admin">Admin</option>
+                <Field name="role">
+                  {({ field, form }: any) => (
+                    <SearchableSelect
+                      value={field.value}
+                      onValueChange={(value: string) => form.setFieldValue("role", value)}
+                      options={[
+                        { value: "admin", label: "Admin" }
+                      ]}
+                      placeholder="Select role"
+                      searchPlaceholder="Search roles..."
+                      emptyText="No roles found"
+                    />
+                  )}
                 </Field>
                 <ErrorMessage
                   name="role"

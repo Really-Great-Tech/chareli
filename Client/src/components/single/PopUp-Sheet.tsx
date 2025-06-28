@@ -40,9 +40,9 @@ export function PopUpSheet({ children }: { children: React.ReactNode }) {
   return (
     <Sheet>
       <SheetTrigger asChild>{children}</SheetTrigger>
-      <SheetContent className="font-dmmono dark:bg-[#0F1621]">
-        <SheetHeader>
-          <SheetTitle className="text-xl font-normal tracking-wider mt-6">
+      <SheetContent className="font-dmmono dark:bg-[#0F1621] w-full sm:w-[400px] max-w-full">
+        <SheetHeader className="px-2 sm:px-6 pt-16 pb-4">
+          <SheetTitle className="text-lg sm:text-xl font-normal tracking-wider">
             Admin Configuration
           </SheetTitle>
           <div className="border border-b-gray-200"></div>
@@ -76,7 +76,7 @@ export function PopUpSheet({ children }: { children: React.ReactNode }) {
         >
           {({ isSubmitting }) => (
             <Form>
-              <div className="grid gap-4 p-4">
+              <div className="grid gap-4 px-2 sm:px-4 py-4">
                 {/* title */}
                 <div className="items-center gap-4">
                   <div className="flex flex-col space-y-2">
@@ -154,18 +154,18 @@ export function PopUpSheet({ children }: { children: React.ReactNode }) {
                   </Label>
                 </div> */}
               </div>
-              <div className="flex gap-3 justify-end px-2">
+              <div className="flex flex-col sm:flex-row gap-3 justify-end px-2 sm:px-4 mt-4">
                 <SheetClose asChild>
                   <Button
                     type="button"
-                    className="w-20 h-12 cursor-pointer text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-"
+                    className="w-full sm:w-20 h-12 cursor-pointer text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-gray-100"
                   >
                     Cancel
                   </Button>
                 </SheetClose>
                 <Button
                   type="submit"
-                  className="w-fit h-12 cursor-pointer bg-[#D946EF] hover:bg-[#c026d3] dark:text-white  dark:hover:bg-[#c026d3]"
+                  className="w-full sm:w-fit h-12 cursor-pointer bg-[#D946EF] hover:bg-[#c026d3] dark:text-white dark:hover:bg-[#c026d3] px-4"
                   disabled={isSubmitting || createConfig.isPending}
                 >
                   {isSubmitting || createConfig.isPending

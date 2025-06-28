@@ -60,12 +60,22 @@ export default function Categories() {
             <button
               onClick={() => setShowMobileCategories(!showMobileCategories)}
               className="w-full flex items-center justify-between px-4 py-3 bg-gray-100 dark:bg-gray-800 rounded-lg text-left"
-            >
-              <span className="font-semibold text-[#121C2D] dark:text-white">
-                {selectedCategory
+              title={
+                selectedCategory
                   ? categories.find((cat) => cat.id === selectedCategory)?.name
                   : selectedSecondary
                   ? selectedSecondary
+                  : "All Categories"
+              }
+            >
+              <span className="font-semibold text-[#121C2D] dark:text-white truncate mr-2">
+                {selectedCategory
+                  ? (() => {
+                      const categoryName = categories.find((cat) => cat.id === selectedCategory)?.name || "";
+                      return categoryName.length > 20 ? `${categoryName.substring(0, 20)}...` : categoryName;
+                    })()
+                  : selectedSecondary
+                  ? selectedSecondary.length > 20 ? `${selectedSecondary.substring(0, 20)}...` : selectedSecondary
                   : "All Categories"}
               </span>
               <svg
@@ -113,25 +123,34 @@ export default function Categories() {
                   )}
 
                   {/* Primary Categories */}
-                  {categories.map((cat) => (
-                    <button
-                      key={cat.id}
-                      className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition
-                        ${
-                          selectedCategory === cat.id
-                            ? "bg-[#D946EF] text-white"
-                            : "text-[#121C2D] hover:bg-[#F3E8FF] hover:text-[#D946EF] dark:text-white dark:hover:bg-gray-800"
-                        }
-                      `}
-                      onClick={() => {
-                        setSelectedCategory(cat.id);
-                        setSelectedSecondary(null);
-                        setShowMobileCategories(false);
-                      }}
-                    >
-                      {cat.name}
-                    </button>
-                  ))}
+                  {categories.map((cat) => {
+                    const truncatedName = cat.name.length > 25 
+                      ? `${cat.name.substring(0, 25)}...` 
+                      : cat.name;
+                    
+                    return (
+                      <button
+                        key={cat.id}
+                        className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition
+                          ${
+                            selectedCategory === cat.id
+                              ? "bg-[#D946EF] text-white"
+                              : "text-[#121C2D] hover:bg-[#F3E8FF] hover:text-[#D946EF] dark:text-white dark:hover:bg-gray-800"
+                          }
+                        `}
+                        onClick={() => {
+                          setSelectedCategory(cat.id);
+                          setSelectedSecondary(null);
+                          setShowMobileCategories(false);
+                        }}
+                        title={cat.name.length > 25 ? cat.name : undefined}
+                      >
+                        <span className="block truncate">
+                          {truncatedName}
+                        </span>
+                      </button>
+                    );
+                  })}
 
                   {/* Secondary Categories Divider */}
                   <div className="border-t border-gray-200 dark:border-gray-700 my-2" />
@@ -192,25 +211,40 @@ export default function Categories() {
                     All
                   </button>
                 </li>
-                {categories.map((cat) => (
-                  <li key={cat.id}>
-                    <button
-                      className={`w-full text-left text-lg px-4 py-2 rounded-lg font-semibold cursor-pointer transition
-                        ${
-                          selectedCategory === cat.id
-                            ? "bg-[#D946EF] text-white shadow dark:text-white tracking-wider"
-                            : "text-[#121C2D] hover:bg-[#F3E8FF] hover:text-[#D946EF] dark:text-white tracking-wider dark:hover:text-[#D946EF]"
-                        }
-                      `}
-                      onClick={() => {
-                        setSelectedCategory(cat.id);
-                        setSelectedSecondary(null);
-                      }}
-                    >
-                      {cat.name}
-                    </button>
-                  </li>
-                ))}
+                {categories.map((cat) => {
+                  const truncatedName = cat.name.length > 16 
+                    ? `${cat.name.substring(0, 16)}...` 
+                    : cat.name;
+                  
+                  return (
+                    <li key={cat.id}>
+                      <button
+                        className={`w-full text-left text-lg px-4 py-2 rounded-lg font-semibold cursor-pointer transition relative group
+                          ${
+                            selectedCategory === cat.id
+                              ? "bg-[#D946EF] text-white shadow dark:text-white tracking-wider"
+                              : "text-[#121C2D] hover:bg-[#F3E8FF] hover:text-[#D946EF] dark:text-white tracking-wider dark:hover:text-[#D946EF]"
+                          }
+                        `}
+                        onClick={() => {
+                          setSelectedCategory(cat.id);
+                          setSelectedSecondary(null);
+                        }}
+                        title={cat.name.length > 16 ? cat.name : undefined}
+                      >
+                        <span className="block truncate">
+                          {truncatedName}
+                        </span>
+                        {cat.name.length > 16 && (
+                          <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10 shadow-lg">
+                            {cat.name}
+                            <div className="absolute right-full top-1/2 transform -translate-y-1/2 w-0 h-0 border-t-4 border-b-4 border-r-4 border-transparent border-r-gray-900"></div>
+                          </div>
+                        )}
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             </nav>
             <div className="border-t border-[#E5E7EB] my-4" />

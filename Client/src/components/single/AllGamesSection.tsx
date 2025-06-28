@@ -171,9 +171,8 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
                     <div className="relative h-full overflow-hidden rounded-[20px] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0px_20px_#D946EF,0_0px_10px_rgba(217,70,239,0.8)]">
                       <div className="w-full h-full rounded-[16px] overflow-hidden">
                         <LazyImage
-                          src={game.thumbnailFile?.s3Key || emptyGameImg}
+                          src={game.thumbnailFile?.s3Key}
                           alt={game.title}
-                          placeholder={emptyGameImg}
                           className="w-full h-full object-cover"
                           loadingClassName="rounded-[16px]"
                           spinnerColor="#D946EF"

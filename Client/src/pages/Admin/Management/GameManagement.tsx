@@ -378,7 +378,7 @@ export default function GameManagement() {
                 Showing {(page - 1) * pageSize + 1}-
                 {Math.min(page * pageSize, totalGames)} from {totalGames} data
               </span>
-              <div className="flex items-center gap-2 rounded-xl space-x-4 pr-1 pl-0.5 border border-[#D946EF] dark:text-white">
+              <div className="flex items-center gap-1 rounded-xl space-x-4 pr-1 pl-0.5 border border-[#D946EF] dark:text-white">
                 {Array.from({ length: totalPages }, (_, i) => (
                   <button
                     key={i + 1}

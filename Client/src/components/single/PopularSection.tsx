@@ -78,7 +78,6 @@ const PopularSection = ({
                     <LazyImage
                       src={game.thumbnailFile?.s3Key || emptyGameImg}
                       alt={game.title}
-                      placeholder={emptyGameImg}
                       className="w-full h-full object-cover"
                       loadingClassName="rounded-[28px]"
                       spinnerColor="#D946EF"

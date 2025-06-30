@@ -9,17 +9,14 @@ import logger from '../utils/logger';
 export class CloudFrontService {
   private readonly keyPairId: string;
   private readonly distributionDomain: string;
-  // private readonly secretsManager: SecretsManagerClient;
   private privateKeyPromise: Promise<string>;
 
   constructor() {
     this.distributionDomain = config.cloudfront.distributionDomain;
     this.keyPairId = config.cloudfront.keyPairId;
-    // this.secretsManager = new SecretsManagerClient({
-    //   region: config.s3.region,
-    // });
-
-    this.privateKeyPromise = this.fetchPrivateKeyFromEnv();
+    if (config.env === 'production') {
+      this.privateKeyPromise = this.fetchPrivateKeyFromEnv();
+    }
   }
 
   private async fetchPrivateKeyFromEnv(): Promise<string> {
@@ -39,22 +36,6 @@ export class CloudFrontService {
     );
 
     return privateKey;
-
-    // try {
-    //   const command = new GetSecretValueCommand({ SecretId: secretArn });
-    //   const response = await this.secretsManager.send(command);
-
-    //   if (!response.SecretString) {
-    //     throw new Error('Private key not found in Secrets Manager');
-    //   }
-    //   logger.info(
-    //     'Successfully fetched CloudFront private key from Secrets Manager'
-    //   );
-    //   return response.SecretString;
-    // } catch (error) {
-    //   logger.error('Failed to fetch CloudFront private key.', error);
-    //   throw error;
-    // }
   }
 
   /**

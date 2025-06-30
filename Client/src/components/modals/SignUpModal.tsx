@@ -288,7 +288,7 @@ export function SignUpModal({
                                         backgroundColor: "#E2E8F0",
                                         border: "0",
                                         borderRadius: "0.375rem",
-                                        fontFamily: "Work Sans",
+                                        fontFamily: "Dm Mono, cursive",
                                         fontSize: "11px",
                                       }}
                                       containerClass="dark:bg-[#191c2b]"

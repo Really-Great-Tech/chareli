@@ -2,6 +2,7 @@
 .dark .react-tel-input .form-control {
   background-color: #191c2b !important;
   color: white !important;
+  font-family: "Dm Mono", cursive !important;
 }
 
 .dark .react-tel-input .flag-dropdown {
@@ -15,6 +16,7 @@
 .dark .react-tel-input .country-list {
   background-color: #191c2b !important;
   color: white !important;
+  font-family: "Dm Mono", cursive !important;
 }
 
 .dark .react-tel-input .country-list .country.highlight {
@@ -33,4 +35,18 @@
 .dark .react-tel-input .country-list .search-box input {
   background-color: #191c2b !important;
   color: white !important;
+  font-family: "Dm Mono", cursive !important;
+}
+
+/* Light mode font consistency */
+.react-tel-input .form-control {
+  font-family: "Dm Mono", cursive !important;
+}
+
+.react-tel-input .country-list {
+  font-family: "Dm Mono", cursive !important;
+}
+
+.react-tel-input .country-list .search-box input {
+  font-family: "Dm Mono", cursive !important;
 }

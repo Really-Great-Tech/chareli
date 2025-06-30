@@ -110,6 +110,7 @@ export interface GameData {
   createdAt: string;
   updatedAt: string;
   similarGames?: SimilarGame[];
+  position?: number;
 }
 
 export type GameResponse = GameData;

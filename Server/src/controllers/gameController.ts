@@ -1169,7 +1169,7 @@ export const grantGameAccess = async (
 
     const signedCookieHeaders =
       await cloudFrontService.getSignedCookieHeaders();
-    const rootDomain = '.chareli.reallygreattech.com';
+    const rootDomain = '.testing.chareli.reallygreattech.com';
 
     // Set each cookie on the response
     for (const [key, value] of Object.entries(signedCookieHeaders)) {

@@ -10,7 +10,9 @@ import {
   SheetTrigger,
 } from "../ui/sheet";
 import { SearchableSelect } from "../ui/searchable-select";
-import { useGamesAnalytics, useUsersAnalytics } from "../../backend/analytics.service";
+import { useGames } from "../../backend/games.service";
+import { useCategories } from "../../backend/category.service";
+import { countries } from "country-data-list";
 
 interface FilterState {
   registrationDates: {
@@ -42,24 +44,20 @@ export function UserManagementFilterSheet({
   onFiltersChange,
   onReset,
 }: UserManagementFilterSheetProps) {
-  const { data: games } = useGamesAnalytics();
+  const { data: gamesData } = useGames();
+  const { data: categoriesData } = useCategories();
   
-  // Get ALL users (unfiltered) to populate dropdown options
-  const { data: allUsers } = useUsersAnalytics();
-
-  // Get unique categories from games
   const categories = [
-    ...new Set(games?.map((game) => game.category?.name).filter(Boolean)),
+    ...new Set(categoriesData?.map((category) => category.name).filter(Boolean)),
   ] as string[];
 
-  // Get game titles
-  const titles = (games?.map((game) => game.title).filter(Boolean) ||
-    []) as string[];
 
-  // Get unique countries from ALL users (not filtered users)
-  const countries = [
-    ...new Set(allUsers?.map((user) => user.country).filter(Boolean)),
-  ].sort() as string[];
+  const titles = [
+    ...new Set(((gamesData as any) || [])?.map((game: any) => game.title).filter(Boolean)),
+  ] as string[];
+
+  // Get countries from country-data-list package (standardized list)
+  const countryList = countries.all.map((country: any) => country.name).sort();
 
   const handleChange = (field: keyof FilterState, value: unknown) => {
     onFiltersChange({
@@ -68,7 +66,6 @@ export function UserManagementFilterSheet({
     });
   };
 
-  console.log("filters:::: ------", filters)
 
   return (
     <Sheet>
@@ -201,7 +198,7 @@ export function UserManagementFilterSheet({
             <SearchableSelect
               value={filters.country}
               onValueChange={(value) => handleChange("country", value)}
-              options={countries.map((country) => ({
+              options={countryList.map((country) => ({
                 value: country,
                 label: country,
               }))}

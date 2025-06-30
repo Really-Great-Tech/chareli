@@ -224,7 +224,6 @@ const UserManagementView = () => {
                                 loadingClassName="rounded-lg"
                                 spinnerColor="#D946EF"
                                 rootMargin="50px"
-                                showSpinner={false}
                               />
                             </div>
                           ) : (

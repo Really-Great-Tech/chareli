@@ -98,10 +98,9 @@ export function MostPlayedGames() {
                           src={game.thumbnailFile?.url || ""}
                           alt={game.title}
                           className="w-full h-full object-cover"
-                          loadingClassName="rounded-lg"
+                          loadingClassName="rounded-[16px]"
                           spinnerColor="#D946EF"
                           rootMargin="50px"
-                          showSpinner={false}
                         />
                       </div>
                       <span>{game.title}</span>

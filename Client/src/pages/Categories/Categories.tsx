@@ -298,7 +298,7 @@ export default function Categories() {
                   : ""}
               </div>
             ) : (
-              <div className="grid gap-3 lg:gap-4 w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-[150px]">
                 {games.map((game: any, index: number) => {
                   const spans = [1, 1.3, 1.1];
                   const spanIndex = index % spans.length;
@@ -314,9 +314,8 @@ export default function Categories() {
                       <div className="relative h-full overflow-hidden rounded-[20px] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0px_20px_#D946EF,0_0px_10px_rgba(217,70,239,0.8)]">
                       <div className="w-full h-full rounded-[16px] overflow-hidden">
                         <LazyImage
-                          src={game.thumbnailFile?.s3Key || emptyGameImg}
+                          src={game.thumbnailFile?.s3Key}
                           alt={game.title}
-                          placeholder={emptyGameImg}
                           className="w-full h-full object-cover"
                           loadingClassName="rounded-[16px]"
                           spinnerColor="#D946EF"

@@ -44,22 +44,33 @@ export const useLazyImage = (
   }, [threshold, rootMargin]);
 
   useEffect(() => {
-    if (isInView && src && src !== imageSrc) {
-      const img = new Image();
-      
-      img.onload = () => {
-        setImageSrc(src);
-        setIsLoaded(true);
-        setHasError(false);
-      };
-      
-      img.onerror = () => {
-        setImageSrc(placeholder);
+    if (isInView) {
+      // If no src provided, immediately set error state
+      if (!src) {
+        setImageSrc('');
         setIsLoaded(true);
         setHasError(true);
-      };
+        return;
+      }
       
-      img.src = src;
+      // If src is different from current imageSrc, load new image
+      if (src !== imageSrc) {
+        const img = new Image();
+        
+        img.onload = () => {
+          setImageSrc(src);
+          setIsLoaded(true);
+          setHasError(false);
+        };
+        
+        img.onerror = () => {
+          setImageSrc('');
+          setIsLoaded(true);
+          setHasError(true);
+        };
+        
+        img.src = src;
+      }
     }
   }, [isInView, src, placeholder, imageSrc]);
 

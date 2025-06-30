@@ -66,7 +66,6 @@ export default function ViewGame() {
               loadingClassName="rounded-full"
               spinnerColor="#D946EF"
               rootMargin="50px"
-              showSpinner={false}
             />
           </div>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-center sm:justify-center w-full">

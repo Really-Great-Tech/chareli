@@ -5,6 +5,7 @@ import { RiMenu3Line, RiCloseLine } from 'react-icons/ri';
 import { StatsModal } from '../modals/StatsModal';
 import { ProfileModal } from '../modals/ProfileModal';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { useTrackSignupClick } from '../../backend/signup.analytics.service';
 import { getVisitorSessionId } from '../../utils/sessionUtils';
 
@@ -19,14 +20,8 @@ import { LoginModal } from '../modals/LoginModal';
 
 const Navbar: React.FC = () => {
   const { isAuthenticated, isAdmin, logout } = useAuth();
+  const { isDarkMode, toggleDarkMode } = useTheme();
   const { mutate: trackSignup } = useTrackSignupClick();
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const savedMode = localStorage.getItem('darkMode');
-    if (savedMode) {
-      return JSON.parse(savedMode);
-    }
-    return window.matchMedia("(prefers-color-scheme: dark)").matches;
-  });
 
   const navigate = useNavigate();
   const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
@@ -36,15 +31,6 @@ const Navbar: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isDarkMode]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -60,11 +46,6 @@ const Navbar: React.FC = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
-
-  const toggleDarkMode = () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setIsDarkMode((prev: any) => !prev);
-  };
 
   return (
     <header className="relative flex justify-between p-4 items-center bg-white dark:bg-[#0f1221] transition-colors duration-300">

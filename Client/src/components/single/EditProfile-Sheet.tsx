@@ -181,10 +181,10 @@ export function EditProfileSheet({
                         inputStyle={{
                           width: "100%",
                           height: "48px",
-                          backgroundColor: "#F1F5F9",
+                          backgroundColor: "#E2E8F0",
                           border: "0",
                           borderRadius: "0.375rem",
-                          fontFamily: "pincuk",
+                          fontFamily: "Dm Mono, cursive",
                           fontSize: "11px",
                         }}
                         containerClass="dark:bg-[#121C2D]"

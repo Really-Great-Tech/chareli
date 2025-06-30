@@ -168,7 +168,7 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
                     style={{ gridRow: `span ${Math.round(rowSpan * 2)}` }}
                     onClick={() => handleGameClick(game.id)}
                   >
-                    <div className="relative h-full overflow-hidden rounded-[20px] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0px_20px_#D946EF,0_0px_10px_rgba(217,70,239,0.8)]">
+                    <div className="relative h-full overflow-hidden rounded-[20px] transition-all duration-300 ease-in-out group-hover:shadow-[0_0px_20px_#D946EF,0_0px_10px_rgba(217,70,239,0.8)]">
                       <div className="w-full h-full rounded-[16px] overflow-hidden">
                         <LazyImage
                           src={game.thumbnailFile?.s3Key}

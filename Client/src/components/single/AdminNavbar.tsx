@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { Button } from '../ui/button';
 
 import { IoMdSettings } from "react-icons/io";
@@ -16,25 +17,13 @@ import moon from '../../assets/moon.svg';
 
 const AdminNavbar: React.FC = () => {
   const { logout } = useAuth();
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const savedMode = localStorage.getItem('darkMode');
-    return savedMode ? JSON.parse(savedMode) : false;
-  });
+  const { isDarkMode, toggleDarkMode } = useTheme();
 
   const [showSearch, setShowSearch] = useState(false);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   // const [searchValue, setSearchValue] = useState("");
 
   const navigate = useNavigate();
-
-  useEffect(() => {
-    localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isDarkMode]);
 
   useEffect(() => {
     if (!showSearch) return;
@@ -50,11 +39,6 @@ const AdminNavbar: React.FC = () => {
       searchInputRef.current.focus();
     }
   }, [showSearch]);
-
-  const toggleDarkMode = () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setIsDarkMode((prev: any) => !prev);
-  };
 
   return (
     <header className="flex justify-between p-4 items-center bg-white dark:bg-[#0f1221] transition-colors duration-300">

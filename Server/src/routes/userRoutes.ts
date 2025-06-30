@@ -23,7 +23,7 @@ const router = Router();
 
 // router.use(apiLimiter);
 
-router.post('/', createUserLimiter, validateBody(createUserSchema), createUser);
+router.post('/', validateBody(createUserSchema), createUser);
 router.get('/me/stats', optionalAuthenticate, getCurrentUserStats);
 
 // All user routes require authentication

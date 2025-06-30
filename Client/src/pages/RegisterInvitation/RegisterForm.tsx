@@ -128,15 +128,15 @@ export function RegisterForm({ email, token, onSuccess }: RegisterFormProps) {
                     country="us"
                     value={field.value}
                     onChange={(value) => form.setFieldValue('phoneNumber', formatPhoneNumber(value))}
-                    inputStyle={{
-                      width: "100%",
-                      height: "48px",
-                      backgroundColor: "#E2E8F0",
-                      border: "0",
-                      borderRadius: "0.375rem",
-                      fontFamily: "pincuk",
-                      fontSize: "11px"
-                    }}
+                  inputStyle={{
+                    width: "100%",
+                    height: "48px",
+                    backgroundColor: "#E2E8F0",
+                    border: "0",
+                    borderRadius: "0.375rem",
+                    fontFamily: "Dm Mono, cursive",
+                    fontSize: "11px",
+                  }}
                     containerClass="dark:bg-[#191c2b] z-[999]"
                     buttonStyle={{
                       backgroundColor: "#E2E8F0",

@@ -171,26 +171,145 @@ export default function UserActivityLog() {
             </TableBody>
           </Table>
           {activitiesToShow.length > 0 && (
-            <div className="flex justify-between items-center mt-4">
-              <span className="text-sm">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-4 gap-3">
+              <span className="text-sm order-2 sm:order-1">
                 Showing {startIdx + 1}-{Math.min(endIdx, allActivities.length)}{" "}
                 from {allActivities.length} data
               </span>
-              <div className="flex items-center rounded-xl pr-1 pl-0.5 border border-[#D946EF] dark:text-white">
-                {Array.from({ length: totalActivityPages }, (_, i) => (
+              {totalActivityPages > 1 && (
+                <div className="flex items-center gap-1 order-1 sm:order-2">
+                  {/* Previous button */}
                   <button
-                    key={i + 1}
-                    className={`w-7 h-7 rounded-full ${
-                      activityPage === i + 1
-                        ? "bg-[#D946EF] dark:text-white"
-                        : ""
-                    } text-black dark:text-white`}
-                    onClick={() => setActivityPage(i + 1)}
+                    className={`w-8 h-8 rounded-full transition-colors border border-[#D946EF] ${
+                      activityPage === 1
+                        ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
+                        : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                    }`}
+                    onClick={() => setActivityPage(Math.max(1, activityPage - 1))}
+                    disabled={activityPage === 1}
                   >
-                    {i + 1}
+                    ‹
                   </button>
-                ))}
-              </div>
+
+                  {/* Mobile: Show only current page info */}
+                  <div className="sm:hidden flex items-center gap-1 px-3 py-1 rounded-full border border-[#D946EF]">
+                    <span className="text-sm text-black dark:text-white">
+                      {activityPage} / {totalActivityPages}
+                    </span>
+                  </div>
+
+                  {/* Desktop: Show page numbers with smart truncation */}
+                  <div className="hidden sm:flex items-center gap-1 rounded-full border border-[#D946EF] p-1">
+                    {(() => {
+                      const pages = [];
+                      const maxVisiblePages = 5;
+                      
+                      if (totalActivityPages <= maxVisiblePages) {
+                        // Show all pages if total is small
+                        for (let i = 1; i <= totalActivityPages; i++) {
+                          pages.push(
+                            <button
+                              key={i}
+                              className={`w-8 h-8 rounded-full transition-colors ${
+                                activityPage === i
+                                  ? "bg-[#D946EF] text-white"
+                                  : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                              }`}
+                              onClick={() => setActivityPage(i)}
+                            >
+                              {i}
+                            </button>
+                          );
+                        }
+                      } else {
+                        // Smart truncation for many pages
+                        const startPage = Math.max(1, activityPage - 2);
+                        const endPage = Math.min(totalActivityPages, activityPage + 2);
+                        
+                        // First page
+                        if (startPage > 1) {
+                          pages.push(
+                            <button
+                              key={1}
+                              className={`w-8 h-8 rounded-full transition-colors ${
+                                activityPage === 1
+                                  ? "bg-[#D946EF] text-white"
+                                  : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                              }`}
+                              onClick={() => setActivityPage(1)}
+                            >
+                              1
+                            </button>
+                          );
+                          if (startPage > 2) {
+                            pages.push(
+                              <span key="start-ellipsis" className="px-2 text-gray-500">
+                                ...
+                              </span>
+                            );
+                          }
+                        }
+                        
+                        // Current range
+                        for (let i = startPage; i <= endPage; i++) {
+                          pages.push(
+                            <button
+                              key={i}
+                              className={`w-8 h-8 rounded-full transition-colors ${
+                                activityPage === i
+                                  ? "bg-[#D946EF] text-white"
+                                  : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                              }`}
+                              onClick={() => setActivityPage(i)}
+                            >
+                              {i}
+                            </button>
+                          );
+                        }
+                        
+                        // Last page
+                        if (endPage < totalActivityPages) {
+                          if (endPage < totalActivityPages - 1) {
+                            pages.push(
+                              <span key="end-ellipsis" className="px-2 text-gray-500">
+                                ...
+                              </span>
+                            );
+                          }
+                          pages.push(
+                            <button
+                              key={totalActivityPages}
+                              className={`w-8 h-8 rounded-full transition-colors ${
+                                activityPage === totalActivityPages
+                                  ? "bg-[#D946EF] text-white"
+                                  : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                              }`}
+                              onClick={() => setActivityPage(totalActivityPages)}
+                            >
+                              {totalActivityPages}
+                            </button>
+                          );
+                        }
+                      }
+                      
+                      return pages;
+                    })()}
+                  </div>
+
+                  {/* Next button */}
+                  <button
+                    className={`w-8 h-8 rounded-full transition-colors border border-[#D946EF] ${
+                      activityPage === totalActivityPages
+                        ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
+                        : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                    }`}
+                    onClick={() => setActivityPage(Math.min(totalActivityPages, activityPage + 1))}
+                    disabled={activityPage === totalActivityPages}
+                  >
+                    ›
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -193,26 +193,145 @@ export default function GameActivity() {
           </TableBody>
         </Table>
         {gamesToShow.length > 0 && (
-          <div className="flex justify-between items-center mt-4 pr-4">
-            <span className="text-sm">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-4 pr-4 gap-3">
+            <span className="text-sm order-2 sm:order-1">
               Showing {startIdx + 1}-{Math.min(endIdx, allGames.length)} from{" "}
               {allGames.length} data
             </span>
-            <div className="flex items-center gap-2 rounded-xl space-x-4 pr-1 pl-0.5 border border-[#D946EF] dark:text-white">
-              {Array.from({ length: totalGamePages }, (_, i) => (
+            {totalGamePages > 1 && (
+              <div className="flex items-center gap-1 order-1 sm:order-2">
+                {/* Previous button */}
                 <button
-                  key={i + 1}
-                  className={`w-7 h-7 rounded-full ${
-                    gamePage === i + 1
-                      ? "bg-[#D946EF] text-white dark:bg-gray-400"
-                      : "bg-transparent text-[#D946EF] dark:text-gray-400 hover:bg-[#f3e8ff]"
+                  className={`w-8 h-8 rounded-full transition-colors border border-[#D946EF] ${
+                    gamePage === 1
+                      ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
+                      : "hover:bg-[#F3E8FF] text-black dark:text-white"
                   }`}
-                  onClick={() => setGamePage(i + 1)}
+                  onClick={() => setGamePage(Math.max(1, gamePage - 1))}
+                  disabled={gamePage === 1}
                 >
-                  {i + 1}
+                  ‹
                 </button>
-              ))}
-            </div>
+
+                {/* Mobile: Show only current page info */}
+                <div className="sm:hidden flex items-center gap-1 px-3 py-1 rounded-full border border-[#D946EF]">
+                  <span className="text-sm text-black dark:text-white">
+                    {gamePage} / {totalGamePages}
+                  </span>
+                </div>
+
+                {/* Desktop: Show page numbers with smart truncation */}
+                <div className="hidden sm:flex items-center gap-1 rounded-full border border-[#D946EF] p-1">
+                  {(() => {
+                    const pages = [];
+                    const maxVisiblePages = 5;
+                    
+                    if (totalGamePages <= maxVisiblePages) {
+                      // Show all pages if total is small
+                      for (let i = 1; i <= totalGamePages; i++) {
+                        pages.push(
+                          <button
+                            key={i}
+                            className={`w-8 h-8 rounded-full transition-colors ${
+                              gamePage === i
+                                ? "bg-[#D946EF] text-white"
+                                : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                            }`}
+                            onClick={() => setGamePage(i)}
+                          >
+                            {i}
+                          </button>
+                        );
+                      }
+                    } else {
+                      // Smart truncation for many pages
+                      const startPage = Math.max(1, gamePage - 2);
+                      const endPage = Math.min(totalGamePages, gamePage + 2);
+                      
+                      // First page
+                      if (startPage > 1) {
+                        pages.push(
+                          <button
+                            key={1}
+                            className={`w-8 h-8 rounded-full transition-colors ${
+                              gamePage === 1
+                                ? "bg-[#D946EF] text-white"
+                                : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                            }`}
+                            onClick={() => setGamePage(1)}
+                          >
+                            1
+                          </button>
+                        );
+                        if (startPage > 2) {
+                          pages.push(
+                            <span key="start-ellipsis" className="px-2 text-gray-500">
+                              ...
+                            </span>
+                          );
+                        }
+                      }
+                      
+                      // Current range
+                      for (let i = startPage; i <= endPage; i++) {
+                        pages.push(
+                          <button
+                            key={i}
+                            className={`w-8 h-8 rounded-full transition-colors ${
+                              gamePage === i
+                                ? "bg-[#D946EF] text-white"
+                                : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                            }`}
+                            onClick={() => setGamePage(i)}
+                          >
+                            {i}
+                          </button>
+                        );
+                      }
+                      
+                      // Last page
+                      if (endPage < totalGamePages) {
+                        if (endPage < totalGamePages - 1) {
+                          pages.push(
+                            <span key="end-ellipsis" className="px-2 text-gray-500">
+                              ...
+                            </span>
+                          );
+                        }
+                        pages.push(
+                          <button
+                            key={totalGamePages}
+                            className={`w-8 h-8 rounded-full transition-colors ${
+                              gamePage === totalGamePages
+                                ? "bg-[#D946EF] text-white"
+                                : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                            }`}
+                            onClick={() => setGamePage(totalGamePages)}
+                          >
+                            {totalGamePages}
+                          </button>
+                        );
+                      }
+                    }
+                    
+                    return pages;
+                  })()}
+                </div>
+
+                {/* Next button */}
+                <button
+                  className={`w-8 h-8 rounded-full transition-colors border border-[#D946EF] ${
+                    gamePage === totalGamePages
+                      ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
+                      : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                  }`}
+                  onClick={() => setGamePage(Math.min(totalGamePages, gamePage + 1))}
+                  disabled={gamePage === totalGamePages}
+                >
+                  ›
+                </button>
+              </div>
+            )}
           </div>
         )}
       </Card>

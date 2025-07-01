@@ -373,26 +373,145 @@ export default function GameManagement() {
           </table>
           {/* Pagination */}
           {filteredGames.length > 0 && (
-            <div className="flex justify-between items-center px-4 py-3 bg-[#F1F5F9] dark:bg-[#18192b] rounded-b-xl ">
-              <span className="text-sm">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center px-4 py-3 bg-[#F1F5F9] dark:bg-[#18192b] rounded-b-xl gap-3">
+              <span className="text-sm order-2 sm:order-1">
                 Showing {(page - 1) * pageSize + 1}-
                 {Math.min(page * pageSize, totalGames)} from {totalGames} data
               </span>
-              <div className="flex items-center gap-1 rounded-xl space-x-4 pr-1 pl-0.5 border border-[#D946EF] dark:text-white">
-                {Array.from({ length: totalPages }, (_, i) => (
+              {totalPages > 1 && (
+                <div className="flex items-center gap-1 order-1 sm:order-2">
+                  {/* Previous button */}
                   <button
-                    key={i + 1}
-                    className={`w-7 h-7 rounded-full transition-colors  ${
-                      page === i + 1
-                        ? "bg-[#D946EF] text-white dark:bg-gray-400"
-                        : "bg-transparent text-[#D946EF] dark:text-gray-400 hover:bg-[#f3e8ff]"
+                    className={`w-8 h-8 rounded-full transition-colors border border-[#D946EF] ${
+                      page === 1
+                        ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
+                        : "hover:bg-[#F3E8FF] text-black dark:text-white"
                     }`}
-                    onClick={() => setPage(i + 1)}
+                    onClick={() => setPage(Math.max(1, page - 1))}
+                    disabled={page === 1}
                   >
-                    {i + 1}
+                    ‹
                   </button>
-                ))}
-              </div>
+
+                  {/* Mobile: Show only current page info */}
+                  <div className="sm:hidden flex items-center gap-1 px-3 py-1 rounded-full border border-[#D946EF]">
+                    <span className="text-sm text-black dark:text-white">
+                      {page} / {totalPages}
+                    </span>
+                  </div>
+
+                  {/* Desktop: Show page numbers with smart truncation */}
+                  <div className="hidden sm:flex items-center gap-1 rounded-full border border-[#D946EF] p-1">
+                    {(() => {
+                      const pages = [];
+                      const maxVisiblePages = 5;
+                      
+                      if (totalPages <= maxVisiblePages) {
+                        // Show all pages if total is small
+                        for (let i = 1; i <= totalPages; i++) {
+                          pages.push(
+                            <button
+                              key={i}
+                              className={`w-8 h-8 rounded-full transition-colors ${
+                                page === i
+                                  ? "bg-[#D946EF] text-white"
+                                  : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                              }`}
+                              onClick={() => setPage(i)}
+                            >
+                              {i}
+                            </button>
+                          );
+                        }
+                      } else {
+                        // Smart truncation for many pages
+                        const startPage = Math.max(1, page - 2);
+                        const endPage = Math.min(totalPages, page + 2);
+                        
+                        // First page
+                        if (startPage > 1) {
+                          pages.push(
+                            <button
+                              key={1}
+                              className={`w-8 h-8 rounded-full transition-colors ${
+                                page === 1
+                                  ? "bg-[#D946EF] text-white"
+                                  : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                              }`}
+                              onClick={() => setPage(1)}
+                            >
+                              1
+                            </button>
+                          );
+                          if (startPage > 2) {
+                            pages.push(
+                              <span key="start-ellipsis" className="px-2 text-gray-500">
+                                ...
+                              </span>
+                            );
+                          }
+                        }
+                        
+                        // Current range
+                        for (let i = startPage; i <= endPage; i++) {
+                          pages.push(
+                            <button
+                              key={i}
+                              className={`w-8 h-8 rounded-full transition-colors ${
+                                page === i
+                                  ? "bg-[#D946EF] text-white"
+                                  : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                              }`}
+                              onClick={() => setPage(i)}
+                            >
+                              {i}
+                            </button>
+                          );
+                        }
+                        
+                        // Last page
+                        if (endPage < totalPages) {
+                          if (endPage < totalPages - 1) {
+                            pages.push(
+                              <span key="end-ellipsis" className="px-2 text-gray-500">
+                                ...
+                              </span>
+                            );
+                          }
+                          pages.push(
+                            <button
+                              key={totalPages}
+                              className={`w-8 h-8 rounded-full transition-colors ${
+                                page === totalPages
+                                  ? "bg-[#D946EF] text-white"
+                                  : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                              }`}
+                              onClick={() => setPage(totalPages)}
+                            >
+                              {totalPages}
+                            </button>
+                          );
+                        }
+                      }
+                      
+                      return pages;
+                    })()}
+                  </div>
+
+                  {/* Next button */}
+                  <button
+                    className={`w-8 h-8 rounded-full transition-colors border border-[#D946EF] ${
+                      page === totalPages
+                        ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
+                        : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                    }`}
+                    onClick={() => setPage(Math.min(totalPages, page + 1))}
+                    disabled={page === totalPages}
+                  >
+                    ›
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </Card>
@@ -470,27 +589,144 @@ export default function GameManagement() {
           </table>
           {/* Pagination for history table */}
           {historyTotal > 0 && (
-            <div className="flex justify-between items-center px-4 py-3 bg-[#F1F5F9] dark:bg-[#18192b] rounded-b-xl">
-              <span className="text-sm">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center px-4 py-3 bg-[#F1F5F9] dark:bg-[#18192b] rounded-b-xl gap-3">
+              <span className="text-sm order-2 sm:order-1">
                 Showing {(historyPage - 1) * pageSize + 1}-
                 {Math.min(historyPage * pageSize, historyTotal)} from{" "}
                 {historyTotal} history records
               </span>
               {historyTotalPages > 1 && (
-                <div className="flex items-center gap-2 rounded-xl pr-1 pl-0.5 border border-[#D946EF] dark:text-white">
-                  {Array.from({ length: historyTotalPages }, (_, i) => (
-                    <button
-                      key={i + 1}
-                      className={`w-7 h-7 rounded-full transition-colors  ${
-                        historyPage === i + 1
-                          ? "bg-[#D946EF] text-white dark:bg-gray-400"
-                          : "bg-transparent text-[#D946EF] dark:text-gray-400 hover:bg-[#f3e8ff]"
-                      }`}
-                      onClick={() => setHistoryPage(i + 1)}
-                    >
-                      {i + 1}
-                    </button>
-                  ))}
+                <div className="flex items-center gap-1 order-1 sm:order-2">
+                  {/* Previous button */}
+                  <button
+                    className={`w-8 h-8 rounded-full transition-colors border border-[#D946EF] ${
+                      historyPage === 1
+                        ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
+                        : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                    }`}
+                    onClick={() => setHistoryPage(Math.max(1, historyPage - 1))}
+                    disabled={historyPage === 1}
+                  >
+                    ‹
+                  </button>
+
+                  {/* Mobile: Show only current page info */}
+                  <div className="sm:hidden flex items-center gap-1 px-3 py-1 rounded-full border border-[#D946EF]">
+                    <span className="text-sm text-black dark:text-white">
+                      {historyPage} / {historyTotalPages}
+                    </span>
+                  </div>
+
+                  {/* Desktop: Show page numbers with smart truncation */}
+                  <div className="hidden sm:flex items-center gap-1 rounded-full border border-[#D946EF] p-1">
+                    {(() => {
+                      const pages = [];
+                      const maxVisiblePages = 5;
+                      
+                      if (historyTotalPages <= maxVisiblePages) {
+                        // Show all pages if total is small
+                        for (let i = 1; i <= historyTotalPages; i++) {
+                          pages.push(
+                            <button
+                              key={i}
+                              className={`w-8 h-8 rounded-full transition-colors ${
+                                historyPage === i
+                                  ? "bg-[#D946EF] text-white"
+                                  : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                              }`}
+                              onClick={() => setHistoryPage(i)}
+                            >
+                              {i}
+                            </button>
+                          );
+                        }
+                      } else {
+                        // Smart truncation for many pages
+                        const startPage = Math.max(1, historyPage - 2);
+                        const endPage = Math.min(historyTotalPages, historyPage + 2);
+                        
+                        // First page
+                        if (startPage > 1) {
+                          pages.push(
+                            <button
+                              key={1}
+                              className={`w-8 h-8 rounded-full transition-colors ${
+                                historyPage === 1
+                                  ? "bg-[#D946EF] text-white"
+                                  : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                              }`}
+                              onClick={() => setHistoryPage(1)}
+                            >
+                              1
+                            </button>
+                          );
+                          if (startPage > 2) {
+                            pages.push(
+                              <span key="start-ellipsis" className="px-2 text-gray-500">
+                                ...
+                              </span>
+                            );
+                          }
+                        }
+                        
+                        // Current range
+                        for (let i = startPage; i <= endPage; i++) {
+                          pages.push(
+                            <button
+                              key={i}
+                              className={`w-8 h-8 rounded-full transition-colors ${
+                                historyPage === i
+                                  ? "bg-[#D946EF] text-white"
+                                  : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                              }`}
+                              onClick={() => setHistoryPage(i)}
+                            >
+                              {i}
+                            </button>
+                          );
+                        }
+                        
+                        // Last page
+                        if (endPage < historyTotalPages) {
+                          if (endPage < historyTotalPages - 1) {
+                            pages.push(
+                              <span key="end-ellipsis" className="px-2 text-gray-500">
+                                ...
+                              </span>
+                            );
+                          }
+                          pages.push(
+                            <button
+                              key={historyTotalPages}
+                              className={`w-8 h-8 rounded-full transition-colors ${
+                                historyPage === historyTotalPages
+                                  ? "bg-[#D946EF] text-white"
+                                  : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                              }`}
+                              onClick={() => setHistoryPage(historyTotalPages)}
+                            >
+                              {historyTotalPages}
+                            </button>
+                          );
+                        }
+                      }
+                      
+                      return pages;
+                    })()}
+                  </div>
+
+                  {/* Next button */}
+                  <button
+                    className={`w-8 h-8 rounded-full transition-colors border border-[#D946EF] ${
+                      historyPage === historyTotalPages
+                        ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
+                        : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                    }`}
+                    onClick={() => setHistoryPage(Math.min(historyTotalPages, historyPage + 1))}
+                    disabled={historyPage === historyTotalPages}
+                  >
+                    ›
+                  </button>
                 </div>
               )}
             </div>

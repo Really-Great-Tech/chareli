@@ -207,34 +207,147 @@ export default function UserManagement() {
                         ))}
                   </TableBody>
                 </Table>
-                <div className="flex justify-between items-center mt-4">
-                  <span className="text-sm">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-4 gap-3">
+                  <span className="text-sm order-2 sm:order-1">
                     Showing {(page - 1) * usersPerPage + 1}-
                     {Math.min(page * usersPerPage, filteredUsers?.length || 0)}{" "}
                     from {filteredUsers?.length || 0} data
                   </span>
-                  <div className="flex items-center gap-2 rounded-xl space-x-4 pr-1 pl-0.5 border border-[#D946EF] dark:text-white">
-                    {Array.from(
-                      {
-                        length: Math.ceil(
-                          (filteredUsers?.length || 0) / usersPerPage
-                        ),
-                      },
-                      (_, i) => (
-                        <button
-                          key={i + 1}
-                          className={`w-7 h-7 rounded-full ${
-                            page === i + 1
-                              ? "bg-[#D946EF] text-white"
-                              : "bg-transparent text-[#D946EF]"
-                          } hover:bg-[#f3e8ff]`}
-                          onClick={() => setPage(i + 1)}
-                        >
-                          {i + 1}
-                        </button>
-                      )
-                    )}
-                  </div>
+                  {Math.ceil((filteredUsers?.length || 0) / usersPerPage) > 1 && (
+                    <div className="flex items-center gap-1 order-1 sm:order-2">
+                      {/* Previous button */}
+                      <button
+                        className={`w-8 h-8 rounded-full transition-colors border border-[#D946EF] ${
+                          page === 1
+                            ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
+                            : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                        }`}
+                        onClick={() => setPage(Math.max(1, page - 1))}
+                        disabled={page === 1}
+                      >
+                        ‹
+                      </button>
+
+                      {/* Mobile: Show only current page info */}
+                      <div className="sm:hidden flex items-center gap-1 px-3 py-1 rounded-full border border-[#D946EF]">
+                        <span className="text-sm text-black dark:text-white">
+                          {page} / {Math.ceil((filteredUsers?.length || 0) / usersPerPage)}
+                        </span>
+                      </div>
+
+                      {/* Desktop: Show page numbers with smart truncation */}
+                      <div className="hidden sm:flex items-center gap-1 rounded-full border border-[#D946EF] p-1">
+                        {(() => {
+                          const pages = [];
+                          const totalPages = Math.ceil((filteredUsers?.length || 0) / usersPerPage);
+                          const maxVisiblePages = 5;
+                          
+                          if (totalPages <= maxVisiblePages) {
+                            // Show all pages if total is small
+                            for (let i = 1; i <= totalPages; i++) {
+                              pages.push(
+                                <button
+                                  key={i}
+                                  className={`w-8 h-8 rounded-full transition-colors ${
+                                    page === i
+                                      ? "bg-[#D946EF] text-white"
+                                      : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                                  }`}
+                                  onClick={() => setPage(i)}
+                                >
+                                  {i}
+                                </button>
+                              );
+                            }
+                          } else {
+                            // Smart truncation for many pages
+                            const startPage = Math.max(1, page - 2);
+                            const endPage = Math.min(totalPages, page + 2);
+                            
+                            // First page
+                            if (startPage > 1) {
+                              pages.push(
+                                <button
+                                  key={1}
+                                  className={`w-8 h-8 rounded-full transition-colors ${
+                                    page === 1
+                                      ? "bg-[#D946EF] text-white"
+                                      : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                                  }`}
+                                  onClick={() => setPage(1)}
+                                >
+                                  1
+                                </button>
+                              );
+                              if (startPage > 2) {
+                                pages.push(
+                                  <span key="start-ellipsis" className="px-2 text-gray-500">
+                                    ...
+                                  </span>
+                                );
+                              }
+                            }
+                            
+                            // Current range
+                            for (let i = startPage; i <= endPage; i++) {
+                              pages.push(
+                                <button
+                                  key={i}
+                                  className={`w-8 h-8 rounded-full transition-colors ${
+                                    page === i
+                                      ? "bg-[#D946EF] text-white"
+                                      : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                                  }`}
+                                  onClick={() => setPage(i)}
+                                >
+                                  {i}
+                                </button>
+                              );
+                            }
+                            
+                            // Last page
+                            if (endPage < totalPages) {
+                              if (endPage < totalPages - 1) {
+                                pages.push(
+                                  <span key="end-ellipsis" className="px-2 text-gray-500">
+                                    ...
+                                  </span>
+                                );
+                              }
+                              pages.push(
+                                <button
+                                  key={totalPages}
+                                  className={`w-8 h-8 rounded-full transition-colors ${
+                                    page === totalPages
+                                      ? "bg-[#D946EF] text-white"
+                                      : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                                  }`}
+                                  onClick={() => setPage(totalPages)}
+                                >
+                                  {totalPages}
+                                </button>
+                              );
+                            }
+                          }
+                          
+                          return pages;
+                        })()}
+                      </div>
+
+                      {/* Next button */}
+                      <button
+                        className={`w-8 h-8 rounded-full transition-colors border border-[#D946EF] ${
+                          page === Math.ceil((filteredUsers?.length || 0) / usersPerPage)
+                            ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
+                            : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                        }`}
+                        onClick={() => setPage(Math.min(Math.ceil((filteredUsers?.length || 0) / usersPerPage), page + 1))}
+                        disabled={page === Math.ceil((filteredUsers?.length || 0) / usersPerPage)}
+                      >
+                        ›
+                      </button>
+                    </div>
+                  )}
                 </div>
               </>
             )}

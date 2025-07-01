@@ -87,7 +87,7 @@ export function PopUpSheet({ children }: { children: React.ReactNode }) {
                       as={Input}
                       id="title"
                       name="title"
-                      placeholder="Wanna Keep Playing"
+                      placeholder="Enter pop-up title"
                       className="col-span-3 shadow-none text-gray-400 font-thin font-worksans text-sm tracking-wider h-14 bg-[#F1F5F9] border border-[#CBD5E0]"
                     />
                     <ErrorMessage
@@ -107,7 +107,7 @@ export function PopUpSheet({ children }: { children: React.ReactNode }) {
                       as={Input}
                       id="subtitle"
                       name="subtitle"
-                      placeholder="Sign up now"
+                      placeholder="Enter pop-up subtitle"
                       className="col-span-3 shadow-none text-gray-400 font-thin font-worksans text-sm tracking-wider h-14 bg-[#F1F5F9] border border-[#CBD5E0]"
                     />
                     <ErrorMessage

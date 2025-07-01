@@ -88,7 +88,7 @@ export function TermsSheet({ open, onOpenChange }: TermsSheetProps) {
             <Label className="text-lg mb-2 block">Upload file</Label>
             <div className="flex items-center">
               <label className="w-40 h-38 flex flex-col items-center justify-center border border-[#CBD5E0] rounded-lg cursor-pointer hover:border-[#D946EF] transition">
-                <img src={uploadImg} alt="upload" className="dark:text-white" />
+                <img src={uploadImg} alt="upload" className="dark:invert dark:brightness-0 dark:contrast-100" />
                 <input
                   type="file"
                   accept=".doc,.docx"

@@ -212,7 +212,7 @@ export function SignUpModal({
         >
           <span className="text-white text-2xl font-bold">×</span>
         </button>
-        <DialogHeader className="max-h-[80vh] overflow-y-auto custom-scrollbar">
+        <DialogHeader className="max-h-[70vh] overflow-y-auto custom-scrollbar">
           <DialogTitle className="text-2xl font-bold text-[#E328AF] text-center font-dmmono">
             Sign Up
           </DialogTitle>
@@ -251,7 +251,7 @@ export function SignUpModal({
                                   id="email"
                                   name="email"
                                   placeholder="Enter Email"
-                                  className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-dmmono tracking-wider text-lg font-normal h-[48px]"
+                                  className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-dmmono tracking-wider text-[11px] font-normal h-[48px]"
                                 />
                               </div>
                               <ErrorMessage
@@ -288,7 +288,7 @@ export function SignUpModal({
                                         backgroundColor: "#E2E8F0",
                                         border: "0",
                                         borderRadius: "0.375rem",
-                                        fontFamily: "Work Sans",
+                                        fontFamily: "Dm Mono, cursive",
                                         fontSize: "11px",
                                       }}
                                       containerClass="dark:bg-[#191c2b]"

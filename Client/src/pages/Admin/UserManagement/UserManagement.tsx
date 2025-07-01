@@ -35,9 +35,9 @@ export default function UserManagement() {
       min: 0,
       max: 0,
     },
-    gameTitle: "",
-    gameCategory: "",
-    country: "",
+    gameTitle: [],
+    gameCategory: [],
+    country: [],
     sortByMaxTimePlayed: false,
   });
 
@@ -60,9 +60,9 @@ export default function UserManagement() {
         min: 0,
         max: 0,
       },
-      gameTitle: "",
-      gameCategory: "",
-      country: "",
+      gameTitle: [],
+      gameCategory: [],
+      country: [],
       sortByMaxTimePlayed: false,
     });
     setPage(1);

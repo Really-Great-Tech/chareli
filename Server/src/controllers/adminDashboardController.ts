@@ -1202,6 +1202,11 @@ export const getUsersWithAnalytics = async (
       sortByMaxTimePlayed
     } = req.query;
 
+    // Handle multi-select parameters (they come as arrays)
+    const gameTitles = Array.isArray(gameTitle) ? gameTitle : gameTitle ? [gameTitle] : [];
+    const gameCategories = Array.isArray(gameCategory) ? gameCategory : gameCategory ? [gameCategory] : [];
+    const countries = Array.isArray(country) ? country : country ? [country] : [];
+
     // Build base query for users
     let userQueryBuilder = userRepository.createQueryBuilder('user')
       .leftJoinAndSelect('user.role', 'role')
@@ -1341,45 +1346,45 @@ export const getUsersWithAnalytics = async (
       );
     }
 
-    // Filter by game title - check if user has played the specific game
-    if (gameTitle) {
-      const usersWhoPlayedGame = await analyticsRepository
+    // Filter by game titles - check if user has played any of the specified games
+    if (gameTitles.length > 0) {
+      const usersWhoPlayedGames = await analyticsRepository
         .createQueryBuilder('analytics')
         .select('DISTINCT analytics.userId', 'userId')
         .leftJoin('analytics.game', 'game')
-        .where('game.title = :gameTitle', { gameTitle })
+        .where('game.title IN (:...gameTitles)', { gameTitles })
         .andWhere('analytics.gameId IS NOT NULL')
         .getRawMany();
 
-      const userIdsWhoPlayedGame = new Set(usersWhoPlayedGame.map(item => item.userId));
+      const userIdsWhoPlayedGames = new Set(usersWhoPlayedGames.map(item => item.userId));
       
       filteredUsers = filteredUsers.filter(user => 
-        userIdsWhoPlayedGame.has(user.id)
+        userIdsWhoPlayedGames.has(user.id)
       );
     }
 
-    // Filter by game category - check if user has played games from the specific category
-    if (gameCategory) {
-      const usersWhoPlayedCategory = await analyticsRepository
+    // Filter by game categories - check if user has played games from any of the specified categories
+    if (gameCategories.length > 0) {
+      const usersWhoPlayedCategories = await analyticsRepository
         .createQueryBuilder('analytics')
         .select('DISTINCT analytics.userId', 'userId')
         .leftJoin('analytics.game', 'game')
         .leftJoin('game.category', 'category')
-        .where('category.name = :gameCategory', { gameCategory })
+        .where('category.name IN (:...gameCategories)', { gameCategories })
         .andWhere('analytics.gameId IS NOT NULL')
         .getRawMany();
 
-      const userIdsWhoPlayedCategory = new Set(usersWhoPlayedCategory.map(item => item.userId));
+      const userIdsWhoPlayedCategories = new Set(usersWhoPlayedCategories.map(item => item.userId));
       
       filteredUsers = filteredUsers.filter(user => 
-        userIdsWhoPlayedCategory.has(user.id)
+        userIdsWhoPlayedCategories.has(user.id)
       );
     }
 
-    // Filter by country
-    if (country) {
+    // Filter by countries
+    if (countries.length > 0) {
       filteredUsers = filteredUsers.filter(user => 
-        user.country === country
+        countries.includes(user.country)
       );
     }
 

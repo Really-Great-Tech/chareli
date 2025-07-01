@@ -293,9 +293,9 @@ export interface FilterState {
     min: number;
     max: number;
   };
-  gameTitle: string;
-  gameCategory: string;
-  country: string;
+  gameTitle: string[];
+  gameCategory: string[];
+  country: string[];
   sortByMaxTimePlayed: boolean;
 }
 
@@ -310,9 +310,15 @@ export const useUsersAnalytics = (filters?: FilterState) => {
         if (filters.sessionCount) params.append('sessionCount', filters.sessionCount);
         if (filters.timePlayed.min) params.append('minTimePlayed', String(filters.timePlayed.min * 60)); // Convert to seconds
         if (filters.timePlayed.max) params.append('maxTimePlayed', String(filters.timePlayed.max * 60)); // Convert to seconds
-        if (filters.gameTitle) params.append('gameTitle', filters.gameTitle);
-        if (filters.gameCategory) params.append('gameCategory', filters.gameCategory);
-        if (filters.country) params.append('country', filters.country);
+        if (filters.gameTitle && filters.gameTitle.length > 0) {
+          filters.gameTitle.forEach(title => params.append('gameTitle', title));
+        }
+        if (filters.gameCategory && filters.gameCategory.length > 0) {
+          filters.gameCategory.forEach(category => params.append('gameCategory', category));
+        }
+        if (filters.country && filters.country.length > 0) {
+          filters.country.forEach(country => params.append('country', country));
+        }
         if (filters.sortByMaxTimePlayed) params.append('sortByMaxTimePlayed', 'true');
       }
       const url = `${BackendRoute.ADMIN_USERS_ANALYTICS}${params.toString() ? `?${params.toString()}` : ''}`;

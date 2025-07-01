@@ -9,7 +9,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "../ui/sheet";
-import { SearchableSelect } from "../ui/searchable-select";
+import { MultiSelect } from "../ui/multi-select";
 import { useGames } from "../../backend/games.service";
 import { useCategories } from "../../backend/category.service";
 import { countries } from "country-data-list";
@@ -24,9 +24,9 @@ interface FilterState {
     min: number;
     max: number;
   };
-  gameTitle: string;
-  gameCategory: string;
-  country: string;
+  gameTitle: string[];
+  gameCategory: string[];
+  country: string[];
   sortByMaxTimePlayed: boolean;
 }
 
@@ -166,7 +166,7 @@ export function UserManagementFilterSheet({
           {/* Game Category */}
           <div className="flex flex-col space-y-2">
             <Label className="text-base">Game Category</Label>
-            <SearchableSelect
+            <MultiSelect
               value={filters.gameCategory}
               onValueChange={(value) => handleChange("gameCategory", value)}
               options={categories.map((category) => ({
@@ -182,7 +182,7 @@ export function UserManagementFilterSheet({
           {/* Game Title */}
           <div className="flex flex-col space-y-2">
             <Label className="text-base">Game Title</Label>
-            <SearchableSelect
+            <MultiSelect
               value={filters.gameTitle}
               onValueChange={(value) => handleChange("gameTitle", value)}
               options={titles.map((title) => ({ value: title, label: title }))}
@@ -195,7 +195,7 @@ export function UserManagementFilterSheet({
           {/* Country */}
           <div className="flex flex-col space-y-2">
             <Label className="text-base">Country</Label>
-            <SearchableSelect
+            <MultiSelect
               value={filters.country}
               onValueChange={(value) => handleChange("country", value)}
               options={countryList.map((country) => ({

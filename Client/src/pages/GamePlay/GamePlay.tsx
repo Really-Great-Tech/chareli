@@ -235,6 +235,15 @@ export default function GamePlay() {
                       </span>
                     </div>
                     <div className="flex items-center space-x-3">
+                      {/* Timer display for unauthenticated users in fullscreen */}
+                      {!isAuthenticated && timeRemaining !== null && timeRemaining > 0 && (
+                        <div className="flex items-center space-x-2 bg-purple-600/20 px-3 py-1 rounded-full border border-purple-400/30">
+                          <span className="text-xs text-purple-300">⏱️</span>
+                          <span className="text-white text-sm font-medium">
+                            {Math.floor(timeRemaining / 60)}:{(timeRemaining % 60).toString().padStart(2, '0')}
+                          </span>
+                        </div>
+                      )}
                       <button
                         className="text-white hover:text-purple-400 transition-colors"
                         onClick={() => setExpanded((e) => !e)}
@@ -274,6 +283,15 @@ export default function GamePlay() {
                     </span>
                   </div>
                   <div className="flex items-center space-x-3">
+                    {/* Timer display for unauthenticated users */}
+                    {!isAuthenticated && timeRemaining !== null && timeRemaining > 0 && (
+                      <div className="flex items-center space-x-2 bg-purple-600/20 px-3 py-1 rounded-full border border-purple-400/30">
+                        <span className="text-xs text-purple-300">⏱️</span>
+                        <span className="text-white text-sm font-medium">
+                          {Math.floor(timeRemaining / 60)}:{(timeRemaining % 60).toString().padStart(2, '0')}
+                        </span>
+                      </div>
+                    )}
                     <button
                       className="text-white hover:text-purple-400 transition-colors"
                       onClick={() => setExpanded((e) => !e)}

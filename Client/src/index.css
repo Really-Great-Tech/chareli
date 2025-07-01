@@ -183,3 +183,22 @@ h6 {
     background: transparent;
   }
 }
+
+/* Date picker icon styling */
+.date-input-dark::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: none;
+  opacity: 1;
+}
+
+/* Dark mode specific styling */
+.dark .date-input-dark::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(1.2) !important;
+  opacity: 0.9 !important;
+}
+
+/* Force styling for dark mode class - highest specificity */
+:is(.dark) .date-input-dark::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(1.2) !important;
+  opacity: 0.9 !important;
+}

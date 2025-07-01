@@ -43,7 +43,7 @@ export default function StatsCard() {
   const data = dashboardAnalytics as any;
   const cardData = [
     {
-      title: "Total Users",
+      title: "Unique Users",
       value: data.totalUsers.current,
       icon: <FaRegUser size={32} />,
       change: `${data.totalUsers.percentageChange ?? 0}%`,

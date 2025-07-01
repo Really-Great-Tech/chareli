@@ -75,7 +75,7 @@ const getInitialValues = (
 ): LoginFormValues => ({
   email: isEmailTab ? defaultEmail || "" : undefined,
   phoneNumber: isEmailTab ? undefined : "",
-  password: "",
+  password: "", // Always reset password
 });
 
 export function LoginModal({
@@ -105,10 +105,11 @@ export function LoginModal({
     setLoginError("");
   }, [activeTab]);
 
-  // Clear error message when modal is opened/closed
+  // Clear error message and reset state when modal is opened/closed
   useEffect(() => {
     if (!open) {
       setLoginError("");
+      setShowPassword(false); // Reset password visibility when modal closes
     }
   }, [open]);
 
@@ -204,7 +205,10 @@ export function LoginModal({
                     ? "text-[#E328AF] border-b-2 border-[#E328AF]"
                     : "text-gray-500"
                 }`}
-                onClick={() => setActiveTab("email")}
+                onClick={() => {
+                  setActiveTab("email");
+                  setLoginError(""); // Clear any login errors when switching tabs
+                }}
               >
                 Email
               </button>
@@ -214,7 +218,10 @@ export function LoginModal({
                     ? "text-[#E328AF] border-b-2 border-[#E328AF]"
                     : "text-gray-500"
                 }`}
-                onClick={() => setActiveTab("phone")}
+                onClick={() => {
+                  setActiveTab("phone");
+                  setLoginError(""); // Clear any login errors when switching tabs
+                }}
               >
                 Phone Number
               </button>
@@ -224,6 +231,7 @@ export function LoginModal({
 
         <div className="px-6 pb-6">
           <Formik
+            key={activeTab} // Force re-render when tab changes
             initialValues={getInitialValues(
               defaultEmail,
               activeTab === "email"
@@ -272,7 +280,7 @@ export function LoginModal({
                               backgroundColor: "#E2E8F0",
                               border: "0",
                               borderRadius: "0.375rem",
-                              fontFamily: "Work Sans, cursive",
+                              fontFamily: "Dm Mono, cursive",
                               fontSize: "11px",
                             }}
                             containerClass="dark:bg-[#191c2b] relative z-50"

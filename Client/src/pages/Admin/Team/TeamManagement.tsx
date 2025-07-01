@@ -22,6 +22,8 @@ export default function TeamManagement() {
   const [activeTab, setActiveTab] = useState<"members" | "invitations">(
     "members"
   );
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   const { data: teamData, isLoading, error } = useAllTeamMembers();
   const {
     data: invitationsData,
@@ -87,6 +89,32 @@ export default function TeamManagement() {
     }
   };
 
+  // Reset pagination when switching tabs
+  const handleTabChange = (tab: "members" | "invitations") => {
+    setActiveTab(tab);
+    setCurrentPage(1);
+  };
+
+  // Pagination logic for team members
+  const filteredTeamMembers = teamData?.filter(
+    (member: User) => member.role.name.toLowerCase() !== "player"
+  ) || [];
+  const totalMembersPages = Math.ceil(filteredTeamMembers.length / itemsPerPage);
+  const paginatedMembers = filteredTeamMembers.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Pagination logic for invitations
+  const filteredInvitations = invitationsData?.data?.filter(
+    (invitation: any) => !invitation.isAccepted
+  ) || [];
+  const totalInvitationsPages = Math.ceil(filteredInvitations.length / itemsPerPage);
+  const paginatedInvitations = filteredInvitations.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   return (
     <div className="px-4 sm:px-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
@@ -102,7 +130,7 @@ export default function TeamManagement() {
 
       <div className="flex gap-2 sm:gap-4 mb-6 overflow-x-auto font-dmmono pb-2">
         <button
-          onClick={() => setActiveTab("members")}
+          onClick={() => handleTabChange("members")}
           className={`px-4 py-2 sm:py-3 rounded-lg transition-all whitespace-nowrap text-xs sm:text-sm md:text-base flex-shrink-0 cursor-pointer ${
             activeTab === "members"
               ? "bg-[#D946EF] text-white"
@@ -112,7 +140,7 @@ export default function TeamManagement() {
           Team Members
         </button>
         <button
-          onClick={() => setActiveTab("invitations")}
+          onClick={() => handleTabChange("invitations")}
           className={`px-4 py-2 sm:py-3 rounded-lg transition-all whitespace-nowrap text-xs sm:text-sm md:text-base flex-shrink-0 cursor-pointer ${
             activeTab === "invitations"
               ? "bg-[#D946EF] text-white"
@@ -147,10 +175,7 @@ export default function TeamManagement() {
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D946EF] mx-auto"></div>
                     </td>
                   </tr>
-                ) : !teamData?.filter(
-                    (member: User) =>
-                      member.role.name.toLowerCase() !== "player"
-                  )?.length ? (
+                ) : !filteredTeamMembers.length ? (
                   <tr>
                     <td colSpan={4} className="text-center py-6">
                       <NoResults
@@ -163,12 +188,7 @@ export default function TeamManagement() {
                     </td>
                   </tr>
                 ) : (
-                  teamData
-                    ?.filter(
-                      (member: User) =>
-                        member.role.name.toLowerCase() !== "player"
-                    )
-                    ?.map((member: User) => (
+                  paginatedMembers.map((member: User) => (
                       <tr
                         key={member.id}
                         className="border-t border-[#d8d9da] text-sm font-worksans font-normal tracking-wider"
@@ -227,6 +247,150 @@ export default function TeamManagement() {
               </tbody>
             </table>
           </div>
+          {/* Pagination for team members */}
+          {filteredTeamMembers.length > 0 && (
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center px-4 py-3 bg-[#F1F5F9] dark:bg-[#121C2D] rounded-b-xl gap-3">
+              <span className="text-sm order-2 sm:order-1">
+                Showing {(currentPage - 1) * itemsPerPage + 1}-
+                {Math.min(currentPage * itemsPerPage, filteredTeamMembers.length)} from{" "}
+                {filteredTeamMembers.length} members
+              </span>
+              {totalMembersPages > 1 && (
+                <div className="flex items-center gap-1 order-1 sm:order-2">
+                  {/* Previous button */}
+                  <button
+                    className={`w-8 h-8 rounded-full transition-colors border border-[#D946EF] ${
+                      currentPage === 1
+                        ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
+                        : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                    }`}
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    ‹
+                  </button>
+
+                  {/* Mobile: Show only current page info */}
+                  <div className="sm:hidden flex items-center gap-1 px-3 py-1 rounded-full border border-[#D946EF]">
+                    <span className="text-sm text-black dark:text-white">
+                      {currentPage} / {totalMembersPages}
+                    </span>
+                  </div>
+
+                  {/* Desktop: Show page numbers with smart truncation */}
+                  <div className="hidden sm:flex items-center gap-1 rounded-full border border-[#D946EF] p-1">
+                    {(() => {
+                      const pages = [];
+                      const maxVisiblePages = 5;
+                      
+                      if (totalMembersPages <= maxVisiblePages) {
+                        // Show all pages if total is small
+                        for (let i = 1; i <= totalMembersPages; i++) {
+                          pages.push(
+                            <button
+                              key={i}
+                              className={`w-8 h-8 rounded-full transition-colors ${
+                                currentPage === i
+                                  ? "bg-[#D946EF] text-white"
+                                  : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                              }`}
+                              onClick={() => setCurrentPage(i)}
+                            >
+                              {i}
+                            </button>
+                          );
+                        }
+                      } else {
+                        // Smart truncation for many pages
+                        const startPage = Math.max(1, currentPage - 2);
+                        const endPage = Math.min(totalMembersPages, currentPage + 2);
+                        
+                        // First page
+                        if (startPage > 1) {
+                          pages.push(
+                            <button
+                              key={1}
+                              className={`w-8 h-8 rounded-full transition-colors ${
+                                currentPage === 1
+                                  ? "bg-[#D946EF] text-white"
+                                  : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                              }`}
+                              onClick={() => setCurrentPage(1)}
+                            >
+                              1
+                            </button>
+                          );
+                          if (startPage > 2) {
+                            pages.push(
+                              <span key="start-ellipsis" className="px-2 text-gray-500">
+                                ...
+                              </span>
+                            );
+                          }
+                        }
+                        
+                        // Current range
+                        for (let i = startPage; i <= endPage; i++) {
+                          pages.push(
+                            <button
+                              key={i}
+                              className={`w-8 h-8 rounded-full transition-colors ${
+                                currentPage === i
+                                  ? "bg-[#D946EF] text-white"
+                                  : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                              }`}
+                              onClick={() => setCurrentPage(i)}
+                            >
+                              {i}
+                            </button>
+                          );
+                        }
+                        
+                        // Last page
+                        if (endPage < totalMembersPages) {
+                          if (endPage < totalMembersPages - 1) {
+                            pages.push(
+                              <span key="end-ellipsis" className="px-2 text-gray-500">
+                                ...
+                              </span>
+                            );
+                          }
+                          pages.push(
+                            <button
+                              key={totalMembersPages}
+                              className={`w-8 h-8 rounded-full transition-colors ${
+                                currentPage === totalMembersPages
+                                  ? "bg-[#D946EF] text-white"
+                                  : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                              }`}
+                              onClick={() => setCurrentPage(totalMembersPages)}
+                            >
+                              {totalMembersPages}
+                            </button>
+                          );
+                        }
+                      }
+                      
+                      return pages;
+                    })()}
+                  </div>
+
+                  {/* Next button */}
+                  <button
+                    className={`w-8 h-8 rounded-full transition-colors border border-[#D946EF] ${
+                      currentPage === totalMembersPages
+                        ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
+                        : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                    }`}
+                    onClick={() => setCurrentPage(Math.min(totalMembersPages, currentPage + 1))}
+                    disabled={currentPage === totalMembersPages}
+                  >
+                    ›
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       ) : (
         <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl shadow-none border-none w-full p-3 sm:p-6 overflow-x-auto">
@@ -255,9 +419,7 @@ export default function TeamManagement() {
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D946EF] mx-auto"></div>
                     </td>
                   </tr>
-                ) : !invitationsData?.data?.filter(
-                    (invitation: any) => !invitation.isAccepted
-                  )?.length ? (
+                ) : !filteredInvitations.length ? (
                   <tr>
                     <td colSpan={6} className="text-center py-6">
                       <NoResults
@@ -270,9 +432,7 @@ export default function TeamManagement() {
                     </td>
                   </tr>
                 ) : (
-                  invitationsData.data
-                    .filter((invitation: any) => !invitation.isAccepted)
-                    .map((invitation: any) => (
+                  paginatedInvitations.map((invitation: any) => (
                       <tr
                         key={invitation.id}
                         className="border-t border-[#d8d9da] font-worksans text-xs sm:text-sm tracking-wider"
@@ -338,6 +498,150 @@ export default function TeamManagement() {
               </tbody>
             </table>
           </div>
+          {/* Pagination for invitations */}
+          {filteredInvitations.length > 0 && (
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center px-4 py-3 bg-[#F1F5F9] dark:bg-[#121C2D] rounded-b-xl gap-3">
+              <span className="text-sm order-2 sm:order-1">
+                Showing {(currentPage - 1) * itemsPerPage + 1}-
+                {Math.min(currentPage * itemsPerPage, filteredInvitations.length)} from{" "}
+                {filteredInvitations.length} invitations
+              </span>
+              {totalInvitationsPages > 1 && (
+                <div className="flex items-center gap-1 order-1 sm:order-2">
+                  {/* Previous button */}
+                  <button
+                    className={`w-8 h-8 rounded-full transition-colors border border-[#D946EF] ${
+                      currentPage === 1
+                        ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
+                        : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                    }`}
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    ‹
+                  </button>
+
+                  {/* Mobile: Show only current page info */}
+                  <div className="sm:hidden flex items-center gap-1 px-3 py-1 rounded-full border border-[#D946EF]">
+                    <span className="text-sm text-black dark:text-white">
+                      {currentPage} / {totalInvitationsPages}
+                    </span>
+                  </div>
+
+                  {/* Desktop: Show page numbers with smart truncation */}
+                  <div className="hidden sm:flex items-center gap-1 rounded-full border border-[#D946EF] p-1">
+                    {(() => {
+                      const pages = [];
+                      const maxVisiblePages = 5;
+                      
+                      if (totalInvitationsPages <= maxVisiblePages) {
+                        // Show all pages if total is small
+                        for (let i = 1; i <= totalInvitationsPages; i++) {
+                          pages.push(
+                            <button
+                              key={i}
+                              className={`w-8 h-8 rounded-full transition-colors ${
+                                currentPage === i
+                                  ? "bg-[#D946EF] text-white"
+                                  : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                              }`}
+                              onClick={() => setCurrentPage(i)}
+                            >
+                              {i}
+                            </button>
+                          );
+                        }
+                      } else {
+                        // Smart truncation for many pages
+                        const startPage = Math.max(1, currentPage - 2);
+                        const endPage = Math.min(totalInvitationsPages, currentPage + 2);
+                        
+                        // First page
+                        if (startPage > 1) {
+                          pages.push(
+                            <button
+                              key={1}
+                              className={`w-8 h-8 rounded-full transition-colors ${
+                                currentPage === 1
+                                  ? "bg-[#D946EF] text-white"
+                                  : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                              }`}
+                              onClick={() => setCurrentPage(1)}
+                            >
+                              1
+                            </button>
+                          );
+                          if (startPage > 2) {
+                            pages.push(
+                              <span key="start-ellipsis" className="px-2 text-gray-500">
+                                ...
+                              </span>
+                            );
+                          }
+                        }
+                        
+                        // Current range
+                        for (let i = startPage; i <= endPage; i++) {
+                          pages.push(
+                            <button
+                              key={i}
+                              className={`w-8 h-8 rounded-full transition-colors ${
+                                currentPage === i
+                                  ? "bg-[#D946EF] text-white"
+                                  : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                              }`}
+                              onClick={() => setCurrentPage(i)}
+                            >
+                              {i}
+                            </button>
+                          );
+                        }
+                        
+                        // Last page
+                        if (endPage < totalInvitationsPages) {
+                          if (endPage < totalInvitationsPages - 1) {
+                            pages.push(
+                              <span key="end-ellipsis" className="px-2 text-gray-500">
+                                ...
+                              </span>
+                            );
+                          }
+                          pages.push(
+                            <button
+                              key={totalInvitationsPages}
+                              className={`w-8 h-8 rounded-full transition-colors ${
+                                currentPage === totalInvitationsPages
+                                  ? "bg-[#D946EF] text-white"
+                                  : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                              }`}
+                              onClick={() => setCurrentPage(totalInvitationsPages)}
+                            >
+                              {totalInvitationsPages}
+                            </button>
+                          );
+                        }
+                      }
+                      
+                      return pages;
+                    })()}
+                  </div>
+
+                  {/* Next button */}
+                  <button
+                    className={`w-8 h-8 rounded-full transition-colors border border-[#D946EF] ${
+                      currentPage === totalInvitationsPages
+                        ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
+                        : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                    }`}
+                    onClick={() => setCurrentPage(Math.min(totalInvitationsPages, currentPage + 1))}
+                    disabled={currentPage === totalInvitationsPages}
+                  >
+                    ›
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 

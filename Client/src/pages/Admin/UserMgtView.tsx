@@ -69,8 +69,8 @@ const UserManagementView = () => {
               alt="Profile"
               className="w-20 h-20 rounded-full border-2 border-[#D946EF]"
             />
-            <div className="flex flex-col sm:flex-row gap-3 items-center mt-4 text-center sm:text-left flex-wrap justify-center">
-              <p className="mb-0 text-xl font-normal text-[#121C2D] dark:text-white tracking-wide text-center text-wrap flex">
+            <div className="flex flex-col gap-3 items-center mt-4 text-center w-full">
+              <p className="mb-0 text-xl font-normal text-[#121C2D] dark:text-white tracking-wide text-center break-words w-full px-2" title={`${response.user.firstName ?? ""} ${response.user.lastName ?? ""}`}>
                 {`${response.user.firstName ?? ""} ${
                   response.user.lastName ?? ""
                 }`}
@@ -83,15 +83,15 @@ const UserManagementView = () => {
                 >
                   ●
                 </span>
-                <span className="text-gray-700  dark:text-white font-worksans text-lg tracking-wider">
+                <span className="text-gray-700 dark:text-white font-worksans text-lg tracking-wider break-words" title={response.user.role.name}>
                   {response.user.role.name}
                 </span>
               </div>
             </div>
-            <div className="mt-2 text-sm text-gray-500 font-worksans dark:text-white flex flex-col sm:flex-row items-center gap-2 text-center sm:text-left">
-              last login:{" "}
-              <div className="flex items-center">
-                <span className="bg-indigo-100 px-2 py-0 rounded text-gray-700 dark:bg-[#94A3B7] font-worksans text-sm font-bold tracking-wider">
+            <div className="mt-2 text-sm text-gray-500 font-worksans dark:text-white flex flex-col items-center gap-2 text-center w-full">
+              <span>last login:</span>
+              <div className="flex items-center justify-center w-full">
+                <span className="bg-indigo-100 px-2 py-1 rounded text-gray-700 dark:bg-[#94A3B7] font-worksans text-sm font-bold tracking-wider break-words max-w-full">
                   <span className="dark:text-yellow-300 text-yellow-500 pr-2">
                     ●
                   </span>
@@ -160,20 +160,22 @@ const UserManagementView = () => {
               Profile Details
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 md:gap-x-16 space-y-border-b dark:text-white">
-              <div className="text-fuchsia-500  tracking-wide">Name</div>
-              <div className="text-[#334154] font-worksans text-sm tracking-wider dark:text-white">{`${response.user.firstName} ${response.user.lastName}`}</div>
-              <div className="text-fuchsia-500  tracking-wide">Email</div>
-              <div className="text-[#334154] font-worksans text-sm tracking-wider dark:text-white">
+              <div className="text-fuchsia-500 tracking-wide">Name</div>
+              <div className="text-[#334154] font-worksans text-sm tracking-wider dark:text-white break-words" title={`${response.user.firstName} ${response.user.lastName}`}>
+                {`${response.user.firstName} ${response.user.lastName}`}
+              </div>
+              <div className="text-fuchsia-500 tracking-wide">Email</div>
+              <div className="text-[#334154] font-worksans text-sm tracking-wider dark:text-white break-all" title={response.user.email}>
                 {response.user.email}
               </div>
-              <div className="text-fuchsia-500  tracking-wide">
+              <div className="text-fuchsia-500 tracking-wide">
                 Mobile number
               </div>
-              <div className="text-[#334154] font-worksans text-sm tracking-wider dark:text-white">
+              <div className="text-[#334154] font-worksans text-sm tracking-wider dark:text-white break-all" title={response.user.phoneNumber ?? "-"}>
                 {response.user.phoneNumber ?? "-"}
               </div>
-              <div className="text-fuchsia-500  tracking-wide">Country</div>
-              <div className="text-[#334154] font-worksans text-sm tracking-wider dark:text-white">
+              <div className="text-fuchsia-500 tracking-wide">Country</div>
+              <div className="text-[#334154] font-worksans text-sm tracking-wider dark:text-white break-words" title={response?.user?.country ?? "-"}>
                 {response?.user?.country ?? "-"}
               </div>
             </div>
@@ -245,30 +247,145 @@ const UserManagementView = () => {
               </table>
             </div>
             {games.length > 0 && (
-              <div className="flex flex-col sm:flex-row justify-between items-center gap-4 px-4 py-3 bg-[#F1F5F9] dark:bg-[#121C2D] rounded-b-xl mt-4">
-                <span className="text-sm text-[#121C2D] dark:text-white">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 px-4 py-3 bg-[#F1F5F9] dark:bg-[#121C2D] rounded-b-xl mt-4">
+                <span className="text-sm text-[#121C2D] dark:text-white order-2 sm:order-1">
                   Showing {(page - 1) * PAGE_SIZE + 1}-
                   {Math.min(page * PAGE_SIZE, games.length)} from {games.length}{" "}
                   data
                 </span>
                 {Math.ceil(games.length / PAGE_SIZE) > 1 && (
-                  <div className="flex items-center gap-2 rounded-xl space-x-4 pr-1 pl-0.5 border border-[#D946EF] dark:text-white">
-                    {Array.from(
-                      { length: Math.ceil(games.length / PAGE_SIZE) },
-                      (_, i) => (
-                        <button
-                          key={i + 1}
-                          className={`w-7 h-7 rounded-full transition-colors ${
-                            page === i + 1
-                              ? "bg-[#D946EF] text-white dark:bg-gray-400"
-                              : "bg-transparent text-[#D946EF] dark:text-gray-400 hover:bg-[#f3e8ff]"
-                          }`}
-                          onClick={() => setPage(i + 1)}
-                        >
-                          {i + 1}
-                        </button>
-                      )
-                    )}
+                  <div className="flex items-center gap-1 order-1 sm:order-2">
+                    {/* Previous button */}
+                    <button
+                      className={`w-8 h-8 rounded-full transition-colors border border-[#D946EF] ${
+                        page === 1
+                          ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
+                          : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                      }`}
+                      onClick={() => setPage(Math.max(1, page - 1))}
+                      disabled={page === 1}
+                    >
+                      ‹
+                    </button>
+
+                    {/* Mobile: Show only current page info */}
+                    <div className="sm:hidden flex items-center gap-1 px-3 py-1 rounded-full border border-[#D946EF]">
+                      <span className="text-sm text-black dark:text-white">
+                        {page} / {Math.ceil(games.length / PAGE_SIZE)}
+                      </span>
+                    </div>
+
+                    {/* Desktop: Show page numbers with smart truncation */}
+                    <div className="hidden sm:flex items-center gap-1 rounded-full border border-[#D946EF] p-1">
+                      {(() => {
+                        const pages = [];
+                        const totalPages = Math.ceil(games.length / PAGE_SIZE);
+                        const maxVisiblePages = 5;
+                        
+                        if (totalPages <= maxVisiblePages) {
+                          // Show all pages if total is small
+                          for (let i = 1; i <= totalPages; i++) {
+                            pages.push(
+                              <button
+                                key={i}
+                                className={`w-8 h-8 rounded-full transition-colors ${
+                                  page === i
+                                    ? "bg-[#D946EF] text-white"
+                                    : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                                }`}
+                                onClick={() => setPage(i)}
+                              >
+                                {i}
+                              </button>
+                            );
+                          }
+                        } else {
+                          // Smart truncation for many pages
+                          const startPage = Math.max(1, page - 2);
+                          const endPage = Math.min(totalPages, page + 2);
+                          
+                          // First page
+                          if (startPage > 1) {
+                            pages.push(
+                              <button
+                                key={1}
+                                className={`w-8 h-8 rounded-full transition-colors ${
+                                  page === 1
+                                    ? "bg-[#D946EF] text-white"
+                                    : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                                }`}
+                                onClick={() => setPage(1)}
+                              >
+                                1
+                              </button>
+                            );
+                            if (startPage > 2) {
+                              pages.push(
+                                <span key="start-ellipsis" className="px-2 text-gray-500">
+                                  ...
+                                </span>
+                              );
+                            }
+                          }
+                          
+                          // Current range
+                          for (let i = startPage; i <= endPage; i++) {
+                            pages.push(
+                              <button
+                                key={i}
+                                className={`w-8 h-8 rounded-full transition-colors ${
+                                  page === i
+                                    ? "bg-[#D946EF] text-white"
+                                    : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                                }`}
+                                onClick={() => setPage(i)}
+                              >
+                                {i}
+                              </button>
+                            );
+                          }
+                          
+                          // Last page
+                          if (endPage < totalPages) {
+                            if (endPage < totalPages - 1) {
+                              pages.push(
+                                <span key="end-ellipsis" className="px-2 text-gray-500">
+                                  ...
+                                </span>
+                              );
+                            }
+                            pages.push(
+                              <button
+                                key={totalPages}
+                                className={`w-8 h-8 rounded-full transition-colors ${
+                                  page === totalPages
+                                    ? "bg-[#D946EF] text-white"
+                                    : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                                }`}
+                                onClick={() => setPage(totalPages)}
+                              >
+                                {totalPages}
+                              </button>
+                            );
+                          }
+                        }
+                        
+                        return pages;
+                      })()}
+                    </div>
+
+                    {/* Next button */}
+                    <button
+                      className={`w-8 h-8 rounded-full transition-colors border border-[#D946EF] ${
+                        page === Math.ceil(games.length / PAGE_SIZE)
+                          ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
+                          : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                      }`}
+                      onClick={() => setPage(Math.min(Math.ceil(games.length / PAGE_SIZE), page + 1))}
+                      disabled={page === Math.ceil(games.length / PAGE_SIZE)}
+                    >
+                      ›
+                    </button>
                   </div>
                 )}
               </div>

@@ -1224,13 +1224,23 @@ export const getUsersWithAnalytics = async (
 
     // Apply date range filter if provided
     if (startDate && endDate) {
-      userQueryBuilder = userQueryBuilder.andWhere('user.createdAt BETWEEN :startDate AND :endDate', {
-        startDate: new Date(startDate as string),
-        endDate: new Date(endDate as string)
+      // Create date objects and set time to cover the full day
+      const start = new Date(startDate as string);
+      start.setHours(0, 0, 0, 0); // Start of day
+      
+      const end = new Date(endDate as string);
+      end.setHours(23, 59, 59, 999); // End of day
+      
+      userQueryBuilder = userQueryBuilder.andWhere('user.createdAt >= :startDate AND user.createdAt <= :endDate', {
+        startDate: start,
+        endDate: end
       });
     } else if (startDate) {
+      const start = new Date(startDate as string);
+      start.setHours(0, 0, 0, 0); // Start of day
+      
       userQueryBuilder = userQueryBuilder.andWhere('user.createdAt >= :startDate', {
-        startDate: new Date(startDate as string)
+        startDate: start
       });
     }
 

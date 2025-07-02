@@ -89,6 +89,7 @@ describe('AllGamesSection Business Logic', () => {
 
       const allCategories = [
         { id: "all", name: "All Games", color: "#C026D3" },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ...((emptyCategoriesData as any)?.map((cat: any) => ({
           id: cat.id,
           name: cat.name,

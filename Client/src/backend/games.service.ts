@@ -20,6 +20,7 @@ export const useGames = (params?: {
 };
 
 export const useGameById = (id: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return useQuery<any>({
     queryKey: [BackendRoute.GAMES, id],
     queryFn: async () => {
@@ -109,6 +110,7 @@ export const useDeleteGame = () => {
 // ============================================================================
 
 export const useGameByPosition = (position: number) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return useQuery<any>({
     queryKey: [BackendRoute.GAME_BY_POSITION, position],
     queryFn: async () => {
@@ -145,6 +147,7 @@ export const useUpdateGamePosition = () => {
 // ============================================================================
 
 export const useGamePositionHistory = (gameId: string, params?: { page?: number; limit?: number }) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return useQuery<any>({
     queryKey: [BackendRoute.GAME_POSITION_HISTORY_BY_GAME, gameId, params],
     queryFn: async () => {
@@ -172,6 +175,7 @@ export const useRecordGameClick = () => {
 };
 
 export const usePositionHistoryAnalytics = () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return useQuery<any>({
     queryKey: [BackendRoute.GAME_POSITION_HISTORY_ANALYTICS],
     queryFn: async () => {
@@ -191,6 +195,7 @@ export const useAllPositionHistory = (params?: {
   clickCountMax?: number;
   gameTitle?: string;
 }) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return useQuery<any>({
     queryKey: [BackendRoute.GAME_POSITION_HISTORY, params],
     queryFn: async () => {
@@ -201,6 +206,7 @@ export const useAllPositionHistory = (params?: {
 };
 
 export const usePositionPerformance = () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return useQuery<any>({
     queryKey: [BackendRoute.GAME_POSITION_HISTORY_PERFORMANCE],
     queryFn: async () => {

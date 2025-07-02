@@ -8,14 +8,17 @@ import PieChart from '../../../components/charts/piechart';
 import { useState } from 'react';
 import { useSignupAnalyticsData } from '../../../backend/signup.analytics.service';
 import { useDashboardAnalytics } from '../../../backend/analytics.service';
+import { useSystemConfigByKey } from '../../../backend/configuration.service';
 import AdminKeepPlayingModal from '../../../components/modals/AdminKeepPlayingModal';
 import { MostPlayedGames } from './MostPlayedGames';
 import { RecentUserActivity } from './RecentUserActivity';
 
 export default function Home() {
-
   const [isAcceptInviteOpen, setIsAcceptInviteOpen] = useState(false);
   const [showKeepPlayingModal, setShowKeepPlayingModal] = useState(false);
+  const { data: popupConfig } = useSystemConfigByKey('popup');
+
+  const hasCustomPopup = !!popupConfig;
 
   const handleShowPopup = () => {
     setShowKeepPlayingModal(true);
@@ -30,17 +33,33 @@ export default function Home() {
         <div className="col-span-1 md:col-span-2 lg:col-span-4 my-6">
           <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
             <div className="justify-between sm:items-center flex sm:flex-row flex-col gap-4 sm:gap-0 p-3">
-              <p className="text-2xl dark:text-[#D946EF]">Dynamic Popup System</p>
+              <div className="flex flex-col">
+                <p className="text-2xl dark:text-[#D946EF]">Dynamic Popup System</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {hasCustomPopup 
+                    ? "Custom popup configured" 
+                    : "Using default popup content"
+                  }
+                </p>
+              </div>
               <PopUpSheet>
                 <Button className="bg-[#D946EF] hover:bg-[#C026D3] text-white transition-colors duration-200 w-auto text-sm sm:text-base px-4 py-2 cursor-pointer">
-                  Create New Pop-up
+                  Edit Pop-up Settings
                 </Button>
               </PopUpSheet>
             </div>
             {/* inner card */}
             <Card className="bg-[#F8FAFC] dark:bg-[#0F1221] shadow-none border-none mx-3 p-4">
               <div className="justify-end flex flex-col p-3 space-y-4">
-                <p className="text-lg">User View</p>
+                <div>
+                  <p className="text-lg">User View</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    {hasCustomPopup 
+                      ? "Preview your custom popup" 
+                      : "Preview default popup that users currently see"
+                    }
+                  </p>
+                </div>
                 <Button 
                   onClick={handleShowPopup}
                   className="w-32 bg-[#D946EF] hover:bg-[#C026D3] text-white transition-colors duration-200 cursor-pointer"

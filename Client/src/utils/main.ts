@@ -23,3 +23,10 @@ const validRoles: RoleType[] = ["admin", "superadmin"];
 export function isValidRole(role: string): role is RoleType {
   return validRoles.includes(role as RoleType);
 }
+
+
+export function decodeHtmlEntities(text: string): string {
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = text;
+  return textarea.value;
+}

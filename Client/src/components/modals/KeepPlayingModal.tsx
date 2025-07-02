@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useSystemConfigByKey } from '../../backend/configuration.service';
 import { getVisitorSessionId } from '../../utils/sessionUtils';
+import { decodeHtmlEntities } from '../../utils/main';
 
 interface KeepPlayingModalProps {
   open: boolean;
@@ -28,8 +29,8 @@ export default function KeepPlayingModal({ open, isGameLoading }: KeepPlayingMod
   
   if (!open || isGameLoading) return null;
 
-  const title = popupConfig?.value?.title || "Time's Up!";
-  const subtitle = popupConfig?.value?.subtitle || "Sign up to keep playing this game and unlock unlimited access to all games!";
+  const title = popupConfig?.value?.title ? decodeHtmlEntities(popupConfig.value.title) : "Time's Up!";
+  const subtitle = popupConfig?.value?.subtitle ? decodeHtmlEntities(popupConfig.value.subtitle) : "Sign up to keep playing this game and unlock unlimited access to all games!";
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50">

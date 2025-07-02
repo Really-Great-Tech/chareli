@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useSystemConfigByKey } from '../../backend/configuration.service';
+import { decodeHtmlEntities } from '../../utils/main';
 
 interface AdminKeepPlayingModalProps {
   open: boolean;
@@ -29,8 +30,8 @@ export default function AdminKeepPlayingModal({ open, onClose, isGameLoading }: 
 
   if (!open || isGameLoading) return null;
 
-  const title = popupConfig?.value?.title || "Time's Up!";
-  const subtitle = popupConfig?.value?.subtitle || "Sign up to keep playing this game and unlock unlimited access to all games!";
+  const title = popupConfig?.value?.title ? decodeHtmlEntities(popupConfig.value.title) : "Time's Up!";
+  const subtitle = popupConfig?.value?.subtitle ? decodeHtmlEntities(popupConfig.value.subtitle) : "Sign up to keep playing this game and unlock unlimited access to all games!";
 
   // Handle backdrop click
   const handleBackdropClick = (e: React.MouseEvent) => {

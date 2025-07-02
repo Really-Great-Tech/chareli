@@ -12,8 +12,8 @@ describe('Password Validation', () => {
       expect(result).toBe(true)
     })
 
-    it('should reject password shorter than 8 characters', async () => {
-      const shortPassword = 'Pass1!'
+    it('should reject password shorter than 6 characters', async () => {
+      const shortPassword = 'Pass1'
       
       try {
         await passwordSchema.validate(shortPassword)
@@ -23,27 +23,6 @@ describe('Password Validation', () => {
       }
     })
 
-    it('should reject password without uppercase letter', async () => {
-      const noUppercase = 'password123!'
-      
-      try {
-        await passwordSchema.validate(noUppercase)
-        expect.fail('Should have thrown validation error')
-      } catch (error: any) {
-        expect(error.message).toBe(PASSWORD_REQUIREMENTS.MESSAGES.UPPERCASE)
-      }
-    })
-
-    it('should reject password without lowercase letter', async () => {
-      const noLowercase = 'PASSWORD123!'
-      
-      try {
-        await passwordSchema.validate(noLowercase)
-        expect.fail('Should have thrown validation error')
-      } catch (error: any) {
-        expect(error.message).toBe(PASSWORD_REQUIREMENTS.MESSAGES.LOWERCASE)
-      }
-    })
 
     it('should reject password without number', async () => {
       const noNumber = 'Password!'
@@ -52,18 +31,7 @@ describe('Password Validation', () => {
         await passwordSchema.validate(noNumber)
         expect.fail('Should have thrown validation error')
       } catch (error: any) {
-        expect(error.message).toBe(PASSWORD_REQUIREMENTS.MESSAGES.NUMBER)
-      }
-    })
-
-    it('should reject password without special character', async () => {
-      const noSpecial = 'Password123'
-      
-      try {
-        await passwordSchema.validate(noSpecial)
-        expect.fail('Should have thrown validation error')
-      } catch (error: any) {
-        expect(error.message).toBe(PASSWORD_REQUIREMENTS.MESSAGES.SPECIAL)
+        expect(error.message).toBe(PASSWORD_REQUIREMENTS.MESSAGES.WEAK)
       }
     })
 
@@ -78,26 +46,9 @@ describe('Password Validation', () => {
       }
     })
 
-    it('should accept password with various special characters', async () => {
-      const passwords = [
-        'Password123!',
-        'Password123@',
-        'Password123#',
-        'Password123$',
-        'Password123%',
-        'Password123^',
-        'Password123&',
-        'Password123*'
-      ]
-      
-      for (const password of passwords) {
-        const result = await passwordSchema.isValid(password)
-        expect(result).toBe(true)
-      }
-    })
 
     it('should accept minimum length password with all requirements', async () => {
-      const minValidPassword = 'Pass123!'
+      const minValidPassword = 'Pass12'
       
       const result = await passwordSchema.isValid(minValidPassword)
       
@@ -145,15 +96,11 @@ describe('Password Validation', () => {
 
   describe('PASSWORD_REQUIREMENTS constants', () => {
     it('should have correct minimum length', () => {
-      expect(PASSWORD_REQUIREMENTS.MIN_LENGTH).toBe(8)
+      expect(PASSWORD_REQUIREMENTS.MIN_LENGTH).toBe(6)
     })
 
     it('should have all required error messages', () => {
       expect(PASSWORD_REQUIREMENTS.MESSAGES.MIN_LENGTH).toBeDefined()
-      expect(PASSWORD_REQUIREMENTS.MESSAGES.UPPERCASE).toBeDefined()
-      expect(PASSWORD_REQUIREMENTS.MESSAGES.LOWERCASE).toBeDefined()
-      expect(PASSWORD_REQUIREMENTS.MESSAGES.NUMBER).toBeDefined()
-      expect(PASSWORD_REQUIREMENTS.MESSAGES.SPECIAL).toBeDefined()
       expect(PASSWORD_REQUIREMENTS.MESSAGES.REQUIRED).toBeDefined()
       expect(PASSWORD_REQUIREMENTS.MESSAGES.MATCH).toBeDefined()
     })

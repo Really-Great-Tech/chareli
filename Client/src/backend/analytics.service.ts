@@ -296,6 +296,7 @@ export interface FilterState {
   gameTitle: string[];
   gameCategory: string[];
   country: string[];
+  ageGroup: string;
   sortByMaxTimePlayed: boolean;
 }
 
@@ -319,6 +320,7 @@ export const useUsersAnalytics = (filters?: FilterState) => {
         if (filters.country && filters.country.length > 0) {
           filters.country.forEach(country => params.append('country', country));
         }
+        if (filters.ageGroup) params.append('ageGroup', filters.ageGroup);
         if (filters.sortByMaxTimePlayed) params.append('sortByMaxTimePlayed', 'true');
       }
       const url = `${BackendRoute.ADMIN_USERS_ANALYTICS}${params.toString() ? `?${params.toString()}` : ''}`;

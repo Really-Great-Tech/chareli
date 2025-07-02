@@ -38,6 +38,7 @@ export default function UserManagement() {
     gameTitle: [],
     gameCategory: [],
     country: [],
+    ageGroup: "",
     sortByMaxTimePlayed: false,
   });
 
@@ -63,6 +64,7 @@ export default function UserManagement() {
       gameTitle: [],
       gameCategory: [],
       country: [],
+      ageGroup: "",
       sortByMaxTimePlayed: false,
     });
     setPage(1);

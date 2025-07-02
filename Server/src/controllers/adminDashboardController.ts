@@ -1199,6 +1199,7 @@ export const getUsersWithAnalytics = async (
       gameTitle, 
       gameCategory,
       country,
+      ageGroup,
       sortByMaxTimePlayed
     } = req.query;
 
@@ -1219,6 +1220,7 @@ export const getUsersWithAnalytics = async (
         'user.phoneNumber',
         'user.isActive',
         'user.isVerified',
+        'user.isAdult',
         'user.lastLoggedIn',
         'user.createdAt',
         'user.updatedAt',
@@ -1386,6 +1388,15 @@ export const getUsersWithAnalytics = async (
       filteredUsers = filteredUsers.filter(user => 
         countries.includes(user.country)
       );
+    }
+
+    // Filter by age group
+    if (ageGroup) {
+      if (ageGroup === 'adults') {
+        filteredUsers = filteredUsers.filter(user => user.isAdult === true);
+      } else if (ageGroup === 'minors') {
+        filteredUsers = filteredUsers.filter(user => user.isAdult === false);
+      }
     }
 
     // Sort by max time played if requested

@@ -10,6 +10,7 @@ import {
   SheetTrigger,
 } from "../ui/sheet";
 import { MultiSelect } from "../ui/multi-select";
+import { SearchableSelect } from "../ui/searchable-select";
 import { useGames } from "../../backend/games.service";
 import { useCategories } from "../../backend/category.service";
 import { countries } from "country-data-list";
@@ -27,6 +28,7 @@ interface FilterState {
   gameTitle: string[];
   gameCategory: string[];
   country: string[];
+  ageGroup: string;
   sortByMaxTimePlayed: boolean;
 }
 
@@ -205,6 +207,22 @@ export function UserManagementFilterSheet({
               placeholder="All Countries"
               searchPlaceholder="Search countries..."
               emptyText="No countries found."
+            />
+          </div>
+
+          {/* Age Group */}
+          <div className="flex flex-col space-y-2">
+            <Label className="text-base">Age Group</Label>
+            <SearchableSelect
+              value={filters.ageGroup}
+              onValueChange={(value) => handleChange("ageGroup", value)}
+              options={[
+                { value: "adults", label: "Adults (18+)" },
+                { value: "minors", label: "Minors (Under 18)" },
+              ]}
+              placeholder="All Ages"
+              searchPlaceholder="Search age groups..."
+              emptyText="No age groups found."
             />
           </div>
 

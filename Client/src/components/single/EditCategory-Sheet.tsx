@@ -124,7 +124,7 @@ export function EditCategory({
                   name="name"
                   component="div"
                   className="text-red-500  mt-1 font-worksans text-sm tracking-wider"
-                />
+                /> 
               </div>
 
               <div>
@@ -156,7 +156,7 @@ export function EditCategory({
                     Delete
                   </Button>
                 )}
-                <div className="flex gap-3">
+                <div className="flex gap-3 flex-1 justify-end">
                   <SheetClose asChild>
                     <Button
                       type="button"

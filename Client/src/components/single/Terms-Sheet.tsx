@@ -8,7 +8,10 @@ import {
   SheetHeader,
   SheetTitle,
 } from "../ui/sheet";
-import { useCreateSystemConfig, useSystemConfigByKey } from "../../backend/configuration.service";
+import {
+  useCreateSystemConfig,
+  useSystemConfigByKey,
+} from "../../backend/configuration.service";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { BackendRoute } from "../../backend/constants";
@@ -23,7 +26,7 @@ export function TermsSheet({ open, onOpenChange }: TermsSheetProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const queryClient = useQueryClient();
   const createConfig = useCreateSystemConfig();
-  const { data: termsConfig } = useSystemConfigByKey('terms');
+  const { data: termsConfig } = useSystemConfigByKey("terms");
 
   const hasExistingTerms = !!termsConfig;
 
@@ -90,15 +93,19 @@ export function TermsSheet({ open, onOpenChange }: TermsSheetProps) {
             </h3>
             <div className="space-y-2">
               <p className="text-sm text-blue-700 dark:text-blue-300">
-                <span className="font-medium">Uploaded:</span> {termsConfig?.value?.uploadedAt ? new Date(termsConfig.value.uploadedAt).toLocaleDateString() : 'Unknown'}
+                <span className="font-medium">Uploaded:</span>{" "}
+                {termsConfig?.value?.uploadedAt
+                  ? new Date(termsConfig.value.uploadedAt).toLocaleDateString()
+                  : "Unknown"}
               </p>
               <p className="text-sm text-blue-700 dark:text-blue-300">
-                <span className="font-medium">Type:</span> {termsConfig?.value?.file?.type || 'terms'}
+                <span className="font-medium">Type:</span>{" "}
+                {termsConfig?.value?.file?.type || "terms"}
               </p>
               {termsConfig?.value?.file?.s3Key && (
-                <a 
-                  href={termsConfig.value.file.s3Key} 
-                  target="_blank" 
+                <a
+                  href={termsConfig.value.file.s3Key}
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 underline"
                 >
@@ -123,7 +130,15 @@ export function TermsSheet({ open, onOpenChange }: TermsSheetProps) {
             <Label className="text-lg mb-2 block">Upload file</Label>
             <div className="flex items-center">
               <label className="w-40 h-38 flex flex-col items-center justify-center border border-[#CBD5E0] rounded-lg cursor-pointer hover:border-[#D946EF] transition">
-                <img src={uploadImg} alt="upload" className="dark:invert dark:brightness-0 dark:contrast-100" />
+                {selectedFile?.name ? (
+                  <img src="/doc.png" alt="document icon" className="w-20" />
+                ) : (
+                  <img
+                    src={uploadImg}
+                    alt="upload"
+                    className="dark:invert dark:brightness-0 dark:contrast-100"
+                  />
+                )}
                 <input
                   type="file"
                   accept=".doc,.docx"
@@ -155,12 +170,11 @@ export function TermsSheet({ open, onOpenChange }: TermsSheetProps) {
             onClick={handleSubmit}
             disabled={!selectedFile || createConfig.isPending}
           >
-            {createConfig.isPending 
-              ? "Uploading..." 
-              : hasExistingTerms 
-                ? "Replace Terms" 
-                : "Add Terms"
-            }
+            {createConfig.isPending
+              ? "Uploading..."
+              : hasExistingTerms
+              ? "Replace Terms"
+              : "Add Terms"}
           </Button>
         </div>
       </SheetContent>

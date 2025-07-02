@@ -81,7 +81,7 @@ export const getAllCategories = async (
     queryBuilder
       .skip((pageNumber - 1) * limitNumber)
       .take(limitNumber)
-      .orderBy('category.name', 'ASC');
+      .orderBy('category.isDefault', 'DESC');
     
     const categories = await queryBuilder.getMany();
     

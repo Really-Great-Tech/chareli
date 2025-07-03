@@ -215,6 +215,24 @@ export default function GamePlay() {
                   setLoadProgress(100);
                 }}
               />
+
+              {/* Beautiful game platform overlay when time is up */}
+              {isModalOpen && (
+                <div 
+                  className="absolute inset-0 z-50 bg-gradient-to-br from-purple-900 via-purple-800 to-purple-900"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onMouseUp={(e) => e.preventDefault()}
+                  onMouseMove={(e) => e.preventDefault()}
+                  onClick={(e) => e.preventDefault()}
+                  onKeyDown={(e) => e.preventDefault()}
+                  onKeyUp={(e) => e.preventDefault()}
+                  onTouchStart={(e) => e.preventDefault()}
+                  onTouchMove={(e) => e.preventDefault()}
+                  onTouchEnd={(e) => e.preventDefault()}
+                  onContextMenu={(e) => e.preventDefault()}
+                  tabIndex={-1}
+                />
+              )}
               <KeepPlayingModal
                 open={isModalOpen}
                 openSignUpModal={handleOpenSignUpModal}

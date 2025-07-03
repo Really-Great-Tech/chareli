@@ -11,7 +11,6 @@ import { Button } from "../../../components/ui/button";
 import { useState, useMemo } from "react";
 import {
   useUsersAnalytics,
-  type UserAnalytics,
   type FilterState,
 } from "../../../backend/analytics.service";
 import { formatTime } from "../../../utils/main";

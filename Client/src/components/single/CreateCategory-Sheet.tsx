@@ -24,6 +24,7 @@ interface CreateCategoryProps {
 interface FormValues {
   name: string;
   description?: string;
+  isDefault: boolean;
 }
 
 const validationSchema = Yup.object({
@@ -54,6 +55,7 @@ export function CreateCategory({ open, onOpenChange }: CreateCategoryProps) {
   const initialValues: FormValues = {
     name: "",
     description: "",
+    isDefault: false,
   };
 
   return (

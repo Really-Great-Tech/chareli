@@ -40,9 +40,56 @@ export const getDashboardAnalytics = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const now = new Date();
-    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+    const { period, startDate, endDate } = req.query;
+    
+    let now = new Date();
+    let currentPeriodStart: Date;
+    let previousPeriodStart: Date;
+    let previousPeriodEnd: Date;
+
+    // Determine time ranges based on the period parameter
+    switch (period) {
+      case 'last7days':
+        currentPeriodStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        previousPeriodStart = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+        previousPeriodEnd = currentPeriodStart;
+        break;
+      case 'last30days':
+        currentPeriodStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        previousPeriodStart = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+        previousPeriodEnd = currentPeriodStart;
+        break;
+      case 'custom':
+        if (startDate && endDate) {
+          currentPeriodStart = new Date(startDate as string);
+          currentPeriodStart.setHours(0, 0, 0, 0); // Start of day
+          
+          const customEndDate = new Date(endDate as string);
+          customEndDate.setHours(23, 59, 59, 999); // End of day
+          
+          const daysDiff = Math.ceil((customEndDate.getTime() - currentPeriodStart.getTime()) / (1000 * 60 * 60 * 24));
+          previousPeriodStart = new Date(currentPeriodStart.getTime() - daysDiff * 24 * 60 * 60 * 1000);
+          previousPeriodEnd = currentPeriodStart;
+          
+          // For custom range, we need to use the actual end date for current period queries
+          now = customEndDate;
+        } else {
+          // Fallback to last 24 hours if custom dates are invalid
+          currentPeriodStart = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+          previousPeriodStart = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+          previousPeriodEnd = currentPeriodStart;
+        }
+        break;
+      default: // 'last24hours' or no period specified
+        currentPeriodStart = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        previousPeriodStart = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+        previousPeriodEnd = currentPeriodStart;
+        break;
+    }
+
+    // For backward compatibility, keep the original variable names
+    const twentyFourHoursAgo = currentPeriodStart;
+    const fortyEightHoursAgo = previousPeriodStart;
 
     // Get users who were active yesterday (24-48 hours ago)
     const yesterdayUsersResult = await analyticsRepository
@@ -83,7 +130,10 @@ export const getDashboardAnalytics = async (
               ELSE CONCAT(signup_analytics."ipAddress", '|', signup_analytics."deviceType")
             END
           )`, 'count')
-        .where('signup_analytics."createdAt" > :twentyFourHoursAgo', { twentyFourHoursAgo })
+        .where('signup_analytics."createdAt" BETWEEN :start AND :end', {
+          start: twentyFourHoursAgo,
+          end: now
+        })
         .getRawOne(),
       signupAnalyticsRepository
         .createQueryBuilder('signup_analytics')
@@ -206,7 +256,10 @@ export const getDashboardAnalytics = async (
         .where('analytics.gameId IS NOT NULL')
         .andWhere('analytics.startTime IS NOT NULL')
         .andWhere('analytics.endTime IS NOT NULL')
-        .andWhere('analytics.createdAt > :twentyFourHoursAgo', { twentyFourHoursAgo })
+        .andWhere('analytics.createdAt BETWEEN :start AND :end', {
+          start: twentyFourHoursAgo,
+          end: now
+        })
         .getRawOne(),
 
       analyticsRepository
@@ -239,7 +292,7 @@ export const getDashboardAnalytics = async (
       ? Math.max(Math.min(((currentTotalTimePlayed - previousTotalTimePlayed) / previousTotalTimePlayed) * 100, 100), -100)
       : 0;
 
-    // 6. Most Played Game with percentage change
+    // 6. Most Played Game with percentage change (for the current period)
     const mostPlayedGameResult = await analyticsRepository
       .createQueryBuilder('analytics')
       .select('analytics.gameId', 'gameId')
@@ -251,6 +304,10 @@ export const getDashboardAnalytics = async (
       .where('analytics.gameId IS NOT NULL')
       .andWhere('analytics.startTime IS NOT NULL')
       .andWhere('analytics.endTime IS NOT NULL')
+      .andWhere('analytics.createdAt BETWEEN :start AND :end', {
+        start: twentyFourHoursAgo,
+        end: now
+      })
       .groupBy('analytics.gameId')
       .addGroupBy('game.title')
       .addGroupBy('thumbnailFile.s3Key')
@@ -305,7 +362,10 @@ export const getDashboardAnalytics = async (
         .select('AVG(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.duration END)', 'avgDuration')
         .where('analytics.gameId IS NOT NULL')
         .andWhere('analytics.duration IS NOT NULL')
-        .andWhere('analytics.createdAt > :twentyFourHoursAgo', { twentyFourHoursAgo })
+        .andWhere('analytics.createdAt BETWEEN :start AND :end', {
+          start: twentyFourHoursAgo,
+          end: now
+        })
         .getRawOne(),
       analyticsRepository
         .createQueryBuilder('analytics')
@@ -335,11 +395,11 @@ export const getDashboardAnalytics = async (
       success: true,
       data: {
         totalUsers: {
-          current: actualAppUserCount.toString(),
+          current: currentTotalUsers.toString(),
           percentageChange: Number(totalUsersPercentageChange.toFixed(2))
         },
         totalRegisteredUsers: {
-          current: actualRegisteredUsers,
+          current: currentTotalRegisteredUsers,
           percentageChange: Number(totalRegisteredUsersPercentageChange.toFixed(2))
         },
         activeUsers,
@@ -347,15 +407,15 @@ export const getDashboardAnalytics = async (
         adultsCount,
         minorsCount,
         totalGames: {
-          current: actualGames,
+          current: currentTotalGames,
           percentageChange: Number(totalGamesPercentageChange.toFixed(2))
         },
         totalSessions: {
-          current: actualSessions,
+          current: currentTotalSessions,
           percentageChange: Number(totalSessionsPercentageChange.toFixed(2))
         },
         totalTimePlayed: {
-          current: totalPlayTime,
+          current: currentTotalTimePlayed,
           percentageChange: Number(totalTimePlayedPercentageChange.toFixed(2))
         },
         mostPlayedGame,
@@ -522,17 +582,12 @@ export const getUserActivityLog = async (
         gameStartTime = lastGameActivity.startTime;
         gameEndTime = lastGameActivity.endTime;
       }
-
-      console.log('Activity:', activity)
-      console.log('User lastSeen:', user.lastSeen)
-      console.log('User isActive:', user.isActive)
       
       // Determine if user is online based on lastSeen timestamp and heartbeat system
       const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
       const isOnline = user.lastSeen && user.lastSeen > fiveMinutesAgo && user.isActive;
       
-      console.log('Five minutes ago:', fiveMinutesAgo)
-      console.log('Is online calculation:', isOnline)
+  
       
       return {
         userId: user.id,
@@ -1193,14 +1248,24 @@ export const getUsersWithAnalytics = async (
     const { 
       startDate, 
       endDate, 
+      lastLoginStartDate,
+      lastLoginEndDate,
+      userStatus,
+      sortBy,
       sessionCount, 
       minTimePlayed, 
       maxTimePlayed, 
       gameTitle, 
       gameCategory,
       country,
+      ageGroup,
       sortByMaxTimePlayed
     } = req.query;
+
+    // Handle multi-select parameters (they come as arrays)
+    const gameTitles = Array.isArray(gameTitle) ? gameTitle : gameTitle ? [gameTitle] : [];
+    const gameCategories = Array.isArray(gameCategory) ? gameCategory : gameCategory ? [gameCategory] : [];
+    const countries = Array.isArray(country) ? country : country ? [country] : [];
 
     // Build base query for users
     let userQueryBuilder = userRepository.createQueryBuilder('user')
@@ -1214,6 +1279,7 @@ export const getUsersWithAnalytics = async (
         'user.phoneNumber',
         'user.isActive',
         'user.isVerified',
+        'user.isAdult',
         'user.lastLoggedIn',
         'user.createdAt',
         'user.updatedAt',
@@ -1242,6 +1308,43 @@ export const getUsersWithAnalytics = async (
       userQueryBuilder = userQueryBuilder.andWhere('user.createdAt >= :startDate', {
         startDate: start
       });
+    }
+
+    // Apply last login date filter if provided
+    if (lastLoginStartDate && lastLoginEndDate) {
+      const start = new Date(lastLoginStartDate as string);
+      start.setHours(0, 0, 0, 0); // Start of day
+      
+      const end = new Date(lastLoginEndDate as string);
+      end.setHours(23, 59, 59, 999); // End of day
+      
+      userQueryBuilder = userQueryBuilder.andWhere('user.lastLoggedIn >= :lastLoginStartDate AND user.lastLoggedIn <= :lastLoginEndDate', {
+        lastLoginStartDate: start,
+        lastLoginEndDate: end
+      });
+    } else if (lastLoginStartDate) {
+      const start = new Date(lastLoginStartDate as string);
+      start.setHours(0, 0, 0, 0); // Start of day
+      
+      userQueryBuilder = userQueryBuilder.andWhere('user.lastLoggedIn >= :lastLoginStartDate', {
+        lastLoginStartDate: start
+      });
+    } else if (lastLoginEndDate) {
+      const end = new Date(lastLoginEndDate as string);
+      end.setHours(23, 59, 59, 999); // End of day
+      
+      userQueryBuilder = userQueryBuilder.andWhere('user.lastLoggedIn <= :lastLoginEndDate', {
+        lastLoginEndDate: end
+      });
+    }
+
+    // Apply user status filter if provided
+    if (userStatus) {
+      if (userStatus === 'active') {
+        userQueryBuilder = userQueryBuilder.andWhere('user.isActive = :isActive', { isActive: true });
+      } else if (userStatus === 'inactive') {
+        userQueryBuilder = userQueryBuilder.andWhere('user.isActive = :isActive', { isActive: false });
+      }
     }
 
     // Get all users first (we'll filter by analytics later)
@@ -1341,52 +1444,86 @@ export const getUsersWithAnalytics = async (
       );
     }
 
-    // Filter by game title - check if user has played the specific game
-    if (gameTitle) {
-      const usersWhoPlayedGame = await analyticsRepository
+    // Filter by game titles - check if user has played any of the specified games
+    if (gameTitles.length > 0) {
+      const usersWhoPlayedGames = await analyticsRepository
         .createQueryBuilder('analytics')
         .select('DISTINCT analytics.userId', 'userId')
         .leftJoin('analytics.game', 'game')
-        .where('game.title = :gameTitle', { gameTitle })
+        .where('game.title IN (:...gameTitles)', { gameTitles })
         .andWhere('analytics.gameId IS NOT NULL')
         .getRawMany();
 
-      const userIdsWhoPlayedGame = new Set(usersWhoPlayedGame.map(item => item.userId));
+      const userIdsWhoPlayedGames = new Set(usersWhoPlayedGames.map(item => item.userId));
       
       filteredUsers = filteredUsers.filter(user => 
-        userIdsWhoPlayedGame.has(user.id)
+        userIdsWhoPlayedGames.has(user.id)
       );
     }
 
-    // Filter by game category - check if user has played games from the specific category
-    if (gameCategory) {
-      const usersWhoPlayedCategory = await analyticsRepository
+    // Filter by game categories - check if user has played games from any of the specified categories
+    if (gameCategories.length > 0) {
+      const usersWhoPlayedCategories = await analyticsRepository
         .createQueryBuilder('analytics')
         .select('DISTINCT analytics.userId', 'userId')
         .leftJoin('analytics.game', 'game')
         .leftJoin('game.category', 'category')
-        .where('category.name = :gameCategory', { gameCategory })
+        .where('category.name IN (:...gameCategories)', { gameCategories })
         .andWhere('analytics.gameId IS NOT NULL')
         .getRawMany();
 
-      const userIdsWhoPlayedCategory = new Set(usersWhoPlayedCategory.map(item => item.userId));
+      const userIdsWhoPlayedCategories = new Set(usersWhoPlayedCategories.map(item => item.userId));
       
       filteredUsers = filteredUsers.filter(user => 
-        userIdsWhoPlayedCategory.has(user.id)
+        userIdsWhoPlayedCategories.has(user.id)
       );
     }
 
-    // Filter by country
-    if (country) {
+    // Filter by countries
+    if (countries.length > 0) {
       filteredUsers = filteredUsers.filter(user => 
-        user.country === country
+        countries.includes(user.country)
       );
     }
 
-    // Sort by max time played if requested
-    if (sortByMaxTimePlayed === 'true') {
+    // Filter by age group
+    if (ageGroup) {
+      if (ageGroup === 'adults') {
+        filteredUsers = filteredUsers.filter(user => user.isAdult === true);
+      } else if (ageGroup === 'minors') {
+        filteredUsers = filteredUsers.filter(user => user.isAdult === false);
+      }
+    }
+
+    // Apply sorting based on sortBy parameter
+    if (sortBy) {
+      switch (sortBy) {
+        case 'registrationDate':
+          filteredUsers = filteredUsers.sort((a, b) => 
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+          break;
+        case 'timePlayed':
+          filteredUsers = filteredUsers.sort((a, b) => 
+            (b.analytics.totalTimePlayed || 0) - (a.analytics.totalTimePlayed || 0)
+          );
+          break;
+        case 'lastLogin':
+        default:
+          filteredUsers = filteredUsers.sort((a, b) => 
+            new Date(b.lastLoggedIn || 0).getTime() - new Date(a.lastLoggedIn || 0).getTime()
+          );
+          break;
+      }
+    } else if (sortByMaxTimePlayed === 'true') {
+      // Keep backward compatibility for the old sorting parameter
       filteredUsers = filteredUsers.sort((a, b) => 
         (b.analytics.totalTimePlayed || 0) - (a.analytics.totalTimePlayed || 0)
+      );
+    } else {
+      // Default sorting by last login
+      filteredUsers = filteredUsers.sort((a, b) => 
+        new Date(b.lastLoggedIn || 0).getTime() - new Date(a.lastLoggedIn || 0).getTime()
       );
     }
 

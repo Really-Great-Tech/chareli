@@ -37,7 +37,7 @@ const validationSchema = Yup.object({
   config: Yup.number()
     .required("Config is required")
     .min(0, "Config must be a positive number"),
-  categoryId: Yup.string().required("Category is required"),
+  categoryId: Yup.string(),
   thumbnailFile: Yup.mixed<File>()
     .required("Thumbnail image is required")
     .test("fileType", "Only image files are allowed", (value) => {
@@ -328,12 +328,15 @@ export function CreateGameSheet({
                         value: category.id,
                         label: category.name
                       })) || []}
-                      placeholder="Select category"
+                      placeholder="Select category (optional)"
                       searchPlaceholder="Search categories..."
                       emptyText="No categories found"
                     />
                   )}
                 </Field>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-worksans">
+                  Leave empty to auto-assign to default category
+                </p>
                 <ErrorMessage
                   name="categoryId"
                   component="div"

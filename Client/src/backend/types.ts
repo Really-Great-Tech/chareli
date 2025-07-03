@@ -11,6 +11,7 @@ export interface Category {
   id: string;
   name: string;
   description?: string;
+  isDefault: boolean;
   games?: Game[];
   createdAt: string;
   updatedAt: string;

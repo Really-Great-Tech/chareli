@@ -9,7 +9,7 @@ interface DeleteConfirmationModalProps {
   onConfirm: () => void;
   isDeleting?: boolean;
   title?: string;
-  description?: string;
+  description?: string | React.ReactNode;
   confirmButtonText?: string;
   loadingText?: string;
 }
@@ -47,7 +47,7 @@ export function DeleteConfirmationModal({
         </div>
 
         {/* Description */}
-        <div className="mb-6 sm:mb-8 text-[#22223B] text-sm sm:text-[16px] tracking-wider dark:text-white">
+        <div className="mb-6 sm:mb-8 text-[#22223B] text-sm sm:text-[16px] tracking-wider dark:text-white break-all overflow-wrap-anywhere">
           {description}
         </div>
 

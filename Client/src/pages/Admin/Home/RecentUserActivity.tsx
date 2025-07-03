@@ -7,28 +7,116 @@ import {
   TableHeader,
   TableRow,
 } from "../../../components/ui/table";
+import { Button } from "../../../components/ui/button";
 import { useState, useMemo } from "react";
 import {
   useUsersAnalytics,
   type UserAnalytics,
+  type FilterState,
 } from "../../../backend/analytics.service";
 import { formatTime } from "../../../utils/main";
 import { NoResults } from "../../../components/single/NoResults";
 import { FiUsers } from "react-icons/fi";
+import { RiEqualizer2Line } from "react-icons/ri";
+import { RecentUserActivityFilterSheet } from "../../../components/single/RecentUserActivityFilter-Sheet";
+
+interface RecentActivityFilterState {
+  registrationDates: {
+    startDate: string;
+    endDate: string;
+  };
+  lastLoginDates: {
+    startDate: string;
+    endDate: string;
+  };
+  sessionCount: string;
+  timePlayed: {
+    min: number;
+    max: number;
+  };
+  gameTitle: string[];
+  gameCategory: string[];
+  country: string[];
+  ageGroup: string;
+  userStatus: string;
+  sortBy: string;
+}
 
 export function RecentUserActivity() {
-  const { data: usersWithAnalytics, isLoading } = useUsersAnalytics();
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 5;
+  const [filters, setFilters] = useState<RecentActivityFilterState>({
+    registrationDates: {
+      startDate: "",
+      endDate: "",
+    },
+    lastLoginDates: {
+      startDate: "",
+      endDate: "",
+    },
+    sessionCount: "",
+    timePlayed: {
+      min: 0,
+      max: 0,
+    },
+    gameTitle: [],
+    gameCategory: [],
+    country: [],
+    ageGroup: "",
+    userStatus: "",
+    sortBy: "lastLogin",
+  });
 
-  // Sort users by lastLoggedIn (most recent first)
-  const allUsers = useMemo<UserAnalytics[]>(() => {
-    if (!usersWithAnalytics) return [];
-    return [...usersWithAnalytics].sort(
-      (a, b) =>
-        new Date(b.lastLoggedIn).getTime() - new Date(a.lastLoggedIn).getTime()
-    );
-  }, [usersWithAnalytics]);
+  // Convert RecentActivityFilterState to FilterState for the API
+  const apiFilters: FilterState = useMemo(() => ({
+    registrationDates: filters.registrationDates,
+    lastLoginStartDate: filters.lastLoginDates.startDate,
+    lastLoginEndDate: filters.lastLoginDates.endDate,
+    userStatus: filters.userStatus,
+    sortBy: filters.sortBy,
+    sessionCount: filters.sessionCount,
+    timePlayed: filters.timePlayed,
+    gameTitle: filters.gameTitle,
+    gameCategory: filters.gameCategory,
+    country: filters.country,
+    ageGroup: filters.ageGroup,
+    sortByMaxTimePlayed: false, // We use the new sortBy parameter instead
+  }), [filters]);
+
+  const { data: usersWithAnalytics, isLoading } = useUsersAnalytics(apiFilters);
+
+  const handleFiltersChange = (newFilters: RecentActivityFilterState) => {
+    setFilters(newFilters);
+    setCurrentPage(1); // Reset to first page when filters change
+  };
+
+  const handleFilterReset = () => {
+    setFilters({
+      registrationDates: {
+        startDate: "",
+        endDate: "",
+      },
+      lastLoginDates: {
+        startDate: "",
+        endDate: "",
+      },
+      sessionCount: "",
+      timePlayed: {
+        min: 0,
+        max: 0,
+      },
+      gameTitle: [],
+      gameCategory: [],
+      country: [],
+      ageGroup: "",
+      userStatus: "",
+      sortBy: "lastLogin",
+    });
+    setCurrentPage(1);
+  };
+
+  // All filtering and sorting is now handled by the backend
+  const allUsers = usersWithAnalytics || [];
 
   const getUsersForPage = (page: number) => {
     const startIdx = (page - 1) * usersPerPage;
@@ -39,10 +127,40 @@ export function RecentUserActivity() {
   const usersToShow = getUsersForPage(currentPage);
   const totalPages = Math.ceil(allUsers.length / usersPerPage);
 
+  // Count active filters
+  const activeFiltersCount = Object.entries(filters).filter(([key, value]) => {
+    if (key === 'sortBy') return value !== 'lastLogin'; // Only count if not default
+    if (typeof value === "object" && !Array.isArray(value)) {
+      return Object.values(value).some((v) => v !== "" && v !== 0);
+    }
+    if (Array.isArray(value)) {
+      return value.length > 0;
+    }
+    return value !== "" && value !== 0;
+  }).length;
+
   return (
     <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
-      <div className="flex justify-between p-4 text-3xl">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 p-4">
         <p className="text-2xl dark:text-[#D946EF]">Recent User Activity</p>
+        <div className="flex justify-end">
+          <RecentUserActivityFilterSheet
+            filters={filters}
+            onFiltersChange={handleFiltersChange}
+            onReset={handleFilterReset}
+          >
+            <Button
+              variant="outline"
+              className="border-[#475568] text-[#475568] flex items-center gap-2 dark:text-white py-5 cursor-pointer"
+            >
+              Filter
+              <div className="text-[#D946EF] bg-[#FAE8FF] px-2 sm:px-3 py-1 rounded-full text-sm">
+                {activeFiltersCount}
+              </div>
+              <RiEqualizer2Line size={24} className="sm:size-8" />
+            </Button>
+          </RecentUserActivityFilterSheet>
+        </div>
       </div>
       <div className="px-4 pb-4">
         <Table>

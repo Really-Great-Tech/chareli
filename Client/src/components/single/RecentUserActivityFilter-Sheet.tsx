@@ -15,8 +15,12 @@ import { useGames } from "../../backend/games.service";
 import { useCategories } from "../../backend/category.service";
 import { countries } from "country-data-list";
 
-interface FilterState {
+interface RecentActivityFilterState {
   registrationDates: {
+    startDate: string;
+    endDate: string;
+  };
+  lastLoginDates: {
     startDate: string;
     endDate: string;
   };
@@ -29,30 +33,29 @@ interface FilterState {
   gameCategory: string[];
   country: string[];
   ageGroup: string;
-  sortByMaxTimePlayed: boolean;
+  userStatus: string;
+  sortBy: string;
 }
 
-interface UserManagementFilterSheetProps {
+interface RecentUserActivityFilterSheetProps {
   children: React.ReactNode;
-  filters: FilterState;
-  onFiltersChange: (filters: FilterState) => void;
+  filters: RecentActivityFilterState;
+  onFiltersChange: (filters: RecentActivityFilterState) => void;
   onReset: () => void;
-  users?: Array<{ country?: string }>;
 }
 
-export function UserManagementFilterSheet({
+export function RecentUserActivityFilterSheet({
   children,
   filters,
   onFiltersChange,
   onReset,
-}: UserManagementFilterSheetProps) {
+}: RecentUserActivityFilterSheetProps) {
   const { data: gamesData } = useGames();
   const { data: categoriesData } = useCategories();
   
   const categories = [
     ...new Set(categoriesData?.map((category) => category.name).filter(Boolean)),
   ] as string[];
-
 
   const titles = [
     ...new Set(((gamesData as any) || [])?.map((game: any) => game.title).filter(Boolean)),
@@ -61,13 +64,12 @@ export function UserManagementFilterSheet({
   // Get countries from country-data-list package (standardized list)
   const countryList = countries.all.map((country: any) => country.name).sort();
 
-  const handleChange = (field: keyof FilterState, value: unknown) => {
+  const handleChange = (field: keyof RecentActivityFilterState, value: unknown) => {
     onFiltersChange({
       ...filters,
       [field]: value,
     });
   };
-
 
   return (
     <Sheet>
@@ -75,7 +77,7 @@ export function UserManagementFilterSheet({
       <SheetContent className="font-dmmono dark:bg-[#0F1621] overflow-y-auto overflow-x-hidden w-[85vw] sm:max-w-sm max-w-sm">
         <SheetHeader>
           <SheetTitle className="text-lg font-normal tracking-wider mt-6">
-            Filter
+            Filter Recent Activity
           </SheetTitle>
           <div className="border border-b-gray-200"></div>
         </SheetHeader>
@@ -101,6 +103,35 @@ export function UserManagementFilterSheet({
                 onChange={(e) =>
                   handleChange("registrationDates", {
                     ...filters.registrationDates,
+                    endDate: e.target.value,
+                  })
+                }
+                className="bg-[#F1F5F9] border border-[#CBD5E0] h-12 sm:h-14 text-gray-400 font-thin font-worksans text-sm tracking-wider dark:bg-[#121C2D] dark:text-gray-300 dark:border-[#334155] date-input-dark"
+              />
+            </div>
+          </div>
+
+          {/* Last Login Dates */}
+          <div className="flex flex-col space-y-2">
+            <Label className="text-base">Last Login Dates</Label>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Input
+                type="date"
+                value={filters.lastLoginDates.startDate}
+                onChange={(e) =>
+                  handleChange("lastLoginDates", {
+                    ...filters.lastLoginDates,
+                    startDate: e.target.value,
+                  })
+                }
+                className="bg-[#F1F5F9] border border-[#CBD5E0] h-12 sm:h-14 text-gray-400 font-thin font-worksans text-sm tracking-wider dark:bg-[#121C2D] dark:text-gray-300 dark:border-[#334155] date-input-dark"
+              />
+              <Input
+                type="date"
+                value={filters.lastLoginDates.endDate}
+                onChange={(e) =>
+                  handleChange("lastLoginDates", {
+                    ...filters.lastLoginDates,
                     endDate: e.target.value,
                   })
                 }
@@ -226,20 +257,37 @@ export function UserManagementFilterSheet({
             />
           </div>
 
-          {/* Sort by Max Time Played */}
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="sortByMaxTimePlayed"
-              className="w-4 h-4"
-              checked={filters.sortByMaxTimePlayed}
-              onChange={(e) =>
-                handleChange("sortByMaxTimePlayed", e.target.checked)
-              }
+          {/* User Status */}
+          <div className="flex flex-col space-y-2">
+            <Label className="text-base">User Status</Label>
+            <SearchableSelect
+              value={filters.userStatus}
+              onValueChange={(value) => handleChange("userStatus", value)}
+              options={[
+                { value: "active", label: "Active Users" },
+                { value: "inactive", label: "Inactive Users" },
+              ]}
+              placeholder="All Users"
+              searchPlaceholder="Search status..."
+              emptyText="No status found."
             />
-            <Label htmlFor="sortByMaxTimePlayed" className="text-base">
-              Sort by Max Time Played
-            </Label>
+          </div>
+
+          {/* Sort By */}
+          <div className="flex flex-col space-y-2">
+            <Label className="text-base">Sort By</Label>
+            <SearchableSelect
+              value={filters.sortBy}
+              onValueChange={(value) => handleChange("sortBy", value)}
+              options={[
+                { value: "lastLogin", label: "Last Login" },
+                { value: "registrationDate", label: "Registration Date" },
+                { value: "timePlayed", label: "Time Played" },
+              ]}
+              placeholder="Last Login"
+              searchPlaceholder="Search sort options..."
+              emptyText="No sort options found."
+            />
           </div>
         </div>
 

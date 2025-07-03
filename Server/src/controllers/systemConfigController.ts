@@ -134,7 +134,6 @@ export const getSystemConfigByKey = async (
 ): Promise<void> => {
   try {
     const { key } = req.params;
-    console.log(`Getting system config for key: ${key}`);
     
     const config = await systemConfigRepository.findOne({
       where: { key }

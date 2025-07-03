@@ -49,6 +49,21 @@ const createOrUpdatePositionHistoryRecord = async (gameId: string, position: num
   }
 };
 
+// Helper function to get the default category ID
+const getDefaultCategoryId = async (queryRunner?: any): Promise<string> => {
+  const repository = queryRunner ? queryRunner.manager.getRepository(Category) : categoryRepository;
+  
+  const defaultCategory = await repository.findOne({
+    where: { isDefault: true }
+  });
+  
+  if (!defaultCategory) {
+    throw new ApiError(500, 'Default category not found. Please ensure the "General" category exists.');
+  }
+  
+  return defaultCategory.id;
+};
+
 const assignPositionForNewGame = async (requestedPosition?: number, queryRunner?: any): Promise<number> => {
   const repository = queryRunner ? queryRunner.manager.getRepository(Game) : gameRepository;
   
@@ -530,8 +545,11 @@ export const createGame = async (
     const gameFile = files.gameFile[0];
     
     try {
-      // Check if category exists if provided
+      // Determine the final categoryId to use
+      let finalCategoryId = categoryId;
+      
       if (categoryId) {
+        // Check if provided category exists
         const category = await queryRunner.manager.findOne(Category, {
           where: { id: categoryId }
         });
@@ -539,6 +557,9 @@ export const createGame = async (
         if (!category) {
           throw new ApiError(400, `Category with id ${categoryId} not found`);
         }
+      } else {
+        // Auto-assign default "General" category if no category provided
+        finalCategoryId = await getDefaultCategoryId(queryRunner);
       }
 
       // Process game zip file first to validate it
@@ -596,7 +617,7 @@ export const createGame = async (
         description,
         thumbnailFileId: thumbnailFileRecord.id,
         gameFileId: gameFileRecord.id,
-        categoryId,
+        categoryId: finalCategoryId,
         status,
         config,
         position: assignedPosition,
@@ -824,18 +845,27 @@ export const updateGame = async (
       game.gameFileId = gameFileRecord.id;
     }
     
-    // Check if category exists if provided
-    if (categoryId && categoryId !== game.categoryId) {
-      const category = await categoryRepository.findOne({
-        where: { id: categoryId }
-      });
-      
-      if (!category) {
-        return next(ApiError.badRequest(`Category with id ${categoryId} not found`));
+    // Handle category update
+    if (categoryId !== undefined) {
+      if (categoryId && categoryId !== game.categoryId) {
+        // User provided a specific category
+        const category = await categoryRepository.findOne({
+          where: { id: categoryId }
+        });
+        
+        if (!category) {
+          return next(ApiError.badRequest(`Category with id ${categoryId} not found`));
+        }
+        
+        game.categoryId = categoryId;
+      } else if (!categoryId && game.categoryId) {
+        // User explicitly cleared the category, auto-assign "General"
+        const defaultCategoryId = await getDefaultCategoryId(queryRunner);
+        game.categoryId = defaultCategoryId;
       }
-      
-      game.categoryId = categoryId;
+      // If categoryId is same as current, no change needed
     }
+    // If categoryId is undefined (not provided in request), keep existing category
     
     // Handle position update if provided
     if (position !== undefined && position !== game.position) {

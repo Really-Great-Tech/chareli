@@ -8,17 +8,21 @@ import {
   HiMiniArrowUp,
   HiOutlineUsers,
 } from "react-icons/hi2";
-import { useDashboardAnalytics } from "../../../backend/analytics.service";
+import { useDashboardAnalytics, type DashboardTimeRange } from "../../../backend/analytics.service";
 import { Card } from "../../../components/ui/card";
 
 import { formatTime } from "../../../utils/main";
 
-export default function StatsCard() {
+interface StatsCardProps {
+  timeRange?: DashboardTimeRange;
+}
+
+export default function StatsCard({ timeRange }: StatsCardProps) {
   const {
     data: dashboardAnalytics,
     isError,
     isLoading,
-  } = useDashboardAnalytics();
+  } = useDashboardAnalytics(timeRange);
 
   if (isLoading) {
     return (
@@ -41,6 +45,28 @@ export default function StatsCard() {
   }
 
   const data = dashboardAnalytics as any;
+  
+  // Generate dynamic description based on time range
+  const getTimeRangeDescription = () => {
+    switch (timeRange?.period) {
+      case 'last7days':
+        return 'Over the last 7 days';
+      case 'last30days':
+        return 'Over the last 30 days';
+      case 'custom':
+        if (timeRange.startDate && timeRange.endDate) {
+          const start = new Date(timeRange.startDate).toLocaleDateString();
+          const end = new Date(timeRange.endDate).toLocaleDateString();
+          return `From ${start} to ${end}`;
+        }
+        return 'Custom date range';
+      default:
+        return 'Over the last 24 hours';
+    }
+  };
+
+  const timeDescription = getTimeRangeDescription();
+
   const cardData = [
     {
       title: "Unique Users",
@@ -48,7 +74,7 @@ export default function StatsCard() {
       icon: <FaRegUser size={32} />,
       change: `${data.totalUsers.percentageChange ?? 0}%`,
       changeType: data.totalUsers.percentageChange >= 0 ? "up" : "down",
-      description: "Over the last 24 hours",
+      description: timeDescription,
       color: "text-[#D946EF] dark:text-[#F0ABFC]",
     },
     {
@@ -58,7 +84,7 @@ export default function StatsCard() {
       change: `${data.totalRegisteredUsers.percentageChange ?? 0}%`,
       changeType:
         data.totalRegisteredUsers.percentageChange >= 0 ? "up" : "down",
-      description: "Over the last 24 hours",
+      description: timeDescription,
       color: "text-[#D946EF] dark:text-[#F0ABFC]",
     },
     {
@@ -67,7 +93,7 @@ export default function StatsCard() {
       icon: <IoGameControllerOutline size={32} />,
       change: `${data.totalGames.percentageChange ?? 0}%`,
       changeType: data.totalGames.percentageChange >= 0 ? "up" : "down",
-      description: "Over the last 24 hours",
+      description: timeDescription,
       color: "text-[#D946EF] dark:text-[#F0ABFC]",
     },
     {
@@ -76,7 +102,7 @@ export default function StatsCard() {
       icon: <TbCalendarClock size={36} />,
       change: `${data.totalSessions.percentageChange ?? 0}%`,
       changeType: data.totalSessions.percentageChange >= 0 ? "up" : "down",
-      description: "Over the last 24 hours",
+      description: timeDescription,
       color: "text-[#D946EF] dark:text-[#F0ABFC]",
     },
     {
@@ -85,7 +111,7 @@ export default function StatsCard() {
       icon: <FaRegClock size={32} className="dark:text-white" />,
       change: `${data.totalTimePlayed.percentageChange ?? 0}%`,
       changeType: data.totalTimePlayed.percentageChange >= 0 ? "up" : "down",
-      description: "Over the last 24 hours",
+      description: timeDescription,
       color: "text-[#D946EF] dark:text-[#F0ABFC]",
     },
     {
@@ -94,7 +120,7 @@ export default function StatsCard() {
       icon: <FaRegStar size={32} />,
       change: `${data.mostPlayedGame?.percentageChange ?? 0}%`,
       changeType: data.mostPlayedGame?.percentageChange >= 0 ? "up" : "down",
-      description: "Over the last 24 hours",
+      description: timeDescription,
       color: "text-[#D946EF] dark:text-[#F0ABFC]",
     },
     {
@@ -103,7 +129,7 @@ export default function StatsCard() {
       icon: <TbCalendarClock size={36} />,
       change: "0%",
       changeType: "up",
-      description: "Over the last 24 hours",
+      description: timeDescription,
       color: "text-[#D946EF] dark:text-[#F0ABFC]",
     },
     {
@@ -112,7 +138,7 @@ export default function StatsCard() {
       icon: <IoHourglassOutline size={32} />,
       change: `${data.avgSessionDuration.percentageChange ?? 0}%`,
       changeType: data.avgSessionDuration.percentageChange >= 0 ? "up" : "down",
-      description: "Over the last 24 hours",
+      description: timeDescription,
       color: "text-[#D946EF] dark:text-[#F0ABFC]",
     },
   ];

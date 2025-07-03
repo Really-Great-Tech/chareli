@@ -69,9 +69,16 @@ export default function GameCategories() {
               className="bg-[#F1F5F9] rounded-2xl p-6 shadow flex flex-col gap-2 relative min-h-[120px] dark:bg-[#121C2D]"
             >
               <div className="flex justify-between items-start mb-2">
-                <h2 className="text-xl tracking-wide font-medium font-dmmono text-[#232B3B] dark:text-white">
-                  {cat.name}
-                </h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-xl tracking-wide font-medium font-dmmono text-[#232B3B] dark:text-white">
+                    {cat.name}
+                  </h2>
+                  {cat.isDefault && (
+                    <span className="bg-[#D946EF] text-white text-xs px-2 py-1 rounded-full font-medium">
+                      Default
+                    </span>
+                  )}
+                </div>
                 <div className="flex gap-2">
                   <button className="p-1 rounded transition">
                     <CiEdit
@@ -82,15 +89,17 @@ export default function GameCategories() {
                       }}
                     />
                   </button>
-                  <button className="p-1 rounded transition">
-                    <FiTrash2
-                      className="text-black w-5 h-5 dark:text-white cursor-pointer"
-                      onClick={() => {
-                        setSelectedCategoryId(cat.id);
-                        setShowDeleteModal(true);
-                      }}
-                    />
-                  </button>
+                  {!cat.isDefault && (
+                    <button className="p-1 rounded transition">
+                      <FiTrash2
+                        className="text-black w-5 h-5 dark:text-white cursor-pointer"
+                        onClick={() => {
+                          setSelectedCategoryId(cat.id);
+                          setShowDeleteModal(true);
+                        }}
+                      />
+                    </button>
+                  )}
                 </div>
               </div>
               <p className="text-[#475568] mb-2 font-worksans text-base tracking-wider dark:text-white">

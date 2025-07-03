@@ -8,23 +8,36 @@ import {
   TableRow,
 } from "../../../components/ui/table";
 import { Card } from "../../../components/ui/card";
+import { Input } from "../../../components/ui/input";
 import { UserManagementFilterSheet } from "../../../components/single/UserMgtFilter-Sheet";
 import { Button } from "../../../components/ui/button";
 import { RiEqualizer2Line } from "react-icons/ri";
+import { Search, Trash2 } from "lucide-react";
 import ExportModal from "../../../components/modals/AdminModals/ExportModal";
+import { DeleteConfirmationModal } from "../../../components/modals/DeleteConfirmationModal";
 import { useNavigate } from "react-router-dom";
 import {
   useUsersAnalytics,
 } from "../../../backend/analytics.service";
+import { useDeleteUser } from "../../../backend/user.service";
 import type {
   FilterState,
 } from "../../../backend/analytics.service";
 import { NoResults } from "../../../components/single/NoResults";
-import { formatTime } from "../../../utils/main";
+import { formatTime, canDeleteUser, getDeletionErrorMessage } from "../../../utils/main";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+import { BackendRoute } from "../../../backend/constants";
+import { useAuth } from "../../../context/AuthContext";
 
 export default function UserManagement() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { user: currentUser } = useAuth();
   const [page, setPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [userToDelete, setUserToDelete] = useState<any>(null);
+  const deleteUser = useDeleteUser();
   const [filters, setFilters] = useState<FilterState>({
     registrationDates: {
       startDate: "",
@@ -35,9 +48,10 @@ export default function UserManagement() {
       min: 0,
       max: 0,
     },
-    gameTitle: "",
-    gameCategory: "",
-    country: "",
+    gameTitle: [],
+    gameCategory: [],
+    country: [],
+    ageGroup: "",
     sortByMaxTimePlayed: false,
   });
 
@@ -60,16 +74,65 @@ export default function UserManagement() {
         min: 0,
         max: 0,
       },
-      gameTitle: "",
-      gameCategory: "",
-      country: "",
+      gameTitle: [],
+      gameCategory: [],
+      country: [],
+      ageGroup: "",
       sortByMaxTimePlayed: false,
     });
     setPage(1);
   };
 
-  // All filtering and sorting is now handled server-side by useUsersAnalytics
-  const filteredUsers = users;
+  // Handle delete user with permission check
+  const handleDeleteUser = (user: any) => {
+    if (!canDeleteUser(currentUser, user)) {
+      toast.error(getDeletionErrorMessage(currentUser, user));
+      return;
+    }
+    setUserToDelete(user);
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!userToDelete) return;
+    
+    try {
+      await deleteUser.mutateAsync(userToDelete.id);
+      
+      // Invalidate all related queries to refresh data across the app
+      await queryClient.invalidateQueries({ queryKey: [BackendRoute.USER] });
+      await queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_USERS_ANALYTICS] });
+      await queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_DASHBOARD] });
+      await queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_USER_ACTIVITY] });
+      await queryClient.invalidateQueries({ queryKey: [BackendRoute.ANALYTICS] });
+      
+      toast.success(`User ${userToDelete.firstName} ${userToDelete.lastName} deleted successfully`);
+      setUserToDelete(null);
+    } catch (error) {
+      toast.error("Failed to delete user");
+    }
+  };
+
+  // Filter users based on search query
+  const getFilteredUsers = () => {
+    if (!users) return [];
+    
+    if (!searchQuery.trim()) return users;
+    
+    const query = searchQuery.toLowerCase();
+    return users.filter(user => {
+      const fullName = `${user.firstName || ""} ${user.lastName || ""}`.toLowerCase();
+      const email = (user.email || "").toLowerCase();
+      const phone = (user.phoneNumber || "").toLowerCase();
+      const id = user.id.toLowerCase();
+      
+      return fullName.includes(query) || 
+             email.includes(query) || 
+             phone.includes(query) || 
+             id.includes(query);
+    });
+  };
+
+  const filteredUsers = getFilteredUsers();
 
   return (
     <div className="px-3">
@@ -77,7 +140,21 @@ export default function UserManagement() {
         <h1 className="text-[#D946EF] text-2xl sm:text-3xl font-worksans">
           User Management
         </h1>
-        <div className="flex flex-wrap gap-3 justify-end">
+        <div className="flex flex-col sm:flex-row flex-wrap gap-3 justify-end">
+          {/* Search Input */}
+          <div className="relative w-full sm:w-auto sm:min-w-[250px]">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Search"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPage(1); // Reset to first page when searching
+              }}
+              className="pl-10 bg-white dark:bg-[#1E293B] border-gray-300 dark:border-gray-600 h-12"
+            />
+          </div>
+          
           <UserManagementFilterSheet
             filters={filters}
             onFiltersChange={handleFiltersChange}
@@ -116,6 +193,7 @@ export default function UserManagement() {
             <p className="text-xl dark:text-[#D946EF]">Recent User Activity</p>
             {/* <p className="text-xl cursor-pointer">View All</p> */}
           </div>
+          
           {/* table */}
           <div className="px-4 pb-4">
             {isLoading ? (
@@ -143,6 +221,7 @@ export default function UserManagement() {
                       <TableHead>Time Played</TableHead>
                       <TableHead>Session count</TableHead>
                       <TableHead>Last Login</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -202,6 +281,23 @@ export default function UserManagement() {
                                   </span>
                                 </div>
                               </span>
+                            </TableCell>
+                            <TableCell>
+                              {canDeleteUser(currentUser, user) ? (
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation(); // Prevent row click navigation
+                                    handleDeleteUser(user);
+                                  }}
+                                  className="h-8 w-8 p-0 hover:bg-red-600 cursor-pointer"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              ) : (
+                                <span className="text-gray-400 text-sm">-</span>
+                              )}
                             </TableCell>
                           </TableRow>
                         ))}
@@ -354,6 +450,24 @@ export default function UserManagement() {
           </div>
         </Card>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        open={!!userToDelete}
+        onOpenChange={() => setUserToDelete(null)}
+        onConfirm={confirmDeleteUser}
+        isDeleting={deleteUser.isPending}
+        title="Delete User"
+        description={
+          userToDelete ? (
+            <span>
+              Are you sure you want to delete <strong>{userToDelete.firstName} {userToDelete.lastName}</strong>? This action cannot be undone.
+            </span>
+          ) : ""
+        }
+        confirmButtonText="Delete User"
+        loadingText="Deleting..."
+      />
     </div>
   );
 }

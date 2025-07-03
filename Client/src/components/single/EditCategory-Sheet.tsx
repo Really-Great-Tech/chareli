@@ -124,7 +124,7 @@ export function EditCategory({
                   name="name"
                   component="div"
                   className="text-red-500  mt-1 font-worksans text-sm tracking-wider"
-                />
+                /> 
               </div>
 
               <div>
@@ -146,15 +146,17 @@ export function EditCategory({
               </div>
 
               <div className="flex justify-between mt-8 items-center">
-                <Button
-                  type="button"
-                  variant="destructive"
-                  onClick={() => setShowDeleteModal(true)}
-                  className="dark:bg-[#EF4444]"
-                >
-                  Delete
-                </Button>
-                <div className="flex gap-3">
+                {!category.isDefault && (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={() => setShowDeleteModal(true)}
+                    className="dark:bg-[#EF4444]"
+                  >
+                    Delete
+                  </Button>
+                )}
+                <div className="flex gap-3 flex-1 justify-end">
                   <SheetClose asChild>
                     <Button
                       type="button"

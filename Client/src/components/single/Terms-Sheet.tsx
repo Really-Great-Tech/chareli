@@ -8,7 +8,10 @@ import {
   SheetHeader,
   SheetTitle,
 } from "../ui/sheet";
-import { useCreateSystemConfig } from "../../backend/configuration.service";
+import {
+  useCreateSystemConfig,
+  useSystemConfigByKey,
+} from "../../backend/configuration.service";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { BackendRoute } from "../../backend/constants";
@@ -23,6 +26,9 @@ export function TermsSheet({ open, onOpenChange }: TermsSheetProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const queryClient = useQueryClient();
   const createConfig = useCreateSystemConfig();
+  const { data: termsConfig } = useSystemConfigByKey("terms");
+
+  const hasExistingTerms = !!termsConfig;
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -79,16 +85,60 @@ export function TermsSheet({ open, onOpenChange }: TermsSheetProps) {
           </SheetTitle>
           <div className="border border-b-gray-200 mb-2"></div>
         </SheetHeader>
+        {/* Current Terms Display */}
+        {hasExistingTerms && (
+          <div className="mx-4 mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <h3 className="text-base font-semibold text-blue-800 dark:text-blue-200 mb-2">
+              📄 Current Terms Document
+            </h3>
+            <div className="space-y-2">
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                <span className="font-medium">Uploaded:</span>{" "}
+                {termsConfig?.value?.uploadedAt
+                  ? new Date(termsConfig.value.uploadedAt).toLocaleDateString()
+                  : "Unknown"}
+              </p>
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                <span className="font-medium">Type:</span>{" "}
+                {termsConfig?.value?.file?.type || "terms"}
+              </p>
+              {termsConfig?.value?.file?.s3Key && (
+                <a
+                  href={termsConfig.value.file.s3Key}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 underline"
+                >
+                  📥 View Current Terms Document
+                </a>
+              )}
+            </div>
+            <div className="mt-3 p-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded">
+              <p className="text-xs text-yellow-800 dark:text-yellow-200">
+                ⚠️ Uploading a new file will replace the current terms document
+              </p>
+            </div>
+          </div>
+        )}
+
         <form
           onSubmit={handleSubmit}
           className="grid grid-cols-1 gap-6 pl-4 pr-4"
         >
-          {/* Thumbnail Upload */}
+          {/* File Upload */}
           <div>
             <Label className="text-lg mb-2 block">Upload file</Label>
             <div className="flex items-center">
               <label className="w-40 h-38 flex flex-col items-center justify-center border border-[#CBD5E0] rounded-lg cursor-pointer hover:border-[#D946EF] transition">
-                <img src={uploadImg} alt="upload" className="dark:invert dark:brightness-0 dark:contrast-100" />
+                {selectedFile?.name ? (
+                  <img src="/doc.png" alt="document icon" className="w-20" />
+                ) : (
+                  <img
+                    src={uploadImg}
+                    alt="upload"
+                    className="dark:invert dark:brightness-0 dark:contrast-100"
+                  />
+                )}
                 <input
                   type="file"
                   accept=".doc,.docx"
@@ -116,11 +166,15 @@ export function TermsSheet({ open, onOpenChange }: TermsSheetProps) {
           </SheetClose>
           <Button
             type="submit"
-            className="w-20 h-12 bg-[#D946EF] text-white hover:bg-[#C026D3] dark:text-white dark:hover:bg-[#C026D3] shadow-none cursor-pointer"
+            className="w-fit h-12 bg-[#D946EF] text-white hover:bg-[#C026D3] dark:text-white dark:hover:bg-[#C026D3] shadow-none cursor-pointer px-4"
             onClick={handleSubmit}
             disabled={!selectedFile || createConfig.isPending}
           >
-            {createConfig.isPending ? "Uploading..." : "Add"}
+            {createConfig.isPending
+              ? "Uploading..."
+              : hasExistingTerms
+              ? "Replace Terms"
+              : "Add Terms"}
           </Button>
         </div>
       </SheetContent>

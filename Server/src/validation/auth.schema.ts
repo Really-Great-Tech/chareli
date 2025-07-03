@@ -27,6 +27,10 @@ export const registerPlayerSchema = yup.object({
       /^(?=.*[a-zA-Z])(?=.*\d).+$/,
       "Password is too weak (consider adding letters and numbers)"
     )
+    .matches(
+      /^(?=.*[A-Z])/,
+      "Password must contain at least one uppercase letter"
+    )
     .required("Password is required"),
   phoneNumber: yup.string().required("Phone number is required"),
   isAdult: yup.boolean().default(false),
@@ -47,6 +51,10 @@ export const registerFromInvitationSchema = yup.object({
     .matches(
       /^(?=.*[a-zA-Z])(?=.*\d).+$/,
       "Password is too weak (consider adding letters and numbers)"
+    )
+    .matches(
+      /^(?=.*[A-Z])/,
+      "Password must contain at least one uppercase letter"
     )
     .required("Password is required"),
   phoneNumber: yup.string().required("Phone number is required"),
@@ -107,6 +115,10 @@ export const resetPasswordSchema = yup.object({
       /^(?=.*[a-zA-Z])(?=.*\d).+$/,
       "Password is too weak (consider adding letters and numbers)"
     )
+    .matches(
+      /^(?=.*[A-Z])/,
+      "Password must contain at least one uppercase letter"
+    )
     .required("Password is required"),
   confirmPassword: yup
     .string()
@@ -136,6 +148,10 @@ export const changePasswordSchema = yup.object({
     .matches(
       /^(?=.*[a-zA-Z])(?=.*\d).+$/,
       "Password is too weak (consider adding letters and numbers)"
+    )
+    .matches(
+      /^(?=.*[A-Z])/,
+      "Password must contain at least one uppercase letter"
     )
     .required("New password is required"),
 });

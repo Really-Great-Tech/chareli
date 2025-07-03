@@ -129,7 +129,7 @@ export const getCurrentUser = async (
     }
 
     const user = await userRepository.findOne({
-      where: { id: userId },
+      where: { id: userId, isDeleted: false },
       relations: ['role']
     });
 
@@ -312,7 +312,7 @@ export const verifyInvitationToken = async (
 
     // Check if user already exists
     const existingUser = await userRepository.findOne({
-      where: { email: invitation.email }
+      where: { email: invitation.email, isDeleted: false }
     });
 
     if (existingUser) {
@@ -416,7 +416,7 @@ export const resetPasswordFromInvitation = async (
 
     // Find the user
     const user = await userRepository.findOne({
-      where: { email: invitation.email }
+      where: { email: invitation.email, isDeleted: false }
     });
 
     if (!user) {
@@ -502,7 +502,7 @@ export const changePassword = async (
     }
 
     const user = await userRepository.findOne({
-      where: { id: userId },
+      where: { id: userId, isDeleted: false },
       select: ['id', 'password']
     });
 
@@ -545,7 +545,7 @@ export const revokeRole = async (
 
     // Find the user whose role will be revoked
     const user = await userRepository.findOne({
-      where: { id },
+      where: { id, isDeleted: false },
       relations: ['role']
     });
 

@@ -53,9 +53,10 @@ export class AuthService {
     hasAcceptedTerms: boolean = false,
     country?: string
   ): Promise<User> {
-    // Check if user already exists by email or phone number
+    // Check if user already exists by email or phone number (including deleted users)
     const existingUser = await userRepository.findOne({
       where: [{ email }, { phoneNumber }],
+      select: ['id', 'email', 'phoneNumber', 'isDeleted'],
     });
 
     if (existingUser) {
@@ -176,7 +177,7 @@ export class AuthService {
     const isEmail = identifier.includes('@');
 
     const user = await userRepository.findOne({
-      where: isEmail ? { email: identifier } : { phoneNumber: identifier },
+      where: isEmail ? { email: identifier, isDeleted: false } : { phoneNumber: identifier, isDeleted: false },
       select: ['id', 'email', 'password', 'firstName', 'lastName', 'phoneNumber', 'isActive', 'isVerified', 'hasCompletedFirstLogin', 'roleId', 'country'],
       relations: ['role']
     });
@@ -314,7 +315,7 @@ export class AuthService {
 
       // Find the user
       const user = await userRepository.findOne({
-        where: { id: decoded.userId },
+        where: { id: decoded.userId, isDeleted: false },
         relations: ['role']
       });
 
@@ -337,7 +338,7 @@ export class AuthService {
   ): Promise<Invitation> {
     // Check if user already has this role
     const existingUser = await userRepository.findOne({
-      where: { email },
+      where: { email, isDeleted: false },
       relations: ['role']
     });
 
@@ -376,7 +377,7 @@ export class AuthService {
       throw new Error(`Role ${roleName} not found`);
     }
 
-    const inviter = await userRepository.findOne({ where: { id: invitedById } });
+    const inviter = await userRepository.findOne({ where: { id: invitedById, isDeleted: false } });
     if (!inviter) {
       throw new Error('Inviter not found');
     }
@@ -423,7 +424,7 @@ export class AuthService {
   ): Promise<User> {
     // Find the user
     const user = await userRepository.findOne({
-      where: { id: userId },
+      where: { id: userId, isDeleted: false },
       relations: ['role']
     });
 

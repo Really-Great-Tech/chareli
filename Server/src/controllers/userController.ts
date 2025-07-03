@@ -41,6 +41,7 @@ export const getAllUsers = async (
 ): Promise<void> => {
   try {
     const users = await userRepository.find({
+      where: { isDeleted: false },
       relations: ['role'],
       select: {
         id: true,
@@ -209,7 +210,7 @@ export const getUserById = async (
     const { id } = req.params;
 
     const user = await userRepository.findOne({
-      where: { id },
+      where: { id, isDeleted: false },
       relations: ['role'],
       select: {
         id: true,
@@ -292,11 +293,11 @@ export const createUser = async (
     // Get country from IP
     const country = await getCountryFromIP(ipAddress);
 
-    // Check if user with email already exists (only if email is provided)
+    // Check if user with email already exists (including deleted users)
     if (email || phoneNumber) {
       const existingUser = await userRepository.findOne({
         where: [{ email }, { phoneNumber }],
-        select: ['id', 'email', 'phoneNumber'],
+        select: ['id', 'email', 'phoneNumber', 'isDeleted'],
       });
 
       if (existingUser) {
@@ -407,7 +408,7 @@ export const updateUser = async (
     const { firstName, lastName, email, phoneNumber, roleId, isActive, password } = req.body;
 
     const user = await userRepository.findOne({
-      where: { id },
+      where: { id, isDeleted: false },
       relations: ['role']
     });
 
@@ -557,7 +558,12 @@ export const deleteUser = async (
       return next(ApiError.badRequest('You cannot delete your own account'));
     }
 
-    await userRepository.remove(user);
+    // Soft delete: mark user as deleted instead of removing
+    await userRepository.update(id, {
+      isDeleted: true,
+      isActive: false,
+      deletedAt: new Date()
+    });
 
     res.status(200).json({
       success: true,
@@ -680,7 +686,7 @@ export const getOnlineStatus = async (
     }
 
     const user = await userRepository.findOne({
-      where: { id: req.user.userId },
+      where: { id: req.user.userId, isDeleted: false },
       select: ['id', 'lastSeen', 'isActive']
     });
 

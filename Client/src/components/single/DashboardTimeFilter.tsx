@@ -107,7 +107,7 @@ export function DashboardTimeFilter({ value, onChange }: DashboardTimeFilterProp
                 type="date"
                 value={tempStartDate}
                 onChange={(e) => setTempStartDate(e.target.value)}
-                className="w-full"
+                className="bg-[#F1F5F9] border border-[#CBD5E0] h-12 sm:h-14 text-gray-400 font-thin font-worksans text-sm tracking-wider dark:bg-[#121C2D] dark:text-gray-300 dark:border-[#334155] date-input-dark w-full"
               />
             </div>
             <div className="space-y-2">
@@ -119,7 +119,7 @@ export function DashboardTimeFilter({ value, onChange }: DashboardTimeFilterProp
                 type="date"
                 value={tempEndDate}
                 onChange={(e) => setTempEndDate(e.target.value)}
-                className="w-full"
+                className="bg-[#F1F5F9] border border-[#CBD5E0] h-12 sm:h-14 text-gray-400 font-thin font-worksans text-sm tracking-wider dark:bg-[#121C2D] dark:text-gray-300 dark:border-[#334155] date-input-dark w-full"
               />
             </div>
           </div>

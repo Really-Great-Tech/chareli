@@ -174,15 +174,19 @@ export const getDashboardAnalytics = async (
     const [currentTotalRegisteredUsers, previousTotalRegisteredUsers, actualRegisteredUsers] = await Promise.all([
       userRepository.count({
         where: {
-          createdAt: Between(twentyFourHoursAgo, now)
+          createdAt: Between(twentyFourHoursAgo, now),
+          isDeleted: false
         }
       }),
       userRepository.count({
         where: {
-          createdAt: Between(fortyEightHoursAgo, twentyFourHoursAgo)
+          createdAt: Between(fortyEightHoursAgo, twentyFourHoursAgo),
+          isDeleted: false
         }
       }),
-      userRepository.count()
+      userRepository.count({
+        where: { isDeleted: false }
+      })
     ]);
 
     const totalRegisteredUsersPercentageChange = previousTotalRegisteredUsers > 0
@@ -191,11 +195,11 @@ export const getDashboardAnalytics = async (
 
     // Count active and inactive users (no percentage change needed as requested)
     const activeUsers = await userRepository.count({
-      where: { isActive: true }
+      where: { isActive: true, isDeleted: false }
     });
     
     const inactiveUsers = await userRepository.count({
-      where: { isActive: false }
+      where: { isActive: false, isDeleted: false }
     });
 
     // 3. Total Games
@@ -387,8 +391,8 @@ export const getDashboardAnalytics = async (
       : 0;
 
     const [adultsCount, minorsCount] = await Promise.all([
-      userRepository.count({ where: { isAdult: true } }),
-      userRepository.count({ where: { isAdult: false } }),
+      userRepository.count({ where: { isAdult: true, isDeleted: false } }),
+      userRepository.count({ where: { isAdult: false, isDeleted: false } }),
     ]);
 
     res.status(200).json({
@@ -526,7 +530,8 @@ export const getUserActivityLog = async (
     
     // First, get the list of users
     const userQueryBuilder = userRepository.createQueryBuilder('user')
-      .select(['user.id', 'user.firstName', 'user.lastName', 'user.email', 'user.isActive', 'user.lastSeen']);
+      .select(['user.id', 'user.firstName', 'user.lastName', 'user.email', 'user.isActive', 'user.lastSeen'])
+      .where('user.isDeleted = :isDeleted', { isDeleted: false });
     
     // Apply user filter if provided
     if (userId) {
@@ -1271,6 +1276,7 @@ export const getUsersWithAnalytics = async (
     // Build base query for users
     let userQueryBuilder = userRepository.createQueryBuilder('user')
       .leftJoinAndSelect('user.role', 'role')
+      .where('user.isDeleted = :isDeleted', { isDeleted: false })
       .select([
         'user.id',
         'user.firstName', 

@@ -39,6 +39,6 @@ router.get('/', isAdmin, validateQuery(userQuerySchema), getAllUsers);
 // Routes that require either admin access or ownership of the resource
 router.get('/:id', isOwnerOrAdmin, validateParams(userIdParamSchema), getUserById);
 router.put('/:id', isOwnerOrAdmin, validateParams(userIdParamSchema), validateBody(updateUserSchema), updateUser);
-router.delete('/:id', isAdmin, validateParams(userIdParamSchema), deleteUser); // Only admins can delete users
+router.delete('/:id', isOwnerOrAdmin, validateParams(userIdParamSchema), deleteUser); // Users can delete their own accounts, admins can delete any account
 
 export default router;

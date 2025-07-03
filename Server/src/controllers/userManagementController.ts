@@ -310,19 +310,36 @@ export const verifyInvitationToken = async (
       return next(ApiError.badRequest('Invitation has expired'));
     }
 
-    // Check if user already exists
-    const existingUser = await userRepository.findOne({
+    // Check if active user already exists
+    const existingActiveUser = await userRepository.findOne({
       where: { email: invitation.email, isDeleted: false }
     });
 
-    if (existingUser) {
-      // User already exists, they can reset password directly
+    // Check if soft-deleted user exists
+    const softDeletedUser = await userRepository.findOne({
+      where: { email: invitation.email, isDeleted: true }
+    });
+
+    if (existingActiveUser) {
+      // Active user already exists, they can reset password directly
       res.status(200).json({
         success: true,
         message: 'User with this email already exists. You can reset your password directly.',
         data: {
           email: invitation.email,
           userExists: true,
+          role: invitation.role.name
+        }
+      });
+    } else if (softDeletedUser) {
+      // Soft-deleted user exists, they can restore their account
+      res.status(200).json({
+        success: true,
+        message: 'Your account will be restored. Please proceed to set your new password.',
+        data: {
+          email: invitation.email,
+          userExists: true,
+          isRestoration: true,
           role: invitation.role.name
         }
       });
@@ -414,10 +431,17 @@ export const resetPasswordFromInvitation = async (
       return next(ApiError.badRequest('Invitation has expired'));
     }
 
-    // Find the user
-    const user = await userRepository.findOne({
+    // Find the user (check both active and soft-deleted users)
+    let user = await userRepository.findOne({
       where: { email: invitation.email, isDeleted: false }
     });
+
+    // If no active user found, check for soft-deleted user
+    if (!user) {
+      user = await userRepository.findOne({
+        where: { email: invitation.email, isDeleted: true }
+      });
+    }
 
     if (!user) {
       return next(ApiError.badRequest('User not found'));
@@ -431,6 +455,14 @@ export const resetPasswordFromInvitation = async (
     user.password = hashedPassword;
     user.role = invitation.role;
     user.roleId = invitation.roleId;
+
+    // If user was soft-deleted, restore their account
+    if (user.isDeleted) {
+      user.isDeleted = false;
+      user.deletedAt = null as any;
+      user.isActive = true;
+    }
+
     await userRepository.save(user);
 
     // Mark invitation as accepted

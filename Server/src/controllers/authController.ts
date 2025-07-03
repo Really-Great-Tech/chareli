@@ -760,7 +760,7 @@ export const resetPassword = async (
       user = await authService.verifyResetToken(token);
     } else if (userId) {
       // Phone flow - get user directly (OTP already verified)
-      user = await userRepository.findOne({ where: { id: userId } });
+      user = await userRepository.findOne({ where: { id: userId, isDeleted: false } });
       if (!user) {
         return next(ApiError.notFound('User not found'));
       }

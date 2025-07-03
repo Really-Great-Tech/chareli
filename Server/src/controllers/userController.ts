@@ -469,7 +469,7 @@ export const updateUser = async (
     if (email && email !== user.email) {
       // Check if email is already in use
       const existingUser = await userRepository.findOne({
-        where: { email }
+        where: { email, isDeleted: false }
       });
 
       if (existingUser && existingUser.id !== id) {
@@ -537,7 +537,7 @@ export const deleteUser = async (
     const { id } = req.params;
 
     const user = await userRepository.findOne({
-      where: { id },
+      where: { id, isDeleted: false },
       relations: ['role']
     });
 
@@ -553,10 +553,6 @@ export const deleteUser = async (
       return next(ApiError.forbidden('Admin cannot delete superadmin'));
     }
 
-    // Prevent deleting yourself
-    if (req.user?.userId === id) {
-      return next(ApiError.badRequest('You cannot delete your own account'));
-    }
 
     // Soft delete: mark user as deleted instead of removing
     await userRepository.update(id, {

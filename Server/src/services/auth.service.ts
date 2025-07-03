@@ -134,9 +134,43 @@ export class AuthService {
       throw new Error('Invitation has expired');
     }
 
-    // Check if phone number already exists
+    // Check if there's a soft-deleted user with this email
+    const softDeletedUser = await userRepository.findOne({
+      where: { email: invitation.email, isDeleted: true }
+    });
+
+    if (softDeletedUser) {
+      // Restore the soft-deleted user instead of creating a new one
+      const hashedPassword = await this.hashPassword(password);
+      
+      softDeletedUser.firstName = firstName as any;
+      softDeletedUser.lastName = lastName as any;
+      softDeletedUser.password = hashedPassword;
+      softDeletedUser.phoneNumber = phoneNumber as any;
+      softDeletedUser.role = invitation.role;
+      softDeletedUser.roleId = invitation.roleId;
+      softDeletedUser.isVerified = false;
+      softDeletedUser.isActive = true;
+      softDeletedUser.isAdult = isAdult;
+      softDeletedUser.hasAcceptedTerms = hasAcceptedTerms;
+      softDeletedUser.country = country as any;
+      
+      // Restore the account
+      softDeletedUser.isDeleted = false;
+      softDeletedUser.deletedAt = null as any;
+
+      await userRepository.save(softDeletedUser);
+
+      // Mark invitation as accepted
+      invitation.isAccepted = true;
+      await invitationRepository.save(invitation);
+
+      return softDeletedUser;
+    }
+
+    // Check if phone number already exists (for active users)
     const existingUser = await userRepository.findOne({
-      where: { phoneNumber },
+      where: { phoneNumber, isDeleted: false },
     });
 
     if (existingUser) {
@@ -336,15 +370,24 @@ export class AuthService {
     roleName: RoleType,
     invitedById: string
   ): Promise<Invitation> {
-    // Check if user already has this role
-    const existingUser = await userRepository.findOne({
+    // Check if active user already has this role
+    const existingActiveUser = await userRepository.findOne({
       where: { email, isDeleted: false },
       relations: ['role']
     });
 
-    if (existingUser && existingUser.role.name === roleName) {
+    if (existingActiveUser && existingActiveUser.role.name === roleName) {
       throw new Error('User already has this role');
     }
+
+    // Check if there's a soft-deleted user with this email
+    const softDeletedUser = await userRepository.findOne({
+      where: { email, isDeleted: true },
+      relations: ['role']
+    });
+
+    // If soft-deleted user exists, we'll allow the invitation (for restoration)
+    // No need to throw an error - the invitation will restore their account
 
     // Check for pending invitation
     const existingInvitation = await invitationRepository.findOne({
@@ -444,7 +487,7 @@ export class AuthService {
     }
 
     // Find the person making the change
-    const changer = await userRepository.findOne({ where: { id: changedById } });
+    const changer = await userRepository.findOne({ where: { id: changedById, isDeleted: false } });
     if (!changer) {
       throw new Error('User making the change not found');
     }
@@ -464,7 +507,7 @@ export class AuthService {
 
   async requestPasswordReset(email: string): Promise<boolean> {
     // Find the user
-    const user = await userRepository.findOne({ where: { email } });
+    const user = await userRepository.findOne({ where: { email, isDeleted: false } });
 
     // Even if user is not found, return true to prevent email enumeration attacks
     if (!user) {

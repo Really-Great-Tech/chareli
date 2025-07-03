@@ -17,6 +17,10 @@ export const createUserSchema = yup.object({
       /^(?=.*[a-zA-Z])(?=.*\d).+$/,
       "Password is too weak (consider adding letters and numbers)"
     )
+    .matches(
+      /^(?=.*[A-Z])/,
+      "Password must contain at least one uppercase letter"
+    )
     .required("Password is required"),
   fileId: yup.string().uuid("Invalid file ID").optional(),
   isAdult: yup.boolean().default(false),
@@ -37,6 +41,10 @@ export const updateUserSchema = yup
       .matches(
         /^(?=.*[a-zA-Z])(?=.*\d).+$/,
         "Password is too weak (consider adding letters and numbers)"
+      )
+      .matches(
+        /^(?=.*[A-Z])/,
+        "Password must contain at least one uppercase letter"
       ),
     phoneNumber: yup.string(),
     roleId: yup.string().uuid("Invalid role ID"),

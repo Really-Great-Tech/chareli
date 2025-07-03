@@ -12,7 +12,7 @@ import { Input } from "../../../components/ui/input";
 import { UserManagementFilterSheet } from "../../../components/single/UserMgtFilter-Sheet";
 import { Button } from "../../../components/ui/button";
 import { RiEqualizer2Line } from "react-icons/ri";
-import { Search, Trash2 } from "lucide-react";
+import { Search } from "lucide-react";
 import ExportModal from "../../../components/modals/AdminModals/ExportModal";
 import { DeleteConfirmationModal } from "../../../components/modals/DeleteConfirmationModal";
 import { useNavigate } from "react-router-dom";
@@ -24,16 +24,16 @@ import type {
   FilterState,
 } from "../../../backend/analytics.service";
 import { NoResults } from "../../../components/single/NoResults";
-import { formatTime, canDeleteUser, getDeletionErrorMessage } from "../../../utils/main";
+import { formatTime } from "../../../utils/main";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { BackendRoute } from "../../../backend/constants";
-import { useAuth } from "../../../context/AuthContext";
+// import { useAuth } from "../../../context/AuthContext";
 
 export default function UserManagement() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { user: currentUser } = useAuth();
+  // const { user: currentUser } = useAuth();
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [userToDelete, setUserToDelete] = useState<any>(null);
@@ -94,13 +94,13 @@ export default function UserManagement() {
   };
 
   // Handle delete user with permission check
-  const handleDeleteUser = (user: any) => {
-    if (!canDeleteUser(currentUser, user)) {
-      toast.error(getDeletionErrorMessage(currentUser, user));
-      return;
-    }
-    setUserToDelete(user);
-  };
+  // const handleDeleteUser = (user: any) => {
+  //   if (!canDeleteUser(currentUser, user)) {
+  //     toast.error(getDeletionErrorMessage(currentUser, user));
+  //     return;
+  //   }
+  //   setUserToDelete(user);
+  // };
 
   const confirmDeleteUser = async () => {
     if (!userToDelete) return;

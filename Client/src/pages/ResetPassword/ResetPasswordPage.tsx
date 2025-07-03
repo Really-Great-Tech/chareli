@@ -215,13 +215,13 @@ export function ResetPasswordPage() {
                       name="password"
                       type={showPassword ? "text" : "password"}
                       placeholder="New password"
-                      className="mt-1 bg-[#E2E8F0] dark:bg-[#191c2b] border-0 pl-10 font-worksans text-xl tracking-wider text-[11px] font-normal h-[48px]"
+                      className="mt-1 bg-[#E2E8F0] dark:bg-[#191c2b] border-0 pl-10 font-worksans text-sm tracking-wider font-normal h-[48px]"
                     />
                   </div>
                   <ErrorMessage
                     name="password"
                     component="div"
-                    className="text-red-500 mt-1 font-worksans text-xl tracking-wider"
+                    className="text-red-500 mt-1 font-worksans text-sm tracking-wider"
                   />
                 </div>
                 <div className="relative">
@@ -252,13 +252,13 @@ export function ResetPasswordPage() {
                       name="confirmPassword"
                       type={showConfirmPassword ? "text" : "password"}
                       placeholder="Confirm password"
-                      className="mt-1 bg-[#E2E8F0] dark:bg-[#191c2b] border-0 pl-10 font-worksans text-xl tracking-wider text-[11px] font-normal h-[48px]"
+                      className="mt-1 bg-[#E2E8F0] dark:bg-[#191c2b] border-0 pl-10 font-worksans tracking-wider text-sm font-normal h-[48px]"
                     />
                   </div>
                   <ErrorMessage
                     name="confirmPassword"
                     component="div"
-                    className="text-red-500 mt-1 font-worksans text-xl tracking-wider"
+                    className="text-red-500 mt-1 font-worksans text-sm tracking-wider"
                   />
                 </div>
                 <div className="space-y-2">

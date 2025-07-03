@@ -1252,6 +1252,7 @@ export const getUsersWithAnalytics = async (
       lastLoginEndDate,
       userStatus,
       sortBy,
+      sortOrder,
       sessionCount, 
       minTimePlayed, 
       maxTimePlayed, 
@@ -1495,21 +1496,60 @@ export const getUsersWithAnalytics = async (
       }
     }
 
-    // Apply sorting based on sortBy parameter
+    // Apply sorting based on sortBy and sortOrder parameters
+    const order = sortOrder === 'asc' ? 1 : -1;
+    
     if (sortBy) {
       switch (sortBy) {
+        case 'firstName':
+          filteredUsers = filteredUsers.sort((a, b) => 
+            order * ((a.firstName || '').localeCompare(b.firstName || ''))
+          );
+          break;
+        case 'lastName':
+          filteredUsers = filteredUsers.sort((a, b) => 
+            order * ((a.lastName || '').localeCompare(b.lastName || ''))
+          );
+          break;
+        case 'email':
+          filteredUsers = filteredUsers.sort((a, b) => 
+            order * ((a.email || '').localeCompare(b.email || ''))
+          );
+          break;
+        case 'createdAt':
         case 'registrationDate':
           filteredUsers = filteredUsers.sort((a, b) => 
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            order * (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+          );
+          break;
+        case 'lastLoggedIn':
+        case 'lastLogin':
+          filteredUsers = filteredUsers.sort((a, b) => 
+            order * (new Date(a.lastLoggedIn || 0).getTime() - new Date(b.lastLoggedIn || 0).getTime())
+          );
+          break;
+        case 'lastSeen':
+          filteredUsers = filteredUsers.sort((a, b) => 
+            order * (new Date(a.lastSeen || 0).getTime() - new Date(b.lastSeen || 0).getTime())
+          );
+          break;
+        case 'country':
+          filteredUsers = filteredUsers.sort((a, b) => 
+            order * ((a.country || '').localeCompare(b.country || ''))
           );
           break;
         case 'timePlayed':
           filteredUsers = filteredUsers.sort((a, b) => 
-            (b.analytics.totalTimePlayed || 0) - (a.analytics.totalTimePlayed || 0)
+            order * ((a.analytics.totalTimePlayed || 0) - (b.analytics.totalTimePlayed || 0))
           );
           break;
-        case 'lastLogin':
+        case 'sessionCount':
+          filteredUsers = filteredUsers.sort((a, b) => 
+            order * ((a.analytics.totalSessionCount || 0) - (b.analytics.totalSessionCount || 0))
+          );
+          break;
         default:
+          // Default sorting by last login descending
           filteredUsers = filteredUsers.sort((a, b) => 
             new Date(b.lastLoggedIn || 0).getTime() - new Date(a.lastLoggedIn || 0).getTime()
           );
@@ -1521,7 +1561,7 @@ export const getUsersWithAnalytics = async (
         (b.analytics.totalTimePlayed || 0) - (a.analytics.totalTimePlayed || 0)
       );
     } else {
-      // Default sorting by last login
+      // Default sorting by last login descending
       filteredUsers = filteredUsers.sort((a, b) => 
         new Date(b.lastLoggedIn || 0).getTime() - new Date(a.lastLoggedIn || 0).getTime()
       );

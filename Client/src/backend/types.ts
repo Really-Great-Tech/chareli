@@ -112,6 +112,9 @@ export interface User {
   password?: string;
   isAdmin: boolean;
   isActive: boolean;
+  country?: string;
+  lastLoggedIn?: string;
+  lastSeen?: string;
   createdAt: string;
   updatedAt: string;
   role: Role

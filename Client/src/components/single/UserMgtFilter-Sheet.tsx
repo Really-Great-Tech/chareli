@@ -20,6 +20,10 @@ interface FilterState {
     startDate: string;
     endDate: string;
   };
+  lastLoginDates: {
+    startDate: string;
+    endDate: string;
+  };
   sessionCount: string;
   timePlayed: {
     min: number;
@@ -29,7 +33,8 @@ interface FilterState {
   gameCategory: string[];
   country: string[];
   ageGroup: string;
-  sortByMaxTimePlayed: boolean;
+  sortBy: string;
+  sortOrder: 'asc' | 'desc';
 }
 
 interface UserManagementFilterSheetProps {
@@ -226,20 +231,73 @@ export function UserManagementFilterSheet({
             />
           </div>
 
-          {/* Sort by Max Time Played */}
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="sortByMaxTimePlayed"
-              className="w-4 h-4"
-              checked={filters.sortByMaxTimePlayed}
-              onChange={(e) =>
-                handleChange("sortByMaxTimePlayed", e.target.checked)
-              }
+          {/* Last Login Dates */}
+          <div className="flex flex-col space-y-2">
+            <Label className="text-base">Last Login Dates</Label>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Input
+                type="date"
+                value={filters.lastLoginDates.startDate}
+                onChange={(e) =>
+                  handleChange("lastLoginDates", {
+                    ...filters.lastLoginDates,
+                    startDate: e.target.value,
+                  })
+                }
+                className="bg-[#F1F5F9] border border-[#CBD5E0] h-12 sm:h-14 text-gray-400 font-thin font-worksans text-sm tracking-wider dark:bg-[#121C2D] dark:text-gray-300 dark:border-[#334155] date-input-dark"
+              />
+              <Input
+                type="date"
+                value={filters.lastLoginDates.endDate}
+                onChange={(e) =>
+                  handleChange("lastLoginDates", {
+                    ...filters.lastLoginDates,
+                    endDate: e.target.value,
+                  })
+                }
+                className="bg-[#F1F5F9] border border-[#CBD5E0] h-12 sm:h-14 text-gray-400 font-thin font-worksans text-sm tracking-wider dark:bg-[#121C2D] dark:text-gray-300 dark:border-[#334155] date-input-dark"
+              />
+            </div>
+          </div>
+
+          {/* Sort By */}
+          <div className="flex flex-col space-y-2">
+            <Label className="text-base">Sort By</Label>
+            <SearchableSelect
+              value={filters.sortBy}
+              onValueChange={(value) => handleChange("sortBy", value)}
+              options={[
+                { value: "", label: "Default" },
+                { value: "firstName", label: "First Name" },
+                { value: "lastName", label: "Last Name" },
+                { value: "email", label: "Email" },
+                { value: "createdAt", label: "Registration Date" },
+                { value: "lastLoggedIn", label: "Last Login" },
+                { value: "lastSeen", label: "Last Seen" },
+                { value: "country", label: "Country" },
+                { value: "timePlayed", label: "Time Played" },
+                { value: "sessionCount", label: "Session Count" },
+              ]}
+              placeholder="Default"
+              searchPlaceholder="Search sort options..."
+              emptyText="No sort options found."
             />
-            <Label htmlFor="sortByMaxTimePlayed" className="text-base">
-              Sort by Max Time Played
-            </Label>
+          </div>
+
+          {/* Sort Order */}
+          <div className="flex flex-col space-y-2">
+            <Label className="text-base">Sort Order</Label>
+            <SearchableSelect
+              value={filters.sortOrder}
+              onValueChange={(value) => handleChange("sortOrder", value)}
+              options={[
+                { value: "asc", label: "Ascending (A-Z, 0-9, Oldest)" },
+                { value: "desc", label: "Descending (Z-A, 9-0, Newest)" },
+              ]}
+              placeholder="Ascending"
+              searchPlaceholder="Search sort order..."
+              emptyText="No sort order found."
+            />
           </div>
         </div>
 

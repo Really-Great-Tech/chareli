@@ -12,7 +12,7 @@ import { useDashboardAnalytics, type DashboardTimeRange } from '../../../backend
 import { useSystemConfigByKey } from '../../../backend/configuration.service';
 import AdminKeepPlayingModal from '../../../components/modals/AdminKeepPlayingModal';
 import { MostPlayedGames } from './MostPlayedGames';
-import { RecentUserActivity } from './RecentUserActivity';
+// import { RecentUserActivity } from './RecentUserActivity';
 
 export default function Home() {
   const [isAcceptInviteOpen, setIsAcceptInviteOpen] = useState(false);
@@ -109,9 +109,9 @@ export default function Home() {
           <MostPlayedGames />
         </div>
 
-        <div className="col-span-1 md:col-span-2 lg:col-span-4 mb-6">
+        {/* <div className="col-span-1 md:col-span-2 lg:col-span-4 mb-6">
           <RecentUserActivity />
-        </div>
+        </div> */}
       </div>
 
       <AcceptInvitationModal open={isAcceptInviteOpen} onOpenChange={setIsAcceptInviteOpen} isExistingUser={true} />

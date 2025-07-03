@@ -303,10 +303,10 @@ export interface FilterState {
     startDate: string;
     endDate: string;
   };
-  lastLoginStartDate?: string;
-  lastLoginEndDate?: string;
-  userStatus?: string;
-  sortBy?: string;
+  lastLoginDates: {
+    startDate: string;
+    endDate: string;
+  };
   sessionCount: string;
   timePlayed: {
     min: number;
@@ -316,7 +316,8 @@ export interface FilterState {
   gameCategory: string[];
   country: string[];
   ageGroup: string;
-  sortByMaxTimePlayed: boolean;
+  sortBy: string;
+  sortOrder: 'asc' | 'desc';
 }
 
 export const useUsersAnalytics = (filters?: FilterState) => {
@@ -327,10 +328,10 @@ export const useUsersAnalytics = (filters?: FilterState) => {
       if (filters) {
         if (filters.registrationDates.startDate) params.append('startDate', filters.registrationDates.startDate);
         if (filters.registrationDates.endDate) params.append('endDate', filters.registrationDates.endDate);
-        if (filters.lastLoginStartDate) params.append('lastLoginStartDate', filters.lastLoginStartDate);
-        if (filters.lastLoginEndDate) params.append('lastLoginEndDate', filters.lastLoginEndDate);
-        if (filters.userStatus) params.append('userStatus', filters.userStatus);
+        if (filters.lastLoginDates.startDate) params.append('lastLoginStartDate', filters.lastLoginDates.startDate);
+        if (filters.lastLoginDates.endDate) params.append('lastLoginEndDate', filters.lastLoginDates.endDate);
         if (filters.sortBy) params.append('sortBy', filters.sortBy);
+        if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
         if (filters.sessionCount) params.append('sessionCount', filters.sessionCount);
         if (filters.timePlayed.min) params.append('minTimePlayed', String(filters.timePlayed.min * 60)); // Convert to seconds
         if (filters.timePlayed.max) params.append('maxTimePlayed', String(filters.timePlayed.max * 60)); // Convert to seconds
@@ -344,7 +345,6 @@ export const useUsersAnalytics = (filters?: FilterState) => {
           filters.country.forEach(country => params.append('country', country));
         }
         if (filters.ageGroup) params.append('ageGroup', filters.ageGroup);
-        if (filters.sortByMaxTimePlayed) params.append('sortByMaxTimePlayed', 'true');
       }
       const url = `${BackendRoute.ADMIN_USERS_ANALYTICS}${params.toString() ? `?${params.toString()}` : ''}`;
       const response = await backendService.get(url);

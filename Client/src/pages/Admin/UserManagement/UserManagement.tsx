@@ -43,6 +43,10 @@ export default function UserManagement() {
       startDate: "",
       endDate: "",
     },
+    lastLoginDates: {
+      startDate: "",
+      endDate: "",
+    },
     sessionCount: "",
     timePlayed: {
       min: 0,
@@ -52,7 +56,8 @@ export default function UserManagement() {
     gameCategory: [],
     country: [],
     ageGroup: "",
-    sortByMaxTimePlayed: false,
+    sortBy: "",
+    sortOrder: "asc",
   });
 
   const { data: users, isLoading } = useUsersAnalytics(filters);
@@ -69,6 +74,10 @@ export default function UserManagement() {
         startDate: "",
         endDate: "",
       },
+      lastLoginDates: {
+        startDate: "",
+        endDate: "",
+      },
       sessionCount: "",
       timePlayed: {
         min: 0,
@@ -78,7 +87,8 @@ export default function UserManagement() {
       gameCategory: [],
       country: [],
       ageGroup: "",
-      sortByMaxTimePlayed: false,
+      sortBy: "",
+      sortOrder: "asc",
     });
     setPage(1);
   };

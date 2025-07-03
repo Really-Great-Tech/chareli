@@ -56,7 +56,7 @@ export default function UserManagement() {
     gameCategory: [],
     country: [],
     ageGroup: "",
-    sortBy: "",
+    sortBy: "createdAt",
     sortOrder: "asc",
   });
 
@@ -87,7 +87,7 @@ export default function UserManagement() {
       gameCategory: [],
       country: [],
       ageGroup: "",
-      sortBy: "",
+      sortBy: "createdAt",
       sortOrder: "asc",
     });
     setPage(1);

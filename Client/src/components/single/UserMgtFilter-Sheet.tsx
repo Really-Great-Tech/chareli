@@ -267,18 +267,17 @@ export function UserManagementFilterSheet({
               value={filters.sortBy}
               onValueChange={(value) => handleChange("sortBy", value)}
               options={[
-                { value: "", label: "Default" },
+                { value: "createdAt", label: "Registration Date (Default)" },
                 { value: "firstName", label: "First Name" },
                 { value: "lastName", label: "Last Name" },
                 { value: "email", label: "Email" },
-                { value: "createdAt", label: "Registration Date" },
                 { value: "lastLoggedIn", label: "Last Login" },
                 { value: "lastSeen", label: "Last Seen" },
                 { value: "country", label: "Country" },
                 { value: "timePlayed", label: "Time Played" },
                 { value: "sessionCount", label: "Session Count" },
               ]}
-              placeholder="Default"
+              placeholder="Registration Date (Default)"
               searchPlaceholder="Search sort options..."
               emptyText="No sort options found."
             />

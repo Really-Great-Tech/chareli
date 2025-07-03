@@ -66,7 +66,7 @@ export function DashboardTimeFilter({ value, onChange }: DashboardTimeFilterProp
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button className="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#1E293B] border border-gray-200 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#334155] transition-colors">
+          <button className="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#334154] border border-gray-200 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#334155] transition-colors">
             <span className="text-gray-600 dark:text-gray-400">Filter</span>
             <span className="text-[#D946EF] font-medium">
               {getCurrentLabel()}
@@ -74,7 +74,7 @@ export function DashboardTimeFilter({ value, onChange }: DashboardTimeFilterProp
             <ChevronDown className="h-4 w-4 text-gray-500" />
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-48">
+        <DropdownMenuContent align="start" className="w-48 dark:bg-[#334154]">
           {timeRangeOptions.map((option) => (
             <DropdownMenuItem
               key={option.value}
@@ -89,11 +89,11 @@ export function DashboardTimeFilter({ value, onChange }: DashboardTimeFilterProp
             </DropdownMenuItem>
           ))}
         </DropdownMenuContent>
-      </DropdownMenu>
+      </DropdownMenu> 
 
       {/* Custom Date Range Dialog */}
       <Dialog open={isCustomOpen} onOpenChange={setIsCustomOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md dark:bg-[#334154]">
           <DialogHeader>
             <DialogTitle>Select Custom Date Range</DialogTitle>
           </DialogHeader>
@@ -107,7 +107,7 @@ export function DashboardTimeFilter({ value, onChange }: DashboardTimeFilterProp
                 type="date"
                 value={tempStartDate}
                 onChange={(e) => setTempStartDate(e.target.value)}
-                className="bg-[#F1F5F9] border border-[#CBD5E0] h-12 sm:h-14 text-gray-400 font-thin font-worksans text-sm tracking-wider dark:bg-[#121C2D] dark:text-gray-300 dark:border-[#334155] date-input-dark w-full"
+                className="bg-[#F1F5F9] border border-[#CBD5E0] h-12 sm:h-14 text-gray-400 font-thin font-worksans text-sm tracking-wider dark:bg-[#64748A] dark:text-gray-300 dark:border-[#334155] date-input-dark w-full"
               />
             </div>
             <div className="space-y-2">
@@ -119,7 +119,7 @@ export function DashboardTimeFilter({ value, onChange }: DashboardTimeFilterProp
                 type="date"
                 value={tempEndDate}
                 onChange={(e) => setTempEndDate(e.target.value)}
-                className="bg-[#F1F5F9] border border-[#CBD5E0] h-12 sm:h-14 text-gray-400 font-thin font-worksans text-sm tracking-wider dark:bg-[#121C2D] dark:text-gray-300 dark:border-[#334155] date-input-dark w-full"
+                className="bg-[#F1F5F9] border border-[#CBD5E0] h-12 sm:h-14 text-gray-400 font-thin font-worksans text-sm tracking-wider dark:bg-[#64748A] dark:text-gray-300 dark:border-[#334155] date-input-dark w-full"
               />
             </div>
           </div>

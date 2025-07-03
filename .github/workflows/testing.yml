@@ -183,7 +183,8 @@ jobs:
 
   notify-discord:
     name: Notify Discord
-    needs: [build-and-test, deploy-backend, deploy-frontend]
+    needs: [build-and-test, deploy-frontend]
+    # needs: [build-and-test, deploy-backend, deploy-frontend]
     runs-on: ubuntu-latest
     permissions:
       contents: read

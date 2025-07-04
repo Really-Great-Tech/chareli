@@ -131,7 +131,7 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
             }}
           >
             <RiDeleteBin6Line className="w-4 h-4" />
-            Delete Account
+            Deactivate Account
           </button>
         </div>
       </CustomDialogContent>
@@ -142,14 +142,14 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
         onOpenChange={setShowDeleteModal}
         onConfirm={handleDeleteAccount}
         isDeleting={deleteUser.isPending}
-        title="Delete Account"
+        title="Deactivate Account"
         description={
           <span>
             Are you sure you want to delete your account? This action cannot be undone and you will lose access to all your data.
           </span>
         }
-        confirmButtonText="Delete My Account"
-        loadingText="Deleting Account..."
+        confirmButtonText="Deactivate My Account"
+        loadingText="Deactivating Account..."
       />
     </Dialog>
   );

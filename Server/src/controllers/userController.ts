@@ -10,6 +10,7 @@ import { OtpType } from '../entities/Otp';
 import { Not, IsNull } from 'typeorm';
 import { s3Service } from '../services/s3.service';
 import { getCountryFromIP, extractClientIP } from '../utils/ipUtils';
+import { emailService } from '../services/email.service';
 
 const userRepository = AppDataSource.getRepository(User);
 const roleRepository = AppDataSource.getRepository(Role);
@@ -505,7 +506,7 @@ export const updateUser = async (
  * /users/{id}:
  *   delete:
  *     summary: Delete a user
- *     description: Delete a user by their ID. Only accessible by admins.
+ *     description: Delete a user by their ID with email notification. Can be used by admins to delete other users or by users to deactivate their own account.
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
@@ -518,7 +519,7 @@ export const updateUser = async (
  *         description: ID of the user to delete
  *     responses:
  *       200:
- *         description: User deleted successfully
+ *         description: User deleted/deactivated successfully
  *       401:
  *         description: Unauthorized
  *       403:
@@ -535,6 +536,8 @@ export const deleteUser = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
+    const currentUserId = req.user?.userId;
+    const currentUserRole = req.user?.role;
 
     const user = await userRepository.findOne({
       where: { id, isDeleted: false },
@@ -545,14 +548,38 @@ export const deleteUser = async (
       return next(ApiError.notFound(`User with id ${id} not found`));
     }
 
-    // Admin cannot delete superadmin
-    if (
-      req.user?.role === RoleType.ADMIN &&
-      user.role.name === RoleType.SUPERADMIN
-    ) {
-      return next(ApiError.forbidden('Admin cannot delete superadmin'));
+    // Determine if this is self-deactivation or admin deletion
+    const isSelfDeactivation = currentUserId === id;
+
+    // If not self-deactivation, check admin permissions
+    if (!isSelfDeactivation) {
+      // Only admins can delete other users
+      if (currentUserRole !== RoleType.ADMIN && currentUserRole !== RoleType.SUPERADMIN) {
+        return next(ApiError.forbidden('Only admins can delete other users'));
+      }
+
+      // Admin cannot delete superadmin
+      if (
+        currentUserRole === RoleType.ADMIN &&
+        user.role.name === RoleType.SUPERADMIN
+      ) {
+        return next(ApiError.forbidden('Admin cannot delete superadmin'));
+      }
     }
 
+    // Store user data for email notification
+    const userEmail = user.email;
+    const userName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'User';
+
+    // Send appropriate email based on who is performing the action
+    try {
+      if (userEmail) {
+        await emailService.sendAccountDeletionEmail(userEmail, userName, isSelfDeactivation);
+      }
+    } catch (emailError) {
+      // Log email error but don't fail the deletion process
+      console.error(`Failed to send account ${isSelfDeactivation ? 'deactivation' : 'deletion'} email:`, emailError);
+    }
 
     // Soft delete: mark user as deleted instead of removing
     await userRepository.update(id, {
@@ -561,9 +588,13 @@ export const deleteUser = async (
       deletedAt: new Date()
     });
 
+    const actionMessage = isSelfDeactivation 
+      ? 'Account deactivated successfully. Notification email sent.'
+      : 'User deleted successfully. Notification email sent.';
+
     res.status(200).json({
       success: true,
-      message: 'User deleted successfully'
+      message: actionMessage
     });
   } catch (error) {
     next(error);

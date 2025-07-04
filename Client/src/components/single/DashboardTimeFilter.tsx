@@ -66,7 +66,7 @@ export function DashboardTimeFilter({ value, onChange }: DashboardTimeFilterProp
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button className="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#334154] border border-gray-200 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#334155] transition-colors">
+          <button className="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#334154] border border-gray-200 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#334155] transition-colors cursor-pointer">
             <span className="text-gray-600 dark:text-gray-400">Filter</span>
             <span className="text-[#D946EF] font-medium">
               {getCurrentLabel()}

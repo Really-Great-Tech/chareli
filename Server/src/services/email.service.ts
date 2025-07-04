@@ -19,7 +19,7 @@ export interface EmailServiceInterface {
   sendOtpEmail(email: string, otp: string): Promise<boolean>;
   sendRoleRevokedEmail(email: string, oldRole: string): Promise<boolean>;
   sendRoleChangedEmail(email: string, oldRole: string, newRole: string): Promise<boolean>;
-  sendAccountDeletionEmail(email: string, userName: string): Promise<boolean>;
+  sendAccountDeletionEmail(email: string, userName: string, isDeactivation?: boolean): Promise<boolean>;
 }
 
 interface EmailProvider {
@@ -177,11 +177,14 @@ export class EmailService implements EmailServiceInterface {
   }
 
   /**
-   * Send email notification when a user's account is deleted
+   * Send email notification when a user's account is deleted or deactivated
    */
-  async sendAccountDeletionEmail(email: string, userName: string): Promise<boolean> {
-    const html = accountDeletionEmailTemplate(userName);
-    return this.sendEmail(email, 'Your Chareli Account Has Been Deleted', html);
+  async sendAccountDeletionEmail(email: string, userName: string, isDeactivation: boolean = false): Promise<boolean> {
+    const html = accountDeletionEmailTemplate(userName, isDeactivation);
+    const subject = isDeactivation 
+      ? 'Your Chareli Account Has Been Deactivated' 
+      : 'Your Chareli Account Has Been Deleted';
+    return this.sendEmail(email, subject, html);
   }
 
   /**

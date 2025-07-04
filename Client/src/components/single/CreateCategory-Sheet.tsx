@@ -40,7 +40,11 @@ export function CreateCategory({ open, onOpenChange }: CreateCategoryProps) {
     { setSubmitting, resetForm }: any
   ) => {
     try {
-      await createCategory.mutateAsync(values);
+      const categoryData = {
+        ...values,
+        isDefault: false
+      };
+      await createCategory.mutateAsync(categoryData);
       toast.success("Category created successfully!");
       resetForm();
       onOpenChange(false);

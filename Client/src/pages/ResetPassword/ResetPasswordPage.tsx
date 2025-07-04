@@ -32,7 +32,7 @@ export function ResetPasswordPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isTokenValid, setIsTokenValid] = useState(false);
-  const [isTokenChecking, setIsTokenChecking] = useState(true); // Start with true to show loading state
+  const [isTokenChecking, setIsTokenChecking] = useState(true);
   const [isSuccess, setIsSuccess] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const navigate = useNavigate();
@@ -42,7 +42,6 @@ export function ResetPasswordPage() {
   const toggleConfirmPasswordVisibility = () =>
     setShowConfirmPassword(!showConfirmPassword);
 
-  // Use a ref to track if we've already verified the token
   const hasVerifiedToken = useRef(false);
 
   useEffect(() => {
@@ -52,7 +51,6 @@ export function ResetPasswordPage() {
     }
 
     if (isPhoneFlow) {
-      // For phone flow, we don't need to verify anything since OTP was already verified
       setIsTokenValid(true);
       setIsTokenChecking(false);
       return;
@@ -92,19 +90,18 @@ export function ResetPasswordPage() {
         confirmPassword: values.confirmPassword,
       });
       setIsSuccess(true);
-      // toast.success("Password reset successful");
+      
+      setTimeout(() => {
+        navigate("/?openLogin=true");
+      }, 2000);
+      
     } catch (error: any) {
       console.log(error);
     }
   };
 
-  const openLoginModal = () => {
-    setIsLoginModalOpen(true);
-  };
-
   const requestNewResetLink = () => {
     navigate("/");
-    // We need to wait a bit before opening the forgot password modal
     setTimeout(() => {
       const forgotPasswordButton = document.querySelector(
         "[data-forgot-password-trigger]"
@@ -160,20 +157,21 @@ export function ResetPasswordPage() {
           </div>
         ) : isSuccess ? (
           <div className="space-y-4 py-4">
-            <p className=" text-center text-black dark:text-white font-worksans text-lg tracking-wider">
-              Your password has been reset successfully.
+            <div className="flex flex-col items-center justify-center">
+              <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            </div>
+            <p className=" text-center text-black dark:text-white font-worksans text-[16px] tracking-wider">
+              Your password has been reset successfully!
             </p>
-            <p className=" text-center text-black dark:text-white font-worksans text-lg tracking-wider">
-              You can now log in with your new password.
+            <p className=" text-center text-black dark:text-white font-worksans text-[16px] tracking-wider">
+              Redirecting you to login...
             </p>
-            <div className="flex flex-col space-y-2 mt-4">
-              <Button
-                type="button"
-                onClick={openLoginModal}
-                className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-dmmono"
-              >
-                Log In
-              </Button>
+            <div className="flex justify-center mt-4">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#E328AF]"></div>
             </div>
           </div>
         ) : (
@@ -215,13 +213,13 @@ export function ResetPasswordPage() {
                       name="password"
                       type={showPassword ? "text" : "password"}
                       placeholder="New password"
-                      className="mt-1 bg-[#E2E8F0] dark:bg-[#191c2b] border-0 pl-10 font-worksans text-xl tracking-wider text-[11px] font-normal h-[48px]"
+                      className="mt-1 bg-[#E2E8F0] dark:bg-[#191c2b] border-0 pl-10 font-worksans text-sm tracking-wider font-normal h-[48px]"
                     />
                   </div>
                   <ErrorMessage
                     name="password"
                     component="div"
-                    className="text-red-500 mt-1 font-worksans text-xl tracking-wider"
+                    className="text-red-500 mt-1 font-worksans text-sm tracking-wider"
                   />
                 </div>
                 <div className="relative">
@@ -252,13 +250,13 @@ export function ResetPasswordPage() {
                       name="confirmPassword"
                       type={showConfirmPassword ? "text" : "password"}
                       placeholder="Confirm password"
-                      className="mt-1 bg-[#E2E8F0] dark:bg-[#191c2b] border-0 pl-10 font-worksans text-xl tracking-wider text-[11px] font-normal h-[48px]"
+                      className="mt-1 bg-[#E2E8F0] dark:bg-[#191c2b] border-0 pl-10 font-worksans tracking-wider text-sm font-normal h-[48px]"
                     />
                   </div>
                   <ErrorMessage
                     name="confirmPassword"
                     component="div"
-                    className="text-red-500 mt-1 font-worksans text-xl tracking-wider"
+                    className="text-red-500 mt-1 font-worksans text-sm tracking-wider"
                   />
                 </div>
                 <div className="space-y-2">

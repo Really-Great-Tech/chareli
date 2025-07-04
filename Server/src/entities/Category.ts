@@ -13,6 +13,9 @@ export class Category {
   @Column({ type: 'text', nullable: true })
   description: string;
 
+  @Column({ default: false })
+  isDefault: boolean;
+
   @OneToMany('Game', 'category')
   games: Game[];
 

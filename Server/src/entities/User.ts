@@ -66,6 +66,13 @@ export class User {
   @Index()
   lastSeen: Date;
 
+  @Column({ default: false })
+  @Index()
+  isDeleted: boolean;
+
+  @Column({ nullable: true })
+  deletedAt: Date;
+
   @Column({ nullable: true, select: false })
   resetToken: string;
 

@@ -47,7 +47,7 @@ const validationSchema = Yup.object({
   config: Yup.number()
     .required("Config is required")
     .min(0, "Config must be a positive number"),
-  categoryId: Yup.string().required("Category is required"),
+  categoryId: Yup.string(),
   thumbnailFile: Yup.mixed<File>(),
   gameFile: Yup.mixed<File>(),
 });

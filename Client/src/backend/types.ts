@@ -11,6 +11,7 @@ export interface Category {
   id: string;
   name: string;
   description?: string;
+  isDefault: boolean;
   games?: Game[];
   createdAt: string;
   updatedAt: string;
@@ -111,6 +112,9 @@ export interface User {
   password?: string;
   isAdmin: boolean;
   isActive: boolean;
+  country?: string;
+  lastLoggedIn?: string;
+  lastSeen?: string;
   createdAt: string;
   updatedAt: string;
   role: Role

@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Formik, Form, Field, ErrorMessage } from "formik";
-import type { FieldProps, FormikHelpers } from "formik";
+import type { FieldProps, FormikHelpers, FormikProps } from "formik";
 import * as Yup from "yup";
 import {
   useForgotPassword,
@@ -64,6 +64,8 @@ export function ForgotPasswordModal({
   const [isOTPVerificationModalOpen, setIsOTPVerificationModalOpen] =
     useState(false);
   const [userId, setUserId] = useState("");
+  const [formKey, setFormKey] = useState(0); // Key to force form remount
+  const formikRef = useRef<FormikProps<FormValues>>(null);
   const forgotPassword = useForgotPassword();
   const forgotPasswordPhone = useForgotPasswordPhone();
 
@@ -134,6 +136,8 @@ export function ForgotPasswordModal({
     setIsSubmitted(false);
     setSubmittedContact("");
     setUserId("");
+    // Force form remount to clear all validation errors
+    setFormKey(prev => prev + 1);
   };
 
   // Reset form when modal opens
@@ -171,8 +175,10 @@ export function ForgotPasswordModal({
                     : "text-gray-500"
                 }`}
                 onClick={() => {
-                  setActiveTab("email");
-                  resetForm(); // Reset form state when switching tabs
+                  if (activeTab !== "email") {
+                    setActiveTab("email");
+                    resetForm(); // Reset form state when switching tabs
+                  }
                 }}
               >
                 Email
@@ -184,8 +190,10 @@ export function ForgotPasswordModal({
                     : "text-gray-500"
                 }`}
                 onClick={() => {
-                  setActiveTab("phone");
-                  resetForm(); // Reset form state when switching tabs
+                  if (activeTab !== "phone") {
+                    setActiveTab("phone");
+                    resetForm(); // Reset form state when switching tabs
+                  }
                 }}
               >
                 Phone Number
@@ -232,6 +240,8 @@ export function ForgotPasswordModal({
               </div>
             ) : (
               <Formik
+                key={formKey} // Force remount when key changes
+                innerRef={formikRef}
                 initialValues={getInitialValues(activeTab === "email")}
                 validationSchema={
                   activeTab === "email"
@@ -318,7 +328,7 @@ export function ForgotPasswordModal({
                       <ErrorMessage
                         name={activeTab === "email" ? "email" : "phoneNumber"}
                         component="div"
-                        className="text-red-500 mt-1 font-worksans text-xl tracking-wider"
+                        className="text-red-500 mt-1 font-worksans text-sm tracking-wider"
                       />
                     </div>
                     <Button

@@ -5,9 +5,17 @@ import { useNavigate, useParams } from "react-router-dom";
 import { LuGamepad2 } from "react-icons/lu";
 import { FiClock } from "react-icons/fi";
 import { TbCalendarClock } from "react-icons/tb";
+import { RiDeleteBin6Line } from "react-icons/ri";
 import { LazyImage } from "../../components/ui/LazyImage";
+import { Button } from "../../components/ui/button";
+import { DeleteConfirmationModal } from "../../components/modals/DeleteConfirmationModal";
 import { useUserAnalyticsById } from "../../backend/analytics.service";
+import { useDeleteUser } from "../../backend/user.service";
 import { formatTime } from "../../utils/main";
+import { toast } from "sonner";
+import { useAuth } from "../../context/AuthContext";
+// import { useQueryClient } from "@tanstack/react-query";
+// import { BackendRoute } from "../../backend/constants";
 
 const PAGE_SIZE = 5;
 
@@ -22,9 +30,13 @@ interface GameActivity {
 
 const UserManagementView = () => {
   const navigate = useNavigate();
+  // const queryClient = useQueryClient();
+  const { user: currentUser, logout } = useAuth();
   const { userId } = useParams();
   const [page, setPage] = useState(1);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const { data, isLoading, isError } = useUserAnalyticsById(userId ?? "");
+  const deleteUser = useDeleteUser();
   const response = data as any;
 
   const handleBack = () => {
@@ -107,6 +119,23 @@ const UserManagementView = () => {
                     : "Never"}
                 </span>
               </div>
+            </div>
+            
+            {/* Action Buttons */}
+            <div className="flex flex-col gap-2 w-full mt-4">
+              {/* Hide delete button if admin trying to delete superadmin */}
+              {!(currentUser?.role.name === 'admin' && response?.user?.role?.name === 'superadmin') ? (
+                <Button
+                  className="flex items-center justify-center gap-2 w-full bg-[#EF4444] text-white tracking-wider hover:bg-[#dc2626] cursor-pointer"
+                  onClick={() => setShowDeleteModal(true)}
+                >
+                  Delete <RiDeleteBin6Line />
+                </Button>
+              ) : (
+                <div className="flex items-center justify-center w-full py-2 px-4 bg-gray-300 text-gray-600 rounded-md">
+                  <span className="text-sm font-medium">Protected Account</span>
+                </div>
+              )}
             </div>
           </div>
           {/* Stats Cards */}
@@ -393,6 +422,50 @@ const UserManagementView = () => {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        open={showDeleteModal}
+        onOpenChange={setShowDeleteModal}
+        onConfirm={async () => {
+          // Check if admin is deleting themselves
+          const isDeletingSelf = currentUser?.id === userId;
+          
+          try {
+            await deleteUser.mutateAsync(userId || "");
+            
+            toast.success(`User ${response.user.firstName} ${response.user.lastName} deleted successfully`);
+            
+            // If admin deleted themselves, log them out and redirect to home
+            if (isDeletingSelf) {
+              setTimeout(() => {
+                logout(true); // Silent logout (no additional toast)
+                navigate("/");
+              }, 1000); // Give time for the success toast to be seen
+            } else {
+              navigate("/admin/management");
+            }
+          } catch (error: any) {
+            // Check if it's a permission error for trying to delete superadmin
+            if (error?.response?.data?.message?.includes('cannot delete superadmin')) {
+              toast.error("Admin cannot delete superadmin accounts");
+            } else {
+              toast.error("Failed to delete user");
+            }
+          }
+        }}
+        isDeleting={deleteUser.isPending}
+        title="Delete User"
+        description={
+          response?.user ? (
+            <span>
+              Are you sure you want to delete <strong>{response.user.firstName} {response.user.lastName}</strong>? This action cannot be undone.
+            </span>
+          ) : ""
+        }
+        confirmButtonText="Delete User"
+        loadingText="Deleting..."
+      />
     </div>
   );
 };

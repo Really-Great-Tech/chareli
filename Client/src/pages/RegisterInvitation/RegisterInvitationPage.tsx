@@ -118,7 +118,7 @@ export function RegisterInvitationPage() {
       <LoginModal
         open={isLoginModalOpen}
         onOpenChange={setIsLoginModalOpen}
-        openSignUpModal={() => {}} // Not needed since we're in the registration flow
+        openSignUpModal={() => {}}
         defaultEmail={(data as any)?.email || ""}
         hideSignUpLink={true}
       />

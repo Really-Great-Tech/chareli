@@ -9,6 +9,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "../ui/sheet";
+import { MultiSelect } from "../ui/multi-select";
 import { SearchableSelect } from "../ui/searchable-select";
 import { useGames } from "../../backend/games.service";
 import { useCategories } from "../../backend/category.service";
@@ -19,15 +20,21 @@ interface FilterState {
     startDate: string;
     endDate: string;
   };
+  lastLoginDates: {
+    startDate: string;
+    endDate: string;
+  };
   sessionCount: string;
   timePlayed: {
     min: number;
     max: number;
   };
-  gameTitle: string;
-  gameCategory: string;
-  country: string;
-  sortByMaxTimePlayed: boolean;
+  gameTitle: string[];
+  gameCategory: string[];
+  country: string[];
+  ageGroup: string;
+  sortBy: string;
+  sortOrder: 'asc' | 'desc';
 }
 
 interface UserManagementFilterSheetProps {
@@ -166,7 +173,7 @@ export function UserManagementFilterSheet({
           {/* Game Category */}
           <div className="flex flex-col space-y-2">
             <Label className="text-base">Game Category</Label>
-            <SearchableSelect
+            <MultiSelect
               value={filters.gameCategory}
               onValueChange={(value) => handleChange("gameCategory", value)}
               options={categories.map((category) => ({
@@ -182,7 +189,7 @@ export function UserManagementFilterSheet({
           {/* Game Title */}
           <div className="flex flex-col space-y-2">
             <Label className="text-base">Game Title</Label>
-            <SearchableSelect
+            <MultiSelect
               value={filters.gameTitle}
               onValueChange={(value) => handleChange("gameTitle", value)}
               options={titles.map((title) => ({ value: title, label: title }))}
@@ -195,7 +202,7 @@ export function UserManagementFilterSheet({
           {/* Country */}
           <div className="flex flex-col space-y-2">
             <Label className="text-base">Country</Label>
-            <SearchableSelect
+            <MultiSelect
               value={filters.country}
               onValueChange={(value) => handleChange("country", value)}
               options={countryList.map((country) => ({
@@ -208,20 +215,88 @@ export function UserManagementFilterSheet({
             />
           </div>
 
-          {/* Sort by Max Time Played */}
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="sortByMaxTimePlayed"
-              className="w-4 h-4"
-              checked={filters.sortByMaxTimePlayed}
-              onChange={(e) =>
-                handleChange("sortByMaxTimePlayed", e.target.checked)
-              }
+          {/* Age Group */}
+          <div className="flex flex-col space-y-2">
+            <Label className="text-base">Age Group</Label>
+            <SearchableSelect
+              value={filters.ageGroup}
+              onValueChange={(value) => handleChange("ageGroup", value)}
+              options={[
+                { value: "adults", label: "Adults (18+)" },
+                { value: "minors", label: "Minors (Under 18)" },
+              ]}
+              placeholder="All Ages"
+              searchPlaceholder="Search age groups..."
+              emptyText="No age groups found."
             />
-            <Label htmlFor="sortByMaxTimePlayed" className="text-base">
-              Sort by Max Time Played
-            </Label>
+          </div>
+
+          {/* Last Login Dates */}
+          <div className="flex flex-col space-y-2">
+            <Label className="text-base">Last Login Dates</Label>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Input
+                type="date"
+                value={filters.lastLoginDates.startDate}
+                onChange={(e) =>
+                  handleChange("lastLoginDates", {
+                    ...filters.lastLoginDates,
+                    startDate: e.target.value,
+                  })
+                }
+                className="bg-[#F1F5F9] border border-[#CBD5E0] h-12 sm:h-14 text-gray-400 font-thin font-worksans text-sm tracking-wider dark:bg-[#121C2D] dark:text-gray-300 dark:border-[#334155] date-input-dark"
+              />
+              <Input
+                type="date"
+                value={filters.lastLoginDates.endDate}
+                onChange={(e) =>
+                  handleChange("lastLoginDates", {
+                    ...filters.lastLoginDates,
+                    endDate: e.target.value,
+                  })
+                }
+                className="bg-[#F1F5F9] border border-[#CBD5E0] h-12 sm:h-14 text-gray-400 font-thin font-worksans text-sm tracking-wider dark:bg-[#121C2D] dark:text-gray-300 dark:border-[#334155] date-input-dark"
+              />
+            </div>
+          </div>
+
+          {/* Sort By */}
+          <div className="flex flex-col space-y-2">
+            <Label className="text-base">Sort By</Label>
+            <SearchableSelect
+              value={filters.sortBy}
+              onValueChange={(value) => handleChange("sortBy", value)}
+              options={[
+                { value: "createdAt", label: "Registration Date (Default)" },
+                { value: "firstName", label: "First Name" },
+                { value: "lastName", label: "Last Name" },
+                { value: "email", label: "Email" },
+                { value: "lastLoggedIn", label: "Last Login" },
+                { value: "lastSeen", label: "Last Seen" },
+                { value: "country", label: "Country" },
+                { value: "timePlayed", label: "Time Played" },
+                { value: "sessionCount", label: "Session Count" },
+              ]}
+              placeholder="Registration Date (Default)"
+              searchPlaceholder="Search sort options..."
+              emptyText="No sort options found."
+            />
+          </div>
+
+          {/* Sort Order */}
+          <div className="flex flex-col space-y-2">
+            <Label className="text-base">Sort Order</Label>
+            <SearchableSelect
+              value={filters.sortOrder}
+              onValueChange={(value) => handleChange("sortOrder", value)}
+              options={[
+                { value: "asc", label: "Ascending (A-Z, 0-9, Oldest)" },
+                { value: "desc", label: "Descending (Z-A, 9-0, Newest)" },
+              ]}
+              placeholder="Ascending"
+              searchPlaceholder="Search sort order..."
+              emptyText="No sort order found."
+            />
           </div>
         </div>
 

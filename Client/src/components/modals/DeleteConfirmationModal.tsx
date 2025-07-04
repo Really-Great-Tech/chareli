@@ -9,7 +9,7 @@ interface DeleteConfirmationModalProps {
   onConfirm: () => void;
   isDeleting?: boolean;
   title?: string;
-  description?: string;
+  description?: string | React.ReactNode;
   confirmButtonText?: string;
   loadingText?: string;
 }
@@ -28,7 +28,6 @@ export function DeleteConfirmationModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <CustomDialogContent 
         className="bg-white dark:bg-[#334154] rounded-2xl shadow-lg p-4 sm:p-8 min-w-[320px] max-w-[90vw] w-full sm:w-[420px] border-none font-dmmono tracking-wide"
-        style={{ boxShadow: "0 2px 4px 2px #e879f9" }}
       >
         {/* Custom Close Button */}
         <button
@@ -47,7 +46,7 @@ export function DeleteConfirmationModal({
         </div>
 
         {/* Description */}
-        <div className="mb-6 sm:mb-8 text-[#22223B] text-sm sm:text-[16px] tracking-wider dark:text-white">
+        <div className="mb-6 sm:mb-8 text-[#22223B] text-sm sm:text-[16px] tracking-wider dark:text-white break-all overflow-wrap-anywhere">
           {description}
         </div>
 

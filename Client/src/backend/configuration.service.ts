@@ -43,6 +43,7 @@ export const useAllSystemConfigs = () => {
 export const useCreateSystemConfig = () => {
   const queryClient = useQueryClient();
   return useMutation({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mutationFn: async (data: any) => {
       const headers = data instanceof FormData 
         ? { 'Content-Type': 'multipart/form-data' }
@@ -61,6 +62,7 @@ export const useCreateSystemConfig = () => {
 export const useUpdateSystemConfig = () => {
   const queryClient = useQueryClient();
   return useMutation({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mutationFn: async ({ key, data }: { key: string; data: any }) => {
       const response = await backendService.put(
         BackendRoute.SYSTEM_CONFIG_BY_KEY.replace(':key', key),

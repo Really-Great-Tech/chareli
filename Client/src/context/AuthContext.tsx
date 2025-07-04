@@ -32,7 +32,7 @@ interface AuthContextType {
   setKeepPlayingRedirect: (value: boolean) => void;
   login: (credentials: LoginCredentials) => Promise<LoginResponse>;
   verifyOtp: (userId: string, otp: string) => Promise<User>;
-  logout: () => void;
+  logout: (silent?: boolean) => void;
   refreshUser: () => Promise<User>;
 }
 
@@ -164,7 +164,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return userData;
   };
 
-  const logout = () => {
+  const logout = (silent?: boolean) => {
     // Clear heartbeat interval on logout
     if (heartbeatIntervalRef.current) {
       clearInterval(heartbeatIntervalRef.current);
@@ -174,7 +174,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
     setUser(null);
-    toast.success('Logged out successfully');
+    
+    // Only show toast if not silent
+    if (!silent) {
+      toast.success('Logged out successfully');
+    }
   };
 
   const isRoleIncluded = ['admin', 'superadmin'].includes(user?.role.name || '') || false;

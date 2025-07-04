@@ -2,8 +2,12 @@ import { Dialog } from "../ui/dialog";
 import { CustomDialogContent } from "../ui/custom-dialog-content";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-
+import { useState } from "react";
 import { TbLogout } from "react-icons/tb";
+import { RiDeleteBin6Line } from "react-icons/ri";
+import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
+import { useDeleteUser } from "../../backend/user.service";
+import { toast } from "sonner";
 
 interface ProfileModalProps {
   open: boolean;
@@ -13,6 +17,8 @@ interface ProfileModalProps {
 export function ProfileModal({ open, onClose }: ProfileModalProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const deleteUser = useDeleteUser();
 
   const handleLogout = () => {
     logout();
@@ -20,10 +26,29 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
     navigate("/");
   };
 
+  const handleDeleteAccount = async () => {
+    if (!user?.id) return;
+    
+    try {
+      await deleteUser.mutateAsync(user.id);
+      
+      // Close modal immediately and wait a bit before logout/navigation
+      setShowDeleteModal(false);
+      
+      // Use setTimeout to ensure modal is fully closed before logout
+      setTimeout(() => {
+        toast.success("Account deleted successfully");
+        logout(true);
+        navigate("/");
+      }, 100);
+    } catch (error) {
+      toast.error("Failed to delete account");
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <CustomDialogContent className="bg-white dark:bg-[#18192b] rounded-2xl shadow-lg p-6 sm:p-8 min-w-[320px] max-w-[90vw] w-full sm:w-[420px] max-h-[80vh] overflow-y-auto overflow-x-hidden border-none">
-        {/* Custom Close Button */}
         <button
           className="absolute top-2 right-2 w-8 h-8 rounded-full bg-[#C026D3] flex items-center justify-center shadow-lg hover:bg-[#a21caf] transition-colors z-10"
           onClick={onClose}
@@ -32,7 +57,6 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
           <span className="text-white text-lg font-bold">×</span>
         </button>
 
-        {/* Profile Header */}
         <div className="text-center mb-6">
           <h1 className="font-dmmono text-3xl text-[#C026D3]">Profile</h1>
         </div>
@@ -90,17 +114,43 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
           </div>
         </div>
 
-        {/* Logout Button */}
-        <div className="flex justify-end pt-4">
+        {/* Action Buttons */}
+        <div className="flex gap-3 pt-4 justify-end">
           <button
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#EF4444] hover:bg-[#dc2626] text-white font-dmmono text-base transition-colors focus:outline-none focus:ring-2 focus:ring-[#EF4444] focus:ring-offset-2 cursor-pointer"
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-[#6B7280] hover:bg-[#4B5563] text-white font-dmmono text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#6B7280] focus:ring-offset-2 cursor-pointer"
             onClick={handleLogout}
           >
+            <TbLogout className="w-4 h-4" />
             Logout
-            <TbLogout className="w-5 h-5" />
+          </button>
+          <button
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-[#EF4444] hover:bg-[#dc2626] text-white font-dmmono text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#EF4444] focus:ring-offset-2 cursor-pointer"
+            onClick={() => {
+              onClose(); // Close the profile modal first
+              setShowDeleteModal(true); // Then open the delete confirmation modal
+            }}
+          >
+            <RiDeleteBin6Line className="w-4 h-4" />
+            Deactivate Account
           </button>
         </div>
       </CustomDialogContent>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        open={showDeleteModal}
+        onOpenChange={setShowDeleteModal}
+        onConfirm={handleDeleteAccount}
+        isDeleting={deleteUser.isPending}
+        title="Deactivate Account"
+        description={
+          <span>
+            Are you sure you want to delete your account? This action cannot be undone and you will lose access to all your data.
+          </span>
+        }
+        confirmButtonText="Deactivate My Account"
+        loadingText="Deactivating Account..."
+      />
     </Dialog>
   );
 }

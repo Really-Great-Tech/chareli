@@ -8,25 +8,42 @@ import {
   TableRow,
 } from "../../../components/ui/table";
 import { Card } from "../../../components/ui/card";
+import { Input } from "../../../components/ui/input";
 import { UserManagementFilterSheet } from "../../../components/single/UserMgtFilter-Sheet";
 import { Button } from "../../../components/ui/button";
-import { RiEqualizer2Line } from "react-icons/ri";
+import { RiEqualizer2Line, RiDeleteBin6Line } from "react-icons/ri";
+import { Search } from "lucide-react";
 import ExportModal from "../../../components/modals/AdminModals/ExportModal";
+import { DeleteConfirmationModal } from "../../../components/modals/DeleteConfirmationModal";
 import { useNavigate } from "react-router-dom";
 import {
   useUsersAnalytics,
 } from "../../../backend/analytics.service";
+import { useDeleteUser } from "../../../backend/user.service";
 import type {
   FilterState,
 } from "../../../backend/analytics.service";
 import { NoResults } from "../../../components/single/NoResults";
 import { formatTime } from "../../../utils/main";
+import { toast } from "sonner";
+// import { useQueryClient } from "@tanstack/react-query";
+// import { BackendRoute } from "../../../backend/constants";
+import { useAuth } from "../../../context/AuthContext";
 
 export default function UserManagement() {
   const navigate = useNavigate();
+  // const queryClient = useQueryClient();
+  const { user: currentUser, logout } = useAuth();
   const [page, setPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [userToDelete, setUserToDelete] = useState<any>(null);
+  const deleteUser = useDeleteUser();
   const [filters, setFilters] = useState<FilterState>({
     registrationDates: {
+      startDate: "",
+      endDate: "",
+    },
+    lastLoginDates: {
       startDate: "",
       endDate: "",
     },
@@ -35,10 +52,12 @@ export default function UserManagement() {
       min: 0,
       max: 0,
     },
-    gameTitle: "",
-    gameCategory: "",
-    country: "",
-    sortByMaxTimePlayed: false,
+    gameTitle: [],
+    gameCategory: [],
+    country: [],
+    ageGroup: "",
+    sortBy: "createdAt",
+    sortOrder: "asc",
   });
 
   const { data: users, isLoading } = useUsersAnalytics(filters);
@@ -55,21 +74,80 @@ export default function UserManagement() {
         startDate: "",
         endDate: "",
       },
+      lastLoginDates: {
+        startDate: "",
+        endDate: "",
+      },
       sessionCount: "",
       timePlayed: {
         min: 0,
         max: 0,
       },
-      gameTitle: "",
-      gameCategory: "",
-      country: "",
-      sortByMaxTimePlayed: false,
+      gameTitle: [],
+      gameCategory: [],
+      country: [],
+      ageGroup: "",
+      sortBy: "createdAt",
+      sortOrder: "asc",
     });
     setPage(1);
   };
 
-  // All filtering and sorting is now handled server-side by useUsersAnalytics
-  const filteredUsers = users;
+  // Handle delete user with permission check
+  // const handleDeleteUser = (user: any) => {
+  //   setUserToDelete(user);
+  // };
+
+  const confirmDeleteUser = async () => {
+    if (!userToDelete) return;
+    
+    // Check if admin is deleting themselves
+    const isDeletingSelf = currentUser?.id === userToDelete.id;
+    
+    try {
+      await deleteUser.mutateAsync(userToDelete.id);
+      
+      toast.success(`User ${userToDelete.firstName} ${userToDelete.lastName} deleted successfully`);
+      setUserToDelete(null);
+      
+      // If admin deleted themselves, log them out and redirect
+      if (isDeletingSelf) {
+        setTimeout(() => {
+          logout(true); // Silent logout (no additional toast)
+          navigate("/");
+        }, 1000); // Give time for the success toast to be seen
+      }
+    } catch (error: any) {
+      // Check if it's a permission error for trying to delete superadmin
+      if (error?.response?.data?.message?.includes('cannot delete superadmin')) {
+        toast.error("Admin cannot delete superadmin accounts");
+      } else {
+        toast.error("Failed to delete user");
+      }
+    }
+  };
+
+  // Filter users based on search query
+  const getFilteredUsers = () => {
+    if (!users) return [];
+    
+    if (!searchQuery.trim()) return users;
+    
+    const query = searchQuery.toLowerCase();
+    return users.filter(user => {
+      const fullName = `${user.firstName || ""} ${user.lastName || ""}`.toLowerCase();
+      const email = (user.email || "").toLowerCase();
+      const phone = (user.phoneNumber || "").toLowerCase();
+      const id = user.id.toLowerCase();
+      
+      return fullName.includes(query) || 
+             email.includes(query) || 
+             phone.includes(query) || 
+             id.includes(query);
+    });
+  };
+
+  const filteredUsers = getFilteredUsers();
 
   return (
     <div className="px-3">
@@ -77,7 +155,21 @@ export default function UserManagement() {
         <h1 className="text-[#D946EF] text-2xl sm:text-3xl font-worksans">
           User Management
         </h1>
-        <div className="flex flex-wrap gap-3 justify-end">
+        <div className="flex flex-col sm:flex-row flex-wrap gap-3 justify-end">
+          {/* Search Input */}
+          <div className="relative w-full sm:w-auto sm:min-w-[250px]">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Search"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPage(1); // Reset to first page when searching
+              }}
+              className="pl-10 bg-white dark:bg-[#1E293B] border-gray-300 dark:border-gray-600 h-12"
+            />
+          </div>
+          
           <UserManagementFilterSheet
             filters={filters}
             onFiltersChange={handleFiltersChange}
@@ -105,6 +197,7 @@ export default function UserManagement() {
           </UserManagementFilterSheet>
           <ExportModal
             data={filteredUsers || []}
+            filters={filters}
             title="Export User Data"
             description="Choose the format you'd like to export your user data"
           />
@@ -116,6 +209,7 @@ export default function UserManagement() {
             <p className="text-xl dark:text-[#D946EF]">Recent User Activity</p>
             {/* <p className="text-xl cursor-pointer">View All</p> */}
           </div>
+          
           {/* table */}
           <div className="px-4 pb-4">
             {isLoading ? (
@@ -143,6 +237,7 @@ export default function UserManagement() {
                       <TableHead>Time Played</TableHead>
                       <TableHead>Session count</TableHead>
                       <TableHead>Last Login</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -202,6 +297,24 @@ export default function UserManagement() {
                                   </span>
                                 </div>
                               </span>
+                            </TableCell>
+                            <TableCell>
+                              {/* Hide delete button if admin trying to delete superadmin */}
+                              {!(currentUser?.role.name === 'admin' && user.role?.name === 'superadmin') ? (
+                                <Button
+                                  className="bg-[#EF4444] hover:bg-[#dc2626] text-white p-2 h-8 w-8 cursor-pointer"
+                                  onClick={(e) => {
+                                    e.stopPropagation(); // Prevent row click navigation
+                                    setUserToDelete(user);
+                                  }}
+                                >
+                                  <RiDeleteBin6Line className="h-4 w-4" />
+                                </Button>
+                              ) : (
+                                <div className="flex items-center justify-center h-8 w-8">
+                                  <span className="text-gray-400 text-xs">Protected</span>
+                                </div>
+                              )}
                             </TableCell>
                           </TableRow>
                         ))}
@@ -354,6 +467,24 @@ export default function UserManagement() {
           </div>
         </Card>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        open={!!userToDelete}
+        onOpenChange={() => setUserToDelete(null)}
+        onConfirm={confirmDeleteUser}
+        isDeleting={deleteUser.isPending}
+        title="Delete User"
+        description={
+          userToDelete ? (
+            <span>
+              Are you sure you want to delete <strong>{userToDelete.firstName} {userToDelete.lastName}</strong>? This action cannot be undone.
+            </span>
+          ) : ""
+        }
+        confirmButtonText="Delete User"
+        loadingText="Deleting..."
+      />
     </div>
   );
 }

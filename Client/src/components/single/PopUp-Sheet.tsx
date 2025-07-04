@@ -12,9 +12,10 @@ import {
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { toast } from "sonner";
 import * as Yup from "yup";
-import { useCreateSystemConfig } from "../../backend/configuration.service";
+import { useCreateSystemConfig, useSystemConfigByKey } from "../../backend/configuration.service";
 import { BackendRoute } from "../../backend/constants";
 import { useQueryClient } from "@tanstack/react-query";
+import { decodeHtmlEntities } from "../../utils/main";
 
 const validationSchema = Yup.object({
   title: Yup.string().required("Title is required"),
@@ -29,13 +30,17 @@ const validationSchema = Yup.object({
 export function PopUpSheet({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
   const createConfig = useCreateSystemConfig();
+  const { data: popupConfig } = useSystemConfigByKey('popup');
 
+  // Pre-fill form with current values (including defaults that users actually see)
   const initialValues = {
-    title: "",
-    subtitle: "",
-    delay: 0,
-    enabled: true,
+    title: popupConfig?.value?.title ? decodeHtmlEntities(popupConfig.value.title) : "Time's Up!",
+    subtitle: popupConfig?.value?.subtitle ? decodeHtmlEntities(popupConfig.value.subtitle) : "Sign up to keep playing this game and unlock unlimited access to all games!",
+    delay: popupConfig?.value?.delay || 0,
+    enabled: popupConfig?.value?.enabled || true,
   };
+
+  const hasCustomPopup = !!popupConfig;
 
   return (
     <Sheet>
@@ -50,6 +55,7 @@ export function PopUpSheet({ children }: { children: React.ReactNode }) {
         <Formik
           initialValues={initialValues}
           validationSchema={validationSchema}
+          enableReinitialize={true}
           onSubmit={async (values, { setSubmitting }) => {
             try {
               await createConfig.mutateAsync({
@@ -76,6 +82,15 @@ export function PopUpSheet({ children }: { children: React.ReactNode }) {
         >
           {({ isSubmitting }) => (
             <Form>
+              {/* Context message */}
+              {!hasCustomPopup && (
+                <div className="mx-2 sm:mx-4 mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded">
+                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                    📝 These are the current default values that users see. Modify them to customize your popup.
+                  </p>
+                </div>
+              )}
+              
               <div className="grid gap-4 px-2 sm:px-4 py-4">
                 {/* title */}
                 <div className="items-center gap-4">
@@ -88,7 +103,7 @@ export function PopUpSheet({ children }: { children: React.ReactNode }) {
                       id="title"
                       name="title"
                       placeholder="Enter pop-up title"
-                      className="col-span-3 shadow-none text-gray-400 font-thin font-worksans text-sm tracking-wider h-14 bg-[#F1F5F9] border border-[#CBD5E0]"
+                      className="col-span-3 shadow-none text-gray-900 dark:text-white font-bold font-worksans text-sm tracking-wider h-14 bg-[#F1F5F9] dark:bg-[#121C2D] border border-[#CBD5E0]"
                     />
                     <ErrorMessage
                       name="title"
@@ -108,7 +123,7 @@ export function PopUpSheet({ children }: { children: React.ReactNode }) {
                       id="subtitle"
                       name="subtitle"
                       placeholder="Enter pop-up subtitle"
-                      className="col-span-3 shadow-none text-gray-400 font-thin font-worksans text-sm tracking-wider h-14 bg-[#F1F5F9] border border-[#CBD5E0]"
+                      className="col-span-3 shadow-none text-gray-900 dark:text-white font-bold font-worksans text-sm tracking-wider h-14 bg-[#F1F5F9] dark:bg-[#121C2D] border border-[#CBD5E0]"
                     />
                     <ErrorMessage
                       name="subtitle"

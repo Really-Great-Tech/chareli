@@ -81,7 +81,7 @@ export const getAllCategories = async (
     queryBuilder
       .skip((pageNumber - 1) * limitNumber)
       .take(limitNumber)
-      .orderBy('category.name', 'ASC');
+      .orderBy('category.isDefault', 'DESC');
     
     const categories = await queryBuilder.getMany();
     
@@ -378,6 +378,11 @@ export const deleteCategory = async (
     
     if (!category) {
       return next(ApiError.notFound(`Category with id ${id} not found`));
+    }
+    
+    // Prevent deletion of default category
+    if (category.isDefault) {
+      return next(ApiError.badRequest('Cannot delete the default "General" category'));
     }
     
     // Check if category has associated games

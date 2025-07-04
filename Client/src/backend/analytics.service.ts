@@ -263,15 +263,30 @@ interface UserActivityLog {
   metadata?: Record<string, string | number | boolean>;
 }
 
+// Dashboard time range filter types
+export interface DashboardTimeRange {
+  period?: 'last24hours' | 'last7days' | 'last30days' | 'custom';
+  startDate?: string;
+  endDate?: string;
+}
+
 /**
- * Hook to fetch dashboard analytics
+ * Hook to fetch dashboard analytics with time range support
+ * @param timeRange - Time range filter options
  * @returns Query result with dashboard analytics data
  */
-export const useDashboardAnalytics = () => {
+export const useDashboardAnalytics = (timeRange?: DashboardTimeRange) => {
   return useQuery<DashboardAnalytics>({
-    queryKey: [BackendRoute.ADMIN_DASHBOARD],
+    queryKey: [BackendRoute.ADMIN_DASHBOARD, timeRange],
     queryFn: async () => {
-      const response = await backendService.get(BackendRoute.ADMIN_DASHBOARD);
+      const params = new URLSearchParams();
+      if (timeRange) {
+        if (timeRange.period) params.append('period', timeRange.period);
+        if (timeRange.startDate) params.append('startDate', timeRange.startDate);
+        if (timeRange.endDate) params.append('endDate', timeRange.endDate);
+      }
+      const url = `${BackendRoute.ADMIN_DASHBOARD}${params.toString() ? `?${params.toString()}` : ''}`;
+      const response = await backendService.get(url);
       console.log('API Response:', response.data);
       return response.data;
     },
@@ -288,15 +303,21 @@ export interface FilterState {
     startDate: string;
     endDate: string;
   };
+  lastLoginDates: {
+    startDate: string;
+    endDate: string;
+  };
   sessionCount: string;
   timePlayed: {
     min: number;
     max: number;
   };
-  gameTitle: string;
-  gameCategory: string;
-  country: string;
-  sortByMaxTimePlayed: boolean;
+  gameTitle: string[];
+  gameCategory: string[];
+  country: string[];
+  ageGroup: string;
+  sortBy: string;
+  sortOrder: 'asc' | 'desc';
 }
 
 export const useUsersAnalytics = (filters?: FilterState) => {
@@ -307,13 +328,23 @@ export const useUsersAnalytics = (filters?: FilterState) => {
       if (filters) {
         if (filters.registrationDates.startDate) params.append('startDate', filters.registrationDates.startDate);
         if (filters.registrationDates.endDate) params.append('endDate', filters.registrationDates.endDate);
+        if (filters.lastLoginDates.startDate) params.append('lastLoginStartDate', filters.lastLoginDates.startDate);
+        if (filters.lastLoginDates.endDate) params.append('lastLoginEndDate', filters.lastLoginDates.endDate);
+        if (filters.sortBy) params.append('sortBy', filters.sortBy);
+        if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
         if (filters.sessionCount) params.append('sessionCount', filters.sessionCount);
         if (filters.timePlayed.min) params.append('minTimePlayed', String(filters.timePlayed.min * 60)); // Convert to seconds
         if (filters.timePlayed.max) params.append('maxTimePlayed', String(filters.timePlayed.max * 60)); // Convert to seconds
-        if (filters.gameTitle) params.append('gameTitle', filters.gameTitle);
-        if (filters.gameCategory) params.append('gameCategory', filters.gameCategory);
-        if (filters.country) params.append('country', filters.country);
-        if (filters.sortByMaxTimePlayed) params.append('sortByMaxTimePlayed', 'true');
+        if (filters.gameTitle && filters.gameTitle.length > 0) {
+          filters.gameTitle.forEach(title => params.append('gameTitle', title));
+        }
+        if (filters.gameCategory && filters.gameCategory.length > 0) {
+          filters.gameCategory.forEach(category => params.append('gameCategory', category));
+        }
+        if (filters.country && filters.country.length > 0) {
+          filters.country.forEach(country => params.append('country', country));
+        }
+        if (filters.ageGroup) params.append('ageGroup', filters.ageGroup);
       }
       const url = `${BackendRoute.ADMIN_USERS_ANALYTICS}${params.toString() ? `?${params.toString()}` : ''}`;
       const response = await backendService.get(url);
@@ -372,15 +403,44 @@ export const useGameAnalyticsById = (gameId: string) => {
   });
 };
 
+// Activity Log Filter Types
+export interface ActivityLogFilterState {
+  dateRange: {
+    startDate: string;
+    endDate: string;
+  };
+  userStatus: string; // 'Online' | 'Offline' | ''
+  userName: string;
+  gameTitle: string[];
+  activityType: string;
+  sortBy: string;
+  sortOrder: 'asc' | 'desc';
+}
+
 /**
- * Hook to fetch user activity log
+ * Hook to fetch user activity log with filters
+ * @param filters - Filter options for activity log
  * @returns Query result with user activity log data
  */
-export const useUserActivityLog = () => {
+export const useUserActivityLog = (filters?: ActivityLogFilterState) => {
   return useQuery<UserActivityLog[]>({
-    queryKey: [BackendRoute.ADMIN_USER_ACTIVITY],
+    queryKey: [BackendRoute.ADMIN_USER_ACTIVITY, filters],
     queryFn: async () => {
-      const response = await backendService.get(BackendRoute.ADMIN_USER_ACTIVITY);
+      const params = new URLSearchParams();
+      if (filters) {
+        if (filters.dateRange.startDate) params.append('startDate', filters.dateRange.startDate);
+        if (filters.dateRange.endDate) params.append('endDate', filters.dateRange.endDate);
+        if (filters.userStatus) params.append('userStatus', filters.userStatus);
+        if (filters.userName) params.append('userName', filters.userName);
+        if (filters.activityType) params.append('activityType', filters.activityType);
+        if (filters.sortBy) params.append('sortBy', filters.sortBy);
+        if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
+        if (filters.gameTitle && filters.gameTitle.length > 0) {
+          filters.gameTitle.forEach(title => params.append('gameTitle', title));
+        }
+      }
+      const url = `${BackendRoute.ADMIN_USER_ACTIVITY}${params.toString() ? `?${params.toString()}` : ''}`;
+      const response = await backendService.get(url);
       return response.data;
     },
     refetchOnWindowFocus: false,

@@ -7,6 +7,7 @@ import { welcomeEmailTemplate } from '../templates/emails/welcome.template';
 import { resetPasswordEmailTemplate } from '../templates/emails/reset.template';
 import { otpEmailTemplate } from '../templates/emails/otp.template';
 import { roleRevokedEmailTemplate, roleChangedEmailTemplate } from '../templates/emails/role.template';
+import { accountDeletionEmailTemplate } from '../templates/emails/account-deletion.template';
 
 // Provider selection flag - set to true to use Gmail, false to use SES
 const USE_GMAIL = false;
@@ -18,6 +19,7 @@ export interface EmailServiceInterface {
   sendOtpEmail(email: string, otp: string): Promise<boolean>;
   sendRoleRevokedEmail(email: string, oldRole: string): Promise<boolean>;
   sendRoleChangedEmail(email: string, oldRole: string, newRole: string): Promise<boolean>;
+  sendAccountDeletionEmail(email: string, userName: string, isDeactivation?: boolean): Promise<boolean>;
 }
 
 interface EmailProvider {
@@ -172,6 +174,17 @@ export class EmailService implements EmailServiceInterface {
   async sendRoleChangedEmail(email: string, oldRole: string, newRole: string): Promise<boolean> {
     const html = roleChangedEmailTemplate(oldRole, newRole);
     return this.sendEmail(email, 'Your Role Has Been Updated', html);
+  }
+
+  /**
+   * Send email notification when a user's account is deleted or deactivated
+   */
+  async sendAccountDeletionEmail(email: string, userName: string, isDeactivation: boolean = false): Promise<boolean> {
+    const html = accountDeletionEmailTemplate(userName, isDeactivation);
+    const subject = isDeactivation 
+      ? 'Your Chareli Account Has Been Deactivated' 
+      : 'Your Chareli Account Has Been Deleted';
+    return this.sendEmail(email, subject, html);
   }
 
   /**

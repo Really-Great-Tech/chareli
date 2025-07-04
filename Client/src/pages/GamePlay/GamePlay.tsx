@@ -198,23 +198,32 @@ export default function GamePlay() {
                   progress={loadProgress}
                 />
               )}
-              <iframe
-                src={`${game.gameFile.s3Key}`}
-                className={`w-full`}
-                style={{ 
-                  display: "block", 
-                  // background: "transparent",
-                  height: expanded ? "calc(100% - 60px)" : "100vh",
-                  border: "none"
-                }}
-                sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-                title={game.title}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                scrolling="no"
-                onLoad={() => {
-                  setLoadProgress(100);
-                }}
-              />
+              {!isModalOpen ? (
+                <iframe
+                  src={`${game.gameFile.s3Key}`}
+                  className={`w-full`}
+                  style={{ 
+                    display: "block", 
+                    // background: "transparent",
+                    height: expanded ? "calc(100% - 60px)" : "100vh",
+                    border: "none"
+                  }}
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                  title={game.title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  scrolling="no"
+                  onLoad={() => {
+                    setLoadProgress(100);
+                  }}
+                />
+              ) : (
+                <div 
+                  className="w-full bg-gray-900"
+                  style={{ 
+                    height: expanded ? "calc(100% - 60px)" : "100vh",
+                  }}
+                />
+              )}
 
               {/* Beautiful game platform overlay when time is up */}
               {isModalOpen && (

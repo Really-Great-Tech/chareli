@@ -1,4 +1,4 @@
-export const accountDeletionEmailTemplate = (userName: string): string => {
+export const accountDeletionEmailTemplate = (userName: string, isDeactivation: boolean = false): string => {
   return `
 <!DOCTYPE html>
 <html lang="en">
@@ -73,42 +73,58 @@ export const accountDeletionEmailTemplate = (userName: string): string => {
             <div class="logo">Chareli</div>
         </div>
         
-        <h1 class="title">Account Deletion Notification</h1>
+        <h1 class="title">${isDeactivation ? 'Account Deactivation Confirmation' : 'Account Deletion Notification'}</h1>
         
         <div class="content">
             <p>Hello ${userName},</p>
             
-            <p>We're writing to inform you that your Chareli account has been <span class="warning">permanently deleted</span> by an administrator.</p>
+            ${isDeactivation 
+                ? `<p>We're writing to confirm that your Chareli account has been <span class="warning">deactivated</span> as requested.</p>`
+                : `<p>We're writing to inform you that your Chareli account has been <span class="warning">permanently deleted</span> by an administrator.</p>`
+            }
             
             <div class="highlight">
                 <h3>What this means:</h3>
                 <ul>
                     <li><strong>Account Access:</strong> You can no longer log into your account</li>
-                    <li><strong>Account Status:</strong> Your account has been deactivated and marked as deleted</li>
+                    <li><strong>Account Status:</strong> Your account has been ${isDeactivation ? 'deactivated' : 'deleted and marked as inactive'}</li>
                     <li><strong>Game Progress:</strong> Your game progress and achievements are no longer accessible</li>
                     <li><strong>Platform Access:</strong> You will not be able to access any Chareli services</li>
                 </ul>
             </div>
             
             <div class="highlight">
-                <h3>Account Deletion Details:</h3>
-                <p>Your account has been deleted by an administrator. This action includes:</p>
+                <h3>${isDeactivation ? 'Account Deactivation Details:' : 'Account Deletion Details:'}</h3>
+                <p>${isDeactivation 
+                    ? 'Your account has been deactivated as requested. This action includes:'
+                    : 'Your account has been deleted by an administrator. This action includes:'
+                }</p>
                 <ul>
                     <li>Deactivation of your account access</li>
                     <li>Removal from active user lists</li>
                     <li>Loss of access to all platform features</li>
                     <li>Your data remains in our system for record-keeping purposes</li>
+                    ${isDeactivation 
+                        ? '<li><strong>Note:</strong> Account reactivation may be possible by contacting support</li>'
+                        : ''
+                    }
                 </ul>
             </div>
             
-            <p>If you believe this deletion was made in error or if you have any questions about this action, please contact our support team immediately.</p>
+            <p>${isDeactivation 
+                ? 'If you did not request this deactivation or if you have any questions, please contact our support team.'
+                : 'If you believe this deletion was made in error or if you have any questions about this action, please contact our support team immediately.'
+            }</p>
             
             <div class="contact-info">
                 <h3>Need Help?</h3>
-                <p>If you have questions or concerns about this account deletion:</p>
+                <p>${isDeactivation 
+                    ? 'If you have questions about this account deactivation or wish to reactivate your account:'
+                    : 'If you have questions or concerns about this account deletion:'
+                }</p>
                 <ul>
                     <li>Contact our support team</li>
-                    <li>Reference your account deletion date: <strong>${new Date().toLocaleDateString()}</strong></li>
+                    <li>Reference your account ${isDeactivation ? 'deactivation' : 'deletion'} date: <strong>${new Date().toLocaleDateString()}</strong></li>
                     <li>Provide any relevant details about your account</li>
                 </ul>
             </div>

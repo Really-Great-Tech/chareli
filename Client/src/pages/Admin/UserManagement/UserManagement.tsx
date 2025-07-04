@@ -11,7 +11,7 @@ import { Card } from "../../../components/ui/card";
 import { Input } from "../../../components/ui/input";
 import { UserManagementFilterSheet } from "../../../components/single/UserMgtFilter-Sheet";
 import { Button } from "../../../components/ui/button";
-import { RiEqualizer2Line } from "react-icons/ri";
+import { RiEqualizer2Line, RiDeleteBin6Line } from "react-icons/ri";
 import { Search } from "lucide-react";
 import ExportModal from "../../../components/modals/AdminModals/ExportModal";
 import { DeleteConfirmationModal } from "../../../components/modals/DeleteConfirmationModal";
@@ -26,14 +26,14 @@ import type {
 import { NoResults } from "../../../components/single/NoResults";
 import { formatTime } from "../../../utils/main";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
-import { BackendRoute } from "../../../backend/constants";
-// import { useAuth } from "../../../context/AuthContext";
+// import { useQueryClient } from "@tanstack/react-query";
+// import { BackendRoute } from "../../../backend/constants";
+import { useAuth } from "../../../context/AuthContext";
 
 export default function UserManagement() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  // const { user: currentUser } = useAuth();
+  // const queryClient = useQueryClient();
+  const { user: currentUser, logout } = useAuth();
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [userToDelete, setUserToDelete] = useState<any>(null);
@@ -95,30 +95,35 @@ export default function UserManagement() {
 
   // Handle delete user with permission check
   // const handleDeleteUser = (user: any) => {
-  //   if (!canDeleteUser(currentUser, user)) {
-  //     toast.error(getDeletionErrorMessage(currentUser, user));
-  //     return;
-  //   }
   //   setUserToDelete(user);
   // };
 
   const confirmDeleteUser = async () => {
     if (!userToDelete) return;
     
+    // Check if admin is deleting themselves
+    const isDeletingSelf = currentUser?.id === userToDelete.id;
+    
     try {
       await deleteUser.mutateAsync(userToDelete.id);
       
-      // Invalidate all related queries to refresh data across the app
-      await queryClient.invalidateQueries({ queryKey: [BackendRoute.USER] });
-      await queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_USERS_ANALYTICS] });
-      await queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_DASHBOARD] });
-      await queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_USER_ACTIVITY] });
-      await queryClient.invalidateQueries({ queryKey: [BackendRoute.ANALYTICS] });
-      
       toast.success(`User ${userToDelete.firstName} ${userToDelete.lastName} deleted successfully`);
       setUserToDelete(null);
-    } catch (error) {
-      toast.error("Failed to delete user");
+      
+      // If admin deleted themselves, log them out and redirect
+      if (isDeletingSelf) {
+        setTimeout(() => {
+          logout(true); // Silent logout (no additional toast)
+          navigate("/");
+        }, 1000); // Give time for the success toast to be seen
+      }
+    } catch (error: any) {
+      // Check if it's a permission error for trying to delete superadmin
+      if (error?.response?.data?.message?.includes('cannot delete superadmin')) {
+        toast.error("Admin cannot delete superadmin accounts");
+      } else {
+        toast.error("Failed to delete user");
+      }
     }
   };
 
@@ -192,6 +197,7 @@ export default function UserManagement() {
           </UserManagementFilterSheet>
           <ExportModal
             data={filteredUsers || []}
+            filters={filters}
             title="Export User Data"
             description="Choose the format you'd like to export your user data"
           />
@@ -231,6 +237,7 @@ export default function UserManagement() {
                       <TableHead>Time Played</TableHead>
                       <TableHead>Session count</TableHead>
                       <TableHead>Last Login</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -290,6 +297,24 @@ export default function UserManagement() {
                                   </span>
                                 </div>
                               </span>
+                            </TableCell>
+                            <TableCell>
+                              {/* Hide delete button if admin trying to delete superadmin */}
+                              {!(currentUser?.role.name === 'admin' && user.role?.name === 'superadmin') ? (
+                                <Button
+                                  className="bg-[#EF4444] hover:bg-[#dc2626] text-white p-2 h-8 w-8 cursor-pointer"
+                                  onClick={(e) => {
+                                    e.stopPropagation(); // Prevent row click navigation
+                                    setUserToDelete(user);
+                                  }}
+                                >
+                                  <RiDeleteBin6Line className="h-4 w-4" />
+                                </Button>
+                              ) : (
+                                <div className="flex items-center justify-center h-8 w-8">
+                                  <span className="text-gray-400 text-xs">Protected</span>
+                                </div>
+                              )}
                             </TableCell>
                           </TableRow>
                         ))}

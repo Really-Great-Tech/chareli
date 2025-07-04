@@ -437,7 +437,7 @@ export const verifyOtp = async (
     const tokens = await authService.verifyOtp(userId, otp);
     
     // Update user after successful OTP verification
-    const user = await userRepository.findOne({ where: { id: userId } });
+    const user = await userRepository.findOne({ where: { id: userId, isDeleted: false } });
     if (user) {
       user.lastLoggedIn = new Date();
       // Mark user as having completed first login
@@ -679,7 +679,7 @@ export const forgotPasswordPhone = async (
     }
 
     // Find user by phone number
-    const user = await userRepository.findOne({ where: { phoneNumber } });
+    const user = await userRepository.findOne({ where: { phoneNumber, isDeleted: false } });
     
     // Always return success to prevent phone number enumeration
     if (!user) {
@@ -760,7 +760,7 @@ export const resetPassword = async (
       user = await authService.verifyResetToken(token);
     } else if (userId) {
       // Phone flow - get user directly (OTP already verified)
-      user = await userRepository.findOne({ where: { id: userId } });
+      user = await userRepository.findOne({ where: { id: userId, isDeleted: false } });
       if (!user) {
         return next(ApiError.notFound('User not found'));
       }
@@ -827,7 +827,7 @@ export const requestOtp = async (
     }
 
     // Find the user
-    const user = await userRepository.findOne({ where: { id: userId } });
+    const user = await userRepository.findOne({ where: { id: userId, isDeleted: false } });
     if (!user) {
       return next(ApiError.notFound('User not found'));
     }

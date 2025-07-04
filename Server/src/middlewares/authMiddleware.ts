@@ -66,7 +66,10 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
     // Update user's lastSeen timestamp (fire and forget - don't wait for it)
     if (decoded.userId) {
       const userRepository = AppDataSource.getRepository(User);
-      userRepository.update(decoded.userId, { lastSeen: new Date() }).catch(error => {
+      userRepository.update(
+        { id: decoded.userId, isDeleted: false }, 
+        { lastSeen: new Date() }
+      ).catch(error => {
         console.error('Failed to update lastSeen:', error);
       });
     }

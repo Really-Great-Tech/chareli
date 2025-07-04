@@ -42,7 +42,7 @@ export class OtpService implements OtpServiceInterface {
   }
  
   async generateOtp(userId: string, type: OtpType = OtpType.SMS): Promise<string> {
-    const user = await userRepository.findOne({ where: { id: userId } });
+    const user = await userRepository.findOne({ where: { id: userId, isDeleted: false } });
     if (!user) {
       throw new Error('User not found');
     }
@@ -91,7 +91,7 @@ export class OtpService implements OtpServiceInterface {
 
   async verifyOtp(userId: string, otp: string): Promise<boolean> {
     // Get user to check if email is in skip list
-    const user = await userRepository.findOne({ where: { id: userId } });
+    const user = await userRepository.findOne({ where: { id: userId, isDeleted: false } });
     
     // Always accept fixed OTP for emails in skip list
     if (user 
@@ -134,7 +134,7 @@ export class OtpService implements OtpServiceInterface {
 
 
   async sendOtp(userId: string, otp: string, type: OtpType): Promise<boolean> {
-    const user = await userRepository.findOne({ where: { id: userId } });
+    const user = await userRepository.findOne({ where: { id: userId, isDeleted: false } });
     if (!user) {
       throw new Error('User not found');
     }

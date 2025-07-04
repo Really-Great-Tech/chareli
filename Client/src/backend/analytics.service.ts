@@ -403,15 +403,44 @@ export const useGameAnalyticsById = (gameId: string) => {
   });
 };
 
+// Activity Log Filter Types
+export interface ActivityLogFilterState {
+  dateRange: {
+    startDate: string;
+    endDate: string;
+  };
+  userStatus: string; // 'Online' | 'Offline' | ''
+  userName: string;
+  gameTitle: string[];
+  activityType: string;
+  sortBy: string;
+  sortOrder: 'asc' | 'desc';
+}
+
 /**
- * Hook to fetch user activity log
+ * Hook to fetch user activity log with filters
+ * @param filters - Filter options for activity log
  * @returns Query result with user activity log data
  */
-export const useUserActivityLog = () => {
+export const useUserActivityLog = (filters?: ActivityLogFilterState) => {
   return useQuery<UserActivityLog[]>({
-    queryKey: [BackendRoute.ADMIN_USER_ACTIVITY],
+    queryKey: [BackendRoute.ADMIN_USER_ACTIVITY, filters],
     queryFn: async () => {
-      const response = await backendService.get(BackendRoute.ADMIN_USER_ACTIVITY);
+      const params = new URLSearchParams();
+      if (filters) {
+        if (filters.dateRange.startDate) params.append('startDate', filters.dateRange.startDate);
+        if (filters.dateRange.endDate) params.append('endDate', filters.dateRange.endDate);
+        if (filters.userStatus) params.append('userStatus', filters.userStatus);
+        if (filters.userName) params.append('userName', filters.userName);
+        if (filters.activityType) params.append('activityType', filters.activityType);
+        if (filters.sortBy) params.append('sortBy', filters.sortBy);
+        if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
+        if (filters.gameTitle && filters.gameTitle.length > 0) {
+          filters.gameTitle.forEach(title => params.append('gameTitle', title));
+        }
+      }
+      const url = `${BackendRoute.ADMIN_USER_ACTIVITY}${params.toString() ? `?${params.toString()}` : ''}`;
+      const response = await backendService.get(url);
       return response.data;
     },
     refetchOnWindowFocus: false,

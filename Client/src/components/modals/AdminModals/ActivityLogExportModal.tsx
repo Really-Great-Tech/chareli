@@ -53,13 +53,6 @@ const ActivityLogExportModal = ({
     
     const summary = [];
     
-    // Activity Date Range
-    if (filters.dateRange.startDate || filters.dateRange.endDate) {
-      const startDate = filters.dateRange.startDate ? format(new Date(filters.dateRange.startDate), "MMM dd, yyyy") : "Beginning";
-      const endDate = filters.dateRange.endDate ? format(new Date(filters.dateRange.endDate), "MMM dd, yyyy") : "Present";
-      summary.push(`Activity Date: ${startDate} to ${endDate}`);
-    }
-    
     // User Status
     if (filters.userStatus) {
       summary.push(`User Status: ${filters.userStatus}`);
@@ -241,10 +234,6 @@ const ActivityLogExportModal = ({
           generatedBy: "Activity Log Export System",
           totalRecords: data.length,
           appliedFilters: filters ? {
-            activityDateRange: {
-              startDate: filters.dateRange.startDate || null,
-              endDate: filters.dateRange.endDate || null
-            },
             userStatus: filters.userStatus || null,
             userName: filters.userName || null,
             gameTitle: filters.gameTitle && filters.gameTitle.length > 0 ? filters.gameTitle : null,

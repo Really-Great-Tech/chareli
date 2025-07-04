@@ -54,9 +54,7 @@ export function ActivityLogFilterSheet({
       (field === 'userStatus' && value === '') ||
       (field === 'userName' && value === '') ||
       (field === 'activityType' && value === '') ||
-      (field === 'gameTitle' && Array.isArray(value) && value.length === 0) ||
-      (field === 'dateRange' && typeof value === 'object' && value !== null && 
-       ('startDate' in value && value.startDate === '' || 'endDate' in value && value.endDate === ''));
+      (field === 'gameTitle' && Array.isArray(value) && value.length === 0);
     
     // Apply immediately if clearing, otherwise wait for button click
     if (isClearing) {
@@ -102,35 +100,6 @@ export function ActivityLogFilterSheet({
           <div className="border border-b-gray-200"></div>
         </SheetHeader>
         <div className="grid gap-4 px-2 sm:px-4 py-4">
-          {/* Activity Date Range */}
-          <div className="flex flex-col space-y-2">
-            <Label className="text-base">Activity Date (When activity occurred)</Label>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <Input
-                type="date"
-                value={localFilters.dateRange.startDate}
-                onChange={(e) =>
-                  handleChange("dateRange", {
-                    ...localFilters.dateRange,
-                    startDate: e.target.value,
-                  })
-                }
-                className="bg-[#F1F5F9] border border-[#CBD5E0] h-12 sm:h-14 text-gray-400 font-thin font-worksans text-sm tracking-wider dark:bg-[#121C2D] dark:text-gray-300 dark:border-[#334155] date-input-dark"
-              />
-              <Input
-                type="date"
-                value={localFilters.dateRange.endDate}
-                onChange={(e) =>
-                  handleChange("dateRange", {
-                    ...localFilters.dateRange,
-                    endDate: e.target.value,
-                  })
-                }
-                className="bg-[#F1F5F9] border border-[#CBD5E0] h-12 sm:h-14 text-gray-400 font-thin font-worksans text-sm tracking-wider dark:bg-[#121C2D] dark:text-gray-300 dark:border-[#334155] date-input-dark"
-              />
-            </div>
-          </div>
-
           {/* User Status */}
           <div className="flex flex-col space-y-2">
             <Label className="text-base">User Status</Label>

@@ -1,5 +1,4 @@
 import { Button } from "../ui/button";
-import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import {
   Sheet,
@@ -117,18 +116,6 @@ export function ActivityLogFilterSheet({
             />
           </div>
 
-          {/* User Name */}
-          <div className="flex flex-col space-y-2">
-            <Label className="text-base">User Name</Label>
-            <Input
-              type="text"
-              value={localFilters.userName}
-              onChange={(e) => handleChange("userName", e.target.value)}
-              placeholder="Search by user name"
-              className="bg-[#F1F5F9] border border-[#CBD5E0] h-12 sm:h-14 text-gray-400 font-thin font-worksans text-sm tracking-wider dark:bg-[#121C2D]"
-            />
-          </div>
-
           {/* Game Title */}
           <div className="flex flex-col space-y-2">
             <Label className="text-base">Game Title</Label>
@@ -145,12 +132,18 @@ export function ActivityLogFilterSheet({
           {/* Activity Type */}
           <div className="flex flex-col space-y-2">
             <Label className="text-base">Activity Type</Label>
-            <Input
-              type="text"
+            <SearchableSelect
               value={localFilters.activityType}
-              onChange={(e) => handleChange("activityType", e.target.value)}
-              placeholder="Search by activity type"
-              className="bg-[#F1F5F9] border border-[#CBD5E0] h-12 sm:h-14 text-gray-400 font-thin font-worksans text-sm tracking-wider dark:bg-[#121C2D]"
+              onValueChange={(value) => handleChange("activityType", value)}
+              options={[
+                { value: "", label: "All Activities" },
+                { value: "Signed up", label: "Signed up" },
+                { value: "Logged in", label: "Logged in" },
+                { value: "game_session", label: "Game Session" },
+              ]}
+              placeholder="All Activities"
+              searchPlaceholder="Search activities..."
+              emptyText="No activities found."
             />
           </div>
 

@@ -54,10 +54,14 @@ export default function StatsCard({ timeRange }: StatsCardProps) {
       case 'last30days':
         return 'Over the last 30 days';
       case 'custom':
-        if (timeRange.startDate && timeRange.endDate) {
+        if (timeRange.startDate) {
           const start = new Date(timeRange.startDate).toLocaleDateString();
-          const end = new Date(timeRange.endDate).toLocaleDateString();
-          return `From ${start} to ${end}`;
+          if (timeRange.endDate) {
+            const end = new Date(timeRange.endDate).toLocaleDateString();
+            return `From ${start} to ${end}`;
+          } else {
+            return `From ${start} to present`;
+          }
         }
         return 'Custom date range';
       default:
@@ -167,7 +171,7 @@ export default function StatsCard({ timeRange }: StatsCardProps) {
             </div>
 
             {/* bottom */}
-            <div className="flex md:flex-1 justify-between items-end pr-2 gap-2 min-h-[24px]">
+            <div className="flex md:flex-1 justify-between items-center pr-2 gap-3 min-h-[32px]">
               <div
                 className={`flex flex-row gap-1 items-center text-[14px] flex-shrink-0 ${
                   card.changeType === "up"
@@ -182,9 +186,9 @@ export default function StatsCard({ timeRange }: StatsCardProps) {
                 )}
                 <span>{card.change}</span>
               </div>
-              <span className="text-gray-400 text-[13px] font-worksans tracking-wider dark:text-white lg:line-clamp-2 lg:w-[100px] leading-4 text-right flex-shrink min-w-0">
+              <div className="text-gray-400 text-[12px] font-worksans tracking-wider dark:text-white leading-tight text-right flex-shrink min-w-0 max-w-[140px] break-words">
                 {card.description}
-              </span>
+              </div>
             </div>
           </div>
         </div>

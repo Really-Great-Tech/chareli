@@ -47,6 +47,9 @@ export function DashboardTimeFilter({ value, onChange }: DashboardTimeFilterProp
     if (period === 'custom') {
       setIsCustomOpen(true);
     } else {
+      // Clear custom date inputs when selecting preset time ranges
+      setTempStartDate('');
+      setTempEndDate('');
       onChange({ period });
     }
   };

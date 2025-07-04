@@ -58,10 +58,6 @@ const ActivityLogExportModal = ({
       summary.push(`User Status: ${filters.userStatus}`);
     }
     
-    // User Name
-    if (filters.userName) {
-      summary.push(`User Name: Contains "${filters.userName}"`);
-    }
     
     // Game Title
     if (filters.gameTitle && filters.gameTitle.length > 0) {
@@ -235,7 +231,6 @@ const ActivityLogExportModal = ({
           totalRecords: data.length,
           appliedFilters: filters ? {
             userStatus: filters.userStatus || null,
-            userName: filters.userName || null,
             gameTitle: filters.gameTitle && filters.gameTitle.length > 0 ? filters.gameTitle : null,
             activityType: filters.activityType || null,
             sortBy: filters.sortBy || null,
@@ -310,9 +305,7 @@ const ActivityLogExportModal = ({
       const totalActivities = data.length;
       const onlineUsers = data.filter(activity => activity.userStatus === "Online").length;
       const offlineUsers = totalActivities - onlineUsers;
-      const activitiesWithGames = data.filter(activity => activity.lastGamePlayed && activity.lastGamePlayed !== "-").length;
-      const activitiesWithStartTime = data.filter(activity => activity.startTime).length;
-      const activitiesWithEndTime = data.filter(activity => activity.endTime).length;
+      
 
       const filterSummary = generateFilterSummary();
 
@@ -356,23 +349,10 @@ const ActivityLogExportModal = ({
             margin: [0, 0, 0, 10] as [number, number, number, number]
           },
           {
-            columns: [
-              {
-                width: 'auto',
-                text: [
-                  { text: 'Total Activities: ', bold: true }, `${totalActivities}\n`,
-                  { text: 'Online Users: ', bold: true }, `${onlineUsers}\n`,
-                  { text: 'Offline Users: ', bold: true }, `${offlineUsers}\n`,
-                ]
-              },
-              {
-                width: 'auto',
-                text: [
-                  { text: 'Activities with Games: ', bold: true }, `${activitiesWithGames}\n`,
-                  { text: 'Activities with Start Time: ', bold: true }, `${activitiesWithStartTime}\n`,
-                  { text: 'Activities with End Time: ', bold: true }, `${activitiesWithEndTime}\n`,
-                ]
-              }
+            text: [
+              { text: 'Total Activities: ', bold: true }, `${totalActivities}\n`,
+              { text: 'Online Users: ', bold: true }, `${onlineUsers}\n`,
+              { text: 'Offline Users: ', bold: true }, `${offlineUsers}\n`,
             ],
             margin: [0, 0, 0, 20] as [number, number, number, number]
           },

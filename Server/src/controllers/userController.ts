@@ -10,6 +10,7 @@ import { OtpType } from '../entities/Otp';
 import { Not, IsNull } from 'typeorm';
 import { s3Service } from '../services/s3.service';
 import { getCountryFromIP, extractClientIP } from '../utils/ipUtils';
+import { emailService } from '../services/email.service';
 
 const userRepository = AppDataSource.getRepository(User);
 const roleRepository = AppDataSource.getRepository(Role);
@@ -505,7 +506,7 @@ export const updateUser = async (
  * /users/{id}:
  *   delete:
  *     summary: Delete a user
- *     description: Delete a user by their ID. Only accessible by admins.
+ *     description: Delete a user by their ID with email notification. Only accessible by admins.
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
@@ -553,6 +554,19 @@ export const deleteUser = async (
       return next(ApiError.forbidden('Admin cannot delete superadmin'));
     }
 
+    // Store user data for email notification
+    const userEmail = user.email;
+    const userName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'User';
+
+    // Send notification email BEFORE deletion
+    try {
+      if (userEmail) {
+        await emailService.sendAccountDeletionEmail(userEmail, userName);
+      }
+    } catch (emailError) {
+      // Log email error but don't fail the deletion process
+      console.error('Failed to send account deletion email:', emailError);
+    }
 
     // Soft delete: mark user as deleted instead of removing
     await userRepository.update(id, {
@@ -563,7 +577,7 @@ export const deleteUser = async (
 
     res.status(200).json({
       success: true,
-      message: 'User deleted successfully'
+      message: 'User deleted successfully. Notification email sent.'
     });
   } catch (error) {
     next(error);

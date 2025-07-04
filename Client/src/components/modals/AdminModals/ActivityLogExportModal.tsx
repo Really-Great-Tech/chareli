@@ -17,6 +17,7 @@ import * as XLSX from "xlsx";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import type { TDocumentDefinitions } from "pdfmake/interfaces";
+import type { ActivityLogFilterState } from "../../../backend/analytics.service";
 
 // We'll load pdfMake dynamically to avoid font loading issues
 let pdfMake: any;
@@ -34,16 +35,62 @@ interface ActivityLogData {
 
 interface ActivityLogExportModalProps {
   data: ActivityLogData[];
+  filters?: ActivityLogFilterState;
   title?: string;
   description?: string;
 }
 
 const ActivityLogExportModal = ({
   data,
+  filters,
   title = "Export Activity Log",
   description = "Choose the format you'd like to export your activity log data"
 }: ActivityLogExportModalProps) => {
   const [open, setOpen] = useState(false);
+
+  const generateFilterSummary = () => {
+    if (!filters) return [];
+    
+    const summary = [];
+    
+    // Activity Date Range
+    if (filters.dateRange.startDate || filters.dateRange.endDate) {
+      const startDate = filters.dateRange.startDate ? format(new Date(filters.dateRange.startDate), "MMM dd, yyyy") : "Beginning";
+      const endDate = filters.dateRange.endDate ? format(new Date(filters.dateRange.endDate), "MMM dd, yyyy") : "Present";
+      summary.push(`Activity Date: ${startDate} to ${endDate}`);
+    }
+    
+    // User Status
+    if (filters.userStatus) {
+      summary.push(`User Status: ${filters.userStatus}`);
+    }
+    
+    // User Name
+    if (filters.userName) {
+      summary.push(`User Name: Contains "${filters.userName}"`);
+    }
+    
+    // Game Title
+    if (filters.gameTitle && filters.gameTitle.length > 0) {
+      summary.push(`Game Title: ${filters.gameTitle.join(", ")}`);
+    }
+    
+    // Activity Type
+    if (filters.activityType) {
+      summary.push(`Activity Type: Contains "${filters.activityType}"`);
+    }
+    
+    // Sort By
+    if (filters.sortBy) {
+      const sortByLabel = filters.sortBy === "createdAt" ? "Registration Date" : 
+                         filters.sortBy === "name" ? "Name" : 
+                         filters.sortBy === "email" ? "Email" : filters.sortBy;
+      const sortOrderLabel = filters.sortOrder === "desc" ? "Newest First" : "Oldest First";
+      summary.push(`Sort By: ${sortByLabel} (${sortOrderLabel})`);
+    }
+    
+    return summary;
+  };
 
   const formatActivityDataForExport = (activities: ActivityLogData[]) => {
     return activities.map(activity => ({
@@ -68,9 +115,31 @@ const ActivityLogExportModal = ({
       // const loadingToast = toast.loading("Exporting activity log as CSV...");
 
       const formattedData = formatActivityDataForExport(data);
+      const filterSummary = generateFilterSummary();
+      
+      // Create header with filter information
+      let csvHeader = `# Activity Log Export Report\n`;
+      csvHeader += `# Generated: ${format(new Date(), "MMMM dd, yyyy 'at' HH:mm")}\n`;
+      csvHeader += `#\n`;
+      
+      if (filterSummary.length > 0) {
+        csvHeader += `# Applied Filters:\n`;
+        filterSummary.forEach(filter => {
+          csvHeader += `# - ${filter}\n`;
+        });
+      } else {
+        csvHeader += `# Applied Filters: None (All data)\n`;
+      }
+      
+      csvHeader += `#\n`;
+      csvHeader += `# Total Records: ${data.length}\n`;
+      csvHeader += `#\n`;
+
       const worksheet = XLSX.utils.json_to_sheet(formattedData);
       const csvData = XLSX.utils.sheet_to_csv(worksheet);
-      const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
+      const finalCsvData = csvHeader + csvData;
+      
+      const blob = new Blob([finalCsvData], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -100,9 +169,33 @@ const ActivityLogExportModal = ({
 
       const filename = `user_activity_log_${format(new Date(), "yyyy-MM-dd_HH-mm")}.xlsx`;
       const formattedData = formatActivityDataForExport(data);
+      const filterSummary = generateFilterSummary();
       const workbook = XLSX.utils.book_new();
-      const worksheet = XLSX.utils.json_to_sheet(formattedData);
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Activity Log");
+
+      // Create Filter Summary sheet
+      const filterData = [
+        { Field: "Export Type", Value: "Activity Log" },
+        { Field: "Generated", Value: format(new Date(), "MMMM dd, yyyy 'at' HH:mm") },
+        { Field: "Total Records", Value: data.length },
+        { Field: "", Value: "" }, // Empty row
+      ];
+
+      if (filterSummary.length > 0) {
+        filterData.push({ Field: "Applied Filters", Value: "" });
+        filterSummary.forEach(filter => {
+          const [key, value] = filter.split(": ");
+          filterData.push({ Field: key, Value: value });
+        });
+      } else {
+        filterData.push({ Field: "Applied Filters", Value: "None (All data)" });
+      }
+
+      const filterSheet = XLSX.utils.json_to_sheet(filterData);
+      XLSX.utils.book_append_sheet(workbook, filterSheet, "Filter Summary");
+
+      // Create Data sheet
+      const dataSheet = XLSX.utils.json_to_sheet(formattedData);
+      XLSX.utils.book_append_sheet(workbook, dataSheet, "Activity Log");
 
       const xlsData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
       const blob = new Blob([xlsData], {
@@ -138,7 +231,33 @@ const ActivityLogExportModal = ({
 
       const filename = `user_activity_log_${format(new Date(), "yyyy-MM-dd_HH-mm")}.json`;
       const formattedData = formatActivityDataForExport(data);
-      const jsonString = JSON.stringify(formattedData, null, 2);
+      const filterSummary = generateFilterSummary();
+
+      // Create structured JSON with metadata
+      const exportData = {
+        exportMetadata: {
+          exportType: "Activity Log",
+          generatedAt: new Date().toISOString(),
+          generatedBy: "Activity Log Export System",
+          totalRecords: data.length,
+          appliedFilters: filters ? {
+            activityDateRange: {
+              startDate: filters.dateRange.startDate || null,
+              endDate: filters.dateRange.endDate || null
+            },
+            userStatus: filters.userStatus || null,
+            userName: filters.userName || null,
+            gameTitle: filters.gameTitle && filters.gameTitle.length > 0 ? filters.gameTitle : null,
+            activityType: filters.activityType || null,
+            sortBy: filters.sortBy || null,
+            sortOrder: filters.sortOrder || null
+          } : null,
+          filterSummary: filterSummary.length > 0 ? filterSummary : ["None (All data)"]
+        },
+        data: formattedData
+      };
+
+      const jsonString = JSON.stringify(exportData, null, 2);
       const blob = new Blob([jsonString], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -206,6 +325,8 @@ const ActivityLogExportModal = ({
       const activitiesWithStartTime = data.filter(activity => activity.startTime).length;
       const activitiesWithEndTime = data.filter(activity => activity.endTime).length;
 
+      const filterSummary = generateFilterSummary();
+
       const docDefinition: TDocumentDefinitions = {
         pageSize: { width: 842, height: 595 },
         pageMargins: [40, 40, 40, 40],
@@ -222,6 +343,24 @@ const ActivityLogExportModal = ({
             alignment: 'center',
             margin: [0, 0, 0, 20] as [number, number, number, number]
           },
+          // Applied Filters Section
+          ...(filterSummary.length > 0 ? [
+            {
+              text: 'Applied Filters',
+              style: 'subheader',
+              margin: [0, 0, 0, 10] as [number, number, number, number]
+            },
+            {
+              ul: filterSummary,
+              margin: [0, 0, 0, 20] as [number, number, number, number]
+            }
+          ] : [
+            {
+              text: 'Applied Filters: None (All data)',
+              style: 'subheader',
+              margin: [0, 0, 0, 20] as [number, number, number, number]
+            }
+          ]),
           {
             text: 'Activity Summary',
             style: 'subheader',

@@ -88,7 +88,19 @@ export const useDeleteUser = () => {
       return backendService.delete(url);
     },
     onSuccess: () => {
+      // Invalidate all user-related queries to refresh data across the app
       queryClient.invalidateQueries({ queryKey: [BackendRoute.USER] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.AUTH_ME] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ANALYTICS] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.USER_STATS] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_DASHBOARD] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_USERS_ANALYTICS] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_USER_ACTIVITY] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_USER_ANALYTICS], exact: false });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAME_ANALYTICS], exact: false });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS_POPULARITY] });
+      queryClient.invalidateQueries({ queryKey: ["allTeamMembers"] });
     },
   });
 };

@@ -174,15 +174,19 @@ export const getDashboardAnalytics = async (
     const [currentTotalRegisteredUsers, previousTotalRegisteredUsers, actualRegisteredUsers] = await Promise.all([
       userRepository.count({
         where: {
-          createdAt: Between(twentyFourHoursAgo, now)
+          createdAt: Between(twentyFourHoursAgo, now),
+          isDeleted: false
         }
       }),
       userRepository.count({
         where: {
-          createdAt: Between(fortyEightHoursAgo, twentyFourHoursAgo)
+          createdAt: Between(fortyEightHoursAgo, twentyFourHoursAgo),
+          isDeleted: false
         }
       }),
-      userRepository.count()
+      userRepository.count({
+        where: { isDeleted: false }
+      })
     ]);
 
     const totalRegisteredUsersPercentageChange = previousTotalRegisteredUsers > 0
@@ -191,11 +195,11 @@ export const getDashboardAnalytics = async (
 
     // Count active and inactive users (no percentage change needed as requested)
     const activeUsers = await userRepository.count({
-      where: { isActive: true }
+      where: { isActive: true, isDeleted: false }
     });
     
     const inactiveUsers = await userRepository.count({
-      where: { isActive: false }
+      where: { isActive: false, isDeleted: false }
     });
 
     // 3. Total Games
@@ -387,8 +391,8 @@ export const getDashboardAnalytics = async (
       : 0;
 
     const [adultsCount, minorsCount] = await Promise.all([
-      userRepository.count({ where: { isAdult: true } }),
-      userRepository.count({ where: { isAdult: false } }),
+      userRepository.count({ where: { isAdult: true, isDeleted: false } }),
+      userRepository.count({ where: { isAdult: false, isDeleted: false } }),
     ]);
 
     res.status(200).json({
@@ -517,20 +521,44 @@ export const getUserActivityLog = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { page, limit, userId } = req.query;
+    const { 
+      page, 
+      limit, 
+      userId,
+      startDate,
+      endDate,
+      userStatus,
+      userName,
+      gameTitle,
+      activityType,
+      sortBy,
+      sortOrder
+    } = req.query;
+    
+    // Handle multi-select parameters
+    const gameTitles = Array.isArray(gameTitle) ? gameTitle as string[] : gameTitle ? [gameTitle as string] : [];
     
     // Only apply pagination if page or limit parameters are explicitly provided
     const shouldPaginate = page || limit;
     const pageNumber = shouldPaginate ? parseInt(page as string, 10) || 1 : 1;
     const limitNumber = shouldPaginate ? parseInt(limit as string, 10) || 10 : undefined;
     
-    // First, get the list of users
+    // First, get the list of users with filters
     const userQueryBuilder = userRepository.createQueryBuilder('user')
-      .select(['user.id', 'user.firstName', 'user.lastName', 'user.email', 'user.isActive', 'user.lastSeen']);
+      .select(['user.id', 'user.firstName', 'user.lastName', 'user.email', 'user.isActive', 'user.lastSeen'])
+      .where('user.isDeleted = :isDeleted', { isDeleted: false });
     
     // Apply user filter if provided
     if (userId) {
-      userQueryBuilder.where('user.id = :userId', { userId });
+      userQueryBuilder.andWhere('user.id = :userId', { userId });
+    }
+    
+    // Apply user name filter if provided
+    if (userName) {
+      userQueryBuilder.andWhere(
+        '(user.firstName ILIKE :userName OR user.lastName ILIKE :userName OR CONCAT(user.firstName, \' \', user.lastName) ILIKE :userName)',
+        { userName: `%${userName}%` }
+      );
     }
     
     // Get total count for pagination info
@@ -543,27 +571,66 @@ export const getUserActivityLog = async (
         .take(limitNumber);
     }
     
-    userQueryBuilder.orderBy('user.createdAt', 'DESC');
+    // Apply sorting
+    const order = sortOrder === 'desc' ? 'DESC' : 'ASC';
+    switch (sortBy) {
+      case 'name':
+        userQueryBuilder.orderBy('user.firstName', order).addOrderBy('user.lastName', order);
+        break;
+      case 'email':
+        userQueryBuilder.orderBy('user.email', order);
+        break;
+      case 'createdAt':
+        userQueryBuilder.orderBy('user.createdAt', order);
+        break;
+      default:
+        userQueryBuilder.orderBy('user.createdAt', 'DESC');
+        break;
+    }
     
     const users = await userQueryBuilder.getMany();
     
     // Format the data - one entry per user
-    const formattedActivities = await Promise.all(users.map(async (user) => {
-      // Get the user's latest activity
-      const latestActivity = await analyticsRepository.findOne({
-        where: { userId: user.id },
-        order: { createdAt: 'DESC' }
-      });
+    let formattedActivities = await Promise.all(users.map(async (user) => {
+      // Get the user's latest activity with date filtering if provided
+      let latestActivityQuery = analyticsRepository.createQueryBuilder('analytics')
+        .where('analytics.userId = :userId', { userId: user.id })
+        .orderBy('analytics.createdAt', 'DESC');
       
-      // Get the user's last played game
-      const lastGameActivity = await analyticsRepository.findOne({
-        where: {
-          userId: user.id,
-          gameId: Not(IsNull())
-        },
-        relations: ['game'],
-        order: { startTime: 'DESC' }
-      });
+      // Apply date range filter to activities if provided
+      if (startDate && endDate) {
+        const start = new Date(startDate as string);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(endDate as string);
+        end.setHours(23, 59, 59, 999);
+        latestActivityQuery = latestActivityQuery.andWhere('analytics.createdAt BETWEEN :startDate AND :endDate', {
+          startDate: start,
+          endDate: end
+        });
+      }
+      
+      const latestActivity = await latestActivityQuery.getOne();
+      
+      // Get the user's last played game with date filtering if provided
+      let lastGameActivityQuery = analyticsRepository.createQueryBuilder('analytics')
+        .leftJoinAndSelect('analytics.game', 'game')
+        .where('analytics.userId = :userId', { userId: user.id })
+        .andWhere('analytics.gameId IS NOT NULL')
+        .orderBy('analytics.startTime', 'DESC');
+      
+      // Apply date range filter to game activities if provided
+      if (startDate && endDate) {
+        const start = new Date(startDate as string);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(endDate as string);
+        end.setHours(23, 59, 59, 999);
+        lastGameActivityQuery = lastGameActivityQuery.andWhere('analytics.startTime BETWEEN :startDate AND :endDate', {
+          startDate: start,
+          endDate: end
+        });
+      }
+      
+      const lastGameActivity = await lastGameActivityQuery.getOne();
       
       // Default values
       let activity = '';
@@ -587,8 +654,6 @@ export const getUserActivityLog = async (
       const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
       const isOnline = user.lastSeen && user.lastSeen > fiveMinutesAgo && user.isActive;
       
-  
-      
       return {
         userId: user.id,
         name: `${user.firstName || ""} ${user.lastName || ""}`,
@@ -599,6 +664,34 @@ export const getUserActivityLog = async (
         endTime: gameEndTime
       };
     }));
+    
+    // Apply additional filters to the formatted activities
+    
+    // Filter by user status if provided
+    if (userStatus) {
+      if (userStatus === 'Online') {
+        formattedActivities = formattedActivities.filter(activity => activity.userStatus === 'Online');
+      } else if (userStatus === 'Offline') {
+        formattedActivities = formattedActivities.filter(activity => activity.userStatus === 'Offline');
+      }
+    }
+    
+    // Filter by activity type if provided
+    if (activityType) {
+      const activityTypeStr = Array.isArray(activityType) ? activityType[0] as string : activityType as string;
+      formattedActivities = formattedActivities.filter(activity => 
+        activity.activity && activity.activity.toLowerCase().includes(activityTypeStr.toLowerCase())
+      );
+    }
+    
+    // Filter by game titles if provided
+    if (gameTitles.length > 0) {
+      formattedActivities = formattedActivities.filter(activity => 
+        activity.lastGamePlayed && gameTitles.some(title => 
+          activity.lastGamePlayed.toLowerCase().includes((title as string).toLowerCase())
+        )
+      );
+    }
     
     // Prepare response with conditional pagination info
     const response: any = {
@@ -1271,6 +1364,7 @@ export const getUsersWithAnalytics = async (
     // Build base query for users
     let userQueryBuilder = userRepository.createQueryBuilder('user')
       .leftJoinAndSelect('user.role', 'role')
+      .where('user.isDeleted = :isDeleted', { isDeleted: false })
       .select([
         'user.id',
         'user.firstName', 

@@ -17,22 +17,96 @@ import * as XLSX from "xlsx";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import type { TDocumentDefinitions } from "pdfmake/interfaces";
+import type { FilterState } from "../../../backend/analytics.service";
 
 // We'll load pdfMake dynamically to avoid font loading issues
 let pdfMake: any;
 
 interface ExportModalProps {
   data: any[];
+  filters?: FilterState;
   title?: string;
   description?: string;
 }
 
 const ExportModal = ({
   data,
+  filters,
   title = "Export Data",
   description = "Choose the format you'd like to export your data"
 }: ExportModalProps) => {
   const [open, setOpen] = useState(false);
+
+  const generateFilterSummary = () => {
+    if (!filters) return [];
+    
+    const summary = [];
+    
+    // Registration Date Range
+    if (filters.registrationDates.startDate || filters.registrationDates.endDate) {
+      const startDate = filters.registrationDates.startDate ? format(new Date(filters.registrationDates.startDate), "MMM dd, yyyy") : "Beginning";
+      const endDate = filters.registrationDates.endDate ? format(new Date(filters.registrationDates.endDate), "MMM dd, yyyy") : "Present";
+      summary.push(`Registration Date: ${startDate} to ${endDate}`);
+    }
+    
+    // Last Login Date Range
+    if (filters.lastLoginDates.startDate || filters.lastLoginDates.endDate) {
+      const startDate = filters.lastLoginDates.startDate ? format(new Date(filters.lastLoginDates.startDate), "MMM dd, yyyy") : "Beginning";
+      const endDate = filters.lastLoginDates.endDate ? format(new Date(filters.lastLoginDates.endDate), "MMM dd, yyyy") : "Present";
+      summary.push(`Last Login Date: ${startDate} to ${endDate}`);
+    }
+    
+    // Session Count
+    if (filters.sessionCount) {
+      summary.push(`Session Count: Minimum ${filters.sessionCount} sessions`);
+    }
+    
+    // Time Played
+    if (filters.timePlayed.min > 0 || filters.timePlayed.max > 0) {
+      const min = filters.timePlayed.min > 0 ? `${filters.timePlayed.min} minutes` : "0 minutes";
+      const max = filters.timePlayed.max > 0 ? `${filters.timePlayed.max} minutes` : "unlimited";
+      summary.push(`Time Played: ${min} to ${max}`);
+    }
+    
+    // Game Title
+    if (filters.gameTitle && filters.gameTitle.length > 0) {
+      summary.push(`Game Title: ${filters.gameTitle.join(", ")}`);
+    }
+    
+    // Game Category
+    if (filters.gameCategory && filters.gameCategory.length > 0) {
+      summary.push(`Game Category: ${filters.gameCategory.join(", ")}`);
+    }
+    
+    // Country
+    if (filters.country && filters.country.length > 0) {
+      summary.push(`Country: ${filters.country.join(", ")}`);
+    }
+    
+    // Age Group
+    if (filters.ageGroup) {
+      const ageGroupLabel = filters.ageGroup === "adults" ? "Adults (18+)" : 
+                           filters.ageGroup === "minors" ? "Minors (Under 18)" : filters.ageGroup;
+      summary.push(`Age Group: ${ageGroupLabel}`);
+    }
+    
+    // Sort By
+    if (filters.sortBy) {
+      const sortByLabel = filters.sortBy === "createdAt" ? "Registration Date" : 
+                         filters.sortBy === "firstName" ? "First Name" : 
+                         filters.sortBy === "lastName" ? "Last Name" : 
+                         filters.sortBy === "email" ? "Email" :
+                         filters.sortBy === "lastLoggedIn" ? "Last Login" :
+                         filters.sortBy === "lastSeen" ? "Last Seen" :
+                         filters.sortBy === "country" ? "Country" :
+                         filters.sortBy === "timePlayed" ? "Time Played" :
+                         filters.sortBy === "sessionCount" ? "Session Count" : filters.sortBy;
+      const sortOrderLabel = filters.sortOrder === "desc" ? "Newest First" : "Oldest First";
+      summary.push(`Sort By: ${sortByLabel} (${sortOrderLabel})`);
+    }
+    
+    return summary;
+  };
 
   const handleExportCSV = () => {
     try {
@@ -43,9 +117,31 @@ const ExportModal = ({
 
       // const loadingToast = toast.loading("Exporting data as CSV...");
 
+      const filterSummary = generateFilterSummary();
+      
+      // Create header with filter information
+      let csvHeader = `# User Management Export Report\n`;
+      csvHeader += `# Generated: ${format(new Date(), "MMMM dd, yyyy 'at' HH:mm")}\n`;
+      csvHeader += `#\n`;
+      
+      if (filterSummary.length > 0) {
+        csvHeader += `# Applied Filters:\n`;
+        filterSummary.forEach(filter => {
+          csvHeader += `# - ${filter}\n`;
+        });
+      } else {
+        csvHeader += `# Applied Filters: None (All data)\n`;
+      }
+      
+      csvHeader += `#\n`;
+      csvHeader += `# Total Records: ${data.length}\n`;
+      csvHeader += `#\n`;
+
       const worksheet = XLSX.utils.json_to_sheet(data);
       const csvData = XLSX.utils.sheet_to_csv(worksheet);
-      const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
+      const finalCsvData = csvHeader + csvData;
+      
+      const blob = new Blob([finalCsvData], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -74,9 +170,33 @@ const ExportModal = ({
       // const loadingToast = toast.loading("Exporting data as XLS...");
 
       const filename = `user_management_${format(new Date(), "yyyy-MM-dd_HH-mm")}.xlsx`;
+      const filterSummary = generateFilterSummary();
       const workbook = XLSX.utils.book_new();
-      const worksheet = XLSX.utils.json_to_sheet(data);
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+
+      // Create Filter Summary sheet
+      const filterData = [
+        { Field: "Export Type", Value: "User Management" },
+        { Field: "Generated", Value: format(new Date(), "MMMM dd, yyyy 'at' HH:mm") },
+        { Field: "Total Records", Value: data.length },
+        { Field: "", Value: "" }, // Empty row
+      ];
+
+      if (filterSummary.length > 0) {
+        filterData.push({ Field: "Applied Filters", Value: "" });
+        filterSummary.forEach(filter => {
+          const [key, value] = filter.split(": ");
+          filterData.push({ Field: key, Value: value });
+        });
+      } else {
+        filterData.push({ Field: "Applied Filters", Value: "None (All data)" });
+      }
+
+      const filterSheet = XLSX.utils.json_to_sheet(filterData);
+      XLSX.utils.book_append_sheet(workbook, filterSheet, "Filter Summary");
+
+      // Create Data sheet
+      const dataSheet = XLSX.utils.json_to_sheet(data);
+      XLSX.utils.book_append_sheet(workbook, dataSheet, "User Data");
 
       const xlsData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
       const blob = new Blob([xlsData], {
@@ -111,7 +231,42 @@ const ExportModal = ({
       // const loadingToast = toast.loading("Exporting data as JSON...");
 
       const filename = `user_management_${format(new Date(), "yyyy-MM-dd_HH-mm")}.json`;
-      const jsonString = JSON.stringify(data, null, 2);
+      const filterSummary = generateFilterSummary();
+
+      // Create structured JSON with metadata
+      const exportData = {
+        exportMetadata: {
+          exportType: "User Management",
+          generatedAt: new Date().toISOString(),
+          generatedBy: "User Management Export System",
+          totalRecords: data.length,
+          appliedFilters: filters ? {
+            registrationDateRange: {
+              startDate: filters.registrationDates.startDate || null,
+              endDate: filters.registrationDates.endDate || null
+            },
+            lastLoginDateRange: {
+              startDate: filters.lastLoginDates.startDate || null,
+              endDate: filters.lastLoginDates.endDate || null
+            },
+            sessionCount: filters.sessionCount || null,
+            timePlayed: {
+              min: filters.timePlayed.min || null,
+              max: filters.timePlayed.max || null
+            },
+            gameTitle: filters.gameTitle && filters.gameTitle.length > 0 ? filters.gameTitle : null,
+            gameCategory: filters.gameCategory && filters.gameCategory.length > 0 ? filters.gameCategory : null,
+            country: filters.country && filters.country.length > 0 ? filters.country : null,
+            ageGroup: filters.ageGroup || null,
+            sortBy: filters.sortBy || null,
+            sortOrder: filters.sortOrder || null
+          } : null,
+          filterSummary: filterSummary.length > 0 ? filterSummary : ["None (All data)"]
+        },
+        data: data
+      };
+
+      const jsonString = JSON.stringify(exportData, null, 2);
       const blob = new Blob([jsonString], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -167,6 +322,8 @@ const ExportModal = ({
       const totalGamesPlayed = data.reduce((sum, user) => sum + (user.analytics?.totalGamesPlayed || 0), 0);
       const avgSessionsPerUser = totalUsers ? (totalSessions / totalUsers).toFixed(2) : 0;
 
+      const filterSummary = generateFilterSummary();
+
       const docDefinition: TDocumentDefinitions = {
         pageSize: { width: 842, height: 595 },
         pageMargins: [40, 40, 40, 40],
@@ -183,6 +340,24 @@ const ExportModal = ({
             alignment: 'center',
             margin: [0, 0, 0, 20] as [number, number, number, number]
           },
+          // Applied Filters Section
+          ...(filterSummary.length > 0 ? [
+            {
+              text: 'Applied Filters',
+              style: 'subheader',
+              margin: [0, 0, 0, 10] as [number, number, number, number]
+            },
+            {
+              ul: filterSummary,
+              margin: [0, 0, 0, 20] as [number, number, number, number]
+            }
+          ] : [
+            {
+              text: 'Applied Filters: None (All data)',
+              style: 'subheader',
+              margin: [0, 0, 0, 20] as [number, number, number, number]
+            }
+          ]),
           {
             text: 'Summary Statistics',
             style: 'subheader',

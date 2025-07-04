@@ -1,5 +1,5 @@
-import { useState } from "react";
-// import { Button } from "../../../components/ui/button";
+import { useState, useCallback } from "react";
+import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
 import {
   Table,
@@ -11,13 +11,55 @@ import {
 } from "../../../components/ui/table";
 import { NoResults } from "../../../components/single/NoResults";
 import { FiActivity } from "react-icons/fi";
-import { useUserActivityLog } from "../../../backend/analytics.service";
+import { RiEqualizer2Line } from "react-icons/ri";
+import { useUserActivityLog, type ActivityLogFilterState } from "../../../backend/analytics.service";
 import ActivityLogExportModal from "../../../components/modals/AdminModals/ActivityLogExportModal";
+import { ActivityLogFilterSheet } from "../../../components/single/ActivityLogFilter-Sheet";
 
 export default function UserActivityLog() {
-  const { data: activities, isLoading, error } = useUserActivityLog();
+  const [filters, setFilters] = useState<ActivityLogFilterState>({
+    dateRange: {
+      startDate: "",
+      endDate: "",
+    },
+    userStatus: "",
+    userName: "",
+    gameTitle: [],
+    activityType: "",
+    sortBy: "createdAt",
+    sortOrder: "desc",
+  });
+
+  const { data: activities, isLoading, error } = useUserActivityLog(filters);
   const activitiesPerPage = 5;
   const [activityPage, setActivityPage] = useState(1);
+
+  const handleFiltersChange = useCallback((newFilters: ActivityLogFilterState) => {
+    setFilters(prev => {
+      // Only update if filters actually changed to prevent unnecessary re-renders
+      if (JSON.stringify(prev) !== JSON.stringify(newFilters)) {
+        setActivityPage(1); // Reset to first page when filters change
+        return newFilters;
+      }
+      return prev;
+    });
+  }, []);
+
+  const handleFilterReset = useCallback(() => {
+    setFilters({
+      dateRange: {
+        startDate: "",
+        endDate: "",
+      },
+      userStatus: "",
+      userName: "",
+      gameTitle: [],
+      activityType: "",
+      sortBy: "createdAt",
+      sortOrder: "desc",
+    });
+    setActivityPage(1);
+  }, []);
 
   if (isLoading) {
     return (
@@ -60,20 +102,38 @@ export default function UserActivityLog() {
   return (
     <div className="col-span-1 md:col-span-2 lg:col-span-4 mt-4">
       <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
-        <div className="flex justify-between items-center p-4">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-4">
           <p className="text-xl md:text-2xl dark:text-[#D946EF]">
             User Activity Log
           </p>
-          <div className="flex gap-3">
-            {/* <Button
-              variant="outline"
-              className="border-[#475568] text-[#475568] flex items-center gap-2 dark:text-white py-2"
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+            <ActivityLogFilterSheet
+              filters={filters}
+              onFiltersChange={handleFiltersChange}
+              onReset={handleFilterReset}
             >
-              Filter
-              <RiEqualizer2Line size={32} />
-            </Button> */}
+              <Button
+                variant="outline"
+                className="border-[#475568] text-[#475568] flex items-center justify-center gap-2 dark:text-white py-3 sm:py-5 cursor-pointer w-full sm:w-auto"
+              >
+                <span className="text-sm sm:text-base">Filter</span>
+                <div className="text-[#D946EF] bg-[#FAE8FF] px-2 py-1 rounded-full text-xs sm:text-sm">
+                  {
+                    Object.entries(filters).filter(([, value]) =>
+                      typeof value === "object"
+                        ? Object.values(value).some((v) => v !== "" && v !== 0)
+                        : typeof value === "boolean"
+                        ? value === true
+                        : value !== ""
+                    ).length
+                  }
+                </div>
+                <RiEqualizer2Line size={20} className="sm:size-6" />
+              </Button>
+            </ActivityLogFilterSheet>
             <ActivityLogExportModal
               data={allActivities}
+              filters={filters}
               title="Export Activity Log"
               description="Choose the format you'd like to export your activity log data"
             />

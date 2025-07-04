@@ -11,11 +11,11 @@ import { Button } from "../../components/ui/button";
 import { DeleteConfirmationModal } from "../../components/modals/DeleteConfirmationModal";
 import { useUserAnalyticsById } from "../../backend/analytics.service";
 import { useDeleteUser } from "../../backend/user.service";
-import { formatTime, canDeleteUser, getDeletionErrorMessage } from "../../utils/main";
+import { formatTime } from "../../utils/main";
 import { toast } from "sonner";
 import { useAuth } from "../../context/AuthContext";
-import { useQueryClient } from "@tanstack/react-query";
-import { BackendRoute } from "../../backend/constants";
+// import { useQueryClient } from "@tanstack/react-query";
+// import { BackendRoute } from "../../backend/constants";
 
 const PAGE_SIZE = 5;
 
@@ -30,8 +30,8 @@ interface GameActivity {
 
 const UserManagementView = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const { user: currentUser } = useAuth();
+  // const queryClient = useQueryClient();
+  const { user: currentUser, logout } = useAuth();
   const { userId } = useParams();
   const [page, setPage] = useState(1);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -121,23 +121,22 @@ const UserManagementView = () => {
               </div>
             </div>
             
-            {/* Delete Button - Hidden for now */}
-            {false && canDeleteUser(currentUser, response.user) && (
-              <div className="mt-4 w-full">
+            {/* Action Buttons */}
+            <div className="flex flex-col gap-2 w-full mt-4">
+              {/* Hide delete button if admin trying to delete superadmin */}
+              {!(currentUser?.role.name === 'admin' && response?.user?.role?.name === 'superadmin') ? (
                 <Button
                   className="flex items-center justify-center gap-2 w-full bg-[#EF4444] text-white tracking-wider hover:bg-[#dc2626] cursor-pointer"
-                  onClick={() => {
-                    if (!canDeleteUser(currentUser, response.user)) {
-                      toast.error(getDeletionErrorMessage(currentUser, response.user));
-                      return;
-                    }
-                    setShowDeleteModal(true);
-                  }}
+                  onClick={() => setShowDeleteModal(true)}
                 >
                   Delete <RiDeleteBin6Line />
                 </Button>
-              </div>
-            )}
+              ) : (
+                <div className="flex items-center justify-center w-full py-2 px-4 bg-gray-300 text-gray-600 rounded-md">
+                  <span className="text-sm font-medium">Protected Account</span>
+                </div>
+              )}
+            </div>
           </div>
           {/* Stats Cards */}
           <div className="w-full space-y-3">
@@ -429,20 +428,30 @@ const UserManagementView = () => {
         open={showDeleteModal}
         onOpenChange={setShowDeleteModal}
         onConfirm={async () => {
+          // Check if admin is deleting themselves
+          const isDeletingSelf = currentUser?.id === userId;
+          
           try {
             await deleteUser.mutateAsync(userId || "");
             
-            // Invalidate all related queries to refresh data across the app
-            await queryClient.invalidateQueries({ queryKey: [BackendRoute.USER] });
-            await queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_USERS_ANALYTICS] });
-            await queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_DASHBOARD] });
-            await queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_USER_ACTIVITY] });
-            await queryClient.invalidateQueries({ queryKey: [BackendRoute.ANALYTICS] });
-            
             toast.success(`User ${response.user.firstName} ${response.user.lastName} deleted successfully`);
-            navigate("/admin/management");
-          } catch (error) {
-            toast.error("Failed to delete user");
+            
+            // If admin deleted themselves, log them out and redirect to home
+            if (isDeletingSelf) {
+              setTimeout(() => {
+                logout(true); // Silent logout (no additional toast)
+                navigate("/");
+              }, 1000); // Give time for the success toast to be seen
+            } else {
+              navigate("/admin/management");
+            }
+          } catch (error: any) {
+            // Check if it's a permission error for trying to delete superadmin
+            if (error?.response?.data?.message?.includes('cannot delete superadmin')) {
+              toast.error("Admin cannot delete superadmin accounts");
+            } else {
+              toast.error("Failed to delete user");
+            }
           }
         }}
         isDeleting={deleteUser.isPending}

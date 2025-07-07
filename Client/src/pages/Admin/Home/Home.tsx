@@ -138,7 +138,7 @@ function SignupClickInsights() {
     return <div className="text-center py-4">No data available</div>;
   }
 
-  const verifiedCount = dashboardAnalytics?.totalRegisteredUsers?.current || 0;
+  const verifiedCount = dashboardAnalytics?.totalRegisteredUsers?.registered || 0;
   const totalClicks = signupAnalytics?.totalClicks || 0;
 
   const didntRegisterCount = Math.max(0, totalClicks - verifiedCount);

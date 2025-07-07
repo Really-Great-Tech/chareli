@@ -11,6 +11,7 @@ import { Not, IsNull } from 'typeorm';
 import { s3Service } from '../services/s3.service';
 import { getCountryFromIP, extractClientIP } from '../utils/ipUtils';
 import { emailService } from '../services/email.service';
+import { anonymizationService } from '../services/anonymization.service';
 
 const userRepository = AppDataSource.getRepository(User);
 const roleRepository = AppDataSource.getRepository(Role);
@@ -581,16 +582,12 @@ export const deleteUser = async (
       console.error(`Failed to send account ${isSelfDeactivation ? 'deactivation' : 'deletion'} email:`, emailError);
     }
 
-    // Soft delete: mark user as deleted instead of removing
-    await userRepository.update(id, {
-      isDeleted: true,
-      isActive: false,
-      deletedAt: new Date()
-    });
+    // Anonymize user data (GDPR compliant soft deletion)
+    await anonymizationService.anonymizeUserData(id);
 
     const actionMessage = isSelfDeactivation 
-      ? 'Account deactivated successfully. Notification email sent.'
-      : 'User deleted successfully. Notification email sent.';
+      ? 'Account deactivated and data anonymized successfully. Notification email sent.'
+      : 'User deleted and data anonymized successfully. Notification email sent.';
 
     res.status(200).json({
       success: true,

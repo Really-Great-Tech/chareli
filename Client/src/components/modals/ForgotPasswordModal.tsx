@@ -83,7 +83,7 @@ export function ForgotPasswordModal({
         setSubmittedContact(values.email!);
         setIsSubmitted(true);
         toast.success(
-          "If your email exists in our system, you will receive password reset instructions"
+          "If your email exists in our system, you will receive reset instructions shortly"
         );
       } else {
         try {
@@ -160,11 +160,7 @@ export function ForgotPasswordModal({
         </button>
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-[#E328AF] text-center font-dmmono">
-            {isSubmitted
-              ? activeTab === "email"
-                ? "Check Your Email"
-                : "Password Reset"
-              : "Forgot Password"}
+            {isSubmitted ? "Reset Instructions Sent" : "Forgot Password"}
           </DialogTitle>
           <div className="flex font-dmmono text-xl tracking-wide">
             <div className="px-6 flex w-full border-b">
@@ -203,21 +199,11 @@ export function ForgotPasswordModal({
           <DialogDescription className="text-center">
             {(isSubmitted && !isOTPVerificationModalOpen) ||
             (activeTab === "email" && isSubmitted) ? (
-              <div className="space-y-4">
-                <p className=" text-center text-black dark:text-white font-worksans text-xl tracking-wider">
-                  We've sent{" "}
+              <div className="space-y-6">
+                <p className="text-center text-black dark:text-white font-worksans text-[14px] tracking-wider">
                   {activeTab === "email"
-                    ? "password reset instructions"
-                    : "a reset code"}{" "}
-                  to:
-                  <p className="text-md font-semibold text-center text-black dark:text-white mt-2">
-                    {submittedContact}
-                  </p>
-                  <p className=" text-center text-black dark:text-white font-worksans text-[18px] tracking-wider mt-2">
-                    {activeTab === "email"
-                      ? "Check your email to reset your password."
-                      : "Reset code will be sent if the number is registered."}
-                  </p>
+                    ? "If your email exists in our system, you will receive reset instructions shortly."
+                    : "If your phone number exists in our system, you will receive a reset code shortly."}
                 </p>
                 <div className="flex flex-col space-y-2 mt-4">
                   <Button
@@ -225,9 +211,7 @@ export function ForgotPasswordModal({
                     onClick={resetForm}
                     className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-dmmono"
                   >
-                    {activeTab === "email"
-                      ? "Try Another Email"
-                      : "Try Another Number"}
+                    Try Again
                   </Button>
                   <Button
                     type="button"

@@ -174,7 +174,7 @@ export default function Configuration() {
   };
 
   return (
-    <div className="p-4 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 relative">
+    <div className="min-h-screen p-4 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 relative">
       {isLoadingConfig && (
         <div className="absolute inset-0 bg-white/50 dark:bg-gray-900/50 flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
@@ -334,9 +334,9 @@ export default function Configuration() {
           )}
         </div>
       </div>
-      <div className="flex justify-end mt-4">
+      <div className="flex justify-end mt-6 mb-4 px-2">
         <button
-          className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
+          className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer font-medium text-sm sm:text-base min-w-[140px] justify-center shadow-lg"
           onClick={handleSave}
           disabled={isSubmitting || isLoadingConfig}
         >

@@ -404,7 +404,8 @@ export const getDashboardAnalytics = async (
         },
         totalRegisteredUsers: {
           current: currentTotalRegisteredUsers,
-          percentageChange: Number(totalRegisteredUsersPercentageChange.toFixed(2))
+          percentageChange: Number(totalRegisteredUsersPercentageChange.toFixed(2)),
+          registered: actualRegisteredUsers
         },
         activeUsers,
         inactiveUsers,

@@ -260,7 +260,7 @@ export const getDashboardAnalytics = async (
         .where('analytics.gameId IS NOT NULL')
         .andWhere('analytics.startTime IS NOT NULL')
         .andWhere('analytics.endTime IS NOT NULL')
-        .andWhere('analytics.createdAt BETWEEN :start AND :end', {
+        .andWhere('analytics.startTime BETWEEN :start AND :end', {
           start: twentyFourHoursAgo,
           end: now
         })
@@ -272,7 +272,7 @@ export const getDashboardAnalytics = async (
         .where('analytics.gameId IS NOT NULL')
         .andWhere('analytics.startTime IS NOT NULL')
         .andWhere('analytics.endTime IS NOT NULL')
-        .andWhere('analytics.createdAt BETWEEN :start AND :end', {
+        .andWhere('analytics.startTime BETWEEN :start AND :end', {
           start: fortyEightHoursAgo,
           end: twentyFourHoursAgo
         })
@@ -289,9 +289,8 @@ export const getDashboardAnalytics = async (
 
     const totalPlayTime = Number(actualTimePlayed?.totalPlayTime) || 0;
 
-
-    const currentTotalTimePlayed = Math.round((currentTotalTimePlayedResult?.totalPlayTime || 0) / 60);
-    const previousTotalTimePlayed = Math.round((previousTotalTimePlayedResult?.totalPlayTime || 0) / 60);
+    const currentTotalTimePlayed = (currentTotalTimePlayedResult?.totalPlayTime || 0);
+    const previousTotalTimePlayed = (previousTotalTimePlayedResult?.totalPlayTime || 0);
     const totalTimePlayedPercentageChange = previousTotalTimePlayed > 0
       ? Math.max(Math.min(((currentTotalTimePlayed - previousTotalTimePlayed) / previousTotalTimePlayed) * 100, 100), -100)
       : 0;
@@ -420,7 +419,7 @@ export const getDashboardAnalytics = async (
           percentageChange: Number(totalSessionsPercentageChange.toFixed(2))
         },
         totalTimePlayed: {
-          current: currentTotalTimePlayed,
+          current: currentTotalTimePlayed, // Use time played in the selected period
           percentageChange: Number(totalTimePlayedPercentageChange.toFixed(2))
         },
         mostPlayedGame,

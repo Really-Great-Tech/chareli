@@ -168,6 +168,7 @@ interface DashboardAnalytics {
   totalRegisteredUsers: {
     current: number;
     percentageChange: number;
+    registered: number;
   };
   activeUsers: number;
   inactiveUsers: number;

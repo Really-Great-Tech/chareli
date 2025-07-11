@@ -11,4 +11,8 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'src'),
     },
   },
+  // PostCSS configuration is handled by postcss.config.js
+  css: {
+    postcss: './postcss.config.js',
+  },
 })

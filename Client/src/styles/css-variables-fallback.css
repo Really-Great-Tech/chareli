@@ -1,0 +1,367 @@
+/* CSS Variables Fallback for Older Browsers */
+/* This file provides static fallback values for browsers that don't support CSS custom properties */
+/* Only targets IE11 and other browsers that don't support CSS variables */
+
+/* Target only browsers that don't support CSS custom properties */
+@supports not (--css: variables) {
+  /* Light mode fallbacks (default) */
+  :root {
+    /* Core theme colors */
+    background-color: white; /* fallback for --background */
+    color: #242424; /* fallback for --foreground */
+  }
+
+  /* Component-specific fallbacks */
+  .bg-background {
+    background-color: white;
+  }
+
+  .text-foreground {
+    color: #242424;
+  }
+
+  .bg-card {
+    background-color: white;
+  }
+
+  .text-card-foreground {
+    color: #242424;
+  }
+
+  .bg-primary {
+    background-color: #333333;
+  }
+
+  .text-primary-foreground {
+    color: #fafafa;
+  }
+
+  .bg-secondary {
+    background-color: #f8f8f8;
+  }
+
+  .text-secondary-foreground {
+    color: #333333;
+  }
+
+  .bg-muted {
+    background-color: #f8f8f8;
+  }
+
+  .text-muted-foreground {
+    color: #8e8e8e;
+  }
+
+  .bg-accent {
+    background-color: #f8f8f8;
+  }
+
+  .text-accent-foreground {
+    color: #333333;
+  }
+
+  .bg-destructive {
+    background-color: #dc2626;
+  }
+
+  .border-border {
+    border-color: #e5e5e5;
+  }
+
+  .bg-input {
+    background-color: #e5e5e5;
+  }
+
+  /* Chart colors fallbacks */
+  .text-chart-1 {
+    color: #f59e0b;
+  }
+
+  .text-chart-2 {
+    color: #10b981;
+  }
+
+  .text-chart-3 {
+    color: #3b82f6;
+  }
+
+  .text-chart-4 {
+    color: #f97316;
+  }
+
+  .text-chart-5 {
+    color: #ef4444;
+  }
+
+  /* Dark mode fallbacks - only applied when .dark class is present */
+  .dark {
+    background-color: #242424;
+    color: #fafafa;
+  }
+
+  .dark .bg-background {
+    background-color: #242424;
+  }
+
+  .dark .text-foreground {
+    color: #fafafa;
+  }
+
+  .dark .bg-card {
+    background-color: #333333;
+  }
+
+  .dark .text-card-foreground {
+    color: #fafafa;
+  }
+
+  .dark .bg-primary {
+    background-color: #e5e5e5;
+  }
+
+  .dark .text-primary-foreground {
+    color: #333333;
+  }
+
+  .dark .bg-secondary {
+    background-color: #444444;
+  }
+
+  .dark .text-secondary-foreground {
+    color: #fafafa;
+  }
+
+  .dark .bg-muted {
+    background-color: #444444;
+  }
+
+  .dark .text-muted-foreground {
+    color: #b5b5b5;
+  }
+
+  .dark .bg-accent {
+    background-color: #444444;
+  }
+
+  .dark .text-accent-foreground {
+    color: #fafafa;
+  }
+
+  .dark .bg-destructive {
+    background-color: #dc2626;
+  }
+
+  .dark .border-border {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .dark .bg-input {
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+
+  /* Dark mode chart colors */
+  .dark .text-chart-1 {
+    color: #8b5cf6;
+  }
+
+  .dark .text-chart-2 {
+    color: #06b6d4;
+  }
+
+  .dark .text-chart-3 {
+    color: #f59e0b;
+  }
+
+  .dark .text-chart-4 {
+    color: #a855f7;
+  }
+
+  .dark .text-chart-5 {
+    color: #f97316;
+  }
+
+  /* Radius fallbacks for older browsers that don't support calc() properly */
+  .rounded-sm {
+    border-radius: 0.225rem; /* --radius-sm fallback */
+  }
+
+  .rounded-md {
+    border-radius: 0.425rem; /* --radius-md fallback */
+  }
+
+  .rounded-lg {
+    border-radius: 0.625rem; /* --radius-lg fallback */
+  }
+
+  .rounded-xl {
+    border-radius: 0.825rem; /* --radius-xl fallback */
+  }
+
+  /* Sidebar fallbacks */
+  .bg-sidebar {
+    background-color: #fafafa;
+  }
+
+  .text-sidebar-foreground {
+    color: #242424;
+  }
+
+  .dark .bg-sidebar {
+    background-color: #333333;
+  }
+
+  .dark .text-sidebar-foreground {
+    color: #fafafa;
+  }
+}
+
+/* IE11 specific fixes - separate from @supports since IE11 doesn't support @supports */
+@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+  /* IE11 specific styles */
+  .flex {
+    display: -ms-flexbox;
+    display: flex;
+  }
+  
+  .grid {
+    display: -ms-grid;
+  }
+  
+  /* Fix for IE11 flexbox issues */
+  .flex-1 {
+    -ms-flex: 1 1 0%;
+    flex: 1 1 0%;
+  }
+  
+  .justify-center {
+    -ms-flex-pack: center;
+    justify-content: center;
+  }
+  
+  .items-center {
+    -ms-flex-align: center;
+    align-items: center;
+  }
+
+  /* IE11 CSS Variables fallbacks (since IE11 doesn't support @supports) */
+  .bg-background {
+    background-color: white;
+  }
+
+  .text-foreground {
+    color: #242424;
+  }
+
+  .bg-card {
+    background-color: white;
+  }
+
+  .text-card-foreground {
+    color: #242424;
+  }
+
+  .bg-primary {
+    background-color: #333333;
+  }
+
+  .text-primary-foreground {
+    color: #fafafa;
+  }
+
+  .bg-secondary {
+    background-color: #f8f8f8;
+  }
+
+  .text-secondary-foreground {
+    color: #333333;
+  }
+
+  .bg-muted {
+    background-color: #f8f8f8;
+  }
+
+  .text-muted-foreground {
+    color: #8e8e8e;
+  }
+
+  .bg-accent {
+    background-color: #f8f8f8;
+  }
+
+  .text-accent-foreground {
+    color: #333333;
+  }
+
+  .bg-destructive {
+    background-color: #dc2626;
+  }
+
+  .border-border {
+    border-color: #e5e5e5;
+  }
+
+  .bg-input {
+    background-color: #e5e5e5;
+  }
+
+  /* Dark mode for IE11 */
+  .dark .bg-background {
+    background-color: #242424;
+  }
+
+  .dark .text-foreground {
+    color: #fafafa;
+  }
+
+  .dark .bg-card {
+    background-color: #333333;
+  }
+
+  .dark .text-card-foreground {
+    color: #fafafa;
+  }
+
+  .dark .bg-primary {
+    background-color: #e5e5e5;
+  }
+
+  .dark .text-primary-foreground {
+    color: #333333;
+  }
+
+  .dark .bg-secondary {
+    background-color: #444444;
+  }
+
+  .dark .text-secondary-foreground {
+    color: #fafafa;
+  }
+
+  .dark .bg-muted {
+    background-color: #444444;
+  }
+
+  .dark .text-muted-foreground {
+    color: #b5b5b5;
+  }
+
+  .dark .bg-accent {
+    background-color: #444444;
+  }
+
+  .dark .text-accent-foreground {
+    color: #fafafa;
+  }
+
+  .dark .bg-destructive {
+    background-color: #dc2626;
+  }
+
+  .dark .border-border {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .dark .bg-input {
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+}

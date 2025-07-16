@@ -1,8 +1,6 @@
 import { Dialog } from "../ui/dialog";
 import { CustomDialogContent } from "../ui/custom-dialog-content";
-import { FiClock, FiInfo } from "react-icons/fi";
-import { LuGamepad2 } from "react-icons/lu";
-import { BsController } from "react-icons/bs";
+import { FiInfo } from "react-icons/fi";
 import statImg from "../../assets/stat-img.svg";
 import { useCurrentUserStats } from "../../backend/analytics.service";
 import { formatTime } from "../../utils/main";

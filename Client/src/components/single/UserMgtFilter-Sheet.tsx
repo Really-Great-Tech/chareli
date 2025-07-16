@@ -34,7 +34,7 @@ interface FilterState {
   country: string[];
   ageGroup: string;
   sortBy: string;
-  sortOrder: 'asc' | 'desc';
+  sortOrder: "asc" | "desc";
 }
 
 interface UserManagementFilterSheetProps {
@@ -53,14 +53,17 @@ export function UserManagementFilterSheet({
 }: UserManagementFilterSheetProps) {
   const { data: gamesData } = useGames();
   const { data: categoriesData } = useCategories();
-  
+
   const categories = [
-    ...new Set(categoriesData?.map((category) => category.name).filter(Boolean)),
+    ...new Set(
+      categoriesData?.map((category) => category.name).filter(Boolean)
+    ),
   ] as string[];
 
-
   const titles = [
-    ...new Set(((gamesData as any) || [])?.map((game: any) => game.title).filter(Boolean)),
+    ...new Set(
+      ((gamesData as any) || [])?.map((game: any) => game.title).filter(Boolean)
+    ),
   ] as string[];
 
   // Get countries from country-data-list package (standardized list)
@@ -72,7 +75,6 @@ export function UserManagementFilterSheet({
       [field]: value,
     });
   };
-
 
   return (
     <Sheet>
@@ -212,22 +214,6 @@ export function UserManagementFilterSheet({
               placeholder="All Countries"
               searchPlaceholder="Search countries..."
               emptyText="No countries found."
-            />
-          </div>
-
-          {/* Age Group */}
-          <div className="flex flex-col space-y-2">
-            <Label className="text-base">Age Group</Label>
-            <SearchableSelect
-              value={filters.ageGroup}
-              onValueChange={(value) => handleChange("ageGroup", value)}
-              options={[
-                { value: "adults", label: "Adults (18+)" },
-                { value: "minors", label: "Minors (Under 18)" },
-              ]}
-              placeholder="All Ages"
-              searchPlaceholder="Search age groups..."
-              emptyText="No age groups found."
             />
           </div>
 

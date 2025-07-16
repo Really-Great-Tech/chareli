@@ -209,7 +209,7 @@ export default function Categories() {
                       setSelectedSecondary(null);
                     }}
                   >
-                    All
+                    All Games
                   </button>
                 </li>
                 {categories.map((cat) => {

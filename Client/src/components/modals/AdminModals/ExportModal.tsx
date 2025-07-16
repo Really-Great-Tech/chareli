@@ -278,17 +278,6 @@ const ExportModal = ({
         { Field: "", Value: "" }, // Empty row
       ];
 
-      // // Create Filter Summary sheet
-      // const filterData = [
-      //   { Field: "Export Type", Value: "User Management" },
-      //   {
-      //     Field: "Generated",
-      //     Value: format(new Date(), "MMMM dd, yyyy 'at' HH:mm"),
-      //   },
-      //   { Field: "Total Records", Value: data.length },
-      //   { Field: "", Value: "" }, // Empty row
-      // ];
-
       if (filterSummary.length > 0) {
         filterData.push({ Field: "Applied Filters", Value: "" });
         filterSummary.forEach((filter) => {

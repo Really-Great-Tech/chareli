@@ -15,8 +15,10 @@ import { RiEqualizer2Line } from "react-icons/ri";
 import { useUserActivityLog, type ActivityLogFilterState } from "../../../backend/analytics.service";
 import ActivityLogExportModal from "../../../components/modals/AdminModals/ActivityLogExportModal";
 import { ActivityLogFilterSheet } from "../../../components/single/ActivityLogFilter-Sheet";
+import { usePermissions } from "../../../hooks/usePermissions";
 
 export default function UserActivityLog() {
+  const permissions = usePermissions();
   const [filters, setFilters] = useState<ActivityLogFilterState>({
     dateRange: {
       startDate: "",
@@ -106,38 +108,44 @@ export default function UserActivityLog() {
           <p className="text-xl md:text-2xl dark:text-[#D946EF]">
             User Activity Log
           </p>
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-            <ActivityLogFilterSheet
-              filters={filters}
-              onFiltersChange={handleFiltersChange}
-              onReset={handleFilterReset}
-            >
-              <Button
-                variant="outline"
-                className="border-[#475568] text-[#475568] flex items-center justify-center gap-2 dark:text-white py-3 sm:py-5 cursor-pointer w-full sm:w-auto"
-              >
-                <span className="text-sm sm:text-base">Filter</span>
-                <div className="text-[#D946EF] bg-[#FAE8FF] px-2 py-1 rounded-full text-xs sm:text-sm">
-                  {
-                    Object.entries(filters).filter(([, value]) =>
-                      typeof value === "object"
-                        ? Object.values(value).some((v) => v !== "" && v !== 0)
-                        : typeof value === "boolean"
-                        ? value === true
-                        : value !== ""
-                    ).length
-                  }
-                </div>
-                <RiEqualizer2Line size={20} className="sm:size-6" />
-              </Button>
-            </ActivityLogFilterSheet>
-            <ActivityLogExportModal
-              data={allActivities}
-              filters={filters}
-              title="Export Activity Log"
-              description="Choose the format you'd like to export your activity log data"
-            />
-          </div>
+          {(permissions.canFilter || permissions.canExport) && (
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+              {permissions.canFilter && (
+                <ActivityLogFilterSheet
+                  filters={filters}
+                  onFiltersChange={handleFiltersChange}
+                  onReset={handleFilterReset}
+                >
+                  <Button
+                    variant="outline"
+                    className="border-[#475568] text-[#475568] flex items-center justify-center gap-2 dark:text-white py-3 sm:py-5 cursor-pointer w-full sm:w-auto"
+                  >
+                    <span className="text-sm sm:text-base">Filter</span>
+                    <div className="text-[#D946EF] bg-[#FAE8FF] px-2 py-1 rounded-full text-xs sm:text-sm">
+                      {
+                        Object.entries(filters).filter(([, value]) =>
+                          typeof value === "object"
+                            ? Object.values(value).some((v) => v !== "" && v !== 0)
+                            : typeof value === "boolean"
+                            ? value === true
+                            : value !== ""
+                        ).length
+                      }
+                    </div>
+                    <RiEqualizer2Line size={20} className="sm:size-6" />
+                  </Button>
+                </ActivityLogFilterSheet>
+              )}
+              {permissions.canExport && (
+                <ActivityLogExportModal
+                  data={allActivities}
+                  filters={filters}
+                  title="Export Activity Log"
+                  description="Choose the format you'd like to export your activity log data"
+                />
+              )}
+            </div>
+          )}
         </div>
         <div className="px-4 pb-4">
           <Table>

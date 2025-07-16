@@ -605,6 +605,7 @@ export class AuthService {
         return;
       }
 
+      // Check if superadmin already exists by role
       const existingSuperadmin = await userRepository.findOne({
         where: { role: { name: RoleType.SUPERADMIN } },
         relations: ['role']
@@ -612,6 +613,16 @@ export class AuthService {
 
       if (existingSuperadmin) {
         logger.info('Superadmin account already exists');
+        return;
+      }
+
+      // Also check if the email is already taken (including soft-deleted users)
+      const existingUserWithEmail = await userRepository.findOne({
+        where: { email: config.superadmin.email }
+      });
+
+      if (existingUserWithEmail) {
+        logger.info(`User with superadmin email (${config.superadmin.email}) already exists. Skipping superadmin initialization.`);
         return;
       }
 
@@ -645,6 +656,7 @@ export class AuthService {
       logger.info('Created signup analytics entry for new superadmin');
     } catch (error) {
       logger.error('Failed to initialize superadmin account:', error);
+      // Don't throw the error to prevent app startup failure
     }
   }
 

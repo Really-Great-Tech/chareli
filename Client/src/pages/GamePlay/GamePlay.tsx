@@ -115,6 +115,8 @@ export default function GamePlay() {
       analyticsIdRef.current = null;
     } catch (error) {
       console.error('Failed to update analytics:', error);
+      // Clear ID even on error to prevent duplicate attempts
+      analyticsIdRef.current = null;
     }
   };
 

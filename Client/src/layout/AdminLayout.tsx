@@ -10,48 +10,65 @@ import { FaChartLine } from "react-icons/fa";
 import { SlEqualizer } from "react-icons/sl";
 import { RiTeamLine } from "react-icons/ri";
 import { IoChevronBackOutline, IoChevronForwardOutline } from "react-icons/io5";
+import { usePermissions } from "../hooks/usePermissions";
 
-const menuItems = [
+const allMenuItems = [
   {
     title: "Home",
     icon: <FiHome size={20} />,
     path: "/admin",
+    requiresConfig: false,
   },
   {
     title: "Game Management",
     icon: <IoGameControllerOutline size={20} />,
     path: "/admin/game-management",
+    requiresConfig: false,
   },
   {
     title: "Game Category",
     icon: <MdOutlineCategory size={20} />,
     path: "/admin/categories",
+    requiresConfig: false,
   },
   {
     title: "User Management",
     icon: <FaRegUser size={20} />,
     path: "/admin/management",
+    requiresConfig: false,
   },
   {
     title: "Team Management",
     icon: <RiTeamLine size={20} />,
     path: "/admin/team",
+    requiresConfig: false,
   },
   {
     title: "Analytics",
     icon: <FaChartLine size={20} />,
     path: "/admin/analytics",
+    requiresConfig: false,
   },
   {
     title: "Configuration",
     icon: <SlEqualizer size={20} />,
     path: "/admin/config",
+    requiresConfig: true,
   },
 ];
 
 const AdminLayout: React.FC = () => {
+  const permissions = usePermissions();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+
+  // Filter menu items based on permissions
+  const menuItems = allMenuItems.filter(item => {
+    if (item.requiresConfig) {
+      return permissions.canAccessConfig;
+    }
+    return true;
+  });
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);

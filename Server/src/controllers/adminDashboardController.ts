@@ -221,38 +221,44 @@ export const getDashboardAnalytics = async (
       ? Math.max(Math.min(((currentTotalGames - previousTotalGames) / previousTotalGames) * 100, 100), -100)
       : 0;
 
-    // 4. Total Sessions (game-related only)
+    // 4. Total Sessions (game-related only, duration >= 30 seconds)
     const [currentTotalSessions, previousTotalSessions, actualSessions] = await Promise.all([
-      analyticsRepository.count({
-        where: {
-          gameId: Not(IsNull()),
-          startTime: Not(IsNull()),
-          endTime: Not(IsNull()),
-          createdAt: Between(twentyFourHoursAgo, now)
-        }
-      }),
-      analyticsRepository.count({
-        where: {
-          gameId: Not(IsNull()),
-          startTime: Not(IsNull()),
-          endTime: Not(IsNull()),
-          createdAt: Between(fortyEightHoursAgo, twentyFourHoursAgo)
-        }
-      }),
-      analyticsRepository.count({
-        where: {
-          gameId: Not(IsNull()),
-          startTime: Not(IsNull()),
-          endTime: Not(IsNull())
-        }
-      })
+      analyticsRepository
+        .createQueryBuilder('analytics')
+        .where('analytics.gameId IS NOT NULL')
+        .andWhere('analytics.startTime IS NOT NULL')
+        .andWhere('analytics.endTime IS NOT NULL')
+        .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
+        .andWhere('analytics.createdAt BETWEEN :start AND :end', {
+          start: twentyFourHoursAgo,
+          end: now
+        })
+        .getCount(),
+      analyticsRepository
+        .createQueryBuilder('analytics')
+        .where('analytics.gameId IS NOT NULL')
+        .andWhere('analytics.startTime IS NOT NULL')
+        .andWhere('analytics.endTime IS NOT NULL')
+        .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
+        .andWhere('analytics.createdAt BETWEEN :start AND :end', {
+          start: fortyEightHoursAgo,
+          end: twentyFourHoursAgo
+        })
+        .getCount(),
+      analyticsRepository
+        .createQueryBuilder('analytics')
+        .where('analytics.gameId IS NOT NULL')
+        .andWhere('analytics.startTime IS NOT NULL')
+        .andWhere('analytics.endTime IS NOT NULL')
+        .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
+        .getCount()
     ]);
 
     const totalSessionsPercentageChange = previousTotalSessions > 0
       ? Math.max(Math.min(((currentTotalSessions - previousTotalSessions) / previousTotalSessions) * 100, 100), -100)
       : 0;
 
-    // 5. Total Time Played (in minutes, game-related only)
+    // 5. Total Time Played (in minutes, game-related only, duration >= 30 seconds)
     const [currentTotalTimePlayedResult, previousTotalTimePlayedResult, actualTimePlayed] = await Promise.all([
       analyticsRepository
         .createQueryBuilder('analytics')
@@ -260,6 +266,7 @@ export const getDashboardAnalytics = async (
         .where('analytics.gameId IS NOT NULL')
         .andWhere('analytics.startTime IS NOT NULL')
         .andWhere('analytics.endTime IS NOT NULL')
+        .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
         .andWhere('analytics.startTime BETWEEN :start AND :end', {
           start: twentyFourHoursAgo,
           end: now
@@ -272,6 +279,7 @@ export const getDashboardAnalytics = async (
         .where('analytics.gameId IS NOT NULL')
         .andWhere('analytics.startTime IS NOT NULL')
         .andWhere('analytics.endTime IS NOT NULL')
+        .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
         .andWhere('analytics.startTime BETWEEN :start AND :end', {
           start: fortyEightHoursAgo,
           end: twentyFourHoursAgo
@@ -284,6 +292,7 @@ export const getDashboardAnalytics = async (
         .where('analytics.gameId IS NOT NULL')
         .andWhere('analytics.startTime IS NOT NULL')
         .andWhere('analytics.endTime IS NOT NULL')
+        .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
         .getRawOne()
     ]);
 
@@ -295,7 +304,7 @@ export const getDashboardAnalytics = async (
       ? Math.max(Math.min(((currentTotalTimePlayed - previousTotalTimePlayed) / previousTotalTimePlayed) * 100, 100), -100)
       : 0;
 
-    // 6. Most Played Game with percentage change (for the current period)
+    // 6. Most Played Game with percentage change (for the current period, duration >= 30 seconds)
     const mostPlayedGameResult = await analyticsRepository
       .createQueryBuilder('analytics')
       .select('analytics.gameId', 'gameId')
@@ -307,6 +316,7 @@ export const getDashboardAnalytics = async (
       .where('analytics.gameId IS NOT NULL')
       .andWhere('analytics.startTime IS NOT NULL')
       .andWhere('analytics.endTime IS NOT NULL')
+      .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
       .andWhere('analytics.createdAt BETWEEN :start AND :end', {
         start: twentyFourHoursAgo,
         end: now
@@ -327,6 +337,7 @@ export const getDashboardAnalytics = async (
         .where('analytics.gameId = :gameId', { gameId: mostPlayedGameResult.gameId })
         .andWhere('analytics.startTime IS NOT NULL')
         .andWhere('analytics.endTime IS NOT NULL')
+        .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
         .andWhere('analytics.createdAt > :twentyFourHoursAgo', { twentyFourHoursAgo })
         .getRawOne();
 
@@ -337,6 +348,7 @@ export const getDashboardAnalytics = async (
         .where('analytics.gameId = :gameId', { gameId: mostPlayedGameResult.gameId })
         .andWhere('analytics.startTime IS NOT NULL')
         .andWhere('analytics.endTime IS NOT NULL')
+        .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
         .andWhere('analytics.createdAt BETWEEN :start AND :end', {
           start: fortyEightHoursAgo,
           end: twentyFourHoursAgo
@@ -358,13 +370,14 @@ export const getDashboardAnalytics = async (
       };
     }
     
-    // 7. Average Session Duration (in minutes, game-related only)
+    // 7. Average Session Duration (in minutes, game-related only, duration >= 30 seconds)
     const [currentAvgDurationResult, previousAvgDurationResult] = await Promise.all([
       analyticsRepository
         .createQueryBuilder('analytics')
         .select('AVG(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.duration END)', 'avgDuration')
         .where('analytics.gameId IS NOT NULL')
         .andWhere('analytics.duration IS NOT NULL')
+        .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
         .andWhere('analytics.createdAt BETWEEN :start AND :end', {
           start: twentyFourHoursAgo,
           end: now
@@ -375,6 +388,7 @@ export const getDashboardAnalytics = async (
         .select('AVG(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.duration END)', 'avgDuration')
         .where('analytics.gameId IS NOT NULL')
         .andWhere('analytics.duration IS NOT NULL')
+        .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
         .andWhere('analytics.createdAt BETWEEN :start AND :end', {
           start: fortyEightHoursAgo,
           end: twentyFourHoursAgo
@@ -838,6 +852,7 @@ export const getGamesWithAnalytics = async (
         .where('analytics.gameId IN (:...gameIds)', { gameIds })
         .andWhere('analytics.startTime IS NOT NULL')
         .andWhere('analytics.endTime IS NOT NULL')
+        .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
         .groupBy('analytics.gameId')
         .getRawMany();
     }
@@ -983,6 +998,7 @@ export const getGameAnalyticsById = async (
       .where(whereConditions)
       .andWhere('analytics.startTime IS NOT NULL')
       .andWhere('analytics.endTime IS NOT NULL')
+      .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
       .getRawOne();
     
     // Get top players for this game
@@ -1140,6 +1156,7 @@ export const getUserAnalyticsById = async (
       .where('analytics.userId = :userId', { userId: id })
       .andWhere('analytics.startTime IS NOT NULL')
       .andWhere('analytics.endTime IS NOT NULL')
+      .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
       .getRawOne();
 
     // Get user's game activity details
@@ -1253,7 +1270,7 @@ export const getGamesPopularityMetrics = async (
 
     // Get metrics for all games
     const gamesMetrics = await Promise.all(games.map(async (game) => {
-      // Get total plays and average play time
+      // Get total plays and average play time (duration >= 30 seconds)
       const overallMetrics = await analyticsRepository
         .createQueryBuilder('analytics')
         .select('COUNT(*)', 'totalPlays')
@@ -1261,25 +1278,28 @@ export const getGamesPopularityMetrics = async (
         .where('analytics.gameId = :gameId', { gameId: game.id })
         .andWhere('analytics.startTime IS NOT NULL')
         .andWhere('analytics.endTime IS NOT NULL')
+        .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
         .getRawOne();
 
-      // Get plays in last 24 hours
+      // Get plays in last 24 hours (duration >= 30 seconds)
       const currentPeriodPlays = await analyticsRepository
         .createQueryBuilder('analytics')
         .select('COUNT(*)', 'count')
         .where('analytics.gameId = :gameId', { gameId: game.id })
         .andWhere('analytics.startTime IS NOT NULL')
         .andWhere('analytics.endTime IS NOT NULL')
+        .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
         .andWhere('analytics.createdAt > :twentyFourHoursAgo', { twentyFourHoursAgo })
         .getRawOne();
 
-      // Get plays in previous 24 hours
+      // Get plays in previous 24 hours (duration >= 30 seconds)
       const previousPeriodPlays = await analyticsRepository
         .createQueryBuilder('analytics')
         .select('COUNT(*)', 'count')
         .where('analytics.gameId = :gameId', { gameId: game.id })
         .andWhere('analytics.startTime IS NOT NULL')
         .andWhere('analytics.endTime IS NOT NULL')
+        .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
         .andWhere('analytics.createdAt BETWEEN :start AND :end', {
           start: fortyEightHoursAgo,
           end: twentyFourHoursAgo

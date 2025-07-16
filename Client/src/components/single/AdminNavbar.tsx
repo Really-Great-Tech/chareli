@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { Button } from '../ui/button';
+import { usePermissions } from '../../hooks/usePermissions';
 
 import { IoMdSettings } from "react-icons/io";
 // import { IoIosSearch } from "react-icons/io";
@@ -18,6 +19,7 @@ import moon from '../../assets/moon.svg';
 const AdminNavbar: React.FC = () => {
   const { logout } = useAuth();
   const { isDarkMode, toggleDarkMode } = useTheme();
+  const permissions = usePermissions();
 
   const [showSearch, setShowSearch] = useState(false);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
@@ -85,7 +87,9 @@ const AdminNavbar: React.FC = () => {
               )}
             </div>
           )} */}
-          <IoMdSettings className='w-6 h-6 cursor-pointer' onClick={() => navigate('/admin/settings')} />
+          {permissions.canAccessConfig && (
+            <IoMdSettings className='w-6 h-6 cursor-pointer' onClick={() => navigate('/admin/settings')} />
+          )}
         </div>
         <div className="space-x-4 flex items-center cursor-pointer">
           <img

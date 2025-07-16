@@ -30,10 +30,12 @@ import { cn } from "../../../lib/utils";
 import { formatTime } from "../../../utils/main";
 import GameThumbnail from "../Analytics/GameThumbnail";
 import { X } from "lucide-react";
+import { usePermissions } from "../../../hooks/usePermissions";
 
 const pageSize = 10;
 
 export default function GameManagement() {
+  const permissions = usePermissions();
   const [page, setPage] = useState(1);
   const [historyPage, setHistoryPage] = useState(1);
   const [filters, setFilters] = useState<{
@@ -127,68 +129,79 @@ export default function GameManagement() {
           All Games
         </h1>
         <div className="flex flex-wrap gap-3 justify-end ">
-          {!reorderHistoryOpen ? (
-            <FilterSheet
-              onFilter={setFilters}
-              onReset={() => setFilters(undefined)}
-            >
-              <Button
-                variant="outline"
-                className="border-[#475568] text-[#475568] flex items-center gap-2 dark:text-white py-2 sm:py-[14px] text-sm sm:text-base h-[48px] font-dmmono cursor-pointer"
-              >
-                Filter Games
-                <RiEqualizer2Line size={24} className="sm:size-8" />
-              </Button>
-            </FilterSheet>
-          ) : (
-            <HistoryFilterSheet
-              onFilter={setHistoryFilters}
-              onReset={() => setHistoryFilters(undefined)}
-            >
-              <Button
-                variant="outline"
-                className="border-[#475568] text-[#475568] flex items-center gap-2 dark:text-white py-2 sm:py-[14px] text-sm sm:text-base h-[48px] font-dmmono cursor-pointer"
-              >
-                Filter History
-                <RiEqualizer2Line size={24} className="sm:size-8" />
-              </Button>
-            </HistoryFilterSheet>
+          {/* Filter buttons - hidden for viewers */}
+          {permissions.canFilter && (
+            <>
+              {!reorderHistoryOpen ? (
+                <FilterSheet
+                  onFilter={setFilters}
+                  onReset={() => setFilters(undefined)}
+                >
+                  <Button
+                    variant="outline"
+                    className="border-[#475568] text-[#475568] flex items-center gap-2 dark:text-white py-2 sm:py-[14px] text-sm sm:text-base h-[48px] font-dmmono cursor-pointer"
+                  >
+                    Filter Games
+                    <RiEqualizer2Line size={24} className="sm:size-8" />
+                  </Button>
+                </FilterSheet>
+              ) : (
+                <HistoryFilterSheet
+                  onFilter={setHistoryFilters}
+                  onReset={() => setHistoryFilters(undefined)}
+                >
+                  <Button
+                    variant="outline"
+                    className="border-[#475568] text-[#475568] flex items-center gap-2 dark:text-white py-2 sm:py-[14px] text-sm sm:text-base h-[48px] font-dmmono cursor-pointer"
+                  >
+                    Filter History
+                    <RiEqualizer2Line size={24} className="sm:size-8" />
+                  </Button>
+                </HistoryFilterSheet>
+              )}
+            </>
           )}
-          <Button
-            className={`text-[#0F1621] font-normal text-sm sm:text-base px-[16px] py-[14px] h-[48px] bg-[#F8FAFC] hover:bg-[#F8FAFC] border-[#E2E8F0] dark:border-none border-1 font-dmmono ${
-              reorderOpen ? "bg-[#94A3B7] hover:bg-[#94A3B7]" : ""
-            }`}
-            onClick={() => {
-              setReorderOpen(!reorderOpen);
-              setReorderHistoryOpen(false);
-            }}
-          >
-            {reorderOpen ? (
-              <span className="flex justify-between items-center gap-2 text-white cursor-pointer">
-                Re-order mode <X size={16} color="white" />
-              </span>
-            ) : (
-              <span className="cursor-pointer">Reorder Games</span>
-            )}
-          </Button>
-          {reorderOpen && (
-            <Button
-              className={`font-normal text-sm sm:text-base px-[16px] py-[14px] h-[48px] bg-white hover:bg-[#F8FAFC]  text-black border-[#E2E8F0] border-1 dark:border-none font-dmmono cursor-pointer ${
-                reorderHistoryOpen
-                  ? "bg-[#86198F] hover:bg-[#86198F] text-white"
-                  : ""
-              }`}
-              onClick={() => setReorderHistoryOpen(!reorderHistoryOpen)}
-            >
-              Reorder History
-            </Button>
-          )}
-          {!reorderOpen && (
-            <CreateGameSheet>
-              <Button className="bg-[#D946EF] text-white hover:bg-[#c026d3] tracking-wider py-2 sm:py-[14px] text-sm sm:text-base h-[48px] font-dmmono cursor-pointer">
-                Create New Game
+          
+          {/* Hide reorder and create buttons for viewers */}
+          {permissions.canManageGames && (
+            <>
+              <Button
+                className={`text-[#0F1621] font-normal text-sm sm:text-base px-[16px] py-[14px] h-[48px] bg-[#F8FAFC] hover:bg-[#F8FAFC] border-[#E2E8F0] dark:border-none border-1 font-dmmono ${
+                  reorderOpen ? "bg-[#94A3B7] hover:bg-[#94A3B7]" : ""
+                }`}
+                onClick={() => {
+                  setReorderOpen(!reorderOpen);
+                  setReorderHistoryOpen(false);
+                }}
+              >
+                {reorderOpen ? (
+                  <span className="flex justify-between items-center gap-2 text-white cursor-pointer">
+                    Re-order mode <X size={16} color="white" />
+                  </span>
+                ) : (
+                  <span className="cursor-pointer">Reorder Games</span>
+                )}
               </Button>
-            </CreateGameSheet>
+              {reorderOpen && (
+                <Button
+                  className={`font-normal text-sm sm:text-base px-[16px] py-[14px] h-[48px] bg-white hover:bg-[#F8FAFC]  text-black border-[#E2E8F0] border-1 dark:border-none font-dmmono cursor-pointer ${
+                    reorderHistoryOpen
+                      ? "bg-[#86198F] hover:bg-[#86198F] text-white"
+                      : ""
+                  }`}
+                  onClick={() => setReorderHistoryOpen(!reorderHistoryOpen)}
+                >
+                  Reorder History
+                </Button>
+              )}
+              {!reorderOpen && (
+                <CreateGameSheet>
+                  <Button className="bg-[#D946EF] text-white hover:bg-[#c026d3] tracking-wider py-2 sm:py-[14px] text-sm sm:text-base h-[48px] font-dmmono cursor-pointer">
+                    Create New Game
+                  </Button>
+                </CreateGameSheet>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -328,17 +341,22 @@ export default function GameManagement() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex gap-3 items-center">
-                        <button
-                          className="text-black hover:text-black p-1 dark:text-white cursor-pointer"
-                          title="Edit"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedGameId(game.id);
-                            setEditOpen(true);
-                          }}
-                        >
-                          <CiEdit className="cursor-pointer" />
-                        </button>
+                        {/* Edit button - only for users who can manage games */}
+                        {permissions.canManageGames && (
+                          <button
+                            className="text-black hover:text-black p-1 dark:text-white cursor-pointer"
+                            title="Edit"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedGameId(game.id);
+                              setEditOpen(true);
+                            }}
+                          >
+                            <CiEdit className="cursor-pointer" />
+                          </button>
+                        )}
+                        
+                        {/* View button - available for all users */}
                         <button
                           className="text-black hover:text-black p-1 dark:text-white cursor-pointer"
                           title="View"
@@ -353,17 +371,26 @@ export default function GameManagement() {
                             <IoEyeOffOutline className="cursor-pointer" />
                           )}
                         </button>
-                        <button
-                          className="text-black hover:text-black p-1 dark:text-white cursor-pointer"
-                          title="Delete"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedGameId(game.id);
-                            setDeleteModalOpen(true);
-                          }}
-                        >
-                          <RiDeleteBin6Line className="cursor-pointer" />
-                        </button>
+                        
+                        {/* Delete button - only for users who can delete */}
+                        {permissions.canDelete && (
+                          <button
+                            className="text-black hover:text-black p-1 dark:text-white cursor-pointer"
+                            title="Delete"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedGameId(game.id);
+                              setDeleteModalOpen(true);
+                            }}
+                          >
+                            <RiDeleteBin6Line className="cursor-pointer" />
+                          </button>
+                        )}
+                        
+                        {/* Show "View Only" text for viewers when no actions are available */}
+                        {permissions.isViewer && (
+                          <span className="text-gray-400 text-xs">View Only</span>
+                        )}
                       </div>
                     </td>
                   </tr>

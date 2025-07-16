@@ -133,21 +133,23 @@ export const getCurrentUserStats = async (
 
     // Get games played with details
     const gamesPlayed = await analyticsRepository
-      .createQueryBuilder('analytics')
-      .select('analytics.gameId', 'gameId')
-      .addSelect('game.title', 'title')
-      .addSelect('thumbnailFile.s3Key', 'thumbnailKey')
-      .addSelect('SUM(analytics.duration)', 'totalDuration')
-      .addSelect('MAX(analytics.startTime)', 'lastPlayed')
-      .leftJoin('analytics.game', 'game')
-      .leftJoin('game.thumbnailFile', 'thumbnailFile')
-      .where('analytics.userId = :userId AND analytics.gameId IS NOT NULL', { userId })
-      .andWhere('analytics.startTime IS NOT NULL')
-      .andWhere('analytics.endTime IS NOT NULL')
-      .groupBy('analytics.gameId')
-      .addGroupBy('game.title')
-      .addGroupBy('thumbnailFile.s3Key')
-      .orderBy('"lastPlayed"', 'DESC')
+      .createQueryBuilder("analytics")
+      .select("analytics.gameId", "gameId")
+      .addSelect("game.title", "title")
+      .addSelect("thumbnailFile.s3Key", "thumbnailKey")
+      .addSelect("SUM(analytics.duration)", "totalDuration")
+      .addSelect("MAX(analytics.startTime)", "lastPlayed")
+      .leftJoin("analytics.game", "game")
+      .leftJoin("game.thumbnailFile", "thumbnailFile")
+      .where("analytics.userId = :userId AND analytics.gameId IS NOT NULL", {
+        userId,
+      })
+      .andWhere("analytics.startTime IS NOT NULL")
+      .andWhere("analytics.endTime IS NOT NULL")
+      .groupBy("analytics.gameId")
+      .addGroupBy("game.title")
+      .addGroupBy("thumbnailFile.s3Key")
+      .orderBy("SUM(analytics.duration)", "DESC")
       .getRawMany();
 
     // Format the response

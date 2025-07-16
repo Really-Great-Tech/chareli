@@ -46,12 +46,11 @@ export default function Analytics() {
       </div>
 
       {/* bar chart for user age */}
-      <div className="w-full">
+      {/* <div className="w-full">
         <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
           <div className="justify-between items-center flex p-3">
             <p className="text-base sm:text-xl lg:text-2xl">User Age</p>
           </div>
-          {/* inner card */}
           <Card className="bg-[#F8FAFC] dark:bg-[#0F1221] shadow-none border-none mx-3 p-4">
             <div className="flex flex-col space-y-8">
               <div className="">
@@ -74,7 +73,7 @@ export default function Analytics() {
             </div>
           </Card>
         </Card>
-      </div>
+      </div> */}
 
       <UserActivityLog />
       <GameActivity />

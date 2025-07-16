@@ -87,7 +87,9 @@ const getValidationSchema = (config?: { value?: { settings: any } }) => {
   const schema: any = {
     password: passwordSchema,
     confirmPassword: confirmPasswordSchema,
-    ageConfirm: Yup.boolean().default(false),
+    ageConfirm: Yup.boolean()
+      .oneOf([true], "You must be 18+ years")
+      .required("You must be 18+ years"),
     terms: Yup.boolean()
       .oneOf([true], "You must accept the terms of use")
       .required("You must accept the terms of use"),

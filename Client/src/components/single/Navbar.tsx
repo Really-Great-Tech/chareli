@@ -8,6 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useTrackSignupClick } from '../../backend/signup.analytics.service';
 import { getVisitorSessionId } from '../../utils/sessionUtils';
+import { usePermissions } from '../../hooks/usePermissions';
 
 import sun from '../../assets/sun.svg';
 import moon from '../../assets/moon.svg';
@@ -19,7 +20,8 @@ import { LoginModal } from '../modals/LoginModal';
 
 
 const Navbar: React.FC = () => {
-  const { isAuthenticated, isAdmin, logout } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
+  const permissions = usePermissions();
   const { isDarkMode, toggleDarkMode } = useTheme();
   const { mutate: trackSignup } = useTrackSignupClick();
 
@@ -96,7 +98,7 @@ const Navbar: React.FC = () => {
             </div>
             {isAuthenticated ? (
               <div className="space-y-5">
-                {isAdmin && (
+                {permissions.hasAdminAccess && (
                   <Button
                     onClick={() => {
                       navigate('/admin');
@@ -218,7 +220,7 @@ const Navbar: React.FC = () => {
 
         {isAuthenticated ? (
           <>
-            {isAdmin && (
+            {permissions.hasAdminAccess && (
               <Button
                 onClick={() => navigate('/admin')}
                 className="bg-[#E328AF] text-white hover:bg-[#C026D3] cursor-pointer"

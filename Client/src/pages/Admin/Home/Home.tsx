@@ -12,9 +12,11 @@ import { useDashboardAnalytics, type DashboardTimeRange } from '../../../backend
 import { useSystemConfigByKey } from '../../../backend/configuration.service';
 import AdminKeepPlayingModal from '../../../components/modals/AdminKeepPlayingModal';
 import { MostPlayedGames } from './MostPlayedGames';
+import { usePermissions } from '../../../hooks/usePermissions';
 // import { RecentUserActivity } from './RecentUserActivity';
 
 export default function Home() {
+  const permissions = usePermissions();
   const [isAcceptInviteOpen, setIsAcceptInviteOpen] = useState(false);
   const [showKeepPlayingModal, setShowKeepPlayingModal] = useState(false);
   const [timeRange, setTimeRange] = useState<DashboardTimeRange>({ period: 'last24hours' });
@@ -32,10 +34,12 @@ export default function Home() {
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
             Dashboard
           </h1>
-          <DashboardTimeFilter 
-            value={timeRange} 
-            onChange={setTimeRange} 
-          />
+          {permissions.canFilter && (
+            <DashboardTimeFilter 
+              value={timeRange} 
+              onChange={setTimeRange} 
+            />
+          )}
         </div>
       </div>
       <div className="px-6">

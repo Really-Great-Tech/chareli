@@ -69,12 +69,12 @@ export const inviteUser = async (
       return next(ApiError.forbidden('Only admin and superadmin can invite users'));
     }
 
-    // Superadmin can invite any role, admin can only invite editor and player
+    // Superadmin can invite any role, admin can invite editor, player, and viewer roles
     if (
       req.user.role === RoleType.ADMIN &&
       (role === RoleType.SUPERADMIN || role === RoleType.ADMIN)
     ) {
-      return next(ApiError.forbidden('Admin can only invite editor and player roles'));
+      return next(ApiError.forbidden('Admin can only invite editor, player, and viewer roles'));
     }
 
     // Create invitation
@@ -175,7 +175,7 @@ export const getAllInvitations = async (
 ): Promise<void> => {
   try {
     // Only admin and superadmin can view all invitations
-    if (req.user?.role !== RoleType.ADMIN && req.user?.role !== RoleType.SUPERADMIN) {
+    if (req.user?.role !== RoleType.ADMIN && req.user?.role !== RoleType.SUPERADMIN && req.user?.role !== RoleType.VIEWER) {
       return next(ApiError.forbidden('Only admin and superadmin can view all invitations'));
     }
 
@@ -230,7 +230,7 @@ export const deleteInvitation = async (
     const { id } = req.params;
 
     // Only admin and superadmin can delete invitations
-    if (req.user?.role !== RoleType.ADMIN && req.user?.role !== RoleType.SUPERADMIN) {
+    if (req.user?.role !== RoleType.ADMIN && req.user?.role !== RoleType.SUPERADMIN && req.user?.role !== RoleType.VIEWER) {
       return next(ApiError.forbidden('Only admin and superadmin can delete invitations'));
     }
 
@@ -243,12 +243,12 @@ export const deleteInvitation = async (
       return next(ApiError.notFound('Invitation not found'));
     }
 
-    // Admin can only delete invitations for editor and player roles
+    // Admin can only delete invitations for editor, player, and viewer roles
     if (
       req.user.role === RoleType.ADMIN &&
       (invitation.role.name === RoleType.SUPERADMIN || invitation.role.name === RoleType.ADMIN)
     ) {
-      return next(ApiError.forbidden('Admin can only delete invitations for editor and player roles'));
+      return next(ApiError.forbidden('Admin can only delete invitations for editor, player, and viewer roles'));
     }
 
     await invitationRepository.remove(invitation);
@@ -713,9 +713,9 @@ export const changeUserRole = async (
 
     // Check permission based on role hierarchy
     if (currentUserRole === RoleType.ADMIN) {
-      // Admin can only assign editor and player roles
+      // Admin can only assign editor, player, and viewer roles
       if (newRoleName === RoleType.SUPERADMIN || newRoleName === RoleType.ADMIN) {
-        return next(ApiError.forbidden('Admin can only assign editor and player roles'));
+        return next(ApiError.forbidden('Admin can only assign editor, player, and viewer roles'));
       }
     } else if (currentUserRole !== RoleType.SUPERADMIN) {
       return next(ApiError.forbidden('You do not have permission to change roles'));

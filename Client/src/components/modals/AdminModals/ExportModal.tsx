@@ -33,78 +33,111 @@ const ExportModal = ({
   data,
   filters,
   title = "Export Data",
-  description = "Choose the format you'd like to export your data"
+  description = "Choose the format you'd like to export your data",
 }: ExportModalProps) => {
   const [open, setOpen] = useState(false);
 
   const generateFilterSummary = () => {
     if (!filters) return [];
-    
+
     const summary = [];
-    
+
     // Registration Date Range
-    if (filters.registrationDates.startDate || filters.registrationDates.endDate) {
-      const startDate = filters.registrationDates.startDate ? format(new Date(filters.registrationDates.startDate), "MMM dd, yyyy") : "Beginning";
-      const endDate = filters.registrationDates.endDate ? format(new Date(filters.registrationDates.endDate), "MMM dd, yyyy") : "Present";
+    if (
+      filters.registrationDates.startDate ||
+      filters.registrationDates.endDate
+    ) {
+      const startDate = filters.registrationDates.startDate
+        ? format(new Date(filters.registrationDates.startDate), "MMM dd, yyyy")
+        : "Beginning";
+      const endDate = filters.registrationDates.endDate
+        ? format(new Date(filters.registrationDates.endDate), "MMM dd, yyyy")
+        : "Present";
       summary.push(`Registration Date: ${startDate} to ${endDate}`);
     }
-    
+
     // Last Login Date Range
     if (filters.lastLoginDates.startDate || filters.lastLoginDates.endDate) {
-      const startDate = filters.lastLoginDates.startDate ? format(new Date(filters.lastLoginDates.startDate), "MMM dd, yyyy") : "Beginning";
-      const endDate = filters.lastLoginDates.endDate ? format(new Date(filters.lastLoginDates.endDate), "MMM dd, yyyy") : "Present";
+      const startDate = filters.lastLoginDates.startDate
+        ? format(new Date(filters.lastLoginDates.startDate), "MMM dd, yyyy")
+        : "Beginning";
+      const endDate = filters.lastLoginDates.endDate
+        ? format(new Date(filters.lastLoginDates.endDate), "MMM dd, yyyy")
+        : "Present";
       summary.push(`Last Login Date: ${startDate} to ${endDate}`);
     }
-    
+
     // Session Count
     if (filters.sessionCount) {
       summary.push(`Session Count: Minimum ${filters.sessionCount} sessions`);
     }
-    
+
     // Time Played
     if (filters.timePlayed.min > 0 || filters.timePlayed.max > 0) {
-      const min = filters.timePlayed.min > 0 ? `${filters.timePlayed.min} minutes` : "0 minutes";
-      const max = filters.timePlayed.max > 0 ? `${filters.timePlayed.max} minutes` : "unlimited";
+      const min =
+        filters.timePlayed.min > 0
+          ? `${filters.timePlayed.min} minutes`
+          : "0 minutes";
+      const max =
+        filters.timePlayed.max > 0
+          ? `${filters.timePlayed.max} minutes`
+          : "unlimited";
       summary.push(`Time Played: ${min} to ${max}`);
     }
-    
+
     // Game Title
     if (filters.gameTitle && filters.gameTitle.length > 0) {
       summary.push(`Game Title: ${filters.gameTitle.join(", ")}`);
     }
-    
+
     // Game Category
     if (filters.gameCategory && filters.gameCategory.length > 0) {
       summary.push(`Game Category: ${filters.gameCategory.join(", ")}`);
     }
-    
+
     // Country
     if (filters.country && filters.country.length > 0) {
       summary.push(`Country: ${filters.country.join(", ")}`);
     }
-    
+
     // Age Group
     if (filters.ageGroup) {
-      const ageGroupLabel = filters.ageGroup === "adults" ? "Adults (18+)" : 
-                           filters.ageGroup === "minors" ? "Minors (Under 18)" : filters.ageGroup;
+      const ageGroupLabel =
+        filters.ageGroup === "adults"
+          ? "Adults (18+)"
+          : filters.ageGroup === "minors"
+          ? "Minors (Under 18)"
+          : filters.ageGroup;
       summary.push(`Age Group: ${ageGroupLabel}`);
     }
-    
+
     // Sort By
     if (filters.sortBy) {
-      const sortByLabel = filters.sortBy === "createdAt" ? "Registration Date" : 
-                         filters.sortBy === "firstName" ? "First Name" : 
-                         filters.sortBy === "lastName" ? "Last Name" : 
-                         filters.sortBy === "email" ? "Email" :
-                         filters.sortBy === "lastLoggedIn" ? "Last Login" :
-                         filters.sortBy === "lastSeen" ? "Last Seen" :
-                         filters.sortBy === "country" ? "Country" :
-                         filters.sortBy === "timePlayed" ? "Time Played" :
-                         filters.sortBy === "sessionCount" ? "Session Count" : filters.sortBy;
-      const sortOrderLabel = filters.sortOrder === "desc" ? "Newest First" : "Oldest First";
+      const sortByLabel =
+        filters.sortBy === "createdAt"
+          ? "Registration Date"
+          : filters.sortBy === "firstName"
+          ? "First Name"
+          : filters.sortBy === "lastName"
+          ? "Last Name"
+          : filters.sortBy === "email"
+          ? "Email"
+          : filters.sortBy === "lastLoggedIn"
+          ? "Last Login"
+          : filters.sortBy === "lastSeen"
+          ? "Last Seen"
+          : filters.sortBy === "country"
+          ? "Country"
+          : filters.sortBy === "timePlayed"
+          ? "Time Played"
+          : filters.sortBy === "sessionCount"
+          ? "Session Count"
+          : filters.sortBy;
+      const sortOrderLabel =
+        filters.sortOrder === "desc" ? "Newest First" : "Oldest First";
       summary.push(`Sort By: ${sortByLabel} (${sortOrderLabel})`);
     }
-    
+
     return summary;
   };
 
@@ -118,21 +151,48 @@ const ExportModal = ({
       // const loadingToast = toast.loading("Exporting data as CSV...");
 
       const filterSummary = generateFilterSummary();
-      
+
+      // Calculate summary statistics
+      const totalUsers = data.length;
+      const activeUsers = data.filter((user) => user.isActive).length;
+      const totalSessions = data.reduce(
+        (sum, user) => sum + (user.analytics?.totalSessionCount || 0),
+        0
+      );
+      const totalGamesPlayed = data.reduce(
+        (sum, user) => sum + (user.analytics?.totalGamesPlayed || 0),
+        0
+      );
+      const avgSessionsPerUser = totalUsers
+        ? (totalSessions / totalUsers).toFixed(2)
+        : 0;
+
       // Create header with filter information
       let csvHeader = `# User Management Export Report\n`;
-      csvHeader += `# Generated: ${format(new Date(), "MMMM dd, yyyy 'at' HH:mm")}\n`;
+      csvHeader += `# Generated: ${format(
+        new Date(),
+        "MMMM dd, yyyy 'at' HH:mm"
+      )}\n`;
       csvHeader += `#\n`;
-      
+
+      // Summary Statistics Section
+      csvHeader += `# Summary Statistics:\n`;
+      csvHeader += `# - Total Users: ${totalUsers}\n`;
+      csvHeader += `# - Active Users: ${activeUsers}\n`;
+      csvHeader += `# - Total Sessions: ${totalSessions}\n`;
+      csvHeader += `# - Total Games Played: ${totalGamesPlayed}\n`;
+      csvHeader += `# - Average Sessions per User: ${avgSessionsPerUser}\n`;
+      csvHeader += `#\n`;
+
       if (filterSummary.length > 0) {
         csvHeader += `# Applied Filters:\n`;
-        filterSummary.forEach(filter => {
+        filterSummary.forEach((filter) => {
           csvHeader += `# - ${filter}\n`;
         });
       } else {
         csvHeader += `# Applied Filters: None (All data)\n`;
       }
-      
+
       csvHeader += `#\n`;
       csvHeader += `# Total Records: ${data.length}\n`;
       csvHeader += `#\n`;
@@ -140,23 +200,32 @@ const ExportModal = ({
       const worksheet = XLSX.utils.json_to_sheet(data);
       const csvData = XLSX.utils.sheet_to_csv(worksheet);
       const finalCsvData = csvHeader + csvData;
-      
-      const blob = new Blob([finalCsvData], { type: "text/csv;charset=utf-8;" });
+
+      const blob = new Blob([finalCsvData], {
+        type: "text/csv;charset=utf-8;",
+      });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `user_management_${format(new Date(), "yyyy-MM-dd_HH-mm")}.csv`;
+      link.download = `user_management_${format(
+        new Date(),
+        "yyyy-MM-dd_HH-mm"
+      )}.csv`;
 
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      
+
       // toast.dismiss(loadingToast);
       // toast.success("CSV file exported successfully");
       setOpen(false);
     } catch (error) {
-      toast.error(`Failed to export CSV file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(
+        `Failed to export CSV file: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
     }
   };
 
@@ -169,21 +238,49 @@ const ExportModal = ({
 
       // const loadingToast = toast.loading("Exporting data as XLS...");
 
-      const filename = `user_management_${format(new Date(), "yyyy-MM-dd_HH-mm")}.xlsx`;
+      const filename = `user_management_${format(
+        new Date(),
+        "yyyy-MM-dd_HH-mm"
+      )}.xlsx`;
       const filterSummary = generateFilterSummary();
       const workbook = XLSX.utils.book_new();
 
-      // Create Filter Summary sheet
+      // Calculate summary statistics
+      const totalUsers = data.length;
+      const activeUsers = data.filter((user) => user.isActive).length;
+      const totalSessions = data.reduce(
+        (sum, user) => sum + (user.analytics?.totalSessionCount || 0),
+        0
+      );
+      const totalGamesPlayed = data.reduce(
+        (sum, user) => sum + (user.analytics?.totalGamesPlayed || 0),
+        0
+      );
+      const avgSessionsPerUser = totalUsers
+        ? (totalSessions / totalUsers).toFixed(2)
+        : 0;
+
+      // Create Summary Statistics sheet
       const filterData = [
         { Field: "Export Type", Value: "User Management" },
-        { Field: "Generated", Value: format(new Date(), "MMMM dd, yyyy 'at' HH:mm") },
+        {
+          Field: "Generated",
+          Value: format(new Date(), "MMMM dd, yyyy 'at' HH:mm"),
+        },
+        { Field: "", Value: "" }, // Empty row
+        { Field: "Summary Statistics", Value: "" },
+        { Field: "Total Users", Value: totalUsers },
+        { Field: "Active Users", Value: activeUsers },
+        { Field: "Total Sessions", Value: totalSessions },
+        { Field: "Total Games Played", Value: totalGamesPlayed },
+        { Field: "Average Sessions per User", Value: avgSessionsPerUser },
         { Field: "Total Records", Value: data.length },
         { Field: "", Value: "" }, // Empty row
       ];
 
       if (filterSummary.length > 0) {
         filterData.push({ Field: "Applied Filters", Value: "" });
-        filterSummary.forEach(filter => {
+        filterSummary.forEach((filter) => {
           const [key, value] = filter.split(": ");
           filterData.push({ Field: key, Value: value });
         });
@@ -217,7 +314,11 @@ const ExportModal = ({
       // toast.success("XLS file exported successfully");
       setOpen(false);
     } catch (error) {
-      toast.error(`Failed to export XLS file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(
+        `Failed to export XLS file: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
     }
   };
 
@@ -230,7 +331,10 @@ const ExportModal = ({
 
       // const loadingToast = toast.loading("Exporting data as JSON...");
 
-      const filename = `user_management_${format(new Date(), "yyyy-MM-dd_HH-mm")}.json`;
+      const filename = `user_management_${format(
+        new Date(),
+        "yyyy-MM-dd_HH-mm"
+      )}.json`;
       const filterSummary = generateFilterSummary();
 
       // Create structured JSON with metadata
@@ -240,30 +344,42 @@ const ExportModal = ({
           generatedAt: new Date().toISOString(),
           generatedBy: "User Management Export System",
           totalRecords: data.length,
-          appliedFilters: filters ? {
-            registrationDateRange: {
-              startDate: filters.registrationDates.startDate || null,
-              endDate: filters.registrationDates.endDate || null
-            },
-            lastLoginDateRange: {
-              startDate: filters.lastLoginDates.startDate || null,
-              endDate: filters.lastLoginDates.endDate || null
-            },
-            sessionCount: filters.sessionCount || null,
-            timePlayed: {
-              min: filters.timePlayed.min || null,
-              max: filters.timePlayed.max || null
-            },
-            gameTitle: filters.gameTitle && filters.gameTitle.length > 0 ? filters.gameTitle : null,
-            gameCategory: filters.gameCategory && filters.gameCategory.length > 0 ? filters.gameCategory : null,
-            country: filters.country && filters.country.length > 0 ? filters.country : null,
-            ageGroup: filters.ageGroup || null,
-            sortBy: filters.sortBy || null,
-            sortOrder: filters.sortOrder || null
-          } : null,
-          filterSummary: filterSummary.length > 0 ? filterSummary : ["None (All data)"]
+          appliedFilters: filters
+            ? {
+                registrationDateRange: {
+                  startDate: filters.registrationDates.startDate || null,
+                  endDate: filters.registrationDates.endDate || null,
+                },
+                lastLoginDateRange: {
+                  startDate: filters.lastLoginDates.startDate || null,
+                  endDate: filters.lastLoginDates.endDate || null,
+                },
+                sessionCount: filters.sessionCount || null,
+                timePlayed: {
+                  min: filters.timePlayed.min || null,
+                  max: filters.timePlayed.max || null,
+                },
+                gameTitle:
+                  filters.gameTitle && filters.gameTitle.length > 0
+                    ? filters.gameTitle
+                    : null,
+                gameCategory:
+                  filters.gameCategory && filters.gameCategory.length > 0
+                    ? filters.gameCategory
+                    : null,
+                country:
+                  filters.country && filters.country.length > 0
+                    ? filters.country
+                    : null,
+                ageGroup: filters.ageGroup || null,
+                sortBy: filters.sortBy || null,
+                sortOrder: filters.sortOrder || null,
+              }
+            : null,
+          filterSummary:
+            filterSummary.length > 0 ? filterSummary : ["None (All data)"],
         },
-        data: data
+        data: data,
       };
 
       const jsonString = JSON.stringify(exportData, null, 2);
@@ -283,7 +399,11 @@ const ExportModal = ({
       // toast.success("JSON file exported successfully");
       setOpen(false);
     } catch (error) {
-      toast.error(`Failed to export JSON file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(
+        `Failed to export JSON file: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
     }
   };
 
@@ -304,89 +424,135 @@ const ExportModal = ({
       }
 
       // Transform data for the table
-      const tableBody = data.map(user => [
-        { text: `${user.firstName || ""} ${user.lastName || ""}`, alignment: 'left', margin: [8, 4] },
-        { text: user.email || "-", alignment: 'left', margin: [8, 4] },
-        { text: user.phoneNumber || "-", alignment: 'left', margin: [8, 4] },
-        { text: format(new Date(user.createdAt), "dd/MM/yy"), alignment: 'center', margin: [8, 4] },
-        { text: user.analytics?.totalGamesPlayed || 0, alignment: 'center', margin: [8, 4] },
-        { text: user.analytics?.totalTimePlayed ? Math.floor(user.analytics.totalTimePlayed / 60) + " minutes" : "0 minutes", alignment: 'center', margin: [8, 4] },
-        { text: user.analytics?.totalSessionCount || 0, alignment: 'center', margin: [8, 4] },
-        { text: user.lastLoggedIn ? format(new Date(user.lastLoggedIn), "dd/MM/yy HH:mm") : "Never logged in", alignment: 'center', margin: [8, 4] }
+      const tableBody = data.map((user) => [
+        {
+          text: `${user.firstName || ""} ${user.lastName || ""}`,
+          alignment: "left",
+          margin: [8, 4],
+        },
+        { text: user.email || "-", alignment: "left", margin: [8, 4] },
+        { text: user.phoneNumber || "-", alignment: "left", margin: [8, 4] },
+        {
+          text: format(new Date(user.createdAt), "dd/MM/yy"),
+          alignment: "center",
+          margin: [8, 4],
+        },
+        {
+          text: user.analytics?.totalGamesPlayed || 0,
+          alignment: "center",
+          margin: [8, 4],
+        },
+        {
+          text: user.analytics?.totalTimePlayed
+            ? Math.floor(user.analytics.totalTimePlayed / 60) + " minutes"
+            : "0 minutes",
+          alignment: "center",
+          margin: [8, 4],
+        },
+        {
+          text: user.analytics?.totalSessionCount || 0,
+          alignment: "center",
+          margin: [8, 4],
+        },
+        {
+          text: user.lastLoggedIn
+            ? format(new Date(user.lastLoggedIn), "dd/MM/yy HH:mm")
+            : "Never logged in",
+          alignment: "center",
+          margin: [8, 4],
+        },
       ]);
 
       // Calculate summary statistics
       const totalUsers = data.length;
-      const activeUsers = data.filter(user => user.isActive).length;
-      const totalSessions = data.reduce((sum, user) => sum + (user.analytics?.totalSessionCount || 0), 0);
-      const totalGamesPlayed = data.reduce((sum, user) => sum + (user.analytics?.totalGamesPlayed || 0), 0);
-      const avgSessionsPerUser = totalUsers ? (totalSessions / totalUsers).toFixed(2) : 0;
+      const activeUsers = data.filter((user) => user.isActive).length;
+      const totalSessions = data.reduce(
+        (sum, user) => sum + (user.analytics?.totalSessionCount || 0),
+        0
+      );
+      const totalGamesPlayed = data.reduce(
+        (sum, user) => sum + (user.analytics?.totalGamesPlayed || 0),
+        0
+      );
+      const avgSessionsPerUser = totalUsers
+        ? (totalSessions / totalUsers).toFixed(2)
+        : 0;
 
       const filterSummary = generateFilterSummary();
 
       const docDefinition: TDocumentDefinitions = {
         pageSize: { width: 842, height: 595 },
         pageMargins: [40, 40, 40, 40],
-        pageOrientation: 'landscape',
+        pageOrientation: "landscape",
         content: [
           {
-            text: 'User Management Statistics Report',
-            style: 'header',
-            alignment: 'center',
-            margin: [0, 0, 0, 20] as [number, number, number, number]
+            text: "User Management Statistics Report",
+            style: "header",
+            alignment: "center",
+            margin: [0, 0, 0, 20] as [number, number, number, number],
           },
           {
-            text: `Generated on ${format(new Date(), "MMMM dd, yyyy 'at' HH:mm")}`,
-            alignment: 'center',
-            margin: [0, 0, 0, 20] as [number, number, number, number]
+            text: `Generated on ${format(
+              new Date(),
+              "MMMM dd, yyyy 'at' HH:mm"
+            )}`,
+            alignment: "center",
+            margin: [0, 0, 0, 20] as [number, number, number, number],
           },
           // Applied Filters Section
-          ...(filterSummary.length > 0 ? [
-            {
-              text: 'Applied Filters',
-              style: 'subheader',
-              margin: [0, 0, 0, 10] as [number, number, number, number]
-            },
-            {
-              ul: filterSummary,
-              margin: [0, 0, 0, 20] as [number, number, number, number]
-            }
-          ] : [
-            {
-              text: 'Applied Filters: None (All data)',
-              style: 'subheader',
-              margin: [0, 0, 0, 20] as [number, number, number, number]
-            }
-          ]),
+          ...(filterSummary.length > 0
+            ? [
+                {
+                  text: "Applied Filters",
+                  style: "subheader",
+                  margin: [0, 0, 0, 10] as [number, number, number, number],
+                },
+                {
+                  ul: filterSummary,
+                  margin: [0, 0, 0, 20] as [number, number, number, number],
+                },
+              ]
+            : [
+                {
+                  text: "Applied Filters: None (All data)",
+                  style: "subheader",
+                  margin: [0, 0, 0, 20] as [number, number, number, number],
+                },
+              ]),
           {
-            text: 'Summary Statistics',
-            style: 'subheader',
-            margin: [0, 0, 0, 10] as [number, number, number, number]
+            text: "Summary Statistics",
+            style: "subheader",
+            margin: [0, 0, 0, 10] as [number, number, number, number],
           },
           {
             columns: [
               {
-                width: 'auto',
+                width: "auto",
                 text: [
-                  { text: 'Total Users: ', bold: true }, `${totalUsers}\n`,
-                  { text: 'Active Users: ', bold: true }, `${activeUsers}\n`,
-                  { text: 'Total Sessions: ', bold: true }, `${totalSessions}\n`,
-                ]
+                  { text: "Total Users: ", bold: true },
+                  `${totalUsers}\n`,
+                  { text: "Active Users: ", bold: true },
+                  `${activeUsers}\n`,
+                  { text: "Total Sessions: ", bold: true },
+                  `${totalSessions}\n`,
+                ],
               },
               {
-                width: 'auto',
+                width: "auto",
                 text: [
-                  { text: 'Total Games Played: ', bold: true }, `${totalGamesPlayed}\n`,
-                  { text: 'Avg Sessions/User: ', bold: true }, `${avgSessionsPerUser}\n`,
-                ]
-              }
+                  { text: "Total Games Played: ", bold: true },
+                  `${totalGamesPlayed}\n`,
+                  { text: "Avg Sessions/User: ", bold: true },
+                  `${avgSessionsPerUser}\n`,
+                ],
+              },
             ],
-            margin: [0, 0, 0, 20] as [number, number, number, number]
+            margin: [0, 0, 0, 20] as [number, number, number, number],
           },
           {
-            text: 'Detailed User Data',
-            style: 'subheader',
-            margin: [0, 0, 0, 10] as [number, number, number, number]
+            text: "Detailed User Data",
+            style: "subheader",
+            margin: [0, 0, 0, 10] as [number, number, number, number],
           },
           {
             table: {
@@ -394,62 +560,109 @@ const ExportModal = ({
               widths: [110, 140, 80, 80, 50, 70, 50, 120] as number[],
               body: [
                 [
-                  { text: 'Name', style: 'tableHeader', alignment: 'left', margin: [8, 4] },
-                  { text: 'Email', style: 'tableHeader', alignment: 'left', margin: [8, 4] },
-                  { text: 'Phone', style: 'tableHeader', alignment: 'left', margin: [8, 4] },
-                  { text: 'Registration Date', style: 'tableHeader', alignment: 'center', margin: [8, 4] },
-                  { text: 'Games Played', style: 'tableHeader', alignment: 'center', margin: [8, 4] },
-                  { text: 'Time Played', style: 'tableHeader', alignment: 'center', margin: [8, 4] },
-                  { text: 'Sessions', style: 'tableHeader', alignment: 'center', margin: [8, 4] },
-                  { text: 'Last Login', style: 'tableHeader', alignment: 'center', margin: [8, 4] }
+                  {
+                    text: "Name",
+                    style: "tableHeader",
+                    alignment: "left",
+                    margin: [8, 4],
+                  },
+                  {
+                    text: "Email",
+                    style: "tableHeader",
+                    alignment: "left",
+                    margin: [8, 4],
+                  },
+                  {
+                    text: "Phone",
+                    style: "tableHeader",
+                    alignment: "left",
+                    margin: [8, 4],
+                  },
+                  {
+                    text: "Registration Date",
+                    style: "tableHeader",
+                    alignment: "center",
+                    margin: [8, 4],
+                  },
+                  {
+                    text: "Games Played",
+                    style: "tableHeader",
+                    alignment: "center",
+                    margin: [8, 4],
+                  },
+                  {
+                    text: "Time Played",
+                    style: "tableHeader",
+                    alignment: "center",
+                    margin: [8, 4],
+                  },
+                  {
+                    text: "Sessions",
+                    style: "tableHeader",
+                    alignment: "center",
+                    margin: [8, 4],
+                  },
+                  {
+                    text: "Last Login",
+                    style: "tableHeader",
+                    alignment: "center",
+                    margin: [8, 4],
+                  },
                 ],
-                ...tableBody
-              ]
-            }
-          }
+                ...tableBody,
+              ],
+            },
+          },
         ],
         styles: {
           header: {
             fontSize: 18,
             bold: true,
-            color: '#D946EF'
+            color: "#D946EF",
           },
           subheader: {
             fontSize: 14,
             bold: true,
-            margin: [0, 10, 0, 5] as [number, number, number, number]
+            margin: [0, 10, 0, 5] as [number, number, number, number],
           },
           tableHeader: {
             bold: true,
-            fillColor: '#F3F4F6',
-            fontSize: 11
-          }
+            fillColor: "#F3F4F6",
+            fontSize: 11,
+          },
         },
-          defaultStyle: {
-            fontSize: 10,
-            lineHeight: 1.4
-        }
+        defaultStyle: {
+          fontSize: 10,
+          lineHeight: 1.4,
+        },
       };
 
       const pdfDoc = pdfMake.createPdf(docDefinition);
-      
+
       // Get the PDF as a blob
       pdfDoc.getBlob((blob: any) => {
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = `user_management_${format(new Date(), "yyyy-MM-dd_HH-mm")}.pdf`;
+        link.download = `user_management_${format(
+          new Date(),
+          "yyyy-MM-dd_HH-mm"
+        )}.pdf`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
-        
+
         // toast.dismiss(loadingToast);
         // toast.success("PDF report generated successfully");
         setOpen(false);
       });
     } catch (error) {
-      toast.error(`Failed to generate PDF report: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(
+        `Failed to generate PDF report: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
     }
   };
 

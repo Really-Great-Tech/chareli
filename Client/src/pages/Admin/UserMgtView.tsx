@@ -14,6 +14,7 @@ import { useDeleteUser } from "../../backend/user.service";
 import { formatTime } from "../../utils/main";
 import { toast } from "sonner";
 import { useAuth } from "../../context/AuthContext";
+import { usePermissions } from "../../hooks/usePermissions";
 // import { useQueryClient } from "@tanstack/react-query";
 // import { BackendRoute } from "../../backend/constants";
 
@@ -32,6 +33,7 @@ const UserManagementView = () => {
   const navigate = useNavigate();
   // const queryClient = useQueryClient();
   const { user: currentUser, logout } = useAuth();
+  const permissions = usePermissions();
   const { userId } = useParams();
   const [page, setPage] = useState(1);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -123,14 +125,18 @@ const UserManagementView = () => {
             
             {/* Action Buttons */}
             <div className="flex flex-col gap-2 w-full mt-4">
-              {/* Hide delete button if admin trying to delete superadmin */}
-              {!(currentUser?.role.name === 'admin' && response?.user?.role?.name === 'superadmin') ? (
+              {/* Hide delete button for viewers or if admin trying to delete superadmin */}
+              {permissions.canDelete && !(currentUser?.role.name === 'admin' && response?.user?.role?.name === 'superadmin') ? (
                 <Button
                   className="flex items-center justify-center gap-2 w-full bg-[#EF4444] text-white tracking-wider hover:bg-[#dc2626] cursor-pointer"
                   onClick={() => setShowDeleteModal(true)}
                 >
                   Delete <RiDeleteBin6Line />
                 </Button>
+              ) : permissions.isViewer ? (
+                <div className="flex items-center justify-center w-full py-2 px-4 bg-gray-300 text-gray-600 rounded-md">
+                  <span className="text-sm font-medium">View Only</span>
+                </div>
               ) : (
                 <div className="flex items-center justify-center w-full py-2 px-4 bg-gray-300 text-gray-600 rounded-md">
                   <span className="text-sm font-medium">Protected Account</span>

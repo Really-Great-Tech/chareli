@@ -13,28 +13,56 @@ import { SearchableSelect } from "../ui/searchable-select";
 import React from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { useInviteTeamMember } from "../../backend/teams.service";
+import { useAuth } from "../../context/AuthContext";
 import { toast } from "sonner";
 import * as Yup from "yup";
 import type { InviteUserRequest } from "../../backend/teams.service";
 
-const inviteSchema = Yup.object().shape({
+// Dynamic validation schema based on user role
+const createInviteSchema = (availableRoles: string[]) => Yup.object().shape({
   email: Yup.string()
     .email("Invalid email format")
     .required("Email is required"),
   role: Yup.string()
-    .oneOf(["admin"], "Invalid role")
+    .oneOf(availableRoles, "Invalid role")
     .required("Role is required"),
 });
 
-const initialValues: InviteUserRequest = {
+const getInitialValues = (availableRoles: string[]): InviteUserRequest => ({
   email: "",
-  role: "admin",
-};
+  role: availableRoles[0] as any, // Default to first available role
+});
 
 export function InviteSheet({ children }: { children: React.ReactNode }) {
   const formikRef = React.useRef<any>(null);
   const { mutate: inviteTeamMember, isPending } = useInviteTeamMember();
+  const { user } = useAuth();
   const [open, setOpen] = React.useState(false);
+
+  // Determine available roles based on current user's role
+  const getAvailableRoles = () => {
+    const userRole = user?.role?.name?.toLowerCase();
+    
+    if (userRole === 'superadmin') {
+      return [
+        { value: "superadmin", label: "Super Admin" },
+        { value: "admin", label: "Admin" },
+        { value: "viewer", label: "Viewer" }
+      ];
+    } else if (userRole === 'admin') {
+      return [
+        { value: "viewer", label: "Viewer" }
+      ];
+    }
+    
+    // Default fallback (shouldn't happen if permissions are correct)
+    return [{ value: "viewer", label: "Viewer" }];
+  };
+
+  const availableRoles = getAvailableRoles();
+  const availableRoleValues = availableRoles.map(role => role.value);
+  const initialValues = getInitialValues(availableRoleValues);
+  const inviteSchema = createInviteSchema(availableRoleValues);
 
   const handleInvite = async (
     values: InviteUserRequest,
@@ -111,9 +139,7 @@ export function InviteSheet({ children }: { children: React.ReactNode }) {
                     <SearchableSelect
                       value={field.value}
                       onValueChange={(value: string) => form.setFieldValue("role", value)}
-                      options={[
-                        { value: "admin", label: "Admin" }
-                      ]}
+                      options={availableRoles}
                       placeholder="Select role"
                       searchPlaceholder="Search roles..."
                       emptyText="No roles found"

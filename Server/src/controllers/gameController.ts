@@ -204,7 +204,6 @@ export const getAllGames = async (
         .addOrderBy('totalPlayTime', 'DESC')
         .addOrderBy('sessionCount', 'DESC');
     } else if (filter === 'recommended' && req.user?.userId) {
-      // First find user's most played category
       const userTopCategory = await AppDataSource
         .getRepository(Analytics)
         .createQueryBuilder('analytics')
@@ -216,18 +215,110 @@ export const getAllGames = async (
         .limit(1)
         .getRawOne();
 
-      if (userTopCategory) {
-        queryBuilder
+      if (!userTopCategory) {
+        queryBuilder = gameRepository.createQueryBuilder('game')
+          .leftJoinAndSelect('game.category', 'category')
+          .leftJoinAndSelect('game.thumbnailFile', 'thumbnailFile')
+          .leftJoinAndSelect('game.gameFile', 'gameFile')
+          .leftJoinAndSelect('game.createdBy', 'createdBy')
+          .leftJoin('analytics', 'a', 'a.gameId = game.id')
+          .addSelect([
+            'COUNT(DISTINCT a.userId) as playerCount',
+            'SUM(a.duration) as totalPlayTime',
+            'COUNT(a.id) as sessionCount'
+          ])
+          .groupBy('game.id')
+          .addGroupBy('category.id')
+          .addGroupBy('thumbnailFile.id')
+          .addGroupBy('gameFile.id')
+          .addGroupBy('createdBy.id')
+          .orderBy('playerCount', 'DESC')
+          .addOrderBy('totalPlayTime', 'DESC')
+          .addOrderBy('sessionCount', 'DESC');
+      } else {
+        const playedGameIds = await AppDataSource
+          .getRepository(Analytics)
+          .createQueryBuilder('analytics')
+          .select('analytics.gameId', 'gameId')
+          .where('analytics.userId = :userId', { userId: req.user.userId })
+          .andWhere('analytics.gameId IS NOT NULL')
+          .groupBy('analytics.gameId')
+          .getRawMany();
+
+        const playedIds = playedGameIds.map(item => item.gameId).filter(id => id !== null && id !== undefined);
+        const totalLimit = limitNumber || 20;
+        const sameCategoryLimit = Math.ceil(totalLimit * 0.6);
+        
+        // Get games from user's preferred category
+        let sameCategoryQuery = gameRepository.createQueryBuilder('game')
+          .leftJoinAndSelect('game.category', 'category')
+          .leftJoinAndSelect('game.thumbnailFile', 'thumbnailFile')
+          .leftJoinAndSelect('game.gameFile', 'gameFile')
+          .leftJoinAndSelect('game.createdBy', 'createdBy')
           .where('game.categoryId = :topCategoryId', { topCategoryId: userTopCategory.categoryId })
-          .andWhere('game.id NOT IN ' +
-            AppDataSource.createQueryBuilder()
-              .select('DISTINCT a.gameId')
-              .from('analytics', 'a')
-              .where('a.userId = :userId', { userId: req.user.userId })
-              .getQuery()
-          )
-          .setParameter('userId', req.user.userId)
-          .orderBy('game.createdAt', 'DESC');
+          .andWhere('game.status = :status', { status: 'active' });
+
+        if (playedIds.length > 0) {
+          sameCategoryQuery.andWhere('game.id NOT IN (:...playedIds)', { playedIds });
+        }
+
+        const sameCategoryGames = await sameCategoryQuery
+          .orderBy('game.createdAt', 'DESC')
+          .take(sameCategoryLimit)
+          .getMany();
+        
+        // Calculate remaining slots
+        const remainingSlots = totalLimit - sameCategoryGames.length;
+        
+        // Get games from other categories if we need more
+        let otherCategoryGames: Game[] = [];
+        if (remainingSlots > 0) {
+          let otherCategoryQuery = gameRepository.createQueryBuilder('game')
+            .leftJoinAndSelect('game.category', 'category')
+            .leftJoinAndSelect('game.thumbnailFile', 'thumbnailFile')
+            .leftJoinAndSelect('game.gameFile', 'gameFile')
+            .leftJoinAndSelect('game.createdBy', 'createdBy')
+            .where('game.categoryId != :topCategoryId', { topCategoryId: userTopCategory.categoryId })
+            .andWhere('game.status = :status', { status: 'active' });
+
+          if (playedIds.length > 0) {
+            otherCategoryQuery.andWhere('game.id NOT IN (:...playedIds)', { playedIds });
+          }
+
+          otherCategoryGames = await otherCategoryQuery
+            .take(remainingSlots)
+            .getMany();
+        }
+        
+        // Combine and shuffle the results
+        const allRecommendations = [...sameCategoryGames, ...otherCategoryGames];
+        
+        for (let i = allRecommendations.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [allRecommendations[i], allRecommendations[j]] = [allRecommendations[j], allRecommendations[i]];
+        }
+        
+        // Override the main query with our custom results
+        const games = allRecommendations.slice(0, totalLimit);
+        
+        // Transform URLs and return early
+        games.forEach(game => {
+          if (game.gameFile) {
+            const s3Key = game.gameFile.s3Key;
+            const baseUrl = s3Service.getBaseUrl();
+            game.gameFile.s3Key = `${baseUrl}/${s3Key}`;
+          }
+          if (game.thumbnailFile) {
+            const s3Key = game.thumbnailFile.s3Key;
+            const baseUrl = s3Service.getBaseUrl();
+            game.thumbnailFile.s3Key = `${baseUrl}/${s3Key}`;
+          }
+        });
+        
+        res.status(200).json({
+          data: games,
+        });
+        return;
       }
     }
     

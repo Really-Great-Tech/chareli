@@ -1,17 +1,17 @@
-import { Request, Response, NextFunction } from 'express';
-import { AppDataSource } from '../config/database';
-import { User } from '../entities/User';
-import { Role, RoleType } from '../entities/Role';
-import { Analytics } from '../entities/Analytics';
-import { ApiError } from '../middlewares/errorHandler';
-import * as bcrypt from 'bcrypt';
-import { authService } from '../services/auth.service';
-import { OtpType } from '../entities/Otp';
-import { Not, IsNull } from 'typeorm';
-import { s3Service } from '../services/s3.service';
-import { getCountryFromIP, extractClientIP } from '../utils/ipUtils';
-import { emailService } from '../services/email.service';
-import { anonymizationService } from '../services/anonymization.service';
+import { Request, Response, NextFunction } from "express";
+import { AppDataSource } from "../config/database";
+import { User } from "../entities/User";
+import { Role, RoleType } from "../entities/Role";
+import { Analytics } from "../entities/Analytics";
+import { ApiError } from "../middlewares/errorHandler";
+import * as bcrypt from "bcrypt";
+import { authService } from "../services/auth.service";
+import { OtpType } from "../entities/Otp";
+import { Not, IsNull } from "typeorm";
+import { s3Service } from "../services/s3.service";
+import { getCountryFromIP, extractClientIP } from "../utils/ipUtils";
+import { emailService } from "../services/email.service";
+import { anonymizationService } from "../services/anonymization.service";
 
 const userRepository = AppDataSource.getRepository(User);
 const roleRepository = AppDataSource.getRepository(Role);
@@ -44,7 +44,7 @@ export const getAllUsers = async (
   try {
     const users = await userRepository.find({
       where: { isDeleted: false },
-      relations: ['role'],
+      relations: ["role"],
       select: {
         id: true,
         firstName: true,
@@ -58,9 +58,9 @@ export const getAllUsers = async (
         role: {
           id: true,
           name: true,
-          description: true
-        }
-      }
+          description: true,
+        },
+      },
     });
 
     res.status(200).json({
@@ -103,8 +103,8 @@ export const getCurrentUserStats = async (
         data: {
           totalSeconds: 0,
           totalPlays: 0,
-          gamesPlayed: []
-        }
+          gamesPlayed: [],
+        },
       });
       return;
     }
@@ -113,51 +113,61 @@ export const getCurrentUserStats = async (
 
     // Get total minutes played
     const totalTimeResult = await analyticsRepository
-      .createQueryBuilder('analytics')
-      .select('SUM(analytics.duration)', 'totalDuration')
-      .where('analytics.userId = :userId', { userId })
-      .andWhere('analytics.startTime IS NOT NULL')
-      .andWhere('analytics.endTime IS NOT NULL')
+      .createQueryBuilder("analytics")
+      .select("SUM(analytics.duration)", "totalDuration")
+      .where("analytics.userId = :userId", { userId })
+      .andWhere("analytics.startTime IS NOT NULL")
+      .andWhere("analytics.endTime IS NOT NULL")
       .getRawOne();
 
     // Get total play count (only count entries with gameId)
-    const totalPlaysResult = await analyticsRepository
-      .count({
-        where: {
-          userId,
-          gameId: Not(IsNull()),
-          startTime: Not(IsNull()),
-          endTime: Not(IsNull())
-        }
-      });
+    const totalPlaysResult = await analyticsRepository.count({
+      where: {
+        userId,
+        gameId: Not(IsNull()),
+        startTime: Not(IsNull()),
+        endTime: Not(IsNull()),
+      },
+    });
 
     // Get games played with details
     const gamesPlayed = await analyticsRepository
-      .createQueryBuilder('analytics')
-      .select('analytics.gameId', 'gameId')
-      .addSelect('game.title', 'title')
-      .addSelect('thumbnailFile.s3Key', 'thumbnailKey')
-      .addSelect('SUM(analytics.duration)', 'totalDuration')
-      .addSelect('MAX(analytics.startTime)', 'lastPlayed')
-      .leftJoin('analytics.game', 'game')
-      .leftJoin('game.thumbnailFile', 'thumbnailFile')
-      .where('analytics.userId = :userId AND analytics.gameId IS NOT NULL', { userId })
-      .andWhere('analytics.startTime IS NOT NULL')
-      .andWhere('analytics.endTime IS NOT NULL')
-      .groupBy('analytics.gameId')
-      .addGroupBy('game.title')
-      .addGroupBy('thumbnailFile.s3Key')
-      .orderBy('"lastPlayed"', 'DESC')
+      .createQueryBuilder("analytics")
+      .select("analytics.gameId", "gameId")
+      .addSelect("game.title", "title")
+      .addSelect("thumbnailFile.s3Key", "thumbnailKey")
+      .addSelect("SUM(analytics.duration)", "totalDuration")
+      .addSelect("MAX(analytics.startTime)", "lastPlayed")
+      .leftJoin("analytics.game", "game")
+      .leftJoin("game.thumbnailFile", "thumbnailFile")
+      .where(
+        "analytics.userId = :userId AND analytics.gameId IS NOT NULL AND analytics.duration >= :duration",
+        {
+          userId,
+          duration: 30,
+        }
+      )
+      .andWhere("analytics.startTime IS NOT NULL")
+      .andWhere("analytics.endTime IS NOT NULL")
+      .groupBy("analytics.gameId")
+      .addGroupBy("game.title")
+      .addGroupBy("thumbnailFile.s3Key")
+      .orderBy("SUM(analytics.duration)", "DESC")
+      .limit(3)
       .getRawMany();
 
     // Format the response
-    const formattedGames = await Promise.all(gamesPlayed.map(async game => ({
-      gameId: game.gameId,
-      title: game.title,
-      thumbnailUrl: game.thumbnailKey ? `${s3Service.getBaseUrl()}/${game.thumbnailKey}` : null,
-      totalSeconds: game.totalDuration || 0,
-      lastPlayed: game.lastPlayed
-    })));
+    const formattedGames = await Promise.all(
+      gamesPlayed.map(async (game) => ({
+        gameId: game.gameId,
+        title: game.title,
+        thumbnailUrl: game.thumbnailKey
+          ? `${s3Service.getBaseUrl()}/${game.thumbnailKey}`
+          : null,
+        totalSeconds: game.totalDuration || 0,
+        lastPlayed: game.lastPlayed,
+      }))
+    );
 
     // Send total duration in seconds
     const totalSeconds = totalTimeResult?.totalDuration || 0;
@@ -167,8 +177,8 @@ export const getCurrentUserStats = async (
       data: {
         totalSeconds,
         totalPlays: totalPlaysResult,
-        gamesPlayed: formattedGames
-      }
+        gamesPlayed: formattedGames,
+      },
     });
   } catch (error) {
     next(error);
@@ -213,7 +223,7 @@ export const getUserById = async (
 
     const user = await userRepository.findOne({
       where: { id, isDeleted: false },
-      relations: ['role'],
+      relations: ["role"],
       select: {
         id: true,
         firstName: true,
@@ -227,9 +237,9 @@ export const getUserById = async (
         role: {
           id: true,
           name: true,
-          description: true
-        }
-      }
+          description: true,
+        },
+      },
     });
 
     if (!user) {
@@ -286,11 +296,22 @@ export const createUser = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { firstName, lastName, email, password, phoneNumber, isAdult, hasAcceptedTerms } = req.body;
+    const {
+      firstName,
+      lastName,
+      email,
+      password,
+      phoneNumber,
+      isAdult,
+      hasAcceptedTerms,
+    } = req.body;
 
     // Get IP address
-    const forwarded = req.headers['x-forwarded-for'];
-    const ipAddress = extractClientIP(forwarded, req.socket.remoteAddress || req.ip || '');
+    const forwarded = req.headers["x-forwarded-for"];
+    const ipAddress = extractClientIP(
+      forwarded,
+      req.socket.remoteAddress || req.ip || ""
+    );
 
     // Get country from IP
     const country = await getCountryFromIP(ipAddress);
@@ -299,26 +320,32 @@ export const createUser = async (
     if (email || phoneNumber) {
       const existingUser = await userRepository.findOne({
         where: [{ email }, { phoneNumber }],
-        select: ['id', 'email', 'phoneNumber', 'isDeleted'],
+        select: ["id", "email", "phoneNumber", "isDeleted"],
       });
 
       if (existingUser) {
         if (existingUser.email === email) {
-          return next(ApiError.badRequest('An account with this email already exists'));
+          return next(
+            ApiError.badRequest("An account with this email already exists")
+          );
         }
         if (existingUser.phoneNumber === phoneNumber) {
-          return next(ApiError.badRequest('An account with this phone number already exists'));
+          return next(
+            ApiError.badRequest(
+              "An account with this phone number already exists"
+            )
+          );
         }
       }
     }
 
     // Get the role
     const role = await roleRepository.findOne({
-      where: { name: RoleType.PLAYER }
+      where: { name: RoleType.PLAYER },
     });
 
     if (!role) {
-      return next(ApiError.badRequest('Invalid role'));
+      return next(ApiError.badRequest("Invalid role"));
     }
 
     const saltRounds = 10;
@@ -337,7 +364,7 @@ export const createUser = async (
       isActive: true,
       isAdult: isAdult || false,
       hasAcceptedTerms,
-      country: country || undefined
+      country: country || undefined,
     });
 
     await userRepository.save(user);
@@ -345,7 +372,7 @@ export const createUser = async (
     // Create analytics entry for signup
     const signupAnalytics = new Analytics();
     signupAnalytics.userId = user.id;
-    signupAnalytics.activityType = 'Signed up';
+    signupAnalytics.activityType = "Signed up";
     await analyticsRepository.save(signupAnalytics);
 
     // Don't return sensitive information
@@ -353,7 +380,7 @@ export const createUser = async (
 
     res.status(201).json({
       success: true,
-      message: 'User created successfully. Please login to continue.',
+      message: "User created successfully. Please login to continue.",
       data: userWithoutSensitiveInfo,
     });
   } catch (error) {
@@ -407,11 +434,19 @@ export const updateUser = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    const { firstName, lastName, email, phoneNumber, roleId, isActive, password } = req.body;
+    const {
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+      roleId,
+      isActive,
+      password,
+    } = req.body;
 
     const user = await userRepository.findOne({
       where: { id, isDeleted: false },
-      relations: ['role']
+      relations: ["role"],
     });
 
     if (!user) {
@@ -421,25 +456,31 @@ export const updateUser = async (
     // If trying to update role, check permissions
     if (roleId && roleId !== user.roleId) {
       // Only admins can change roles
-      if (req.user?.role !== RoleType.ADMIN && req.user?.role !== RoleType.SUPERADMIN) {
-        return next(ApiError.forbidden('Only admins can change user roles'));
+      if (
+        req.user?.role !== RoleType.ADMIN &&
+        req.user?.role !== RoleType.SUPERADMIN
+      ) {
+        return next(ApiError.forbidden("Only admins can change user roles"));
       }
 
       // Get the new role
       const newRole = await roleRepository.findOne({
-        where: { id: roleId }
+        where: { id: roleId },
       });
 
       if (!newRole) {
-        return next(ApiError.badRequest('Invalid role'));
+        return next(ApiError.badRequest("Invalid role"));
       }
 
       // Admin can only assign editor and player roles
       if (
         req.user.role === RoleType.ADMIN &&
-        (newRole.name === RoleType.SUPERADMIN || newRole.name === RoleType.ADMIN)
+        (newRole.name === RoleType.SUPERADMIN ||
+          newRole.name === RoleType.ADMIN)
       ) {
-        return next(ApiError.forbidden('Admin can only assign editor and player roles'));
+        return next(
+          ApiError.forbidden("Admin can only assign editor and player roles")
+        );
       }
 
       user.role = newRole;
@@ -449,8 +490,13 @@ export const updateUser = async (
     // If trying to update active status, check permissions
     if (isActive !== undefined && isActive !== user.isActive) {
       // Only admins can activate/deactivate users
-      if (req.user?.role !== RoleType.ADMIN && req.user?.role !== RoleType.SUPERADMIN) {
-        return next(ApiError.forbidden('Only admins can activate/deactivate users'));
+      if (
+        req.user?.role !== RoleType.ADMIN &&
+        req.user?.role !== RoleType.SUPERADMIN
+      ) {
+        return next(
+          ApiError.forbidden("Only admins can activate/deactivate users")
+        );
       }
 
       // Admin cannot deactivate superadmin
@@ -459,7 +505,7 @@ export const updateUser = async (
         user.role.name === RoleType.SUPERADMIN &&
         !isActive
       ) {
-        return next(ApiError.forbidden('Admin cannot deactivate superadmin'));
+        return next(ApiError.forbidden("Admin cannot deactivate superadmin"));
       }
 
       user.isActive = isActive;
@@ -471,11 +517,11 @@ export const updateUser = async (
     if (email && email !== user.email) {
       // Check if email is already in use
       const existingUser = await userRepository.findOne({
-        where: { email, isDeleted: false }
+        where: { email, isDeleted: false },
       });
 
       if (existingUser && existingUser.id !== id) {
-        return next(ApiError.badRequest('Email is already in use'));
+        return next(ApiError.badRequest("Email is already in use"));
       }
 
       user.email = email;
@@ -542,7 +588,7 @@ export const deleteUser = async (
 
     const user = await userRepository.findOne({
       where: { id, isDeleted: false },
-      relations: ['role']
+      relations: ["role"],
     });
 
     if (!user) {
@@ -555,8 +601,11 @@ export const deleteUser = async (
     // If not self-deactivation, check admin permissions
     if (!isSelfDeactivation) {
       // Only admins can delete other users
-      if (currentUserRole !== RoleType.ADMIN && currentUserRole !== RoleType.SUPERADMIN) {
-        return next(ApiError.forbidden('Only admins can delete other users'));
+      if (
+        currentUserRole !== RoleType.ADMIN &&
+        currentUserRole !== RoleType.SUPERADMIN
+      ) {
+        return next(ApiError.forbidden("Only admins can delete other users"));
       }
 
       // Admin cannot delete superadmin
@@ -564,34 +613,44 @@ export const deleteUser = async (
         currentUserRole === RoleType.ADMIN &&
         user.role.name === RoleType.SUPERADMIN
       ) {
-        return next(ApiError.forbidden('Admin cannot delete superadmin'));
+        return next(ApiError.forbidden("Admin cannot delete superadmin"));
       }
     }
 
     // Store user data for email notification
     const userEmail = user.email;
-    const userName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'User';
+    const userName =
+      `${user.firstName || ""} ${user.lastName || ""}`.trim() || "User";
 
     // Send appropriate email based on who is performing the action
     try {
       if (userEmail) {
-        await emailService.sendAccountDeletionEmail(userEmail, userName, isSelfDeactivation);
+        await emailService.sendAccountDeletionEmail(
+          userEmail,
+          userName,
+          isSelfDeactivation
+        );
       }
     } catch (emailError) {
       // Log email error but don't fail the deletion process
-      console.error(`Failed to send account ${isSelfDeactivation ? 'deactivation' : 'deletion'} email:`, emailError);
+      console.error(
+        `Failed to send account ${
+          isSelfDeactivation ? "deactivation" : "deletion"
+        } email:`,
+        emailError
+      );
     }
 
     // Anonymize user data (GDPR compliant soft deletion)
     await anonymizationService.anonymizeUserData(id);
 
-    const actionMessage = isSelfDeactivation 
-      ? 'Account deactivated and data anonymized successfully. Notification email sent.'
-      : 'User deleted and data anonymized successfully. Notification email sent.';
+    const actionMessage = isSelfDeactivation
+      ? "Account deactivated and data anonymized successfully. Notification email sent."
+      : "User deleted and data anonymized successfully. Notification email sent.";
 
     res.status(200).json({
       success: true,
-      message: actionMessage
+      message: actionMessage,
     });
   } catch (error) {
     next(error);
@@ -636,22 +695,22 @@ export const sendHeartbeat = async (
     if (!req.user?.userId) {
       res.status(401).json({
         success: false,
-        message: 'Authentication required'
+        message: "Authentication required",
       });
       return;
     }
 
     const now = new Date();
-    
+
     // Update user's lastSeen timestamp
-    await userRepository.update(req.user.userId, { 
-      lastSeen: now 
+    await userRepository.update(req.user.userId, {
+      lastSeen: now,
     });
 
     res.status(200).json({
       success: true,
-      message: 'Heartbeat received',
-      timestamp: now.toISOString()
+      message: "Heartbeat received",
+      timestamp: now.toISOString(),
     });
   } catch (error) {
     next(error);
@@ -704,34 +763,35 @@ export const getOnlineStatus = async (
     if (!req.user?.userId) {
       res.status(401).json({
         success: false,
-        message: 'Authentication required'
+        message: "Authentication required",
       });
       return;
     }
 
     const user = await userRepository.findOne({
       where: { id: req.user.userId, isDeleted: false },
-      select: ['id', 'lastSeen', 'isActive']
+      select: ["id", "lastSeen", "isActive"],
     });
 
     if (!user) {
       res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: "User not found",
       });
       return;
     }
 
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-    const isOnline = user.lastSeen && user.lastSeen > fiveMinutesAgo && user.isActive;
+    const isOnline =
+      user.lastSeen && user.lastSeen > fiveMinutesAgo && user.isActive;
 
     res.status(200).json({
       success: true,
       data: {
         isOnline: !!isOnline,
         lastSeen: user.lastSeen,
-        onlineThreshold: 5 // minutes
-      }
+        onlineThreshold: 5, // minutes
+      },
     });
   } catch (error) {
     next(error);

@@ -5,7 +5,7 @@ import { BackendRoute } from './constants';
 
 export interface InviteUserRequest {
   email: string;
-  role: 'superadmin' | 'admin' | 'editor' | 'player';
+  role: 'superadmin' | 'admin' | 'editor' | 'player' | 'viewer';
 }
 
 export interface ResetPasswordFromInvitationRequest {

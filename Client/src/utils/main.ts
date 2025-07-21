@@ -14,11 +14,11 @@ export function formatTime(seconds: number): string {
 }
 
 
-export type RoleType = "admin" | "superadmin" | "editor" | "player";
-export type AdminRoleType = "admin" | "superadmin";
+export type RoleType = "admin" | "superadmin" | "editor" | "player" | "viewer";
+export type AdminRoleType = "admin" | "superadmin" | "viewer";
 
 
-const validRoles: RoleType[] = ["admin", "superadmin"];
+const validRoles: RoleType[] = ["admin", "superadmin", "viewer"];
 
 export function isValidRole(role: string): role is RoleType {
   return validRoles.includes(role as RoleType);

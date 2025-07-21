@@ -15,8 +15,11 @@ import { RiEqualizer2Line } from "react-icons/ri";
 import { useUserActivityLog, type ActivityLogFilterState } from "../../../backend/analytics.service";
 import ActivityLogExportModal from "../../../components/modals/AdminModals/ActivityLogExportModal";
 import { ActivityLogFilterSheet } from "../../../components/single/ActivityLogFilter-Sheet";
+import { usePermissions } from "../../../hooks/usePermissions";
+import { formatTime } from "../../../utils/main";
 
 export default function UserActivityLog() {
+  const permissions = usePermissions();
   const [filters, setFilters] = useState<ActivityLogFilterState>({
     dateRange: {
       startDate: "",
@@ -91,7 +94,7 @@ export default function UserActivityLog() {
   const endIdx = startIdx + activitiesPerPage;
   const activitiesToShow = allActivities.slice(startIdx, endIdx);
 
-  const formatTime = (timestamp: Date) => {
+  const formatTimeStamp = (timestamp: Date) => {
     return new Date(timestamp).toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
@@ -106,38 +109,44 @@ export default function UserActivityLog() {
           <p className="text-xl md:text-2xl dark:text-[#D946EF]">
             User Activity Log
           </p>
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-            <ActivityLogFilterSheet
-              filters={filters}
-              onFiltersChange={handleFiltersChange}
-              onReset={handleFilterReset}
-            >
-              <Button
-                variant="outline"
-                className="border-[#475568] text-[#475568] flex items-center justify-center gap-2 dark:text-white py-3 sm:py-5 cursor-pointer w-full sm:w-auto"
-              >
-                <span className="text-sm sm:text-base">Filter</span>
-                <div className="text-[#D946EF] bg-[#FAE8FF] px-2 py-1 rounded-full text-xs sm:text-sm">
-                  {
-                    Object.entries(filters).filter(([, value]) =>
-                      typeof value === "object"
-                        ? Object.values(value).some((v) => v !== "" && v !== 0)
-                        : typeof value === "boolean"
-                        ? value === true
-                        : value !== ""
-                    ).length
-                  }
-                </div>
-                <RiEqualizer2Line size={20} className="sm:size-6" />
-              </Button>
-            </ActivityLogFilterSheet>
-            <ActivityLogExportModal
-              data={allActivities}
-              filters={filters}
-              title="Export Activity Log"
-              description="Choose the format you'd like to export your activity log data"
-            />
-          </div>
+          {(permissions.canFilter || permissions.canExport) && (
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+              {permissions.canFilter && (
+                <ActivityLogFilterSheet
+                  filters={filters}
+                  onFiltersChange={handleFiltersChange}
+                  onReset={handleFilterReset}
+                >
+                  <Button
+                    variant="outline"
+                    className="border-[#475568] text-[#475568] flex items-center justify-center gap-2 dark:text-white py-3 sm:py-5 cursor-pointer w-full sm:w-auto"
+                  >
+                    <span className="text-sm sm:text-base">Filter</span>
+                    <div className="text-[#D946EF] bg-[#FAE8FF] px-2 py-1 rounded-full text-xs sm:text-sm">
+                      {
+                        Object.entries(filters).filter(([, value]) =>
+                          typeof value === "object"
+                            ? Object.values(value).some((v) => v !== "" && v !== 0)
+                            : typeof value === "boolean"
+                            ? value === true
+                            : value !== ""
+                        ).length
+                      }
+                    </div>
+                    <RiEqualizer2Line size={20} className="sm:size-6" />
+                  </Button>
+                </ActivityLogFilterSheet>
+              )}
+              {permissions.canExport && (
+                <ActivityLogExportModal
+                  data={allActivities}
+                  filters={filters}
+                  title="Export Activity Log"
+                  description="Choose the format you'd like to export your activity log data"
+                />
+              )}
+            </div>
+          )}
         </div>
         <div className="px-4 pb-4">
           <Table>
@@ -149,13 +158,14 @@ export default function UserActivityLog() {
                 <TableHead>Last Game Played</TableHead>
                 <TableHead>Start Time</TableHead>
                 <TableHead>End Time</TableHead>
+                <TableHead>Last Session Time</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {!activitiesToShow.length ? (
                 <TableRow>
                   <TableCell
-                    colSpan={6}
+                    colSpan={7}
                     className="text-center py-6 bg-[#F8FAFC] dark:bg-[#0F1221]"
                   >
                     <NoResults
@@ -206,7 +216,7 @@ export default function UserActivityLog() {
                             className="min-w-[8px] min-h-[8px] rounded-full bg-[#2ECC40]"
                             style={{ aspectRatio: "1/1" }}
                           />
-                          {formatTime(row.startTime)}
+                          {formatTimeStamp(row.startTime)}
                         </span>
                       ) : (
                         "-"
@@ -219,7 +229,20 @@ export default function UserActivityLog() {
                             className="min-w-[8px] min-h-[8px] rounded-full bg-[#E74C3C]"
                             style={{ aspectRatio: "1/1" }}
                           />
-                          {formatTime(row.endTime)}
+                          {formatTimeStamp(row.endTime)}
+                        </span>
+                      ) : (
+                        "-"
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {row.lastSessionDuration ? (
+                        <span className="flex items-center gap-2 bg-[#AEB8C6] rounded-lg px-2 py-1 w-fit text-sm tracking-wider text-white font-dmmono">
+                          <div
+                            className="min-w-[8px] min-h-[8px] rounded-full bg-[#3B82F6]"
+                            style={{ aspectRatio: "1/1" }}
+                          />
+                          {formatTime(row.lastSessionDuration)}
                         </span>
                       ) : (
                         "-"

@@ -10,8 +10,10 @@ import {
 import { useGames } from "../../../backend/games.service";
 import { DeleteConfirmationModal } from "../../../components/modals/DeleteConfirmationModal";
 import { toast } from "sonner";
+import { usePermissions } from "../../../hooks/usePermissions";
 
 export default function GameCategories() {
+  const permissions = usePermissions();
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
@@ -43,12 +45,14 @@ export default function GameCategories() {
         <h1 className="text-lg sm:text-3xl font-worksans text-[#D946EF]">
           Game category
         </h1>
-        <button
-          className="bg-[#D946EF] text-white px-3 py-2 sm:py-3 rounded-lg text-sm sm:text-base tracking-wide hover:bg-[#D946EF] transition self-start sm:self-auto font-dmmono cursor-pointer"
-          onClick={() => setCreateOpen(true)}
-        >
-          Create New Category
-        </button>
+        {permissions.canManageGames && (
+          <button
+            className="bg-[#D946EF] text-white px-3 py-2 sm:py-3 rounded-lg text-sm sm:text-base tracking-wide hover:bg-[#D946EF] transition self-start sm:self-auto font-dmmono cursor-pointer"
+            onClick={() => setCreateOpen(true)}
+          >
+            Create New Category
+          </button>
+        )}
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {isLoading ? (
@@ -79,28 +83,32 @@ export default function GameCategories() {
                     </span>
                   )}
                 </div>
-                <div className="flex gap-2">
-                  <button className="p-1 rounded transition">
-                    <CiEdit
-                      className="dark:text-white w-5 h-5 text-black cursor-pointer"
-                      onClick={() => {
-                        setSelectedCategoryId(cat.id);
-                        setEditOpen(true);
-                      }}
-                    />
-                  </button>
-                  {!cat.isDefault && (
+                {permissions.canManageGames ? (
+                  <div className="flex gap-2">
                     <button className="p-1 rounded transition">
-                      <FiTrash2
-                        className="text-black w-5 h-5 dark:text-white cursor-pointer"
+                      <CiEdit
+                        className="dark:text-white w-5 h-5 text-black cursor-pointer"
                         onClick={() => {
                           setSelectedCategoryId(cat.id);
-                          setShowDeleteModal(true);
+                          setEditOpen(true);
                         }}
                       />
                     </button>
-                  )}
-                </div>
+                    {!cat.isDefault && (
+                      <button className="p-1 rounded transition">
+                        <FiTrash2
+                          className="text-black w-5 h-5 dark:text-white cursor-pointer"
+                          onClick={() => {
+                            setSelectedCategoryId(cat.id);
+                            setShowDeleteModal(true);
+                          }}
+                        />
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <span className="text-gray-400 text-xs">View Only</span>
+                )}
               </div>
               <p className="text-[#475568] mb-2 font-worksans text-base tracking-wider dark:text-white">
                 {cat.description || "No description"}

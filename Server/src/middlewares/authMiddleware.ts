@@ -120,7 +120,7 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
     return next(ApiError.unauthorized('Authentication required'));
   }
 
-  if (req.user.role !== RoleType.ADMIN && req.user.role !== RoleType.SUPERADMIN) {
+  if (req.user.role !== RoleType.ADMIN && req.user.role !== RoleType.SUPERADMIN && req.user.role !== RoleType.VIEWER) {
     return next(ApiError.forbidden('Admin access required'));
   }
 
@@ -141,6 +141,46 @@ export const isEditor = (req: Request, res: Response, next: NextFunction) => {
     req.user.role !== RoleType.SUPERADMIN
   ) {
     return next(ApiError.forbidden('Editor access required'));
+  }
+
+  next();
+};
+
+/**
+ * Middleware to check if user has admin panel access (viewer, editor, admin, or superadmin)
+ */
+export const hasAdminPanelAccess = (req: Request, res: Response, next: NextFunction) => {
+  if (!req.user) {
+    return next(ApiError.unauthorized('Authentication required'));
+  }
+
+  if (
+    req.user.role !== RoleType.VIEWER &&
+    req.user.role !== RoleType.EDITOR && 
+    req.user.role !== RoleType.ADMIN && 
+    req.user.role !== RoleType.SUPERADMIN
+  ) {
+    return next(ApiError.forbidden('Admin panel access required'));
+  }
+
+  next();
+};
+
+/**
+ * Middleware to check if user can perform write operations (editor, admin, or superadmin)
+ * Viewers can only read, not write
+ */
+export const canWrite = (req: Request, res: Response, next: NextFunction) => {
+  if (!req.user) {
+    return next(ApiError.unauthorized('Authentication required'));
+  }
+
+  if (
+    req.user.role !== RoleType.EDITOR && 
+    req.user.role !== RoleType.ADMIN && 
+    req.user.role !== RoleType.SUPERADMIN
+  ) {
+    return next(ApiError.forbidden('Write access required. Viewers can only read data.'));
   }
 
   next();

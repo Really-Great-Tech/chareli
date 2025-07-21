@@ -87,7 +87,9 @@ const getValidationSchema = (config?: { value?: { settings: any } }) => {
   const schema: any = {
     password: passwordSchema,
     confirmPassword: confirmPasswordSchema,
-    ageConfirm: Yup.boolean().default(false),
+    ageConfirm: Yup.boolean()
+      .oneOf([true], "You must be 18+ years")
+      .required("You must be 18+ years"),
     terms: Yup.boolean()
       .oneOf([true], "You must accept the terms of use")
       .required("You must accept the terms of use"),
@@ -203,7 +205,7 @@ export function SignUpModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <CustomDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221]">
-        {/* Custom Close Button */}  
+        {/* Custom Close Button */}
         <button
           className="absolute -top-2 -right-2 sm:-top-4 sm:-right-4 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#C026D3] flex items-center justify-center shadow-lg hover:bg-[#a21caf] transition-colors"
           onClick={() => onOpenChange(false)}
@@ -527,7 +529,7 @@ export function SignUpModal({
                     disabled={isSubmitting}
                     className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-dmmono cursor-pointer"
                   >
-                    {isSubmitting ? "Creating Account..." : "Sign Up"}
+                    {isSubmitting ? "Submitting..." : "Submit"}
                   </Button>
                 </Form>
               )}

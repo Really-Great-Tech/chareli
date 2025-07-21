@@ -59,12 +59,16 @@ export const AppRoutes = () => {
             <Route path="management/:userId" element={<UserManagementView />} />
             <Route path="team" element={<TeamManagement />} />
             <Route path="analytics" element={<Analytics />} />
-            <Route path="config" element={<Configuration />} />
             <Route path="view-game/:gameId" element={<ViewGame />} />
-
-            {/* settings */}
-            <Route path="settings" element={<Settings />} />
             <Route path="view-profile" element={<ViewProfile />} />
+          </Route>
+        </Route>
+
+        {/* Config routes - require config access (excludes viewers) */}
+        <Route path="admin/" element={<ProtectedRoute requireAdmin={true} requireConfig={true} />}>
+          <Route element={<AdminLayout />}>
+            <Route path="config" element={<Configuration />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
         </Route>
 

@@ -29,11 +29,13 @@ import { toast } from "sonner";
 // import { useQueryClient } from "@tanstack/react-query";
 // import { BackendRoute } from "../../../backend/constants";
 import { useAuth } from "../../../context/AuthContext";
+import { usePermissions } from "../../../hooks/usePermissions";
 
 export default function UserManagement() {
   const navigate = useNavigate();
   // const queryClient = useQueryClient();
   const { user: currentUser, logout } = useAuth();
+  const permissions = usePermissions();
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [userToDelete, setUserToDelete] = useState<any>(null);
@@ -138,11 +140,13 @@ export default function UserManagement() {
       const fullName = `${user.firstName || ""} ${user.lastName || ""}`.toLowerCase();
       const email = (user.email || "").toLowerCase();
       const phone = (user.phoneNumber || "").toLowerCase();
+      const country = (user.country || "").toLowerCase();
       const id = user.id.toLowerCase();
       
       return fullName.includes(query) || 
              email.includes(query) || 
              phone.includes(query) || 
+             country.includes(query) ||
              id.includes(query);
     });
   };
@@ -156,51 +160,57 @@ export default function UserManagement() {
           User Management
         </h1>
         <div className="flex flex-col sm:flex-row flex-wrap gap-3 justify-end">
-          {/* Search Input */}
-          <div className="relative w-full sm:w-auto sm:min-w-[250px]">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search"
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setPage(1); // Reset to first page when searching
-              }}
-              className="pl-10 bg-white dark:bg-[#1E293B] border-gray-300 dark:border-gray-600 h-12"
-            />
-          </div>
-          
-          <UserManagementFilterSheet
-            filters={filters}
-            onFiltersChange={handleFiltersChange}
-            onReset={handleFilterReset}
-            users={users}
-          >
-            <Button
-              variant="outline"
-              className="border-[#475568] text-[#475568] flex items-center gap-2 dark:text-white py-5 cursor-pointer"
-            >
-              Filter
-              <div className="text-[#D946EF] bg-[#FAE8FF] px-2 sm:px-3 py-1 rounded-full text-sm">
-                {
-                  Object.entries(filters).filter(([, value]) =>
-                    typeof value === "object"
-                      ? Object.values(value).some((v) => v !== "" && v !== 0)
-                      : typeof value === "boolean"
-                      ? value === true
-                      : value !== ""
-                  ).length
-                }
+          {permissions.canFilter && (
+            <>
+              <div className="relative w-full sm:w-auto sm:min-w-[250px]">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="Search..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setPage(1);
+                  }}
+                  className="pl-10 bg-white dark:bg-[#1E293B] border-gray-300 dark:border-gray-600 h-12"
+                />
               </div>
-              <RiEqualizer2Line size={24} className="sm:size-8" />
-            </Button>
-          </UserManagementFilterSheet>
-          <ExportModal
-            data={filteredUsers || []}
-            filters={filters}
-            title="Export User Data"
-            description="Choose the format you'd like to export your user data"
-          />
+              
+              <UserManagementFilterSheet
+                filters={filters}
+                onFiltersChange={handleFiltersChange}
+                onReset={handleFilterReset}
+                users={users}
+              >
+                <Button
+                  variant="outline"
+                  className="border-[#475568] text-[#475568] flex items-center gap-2 dark:text-white py-5 cursor-pointer"
+                >
+                  Filter
+                  <div className="text-[#D946EF] bg-[#FAE8FF] px-2 sm:px-3 py-1 rounded-full text-sm">
+                    {
+                      Object.entries(filters).filter(([, value]) =>
+                        typeof value === "object"
+                          ? Object.values(value).some((v) => v !== "" && v !== 0)
+                          : typeof value === "boolean"
+                          ? value === true
+                          : value !== ""
+                      ).length
+                    }
+                  </div>
+                  <RiEqualizer2Line size={24} className="sm:size-8" />
+                </Button>
+              </UserManagementFilterSheet>
+            </>
+          )}
+          
+          {permissions.canExport && (
+            <ExportModal
+              data={filteredUsers || []}
+              filters={filters}
+              title="Export User Data"
+              description="Choose the format you'd like to export your user data"
+            />
+          )}
         </div>
       </div>
       <div className="col-span-1 md:col-span-2 lg:col-span-4">
@@ -285,7 +295,7 @@ export default function UserManagement() {
                                     }`}
                                   />
                                   <span className="rounded px-2 py-1 text-white font-semibold text-sm">
-                                    {user.lastLoggedIn
+                                    {user.hasCompletedFirstLogin
                                       ? new Date(
                                           user.lastLoggedIn
                                         ).toLocaleTimeString("en-US", {
@@ -299,8 +309,8 @@ export default function UserManagement() {
                               </span>
                             </TableCell>
                             <TableCell>
-                              {/* Hide delete button if admin trying to delete superadmin */}
-                              {!(currentUser?.role.name === 'admin' && user.role?.name === 'superadmin') ? (
+                              {/* Hide delete button for viewers or if admin trying to delete superadmin */}
+                              {permissions.canDelete && !(currentUser?.role.name === 'admin' && user.role?.name === 'superadmin') ? (
                                 <Button
                                   className="bg-[#EF4444] hover:bg-[#dc2626] text-white p-2 h-8 w-8 cursor-pointer"
                                   onClick={(e) => {
@@ -310,6 +320,10 @@ export default function UserManagement() {
                                 >
                                   <RiDeleteBin6Line className="h-4 w-4" />
                                 </Button>
+                              ) : permissions.isViewer ? (
+                                <div className="flex items-center justify-center h-8 w-8">
+                                  <span className="text-gray-400 text-xs">View Only</span>
+                                </div>
                               ) : (
                                 <div className="flex items-center justify-center h-8 w-8">
                                   <span className="text-gray-400 text-xs">Protected</span>

@@ -535,7 +535,7 @@ export class AuthService {
     // const frontendUrl = getFrontendUrl();
 
 
-    //hardcode this for now, will be removed 
+    //hardcode this for now, will be removed --
 
     const frontendUrl = 'https://dev.chareli.reallygreattech.com/';
     const resetLink = `${frontendUrl}/reset-password/${resetToken}`;

@@ -237,8 +237,9 @@ export default function UserActivityLog() {
                     </TableCell>
                     <TableCell>
                       {row.lastSessionDuration ? (
-                        <span className="flex items-center gap-2 px-2 py-1 w-fit text-sm tracking-wider text-white font-dmmono">
+                        <span className="flex items-center gap-2 bg-[#AEB8C6] rounded-lg px-2 py-1 w-fit text-sm tracking-wider text-white font-dmmono">
                           <div
+                            className="min-w-[8px] min-h-[8px] rounded-full bg-[#3B82F6]"
                             style={{ aspectRatio: "1/1" }}
                           />
                           {formatTime(row.lastSessionDuration)}

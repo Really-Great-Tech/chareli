@@ -82,6 +82,16 @@ export default function StatsCard({ timeRange }: StatsCardProps) {
       color: "text-[#D946EF] dark:text-[#F0ABFC]",
     },
     {
+      title: "Daily Active Users",
+      value: data.dailyActiveUsers.current,
+      icon: <HiOutlineUsers size={32} />,
+      change: "24h only",
+      changeType: "up",
+      description: "Always last 24 hours",
+      color: "text-[#D946EF] dark:text-[#F0ABFC]",
+      isStatic: true, // No percentage change
+    },
+    {
       title: "Total Time played",
       value: formatTime(data.totalTimePlayed.current),
       icon: <FaRegClock size={32} className="dark:text-white" />,
@@ -121,14 +131,35 @@ export default function StatsCard({ timeRange }: StatsCardProps) {
       isGamesList: true,
     },
     {
-      title: "User Retention",
-      value: `${Math.round(data.retentionRate) ?? 0}%`,
-      icon: <TbCalendarClock size={36} />,
-      change: "0%",
-      changeType: "up",
+      title: "Game Coverage",
+      value: `${data.gameCoverage.current}%`,
+      icon: <FaRegStar size={32} />,
+      change: `${data.gameCoverage.percentageChange ?? 0}%`,
+      changeType: data.gameCoverage.percentageChange >= 0 ? "up" : "down",
       description: timeDescription,
       color: "text-[#D946EF] dark:text-[#F0ABFC]",
     },
+    {
+      title: "Total Active Users",
+      value: data.totalActiveUsers.current,
+      icon: <HiOutlineUsers size={32} />,
+      change: `${data.totalActiveUsers.percentageChange ?? 0}%`,
+      changeType: data.totalActiveUsers.percentageChange >= 0 ? "up" : "down",
+      description: timeDescription,
+      color: "text-[#D946EF] dark:text-[#F0ABFC]",
+    },
+    
+    
+    
+    // {
+    //   title: "User Retention",
+    //   value: `${Math.round(data.retentionRate) ?? 0}%`,
+    //   icon: <TbCalendarClock size={36} />,
+    //   change: "0%",
+    //   changeType: "up",
+    //   description: timeDescription,
+    //   color: "text-[#D946EF] dark:text-[#F0ABFC]",
+    // },
   ];
 
   return (

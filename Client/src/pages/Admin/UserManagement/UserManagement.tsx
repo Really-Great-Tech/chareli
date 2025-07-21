@@ -295,7 +295,7 @@ export default function UserManagement() {
                                     }`}
                                   />
                                   <span className="rounded px-2 py-1 text-white font-semibold text-sm">
-                                    {user.lastLoggedIn
+                                    {user.hasCompletedFirstLogin
                                       ? new Date(
                                           user.lastLoggedIn
                                         ).toLocaleTimeString("en-US", {

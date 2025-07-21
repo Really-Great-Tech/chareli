@@ -4,7 +4,7 @@ import { useSignupAnalyticsData } from "../../backend/signup.analytics.service";
 
 const clickTypeLabels: Record<string, string> = {
   "navbar": "Navigation bar sign-up button clicks",
-  "signup-modal": "Form sign-up button clicks",
+  // "signup-modal": "Form sign-up button clicks",
   "popup": "Pop-up sign-up button clicks",
 };
 
@@ -57,7 +57,7 @@ const HorizontalBarChart = () => {
   }
 
   // Ensure all click types are represented
-  const allClickTypes = ["navbar", "signup-modal", "keep-playing"];
+  const allClickTypes = ["navbar", "keep-playing"];
   const clicksMap = new Map(
     analyticsData.clicksByType?.map(click => [click.type, parseInt(click.count)]) || []
   );

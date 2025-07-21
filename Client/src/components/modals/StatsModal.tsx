@@ -87,7 +87,7 @@ export function StatsModal({ open, onClose }: StatsModalProps) {
                   Game
                 </div>
                 <div className="text-lg sm:text-lg font-bold dark:text-white text-[#0F1621] hidden sm:block">
-                  Total Time Spent
+                  Session Time
                 </div>
                 <div className="text-lg sm:text-lg font-bold dark:text-white text-[#0F1621] hidden sm:block">
                   Last Played

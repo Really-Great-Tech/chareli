@@ -5,7 +5,6 @@ export const usePermissions = () => {
   const userRole = user?.role?.name?.toLowerCase();
 
   const permissions = {
-    // Role checks
     isSuperAdmin: userRole === 'superadmin',
     isAdmin: userRole === 'admin',
     isEditor: userRole === 'editor',

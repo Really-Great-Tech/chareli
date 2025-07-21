@@ -16,6 +16,7 @@ import { useUserActivityLog, type ActivityLogFilterState } from "../../../backen
 import ActivityLogExportModal from "../../../components/modals/AdminModals/ActivityLogExportModal";
 import { ActivityLogFilterSheet } from "../../../components/single/ActivityLogFilter-Sheet";
 import { usePermissions } from "../../../hooks/usePermissions";
+import { formatTime } from "../../../utils/main";
 
 export default function UserActivityLog() {
   const permissions = usePermissions();
@@ -93,7 +94,7 @@ export default function UserActivityLog() {
   const endIdx = startIdx + activitiesPerPage;
   const activitiesToShow = allActivities.slice(startIdx, endIdx);
 
-  const formatTime = (timestamp: Date) => {
+  const formatTimeStamp = (timestamp: Date) => {
     return new Date(timestamp).toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
@@ -157,13 +158,14 @@ export default function UserActivityLog() {
                 <TableHead>Last Game Played</TableHead>
                 <TableHead>Start Time</TableHead>
                 <TableHead>End Time</TableHead>
+                <TableHead>Last Session Time</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {!activitiesToShow.length ? (
                 <TableRow>
                   <TableCell
-                    colSpan={6}
+                    colSpan={7}
                     className="text-center py-6 bg-[#F8FAFC] dark:bg-[#0F1221]"
                   >
                     <NoResults
@@ -214,7 +216,7 @@ export default function UserActivityLog() {
                             className="min-w-[8px] min-h-[8px] rounded-full bg-[#2ECC40]"
                             style={{ aspectRatio: "1/1" }}
                           />
-                          {formatTime(row.startTime)}
+                          {formatTimeStamp(row.startTime)}
                         </span>
                       ) : (
                         "-"
@@ -227,7 +229,19 @@ export default function UserActivityLog() {
                             className="min-w-[8px] min-h-[8px] rounded-full bg-[#E74C3C]"
                             style={{ aspectRatio: "1/1" }}
                           />
-                          {formatTime(row.endTime)}
+                          {formatTimeStamp(row.endTime)}
+                        </span>
+                      ) : (
+                        "-"
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {row.lastSessionDuration ? (
+                        <span className="flex items-center gap-2 px-2 py-1 w-fit text-sm tracking-wider text-white font-dmmono">
+                          <div
+                            style={{ aspectRatio: "1/1" }}
+                          />
+                          {formatTime(row.lastSessionDuration)}
                         </span>
                       ) : (
                         "-"

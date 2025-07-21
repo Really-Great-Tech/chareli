@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { FaRegClock, FaRegStar } from "react-icons/fa";
-import { FaRegUser } from "react-icons/fa6";
-import { IoHourglassOutline, IoGameControllerOutline } from "react-icons/io5";
+import { IoHourglassOutline } from "react-icons/io5";
 import { TbCalendarClock } from "react-icons/tb";
 import {
   HiMiniArrowDown,
@@ -73,16 +72,7 @@ export default function StatsCard({ timeRange }: StatsCardProps) {
 
   const cardData = [
     {
-      title: "Unique Users",
-      value: data.totalUsers.current,
-      icon: <FaRegUser size={32} />,
-      change: `${data.totalUsers.percentageChange ?? 0}%`,
-      changeType: data.totalUsers.percentageChange >= 0 ? "up" : "down",
-      description: timeDescription,
-      color: "text-[#D946EF] dark:text-[#F0ABFC]",
-    },
-    {
-      title: "Registered Users",
+      title: "New Verified Users",
       value: data.totalRegisteredUsers.current,
       icon: <HiOutlineUsers size={32} />,
       change: `${data.totalRegisteredUsers.percentageChange ?? 0}%`,
@@ -92,25 +82,17 @@ export default function StatsCard({ timeRange }: StatsCardProps) {
       color: "text-[#D946EF] dark:text-[#F0ABFC]",
     },
     {
-      title: "Total Games",
-      value: data.totalGames.current,
-      icon: <IoGameControllerOutline size={32} />,
-      change: `${data.totalGames.percentageChange ?? 0}%`,
-      changeType: data.totalGames.percentageChange >= 0 ? "up" : "down",
-      description: timeDescription,
+      title: "Daily Active Users",
+      value: data.dailyActiveUsers.current,
+      icon: <HiOutlineUsers size={32} />,
+      change: "24h only",
+      changeType: "up",
+      description: "Always last 24 hours",
       color: "text-[#D946EF] dark:text-[#F0ABFC]",
+      isStatic: true, // No percentage change
     },
     {
-      title: "Sessions",
-      value: data.totalSessions.current,
-      icon: <TbCalendarClock size={36} />,
-      change: `${data.totalSessions.percentageChange ?? 0}%`,
-      changeType: data.totalSessions.percentageChange >= 0 ? "up" : "down",
-      description: timeDescription,
-      color: "text-[#D946EF] dark:text-[#F0ABFC]",
-    },
-    {
-      title: "Time played",
+      title: "Total Time played",
       value: formatTime(data.totalTimePlayed.current),
       icon: <FaRegClock size={32} className="dark:text-white" />,
       change: `${data.totalTimePlayed.percentageChange ?? 0}%`,
@@ -119,32 +101,65 @@ export default function StatsCard({ timeRange }: StatsCardProps) {
       color: "text-[#D946EF] dark:text-[#F0ABFC]",
     },
     {
-      title: "Most Played",
-      value: data.mostPlayedGame?.title ?? "No games played",
-      icon: <FaRegStar size={32} />,
-      change: `${data.mostPlayedGame?.percentageChange ?? 0}%`,
-      changeType: data.mostPlayedGame?.percentageChange >= 0 ? "up" : "down",
-      description: timeDescription,
-      color: "text-[#D946EF] dark:text-[#F0ABFC]",
-    },
-    {
-      title: "User Retention",
-      value: `${Math.round(data.retentionRate) ?? 0}%`,
+      title: "Sessions Played",
+      value: data.totalSessions.current,
       icon: <TbCalendarClock size={36} />,
-      change: "0%",
-      changeType: "up",
+      change: `${data.totalSessions.percentageChange ?? 0}%`,
+      changeType: data.totalSessions.percentageChange >= 0 ? "up" : "down",
       description: timeDescription,
       color: "text-[#D946EF] dark:text-[#F0ABFC]",
     },
     {
-      title: "Avg. Session Duration",
+      title: "Average Session Time",
       value: formatTime(data.avgSessionDuration.current),
       icon: <IoHourglassOutline size={32} />,
       change: `${data.avgSessionDuration.percentageChange ?? 0}%`,
       changeType: data.avgSessionDuration.percentageChange >= 0 ? "up" : "down",
       description: timeDescription,
       color: "text-[#D946EF] dark:text-[#F0ABFC]",
+    },  
+    {
+      title: "Most Played Games",
+      value: data.mostPlayedGames?.games?.length > 0 
+        ? data.mostPlayedGames.games
+        : "No games played",
+      icon: <FaRegStar size={32} />,
+      change: `${data.mostPlayedGames?.percentageChange ?? 0}%`,
+      changeType: (data.mostPlayedGames?.percentageChange ?? 0) >= 0 ? "up" : "down",
+      description: timeDescription,
+      color: "text-[#D946EF] dark:text-[#F0ABFC]",
+      isGamesList: true,
     },
+    {
+      title: "Game Coverage",
+      value: `${data.gameCoverage.current}%`,
+      icon: <FaRegStar size={32} />,
+      change: `${data.gameCoverage.percentageChange ?? 0}%`,
+      changeType: data.gameCoverage.percentageChange >= 0 ? "up" : "down",
+      description: timeDescription,
+      color: "text-[#D946EF] dark:text-[#F0ABFC]",
+    },
+    {
+      title: "Total Active Users",
+      value: data.totalActiveUsers.current,
+      icon: <HiOutlineUsers size={32} />,
+      change: `${data.totalActiveUsers.percentageChange ?? 0}%`,
+      changeType: data.totalActiveUsers.percentageChange >= 0 ? "up" : "down",
+      description: timeDescription,
+      color: "text-[#D946EF] dark:text-[#F0ABFC]",
+    },
+    
+    
+    
+    // {
+    //   title: "User Retention",
+    //   value: `${Math.round(data.retentionRate) ?? 0}%`,
+    //   icon: <TbCalendarClock size={36} />,
+    //   change: "0%",
+    //   changeType: "up",
+    //   description: timeDescription,
+    //   color: "text-[#D946EF] dark:text-[#F0ABFC]",
+    // },
   ];
 
   return (
@@ -162,7 +177,29 @@ export default function StatsCard({ timeRange }: StatsCardProps) {
                   {card.title}
                 </span>
                 <div className={`font-bold text-xl ${card.color}`}>
-                  {card.value}
+                  {card.isGamesList && Array.isArray(card.value) ? (
+                    <div className="space-y-1">
+                      {card.value.slice(0, 3).map((game: any, index: number) => {
+                        const getRankIcon = (position: number) => {
+                          switch (position) {
+                            case 0: return <span className="text-yellow-500">🥇</span>;
+                            case 1: return <span className="text-gray-400">🥈</span>;
+                            case 2: return <span className="text-amber-600">🥉</span>;
+                            default: return <span className="text-xs opacity-75">{position + 1}.</span>;
+                          }
+                        };
+                        
+                        return (
+                          <div key={game.id || index} className="text-sm font-medium leading-tight flex items-center gap-1">
+                            {getRankIcon(index)}
+                            <span className="truncate">{game.title}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    card.value
+                  )}
                 </div>
               </div>
               <span className="text-3xl text-[#64748A] dark:text-white">

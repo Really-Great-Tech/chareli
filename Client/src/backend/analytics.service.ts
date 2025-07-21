@@ -161,9 +161,9 @@ export const useDeleteAnalytics = () => {
 
 // Admin Dashboard Types
 interface DashboardAnalytics {
-  totalUsers: {
-    current: string;
-    percentageChange: number;
+  dailyActiveUsers: {
+    current: number;
+    // No percentage change since it's always 24 hours
   };
   totalRegisteredUsers: {
     current: number;
@@ -174,7 +174,11 @@ interface DashboardAnalytics {
   inactiveUsers: number;
   adultsCount: number;
   minorsCount: number;
-  totalGames: {
+  gameCoverage: {
+    current: number; // Percentage
+    percentageChange: number;
+  };
+  totalActiveUsers: {
     current: number;
     percentageChange: number;
   };
@@ -186,13 +190,16 @@ interface DashboardAnalytics {
     current: number;
     percentageChange: number;
   };
-  mostPopularGame: {
-    id: string;
-    title: string;
-    thumbnailUrl: string | null;
-    sessionCount: number;
+  mostPlayedGames: {
+    games: Array<{
+      id: string;
+      title: string;
+      thumbnailUrl: string | null;
+      sessionCount: number;
+      percentageChange: number;
+    }>;
     percentageChange: number;
-  } | null;
+  };
   avgSessionDuration: {
     current: number;
     percentageChange: number;
@@ -210,6 +217,7 @@ export interface UserAnalytics {
   isActive: boolean;
   isVerified: boolean;
   lastLoggedIn: string;
+  hasCompletedFirstLogin: string;
   createdAt: string;
   updatedAt: string;
   role: {

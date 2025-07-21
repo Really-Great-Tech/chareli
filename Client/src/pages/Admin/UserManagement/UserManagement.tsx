@@ -160,18 +160,16 @@ export default function UserManagement() {
           User Management
         </h1>
         <div className="flex flex-col sm:flex-row flex-wrap gap-3 justify-end">
-          {/* Hide search, filter and export for viewers */}
           {permissions.canFilter && (
             <>
-              {/* Search Input */}
               <div className="relative w-full sm:w-auto sm:min-w-[250px]">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
-                  placeholder="Search by name, email, phone, or country"
+                  placeholder="Search..."
                   value={searchQuery}
                   onChange={(e) => {
                     setSearchQuery(e.target.value);
-                    setPage(1); // Reset to first page when searching
+                    setPage(1);
                   }}
                   className="pl-10 bg-white dark:bg-[#1E293B] border-gray-300 dark:border-gray-600 h-12"
                 />
@@ -297,7 +295,7 @@ export default function UserManagement() {
                                     }`}
                                   />
                                   <span className="rounded px-2 py-1 text-white font-semibold text-sm">
-                                    {user.lastLoggedIn
+                                    {user.hasCompletedFirstLogin
                                       ? new Date(
                                           user.lastLoggedIn
                                         ).toLocaleTimeString("en-US", {

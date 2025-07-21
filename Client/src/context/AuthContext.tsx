@@ -137,6 +137,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await refreshUser();
       queryClient.invalidateQueries({ queryKey: [BackendRoute.USER_STATS] });
       queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_USERS_ANALYTICS] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES] });
     }
     
     return { 
@@ -159,8 +160,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem('token', accessToken);
     localStorage.setItem('refreshToken', refreshToken);
     const userData = await refreshUser();
-    // Invalidate stats to trigger a refetch
+    // Invalidate stats and games queries to trigger a refetch
     queryClient.invalidateQueries({ queryKey: [BackendRoute.USER_STATS] });
+    queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES] });
     return userData;
   };
 
@@ -174,6 +176,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
     setUser(null);
+    
+    // Invalidate games queries to refresh data without authentication context
+    queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES] });
     
     // Only show toast if not silent
     if (!silent) {

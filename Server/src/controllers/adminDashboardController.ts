@@ -1429,6 +1429,8 @@ export const getUsersWithAnalytics = async (
         'user.lastName',
         'user.email',
         'user.country',
+        'user.registrationIpAddress',
+        'user.lastKnownDeviceType',
         'user.phoneNumber',
         'user.isActive',
         'user.isVerified',

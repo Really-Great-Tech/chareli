@@ -10,6 +10,7 @@ import { OtpType } from "../entities/Otp";
 import { Not, IsNull } from "typeorm";
 import { s3Service } from "../services/s3.service";
 import { getCountryFromIP, extractClientIP } from "../utils/ipUtils";
+import { detectDeviceType } from "../utils/deviceUtils";
 import { emailService } from "../services/email.service";
 import { anonymizationService } from "../services/anonymization.service";
 
@@ -316,6 +317,10 @@ export const createUser = async (
     // Get country from IP
     const country = await getCountryFromIP(ipAddress);
 
+    // Get device type from user agent
+    const userAgent = req.headers['user-agent'] || '';
+    const deviceType = detectDeviceType(userAgent);
+
     // Check if user with email already exists (including deleted users)
     if (email || phoneNumber) {
       const existingUser = await userRepository.findOne({
@@ -365,6 +370,8 @@ export const createUser = async (
       isAdult: isAdult || false,
       hasAcceptedTerms,
       country: country || undefined,
+      registrationIpAddress: ipAddress,
+      lastKnownDeviceType: deviceType,
     });
 
     await userRepository.save(user);

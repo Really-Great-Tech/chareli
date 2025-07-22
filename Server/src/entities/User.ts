@@ -31,6 +31,14 @@ export class User {
   @Column({ nullable: true })
   country: string;
 
+  @Column({ nullable: true })
+  @Index()
+  registrationIpAddress: string;
+
+  @Column({ nullable: true })
+  @Index()
+  lastKnownDeviceType: string;
+
   @ManyToOne(() => Role, { eager: true })
   @JoinColumn({ name: 'roleId' })
   role: Role;

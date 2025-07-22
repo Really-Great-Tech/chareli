@@ -1,9 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Checkbox } from '../../../components/ui/checkbox';
 import { Label } from '../../../components/ui/label';
 import { useCreateSystemConfig, useSystemConfigByKey } from '../../../backend/configuration.service';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
+import SearchBarConfiguration, { type SearchBarConfigurationRef } from '../../../components/single/SearchBarConfiguration';
+import DynamicPopupConfiguration from '../../../components/single/DynamicPopupConfiguration';
+import UserInactivityConfiguration, { type UserInactivityConfigurationRef } from '../../../components/single/UserInactivityConfiguration';
 
 interface AuthMethodSettings {
   enabled: boolean;
@@ -39,6 +42,8 @@ export default function Configuration() {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const searchBarConfigRef = useRef<SearchBarConfigurationRef>(null);
+  const userInactivityConfigRef = useRef<UserInactivityConfigurationRef>(null);
   const { mutateAsync: createConfig } = useCreateSystemConfig();
   const { data: configData, isLoading: isLoadingConfig } = useSystemConfigByKey('authentication_settings');
 
@@ -159,15 +164,37 @@ export default function Configuration() {
   const handleSave = async () => {
     setIsSubmitting(true);
     try {
+      // Save authentication settings
       await createConfig({
         key: 'authentication_settings',
         value: {
           settings: authSettings
         }
       });
-      toast.success('Authentication settings saved successfully!');
+
+      // Save UI settings
+      if (searchBarConfigRef.current) {
+        const uiSettings = searchBarConfigRef.current.getSettings();
+        await createConfig({
+          key: 'ui_settings',
+          value: uiSettings,
+          description: 'UI visibility settings for the application'
+        });
+      }
+
+      // Save user inactivity settings
+      if (userInactivityConfigRef.current) {
+        const inactivitySettings = userInactivityConfigRef.current.getSettings();
+        await createConfig({
+          key: 'user_inactivity_settings',
+          value: inactivitySettings,
+          description: 'User inactivity timer configuration'
+        });
+      }
+
+      toast.success('Configuration saved successfully!');
     } catch (error) {
-      toast.error('Failed to save authentication settings');
+      toast.error('Failed to save configuration');
     } finally {
       setIsSubmitting(false);
     }
@@ -180,6 +207,10 @@ export default function Configuration() {
           <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
         </div>
       )}
+      
+      {/* Search Bar Configuration Section */}
+      <SearchBarConfiguration ref={searchBarConfigRef} disabled={isSubmitting} />
+      
       <h1 className="text-lg sm:text-2xl font-worksans text-[#D946EF] mb-4">User Sign Up Configuration</h1>
       <div className="space-y-4">
         {/* Email Authentication Section */}
@@ -334,6 +365,13 @@ export default function Configuration() {
           )}
         </div>
       </div>
+      
+      {/* Dynamic Popup Configuration Section */}
+      <DynamicPopupConfiguration />
+      
+      {/* User Inactivity Configuration Section */}
+      <UserInactivityConfiguration ref={userInactivityConfigRef} disabled={isSubmitting} />
+      
       <div className="flex justify-end mt-6 mb-4 px-2">
         <button
           className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer font-medium text-sm sm:text-base min-w-[140px] justify-center shadow-lg"

@@ -4,6 +4,7 @@ import { LazyImage } from "../../components/ui/LazyImage";
 import { IoIosSearch } from "react-icons/io";
 import { useGames } from "../../backend/games.service";
 import { useGameClickHandler } from "../../hooks/useGameClickHandler";
+import { useUISettings } from "../../hooks/useUISettings";
 import GamesSkeleton from "./GamesSkeleton";
 
 import emptyGameImg from "../../assets/empty-game.png";
@@ -17,6 +18,7 @@ const PopularSection = ({
   searchQuery,
   setSearchQuery,
 }: PopularSectionProps) => {
+  const { uiSettings } = useUISettings();
   const {
     data: gamesData,
     isLoading,
@@ -32,21 +34,23 @@ const PopularSection = ({
 
   return (
     <div className="p-4">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+      <div className={`flex flex-col sm:flex-row items-start sm:items-center ${uiSettings.showSearchBar ? 'justify-between' : 'justify-start'} gap-4 mb-8`}>
         <h1 className="text-[#D946EF] text-2xl font-worksans tracking-wide">
           Popular
         </h1>
-        <div className="relative w-full md:w-[400px]">
-          <IoIosSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#64748A] text-xl pointer-events-none" />
-          <Input
-            className="pl-12 w-full h-12 rounded-2xl text-[#64748A] tracking-wider border-2 border-[#D946EF] focus:border-[#D946EF] focus:outline-none shadow-[0_0_8px_rgba(217,70,239,0.2)] 
-                        placeholder:text-[#64748A] bg-white/5
-                        placeholder:text-sm"
-            placeholder="What game do you want to search for?"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
+        {uiSettings.showSearchBar && (
+          <div className="relative w-full md:w-[400px]">
+            <IoIosSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#64748A] text-xl pointer-events-none" />
+            <Input
+              className="pl-12 w-full h-12 rounded-2xl text-[#64748A] tracking-wider border-2 border-[#D946EF] focus:border-[#D946EF] focus:outline-none shadow-[0_0_8px_rgba(217,70,239,0.2)] 
+                          placeholder:text-[#64748A] bg-white/5
+                          placeholder:text-sm"
+              placeholder="What game do you want to search for?"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        )}
       </div>
       <div className="">
         <Card className="border-hidden shadow-none p-0 dark:bg-[#0f1221]">

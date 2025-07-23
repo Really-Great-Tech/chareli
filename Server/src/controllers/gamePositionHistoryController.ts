@@ -3,9 +3,10 @@ import { AppDataSource } from '../config/database';
 import { GamePositionHistory } from '../entities/GamePositionHistory';
 import { Game } from '../entities/Games';
 import { ApiError } from '../middlewares/errorHandler';
-import { s3Service } from '../services/s3.service';
+import { storageService } from '../services/storage.service';
 
-const gamePositionHistoryRepository = AppDataSource.getRepository(GamePositionHistory);
+const gamePositionHistoryRepository =
+  AppDataSource.getRepository(GamePositionHistory);
 const gameRepository = AppDataSource.getRepository(Game);
 
 /**
@@ -54,25 +55,25 @@ export const getGamePositionHistory = async (
   try {
     const { gameId } = req.params;
     const { page = 1, limit = 10 } = req.query;
-    
+
     const pageNumber = parseInt(page as string, 10);
     const limitNumber = parseInt(limit as string, 10);
-    
+
     // Check if game exists
     const game = await gameRepository.findOne({ where: { id: gameId } });
     if (!game) {
       return next(ApiError.notFound(`Game with id ${gameId} not found`));
     }
-    
+
     // Get position history with pagination
     const [history, total] = await gamePositionHistoryRepository.findAndCount({
       where: { gameId },
       order: { createdAt: 'DESC' },
       skip: (pageNumber - 1) * limitNumber,
       take: limitNumber,
-      relations: ['game']
+      relations: ['game'],
     });
-    
+
     res.status(200).json({
       success: true,
       count: history.length,
@@ -119,44 +120,46 @@ export const recordGameClick = async (
 ): Promise<void> => {
   try {
     const { gameId } = req.params;
-    
+
     // Get the game's current position
     const game = await gameRepository.findOne({ where: { id: gameId } });
     if (!game) {
       return next(ApiError.notFound(`Game with id ${gameId} not found`));
     }
-    
+
     if (!game.position) {
-      return next(ApiError.badRequest(`Game ${gameId} does not have a position assigned`));
+      return next(
+        ApiError.badRequest(`Game ${gameId} does not have a position assigned`)
+      );
     }
-    
+
     // Find or create position history record for current position
     let positionHistory = await gamePositionHistoryRepository.findOne({
-      where: { gameId, position: game.position }
+      where: { gameId, position: game.position },
     });
-    
+
     if (!positionHistory) {
       // Create new position history record if it doesn't exist
       positionHistory = gamePositionHistoryRepository.create({
         gameId,
         position: game.position,
-        clickCount: 1
+        clickCount: 1,
       });
     } else {
       // Increment click count
       positionHistory.clickCount += 1;
     }
-    
+
     await gamePositionHistoryRepository.save(positionHistory);
-    
+
     res.status(200).json({
       success: true,
       message: 'Click recorded successfully',
       data: {
         gameId,
         position: positionHistory.position,
-        clickCount: positionHistory.clickCount
-      }
+        clickCount: positionHistory.clickCount,
+      },
     });
   } catch (error) {
     next(error);
@@ -193,42 +196,42 @@ export const getClickAnalytics = async (
         'SUM(history.clickCount) as totalClicks',
         'AVG(history.clickCount) as avgClicksPerGame',
         'MAX(history.clickCount) as maxClicks',
-        'MIN(history.clickCount) as minClicks'
+        'MIN(history.clickCount) as minClicks',
       ])
       .groupBy('history.position')
       .orderBy('history.position', 'ASC')
       .getRawMany();
-    
+
     // Get most clicked positions
     const mostClickedPositions = await gamePositionHistoryRepository
       .createQueryBuilder('history')
       .select([
         'history.position as position',
-        'SUM(history.clickCount) as totalClicks'
+        'SUM(history.clickCount) as totalClicks',
       ])
       .groupBy('history.position')
       .orderBy('SUM(history.clickCount)', 'DESC')
       .limit(10)
       .getRawMany();
-    
+
     // Get recent activity
     const recentActivity = await gamePositionHistoryRepository
       .createQueryBuilder('history')
       .leftJoinAndSelect('history.game', 'game')
-      .where('history.updatedAt >= :date', { 
-        date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // Last 7 days
+      .where('history.updatedAt >= :date', {
+        date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Last 7 days
       })
       .orderBy('history.updatedAt', 'DESC')
       .limit(20)
       .getMany();
-    
+
     res.status(200).json({
       success: true,
       data: {
         positionPerformance,
         mostClickedPositions,
-        recentActivity
-      }
+        recentActivity,
+      },
     });
   } catch (error) {
     next(error);
@@ -314,99 +317,111 @@ export const getAllPositionHistory = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { 
-      page, 
-      limit, 
+    const {
+      page,
+      limit,
       position,
       positionMin,
       positionMax,
       clickCountMin,
       clickCountMax,
-      gameTitle
+      gameTitle,
     } = req.query;
-    
+
     // Only apply pagination if limit is explicitly provided
     const shouldPaginate = limit !== undefined;
-    const pageNumber = shouldPaginate ? parseInt(page as string || '1', 10) : 1;
-    const limitNumber = shouldPaginate ? parseInt(limit as string, 10) : undefined;
-    
+    const pageNumber = shouldPaginate
+      ? parseInt((page as string) || '1', 10)
+      : 1;
+    const limitNumber = shouldPaginate
+      ? parseInt(limit as string, 10)
+      : undefined;
+
     let queryBuilder = gamePositionHistoryRepository
       .createQueryBuilder('history')
       .leftJoinAndSelect('history.game', 'game')
       .leftJoinAndSelect('game.thumbnailFile', 'thumbnailFile')
       .leftJoinAndSelect('game.gameFile', 'gameFile');
-    
+
     // Apply history-specific filters
     if (position) {
-      queryBuilder.andWhere('history.position = :position', { position: parseInt(position as string) });
+      queryBuilder.andWhere('history.position = :position', {
+        position: parseInt(position as string),
+      });
     }
-    
+
     if (positionMin) {
-      queryBuilder.andWhere('history.position >= :positionMin', { positionMin: parseInt(positionMin as string) });
+      queryBuilder.andWhere('history.position >= :positionMin', {
+        positionMin: parseInt(positionMin as string),
+      });
     }
-    
+
     if (positionMax) {
-      queryBuilder.andWhere('history.position <= :positionMax', { positionMax: parseInt(positionMax as string) });
+      queryBuilder.andWhere('history.position <= :positionMax', {
+        positionMax: parseInt(positionMax as string),
+      });
     }
-    
+
     if (clickCountMin) {
-      queryBuilder.andWhere('history.clickCount >= :clickCountMin', { clickCountMin: parseInt(clickCountMin as string) });
+      queryBuilder.andWhere('history.clickCount >= :clickCountMin', {
+        clickCountMin: parseInt(clickCountMin as string),
+      });
     }
-    
+
     if (clickCountMax) {
-      queryBuilder.andWhere('history.clickCount <= :clickCountMax', { clickCountMax: parseInt(clickCountMax as string) });
+      queryBuilder.andWhere('history.clickCount <= :clickCountMax', {
+        clickCountMax: parseInt(clickCountMax as string),
+      });
     }
-    
+
     if (gameTitle) {
-      queryBuilder.andWhere('game.title ILIKE :gameTitle', { gameTitle: `%${gameTitle}%` });
+      queryBuilder.andWhere('game.title ILIKE :gameTitle', {
+        gameTitle: `%${gameTitle}%`,
+      });
     }
-    
+
     // Get total count
     const total = await queryBuilder.getCount();
-    
+
     // Apply ordering
     queryBuilder.orderBy('history.createdAt', 'DESC');
-    
+
     // Apply pagination only if limit is provided
     if (shouldPaginate && limitNumber) {
-      queryBuilder
-        .skip((pageNumber - 1) * limitNumber)
-        .take(limitNumber);
+      queryBuilder.skip((pageNumber - 1) * limitNumber).take(limitNumber);
     }
-    
+
     const history = await queryBuilder.getMany();
 
-    // Transform game file and thumbnail URLs to direct S3 URLs
-    history.forEach(historyItem => {
+    const transformedHistory = history.map((historyItem) => {
       if (historyItem.game) {
-        if (historyItem.game.gameFile) {
-          const s3Key = historyItem.game.gameFile.s3Key;
-          const baseUrl = s3Service.getBaseUrl();
-          historyItem.game.gameFile.s3Key = `${baseUrl}/${s3Key}`;
+        if (historyItem.game.thumbnailFile?.storageKey) {
+          // Add a 'url' property to the thumbnailFile object
+          (historyItem.game.thumbnailFile as any).url =
+            storageService.getPublicUrl(
+              historyItem.game.thumbnailFile.storageKey
+            );
         }
-        if (historyItem.game.thumbnailFile) {
-          const s3Key = historyItem.game.thumbnailFile.s3Key;
-          const baseUrl = s3Service.getBaseUrl();
-          historyItem.game.thumbnailFile.s3Key = `${baseUrl}/${s3Key}`;
-        }
+        // We intentionally don't add a URL for the gameFile, as it's meant to be secure.
       }
+      return historyItem;
     });
-    
+
     // Build response object based on whether pagination is used
     const response: any = {
       success: true,
-      count: history.length,
+      count: transformedHistory.length,
       total,
-      data: history,
+      data: transformedHistory,
     };
-    
+
     // Only include pagination info if pagination is being used
     if (shouldPaginate && limitNumber) {
       response.page = pageNumber;
       response.limit = limitNumber;
       response.totalPages = Math.ceil(total / limitNumber);
     }
-    
+
     res.status(200).json(response);
   } catch (error) {
     next(error);
@@ -443,15 +458,15 @@ export const getPositionPerformance = async (
         'SUM(history.clickCount) as totalClicks',
         'AVG(history.clickCount) as avgClicks',
         'MAX(history.clickCount) as maxClicks',
-        'MIN(history.clickCount) as minClicks'
+        'MIN(history.clickCount) as minClicks',
       ])
       .groupBy('history.position')
       .orderBy('history.position', 'ASC')
       .getRawMany();
-    
+
     res.status(200).json({
       success: true,
-      data: performance
+      data: performance,
     });
   } catch (error) {
     next(error);

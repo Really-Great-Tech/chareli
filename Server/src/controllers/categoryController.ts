@@ -3,7 +3,7 @@ import { AppDataSource } from '../config/database';
 import { Category } from '../entities/Category';
 import { ApiError } from '../middlewares/errorHandler';
 import { File } from '../entities/Files';
-import { s3Service } from '../services/s3.service';
+import { storageService } from '../services/storage.service';
 
 // Extend File type to include url
 type FileWithUrl = File & { url?: string };

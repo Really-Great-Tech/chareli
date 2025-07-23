@@ -3,7 +3,7 @@ import { AppDataSource } from '../config/database';
 import { File } from '../entities/Files';
 import { ApiError } from '../middlewares/errorHandler';
 import { v4 as uuidv4 } from 'uuid';
-import { s3Service } from '../services/s3.service';
+import { storageService } from '../services/storage.service';
 import { zipService } from '../services/zip.service';
 import multer from 'multer';
 import logger from '../utils/logger';
@@ -12,17 +12,28 @@ import * as path from 'path';
 const fileRepository = AppDataSource.getRepository(File);
 
 /**
- * Transform file data to include S3 URLs
+ * Transform file data to include storage URLs
  */
-const transformFileWithS3Url = (file: any) => {
-  const transformedFile = { ...file };
-  
-  if (file.s3Key) {
-    const baseUrl = s3Service.getBaseUrl();
-    transformedFile.url = `${baseUrl}/${file.s3Key}`;
-  }
-  
-  return transformedFile;
+// const transformFileWithUrl = (file: any) => {
+//   const transformedFile = { ...file };
+
+//   if (file.storageKey) {
+//     const baseUrl = storageService.getBaseUrl();
+//     transformedFile.url = `${baseUrl}/${file.storageKey}`;
+//   }
+
+//   return transformedFile;
+// };
+
+/**
+ * Transform file data to include a public URL using the storage service.
+ */
+
+const transformFileWithUrl = (file: File) => {
+  return {
+    ...file,
+    url: storageService.getPublicUrl(file.storageKey),
+  };
 };
 
 // Configure multer for file uploads
@@ -30,7 +41,7 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
     fileSize: 50 * 1024 * 1024, // 50MB limit
-  }
+  },
 });
 
 // Middleware to handle file uploads
@@ -83,35 +94,34 @@ export const getAllFiles = async (
 ): Promise<void> => {
   try {
     const { page = 1, limit = 10, type, search } = req.query;
-    
+
     const pageNumber = parseInt(page as string, 10);
     const limitNumber = parseInt(limit as string, 10);
-    
+
     const queryBuilder = fileRepository.createQueryBuilder('file');
-    
+
     if (type) {
       queryBuilder.where('file.type = :type', { type });
     }
-    
+
     if (search) {
-      queryBuilder.andWhere(
-        'file.s3Key ILIKE :search',
-        { search: `%${search}%` }
-      );
+      queryBuilder.andWhere('file.storageKey ILIKE :search', {
+        search: `%${search}%`,
+      });
     }
-    
+
     const total = await queryBuilder.getCount();
-    
+
     queryBuilder
       .skip((pageNumber - 1) * limitNumber)
       .take(limitNumber)
       .orderBy('file.createdAt', 'DESC');
-    
+
     const files = await queryBuilder.getMany();
-    
-    // Transform files to include S3 URLs
-    const transformedFiles = files.map(file => transformFileWithS3Url(file));
-    
+
+    // Transform files to include storage URLs
+    const transformedFiles = files.map((file) => transformFileWithUrl(file));
+
     res.status(200).json({
       success: true,
       count: transformedFiles.length,
@@ -156,18 +166,18 @@ export const getFileById = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    
+
     const file = await fileRepository.findOne({
-      where: { id }
+      where: { id },
     });
-    
+
     if (!file) {
       return next(ApiError.notFound(`File with id ${id} not found`));
     }
-    
-    // Transform file to include S3 URL
-    const transformedFile = transformFileWithS3Url(file);
-    
+
+    // Transform file to include storage URL
+    const transformedFile = transformFileWithUrl(file);
+
     res.status(200).json({
       success: true,
       data: transformedFile,
@@ -182,7 +192,7 @@ export const getFileById = async (
  * /files:
  *   post:
  *     summary: Upload a file and create a file record
- *     description: Upload a file to S3 and create a record in the database.
+ *     description: Upload a file to storage and create a record in the database.
  *     tags: [Files]
  *     requestBody:
  *       required: true
@@ -217,65 +227,85 @@ export const createFile = async (
   try {
     const { type } = req.body;
     const file = req.file;
-    
+
     if (!file) {
       return next(ApiError.badRequest('File is required'));
     }
-    
+
     if (!type) {
       return next(ApiError.badRequest('File type is required'));
     }
-    
+
     let fileRecord;
+    let uploadResult;
 
     if (type === 'game_file') {
       logger.info('Processing game zip file');
       const processedZip = await zipService.processGameZip(file.buffer);
-      
+
       if (processedZip.error) {
         return next(ApiError.badRequest(processedZip.error));
       }
 
       const gameId = uuidv4();
-      
-      const s3GamePath = `games/${gameId}`;
-      await s3Service.uploadDirectory(processedZip.extractedPath, s3GamePath);
+      const gamePath = `games/${gameId}`;
+
+      await storageService.uploadDirectory(
+        processedZip.extractedPath,
+        gamePath
+      );
 
       if (!processedZip.indexPath) {
         return next(ApiError.badRequest('No index.html found in the zip file'));
       }
 
       const indexPath = processedZip.indexPath.replace(/\\/g, '/');
+
+      const gameKey = `${gamePath}/${indexPath}`;
+
       fileRecord = fileRepository.create({
-        s3Key: `${s3GamePath}/${indexPath}`,
-        type: 'game_file'
+        storageKey: gameKey,
+        type: 'game_file',
       });
 
       await fileRepository.save(fileRecord);
+      uploadResult = {
+        key: gameKey,
+        publicUrl: storageService.getPublicUrl(gameKey),
+      };
     } else {
-      logger.info(`Uploading file to S3: ${file.originalname}`);
-      const uploadResult = await s3Service.uploadFile(
+      logger.info(`Uploading file to storage: ${file.originalname}`);
+      uploadResult = await storageService.uploadFile(
         file.buffer,
         file.originalname,
         file.mimetype,
         type
       );
-      
+
       logger.info('Creating file record in database');
       fileRecord = fileRepository.create({
-        s3Key: uploadResult.key,
-        type
+        storageKey: uploadResult.key,
+        type,
       });
-      
+
       await fileRepository.save(fileRecord);
     }
-    
-    // Transform file to include S3 URL
-    const transformedFile = transformFileWithS3Url(fileRecord);
-    
+
+    // Transform file to include storage URL
+    //const transformedFile = transformFileWithUrl(fileRecord);
+
+    //The response is now simpler as the URL is already in the uploadResult
+    const responseData = {
+      id: fileRecord.id,
+      type: fileRecord.type,
+      key: uploadResult.key,
+      url: uploadResult.publicUrl,
+      createdAt: fileRecord.createdAt,
+    };
+
     res.status(201).json({
       success: true,
-      data: transformedFile,
+      data: responseData,
     });
   } catch (error) {
     next(error);
@@ -330,36 +360,38 @@ export const updateFile = async (
     const { id } = req.params;
     const { type } = req.body;
     const uploadedFile = req.file;
-    
+
     const file = await fileRepository.findOne({
-      where: { id }
+      where: { id },
     });
-    
+
     if (!file) {
       return next(ApiError.notFound(`File with id ${id} not found`));
     }
-    
+
     if (uploadedFile) {
-      logger.info(`Uploading new file to S3: ${uploadedFile.originalname}`);
-      const uploadResult = await s3Service.uploadFile(
+      logger.info(
+        `Uploading new file to storage: ${uploadedFile.originalname}`
+      );
+      const uploadResult = await storageService.uploadFile(
         uploadedFile.buffer,
         uploadedFile.originalname,
         uploadedFile.mimetype,
         file.type
       );
-      
-      file.s3Key = uploadResult.key;
+
+      file.storageKey = uploadResult.key;
     }
-    
+
     if (type) {
       file.type = type;
     }
-    
+
     await fileRepository.save(file);
-    
-    // Transform file to include S3 URL
-    const transformedFile = transformFileWithS3Url(file);
-    
+
+    // Transform file to include storage URL
+    const transformedFile = transformFileWithUrl(file);
+
     res.status(200).json({
       success: true,
       data: transformedFile,
@@ -399,27 +431,27 @@ export const deleteFile = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    
+
     const file = await fileRepository.findOne({
-      where: { id }
+      where: { id },
     });
-    
+
     if (!file) {
       return next(ApiError.notFound(`File with id ${id} not found`));
     }
-    
+
     try {
-      logger.info(`Deleting file from S3: ${file.s3Key}`);
-      await s3Service.deleteFile(file.s3Key);
+      logger.info(`Deleting file from storage: ${file.storageKey}`);
+      await storageService.deleteFile(file.storageKey);
     } catch (error) {
-      logger.warn(`Failed to delete file from S3: ${error}`);
+      logger.warn(`Failed to delete file from storage: ${error}`);
     }
-    
+
     await fileRepository.remove(file);
-    
+
     res.status(200).json({
       success: true,
-      message: 'File deleted successfully'
+      message: 'File deleted successfully',
     });
   } catch (error) {
     next(error);

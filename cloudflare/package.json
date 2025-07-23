@@ -1,0 +1,14 @@
+{
+  "name": "chareli-worker",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "types": "wrangler types"
+  },
+  "devDependencies": {
+    "@tsndr/cloudflare-worker-jwt": "^3.2.0",
+    "wrangler":"^4.23.0"
+  }
+}

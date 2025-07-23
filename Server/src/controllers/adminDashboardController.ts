@@ -8,13 +8,14 @@ import { GamePositionHistory } from '../entities/GamePositionHistory';
 import { ApiError } from '../middlewares/errorHandler';
 import { Between, FindOptionsWhere, In, LessThan, IsNull, Not } from 'typeorm';
 import { checkInactiveUsers } from '../jobs/userInactivityCheck';
-import { s3Service } from '../services/s3.service';
+import { storageService } from '../services/storage.service';
 
 const userRepository = AppDataSource.getRepository(User);
 const gameRepository = AppDataSource.getRepository(Game);
 const analyticsRepository = AppDataSource.getRepository(Analytics);
 const signupAnalyticsRepository = AppDataSource.getRepository(SignupAnalytics);
-const gamePositionHistoryRepository = AppDataSource.getRepository(GamePositionHistory);
+const gamePositionHistoryRepository =
+  AppDataSource.getRepository(GamePositionHistory);
 
 /**
  * @swagger
@@ -50,7 +51,7 @@ export const getDashboardAnalytics = async (
       .select('COUNT(DISTINCT analytics.userId)', 'count')
       .where('analytics.createdAt BETWEEN :start AND :end', {
         start: fortyEightHoursAgo,
-        end: twentyFourHoursAgo
+        end: twentyFourHoursAgo,
       })
       .getRawOne();
 
@@ -62,151 +63,210 @@ export const getDashboardAnalytics = async (
       .where('a1.createdAt > :twentyFourHoursAgo', { twentyFourHoursAgo })
       .andWhere('a2.createdAt BETWEEN :start AND :end', {
         start: fortyEightHoursAgo,
-        end: twentyFourHoursAgo
+        end: twentyFourHoursAgo,
       })
       .getRawOne();
 
     const yesterdayUsers = parseInt(yesterdayUsersResult?.count) || 0;
     const returningUsers = parseInt(returningUsersResult?.count) || 0;
-    const retentionRate = yesterdayUsers > 0 
-      ? Number(((returningUsers / yesterdayUsers) * 100).toFixed(2))
-      : 0;
+    const retentionRate =
+      yesterdayUsers > 0
+        ? Number(((returningUsers / yesterdayUsers) * 100).toFixed(2))
+        : 0;
 
     // 1. Total Users (unique visitors using sessionId + IP + device hybrid approach)
-    const [currentUniqueUsersResult, previousUniqueUsersResult, actualAppUser] = await Promise.all([
-      signupAnalyticsRepository
-        .createQueryBuilder('signup_analytics')
-        .select(`
-          COUNT(DISTINCT 
-            CASE 
+    const [currentUniqueUsersResult, previousUniqueUsersResult, actualAppUser] =
+      await Promise.all([
+        signupAnalyticsRepository
+          .createQueryBuilder('signup_analytics')
+          .select(
+            `
+          COUNT(DISTINCT
+            CASE
               WHEN signup_analytics."sessionId" IS NOT NULL THEN signup_analytics."sessionId"
               ELSE CONCAT(signup_analytics."ipAddress", '|', signup_analytics."deviceType")
             END
-          )`, 'count')
-        .where('signup_analytics."createdAt" > :twentyFourHoursAgo', { twentyFourHoursAgo })
-        .getRawOne(),
-      signupAnalyticsRepository
-        .createQueryBuilder('signup_analytics')
-        .select(`
-          COUNT(DISTINCT 
-            CASE 
+          )`,
+            'count'
+          )
+          .where('signup_analytics."createdAt" > :twentyFourHoursAgo', {
+            twentyFourHoursAgo,
+          })
+          .getRawOne(),
+        signupAnalyticsRepository
+          .createQueryBuilder('signup_analytics')
+          .select(
+            `
+          COUNT(DISTINCT
+            CASE
               WHEN signup_analytics."sessionId" IS NOT NULL THEN signup_analytics."sessionId"
               ELSE CONCAT(signup_analytics."ipAddress", '|', signup_analytics."deviceType")
             END
-          )`, 'count')
-        .where('signup_analytics."createdAt" BETWEEN :start AND :end', {
-          start: fortyEightHoursAgo,
-          end: twentyFourHoursAgo
-        })
-        .getRawOne(),
-      
-      signupAnalyticsRepository
-        .createQueryBuilder('signup_analytics')
-        .select(`
-          COUNT(DISTINCT 
-            CASE 
+          )`,
+            'count'
+          )
+          .where('signup_analytics."createdAt" BETWEEN :start AND :end', {
+            start: fortyEightHoursAgo,
+            end: twentyFourHoursAgo,
+          })
+          .getRawOne(),
+
+        signupAnalyticsRepository
+          .createQueryBuilder('signup_analytics')
+          .select(
+            `
+          COUNT(DISTINCT
+            CASE
               WHEN signup_analytics."sessionId" IS NOT NULL THEN signup_analytics."sessionId"
               ELSE CONCAT(signup_analytics."ipAddress", '|', signup_analytics."deviceType")
             END
-          )`, 'count')
-        .getRawOne()
-    ]);
-    
+          )`,
+            'count'
+          )
+          .getRawOne(),
+      ]);
+
     const currentTotalUsers = parseInt(currentUniqueUsersResult?.count) || 0;
     const previousTotalUsers = parseInt(previousUniqueUsersResult?.count) || 0;
     // Ensure minimum count is 1 since admin user always exists
     const actualAppUserCount = Math.max(parseInt(actualAppUser?.count) || 0, 1);
-    const totalUsersPercentageChange = previousTotalUsers > 0 
-      ? Math.max(Math.min(((currentTotalUsers - previousTotalUsers) / previousTotalUsers) * 100, 100), -100)
-      : 0;
+    const totalUsersPercentageChange =
+      previousTotalUsers > 0
+        ? Math.max(
+            Math.min(
+              ((currentTotalUsers - previousTotalUsers) / previousTotalUsers) *
+                100,
+              100
+            ),
+            -100
+          )
+        : 0;
 
     // 2. Total Registered Users with active/inactive breakdown
-    const [currentTotalRegisteredUsers, previousTotalRegisteredUsers, actualRegisteredUsers] = await Promise.all([
+    const [
+      currentTotalRegisteredUsers,
+      previousTotalRegisteredUsers,
+      actualRegisteredUsers,
+    ] = await Promise.all([
       userRepository.count({
         where: {
-          createdAt: Between(twentyFourHoursAgo, now)
-        }
+          createdAt: Between(twentyFourHoursAgo, now),
+        },
       }),
       userRepository.count({
         where: {
-          createdAt: Between(fortyEightHoursAgo, twentyFourHoursAgo)
-        }
+          createdAt: Between(fortyEightHoursAgo, twentyFourHoursAgo),
+        },
       }),
-      userRepository.count()
+      userRepository.count(),
     ]);
 
-    const totalRegisteredUsersPercentageChange = previousTotalRegisteredUsers > 0
-      ? Math.max(Math.min(((currentTotalRegisteredUsers - previousTotalRegisteredUsers) / previousTotalRegisteredUsers) * 100, 100), -100)
-      : 0;
+    const totalRegisteredUsersPercentageChange =
+      previousTotalRegisteredUsers > 0
+        ? Math.max(
+            Math.min(
+              ((currentTotalRegisteredUsers - previousTotalRegisteredUsers) /
+                previousTotalRegisteredUsers) *
+                100,
+              100
+            ),
+            -100
+          )
+        : 0;
 
     // Count active and inactive users (no percentage change needed as requested)
     const activeUsers = await userRepository.count({
-      where: { isActive: true }
+      where: { isActive: true },
     });
-    
+
     const inactiveUsers = await userRepository.count({
-      where: { isActive: false }
+      where: { isActive: false },
     });
 
     // 3. Total Games
-    const [currentTotalGames, previousTotalGames, actualGames] = await Promise.all([
-      gameRepository.count({
-        where: {
-          createdAt: Between(twentyFourHoursAgo, now)
-        }
-      }),
-      gameRepository.count({
-        where: {
-          createdAt: Between(fortyEightHoursAgo, twentyFourHoursAgo)
-        }
-      }),
-      gameRepository.count()
-    ]);
+    const [currentTotalGames, previousTotalGames, actualGames] =
+      await Promise.all([
+        gameRepository.count({
+          where: {
+            createdAt: Between(twentyFourHoursAgo, now),
+          },
+        }),
+        gameRepository.count({
+          where: {
+            createdAt: Between(fortyEightHoursAgo, twentyFourHoursAgo),
+          },
+        }),
+        gameRepository.count(),
+      ]);
 
-    const totalGamesPercentageChange = previousTotalGames > 0
-      ? Math.max(Math.min(((currentTotalGames - previousTotalGames) / previousTotalGames) * 100, 100), -100)
-      : 0;
+    const totalGamesPercentageChange =
+      previousTotalGames > 0
+        ? Math.max(
+            Math.min(
+              ((currentTotalGames - previousTotalGames) / previousTotalGames) *
+                100,
+              100
+            ),
+            -100
+          )
+        : 0;
 
     // 4. Total Sessions (game-related only)
-    const [currentTotalSessions, previousTotalSessions, actualSessions] = await Promise.all([
-      analyticsRepository.count({
-        where: {
-          gameId: Not(IsNull()),
-          startTime: Not(IsNull()),
-          endTime: Not(IsNull()),
-          createdAt: Between(twentyFourHoursAgo, now)
-        }
-      }),
-      analyticsRepository.count({
-        where: {
-          gameId: Not(IsNull()),
-          startTime: Not(IsNull()),
-          endTime: Not(IsNull()),
-          createdAt: Between(fortyEightHoursAgo, twentyFourHoursAgo)
-        }
-      }),
-      analyticsRepository.count({
-        where: {
-          gameId: Not(IsNull()),
-          startTime: Not(IsNull()),
-          endTime: Not(IsNull())
-        }
-      })
-    ]);
+    const [currentTotalSessions, previousTotalSessions, actualSessions] =
+      await Promise.all([
+        analyticsRepository.count({
+          where: {
+            gameId: Not(IsNull()),
+            startTime: Not(IsNull()),
+            endTime: Not(IsNull()),
+            createdAt: Between(twentyFourHoursAgo, now),
+          },
+        }),
+        analyticsRepository.count({
+          where: {
+            gameId: Not(IsNull()),
+            startTime: Not(IsNull()),
+            endTime: Not(IsNull()),
+            createdAt: Between(fortyEightHoursAgo, twentyFourHoursAgo),
+          },
+        }),
+        analyticsRepository.count({
+          where: {
+            gameId: Not(IsNull()),
+            startTime: Not(IsNull()),
+            endTime: Not(IsNull()),
+          },
+        }),
+      ]);
 
-    const totalSessionsPercentageChange = previousTotalSessions > 0
-      ? Math.max(Math.min(((currentTotalSessions - previousTotalSessions) / previousTotalSessions) * 100, 100), -100)
-      : 0;
+    const totalSessionsPercentageChange =
+      previousTotalSessions > 0
+        ? Math.max(
+            Math.min(
+              ((currentTotalSessions - previousTotalSessions) /
+                previousTotalSessions) *
+                100,
+              100
+            ),
+            -100
+          )
+        : 0;
 
     // 5. Total Time Played (in minutes, game-related only)
-    const [currentTotalTimePlayedResult, previousTotalTimePlayedResult, actualTimePlayed] = await Promise.all([
+    const [
+      currentTotalTimePlayedResult,
+      previousTotalTimePlayedResult,
+      actualTimePlayed,
+    ] = await Promise.all([
       analyticsRepository
         .createQueryBuilder('analytics')
         .select('SUM(analytics.duration)', 'totalPlayTime')
         .where('analytics.gameId IS NOT NULL')
         .andWhere('analytics.startTime IS NOT NULL')
         .andWhere('analytics.endTime IS NOT NULL')
-        .andWhere('analytics.createdAt > :twentyFourHoursAgo', { twentyFourHoursAgo })
+        .andWhere('analytics.createdAt > :twentyFourHoursAgo', {
+          twentyFourHoursAgo,
+        })
         .getRawOne(),
 
       analyticsRepository
@@ -217,7 +277,7 @@ export const getDashboardAnalytics = async (
         .andWhere('analytics.endTime IS NOT NULL')
         .andWhere('analytics.createdAt BETWEEN :start AND :end', {
           start: fortyEightHoursAgo,
-          end: twentyFourHoursAgo
+          end: twentyFourHoursAgo,
         })
         .getRawOne(),
 
@@ -227,24 +287,36 @@ export const getDashboardAnalytics = async (
         .where('analytics.gameId IS NOT NULL')
         .andWhere('analytics.startTime IS NOT NULL')
         .andWhere('analytics.endTime IS NOT NULL')
-        .getRawOne()
+        .getRawOne(),
     ]);
 
     const totalPlayTime = Number(actualTimePlayed?.totalPlayTime) || 0;
 
-
-    const currentTotalTimePlayed = Math.round((currentTotalTimePlayedResult?.totalPlayTime || 0) / 60);
-    const previousTotalTimePlayed = Math.round((previousTotalTimePlayedResult?.totalPlayTime || 0) / 60);
-    const totalTimePlayedPercentageChange = previousTotalTimePlayed > 0
-      ? Math.max(Math.min(((currentTotalTimePlayed - previousTotalTimePlayed) / previousTotalTimePlayed) * 100, 100), -100)
-      : 0;
+    const currentTotalTimePlayed = Math.round(
+      (currentTotalTimePlayedResult?.totalPlayTime || 0) / 60
+    );
+    const previousTotalTimePlayed = Math.round(
+      (previousTotalTimePlayedResult?.totalPlayTime || 0) / 60
+    );
+    const totalTimePlayedPercentageChange =
+      previousTotalTimePlayed > 0
+        ? Math.max(
+            Math.min(
+              ((currentTotalTimePlayed - previousTotalTimePlayed) /
+                previousTotalTimePlayed) *
+                100,
+              100
+            ),
+            -100
+          )
+        : 0;
 
     // 6. Most Played Game with percentage change
     const mostPlayedGameResult = await analyticsRepository
       .createQueryBuilder('analytics')
       .select('analytics.gameId', 'gameId')
       .addSelect('game.title', 'gameTitle')
-      .addSelect('thumbnailFile.s3Key', 'thumbnailKey')
+      .addSelect('thumbnailFile.storageKey', 'thumbnailKey')
       .addSelect('COUNT(*)', 'sessionCount')
       .leftJoin('analytics.game', 'game')
       .leftJoin('game.thumbnailFile', 'thumbnailFile')
@@ -253,7 +325,7 @@ export const getDashboardAnalytics = async (
       .andWhere('analytics.endTime IS NOT NULL')
       .groupBy('analytics.gameId')
       .addGroupBy('game.title')
-      .addGroupBy('thumbnailFile.s3Key')
+      .addGroupBy('thumbnailFile.storageKey')
       .orderBy('COUNT(*)', 'DESC')
       .limit(1)
       .getRawOne();
@@ -264,67 +336,101 @@ export const getDashboardAnalytics = async (
       const currentSessions = await analyticsRepository
         .createQueryBuilder('analytics')
         .select('COUNT(*)', 'count')
-        .where('analytics.gameId = :gameId', { gameId: mostPlayedGameResult.gameId })
+        .where('analytics.gameId = :gameId', {
+          gameId: mostPlayedGameResult.gameId,
+        })
         .andWhere('analytics.startTime IS NOT NULL')
         .andWhere('analytics.endTime IS NOT NULL')
-        .andWhere('analytics.createdAt > :twentyFourHoursAgo', { twentyFourHoursAgo })
+        .andWhere('analytics.createdAt > :twentyFourHoursAgo', {
+          twentyFourHoursAgo,
+        })
         .getRawOne();
 
       // Get previous period sessions for most played game
       const previousSessions = await analyticsRepository
         .createQueryBuilder('analytics')
         .select('COUNT(*)', 'count')
-        .where('analytics.gameId = :gameId', { gameId: mostPlayedGameResult.gameId })
+        .where('analytics.gameId = :gameId', {
+          gameId: mostPlayedGameResult.gameId,
+        })
         .andWhere('analytics.startTime IS NOT NULL')
         .andWhere('analytics.endTime IS NOT NULL')
         .andWhere('analytics.createdAt BETWEEN :start AND :end', {
           start: fortyEightHoursAgo,
-          end: twentyFourHoursAgo
+          end: twentyFourHoursAgo,
         })
         .getRawOne();
 
       const current = parseInt(currentSessions?.count) || 0;
       const previous = parseInt(previousSessions?.count) || 0;
-      const percentageChange = previous > 0
-        ? Math.max(Math.min(((current - previous) / previous) * 100, 100), -100)
-        : 0;
+      const percentageChange =
+        previous > 0
+          ? Math.max(
+              Math.min(((current - previous) / previous) * 100, 100),
+              -100
+            )
+          : 0;
 
       mostPlayedGame = {
         id: mostPlayedGameResult.gameId,
         title: mostPlayedGameResult.gameTitle,
-        thumbnailUrl: mostPlayedGameResult.thumbnailKey ? `${s3Service.getBaseUrl()}/${mostPlayedGameResult.thumbnailKey}` : null,
+        thumbnailUrl: mostPlayedGameResult.thumbnailKey
+          ? storageService.getPublicUrl(mostPlayedGameResult.thumbnailKey)
+          : null,
         sessionCount: parseInt(mostPlayedGameResult.sessionCount),
-        percentageChange: Number(percentageChange.toFixed(2))
+        percentageChange: Number(percentageChange.toFixed(2)),
       };
     }
-    
+
     // 7. Average Session Duration (in minutes, game-related only)
-    const [currentAvgDurationResult, previousAvgDurationResult] = await Promise.all([
-      analyticsRepository
-        .createQueryBuilder('analytics')
-        .select('AVG(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.duration END)', 'avgDuration')
-        .where('analytics.gameId IS NOT NULL')
-        .andWhere('analytics.duration IS NOT NULL')
-        .andWhere('analytics.createdAt > :twentyFourHoursAgo', { twentyFourHoursAgo })
-        .getRawOne(),
-      analyticsRepository
-        .createQueryBuilder('analytics')
-        .select('AVG(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.duration END)', 'avgDuration')
-        .where('analytics.gameId IS NOT NULL')
-        .andWhere('analytics.duration IS NOT NULL')
-        .andWhere('analytics.createdAt BETWEEN :start AND :end', {
-          start: fortyEightHoursAgo,
-          end: twentyFourHoursAgo
-        })
-        .getRawOne()
-    ]);
+    const [currentAvgDurationResult, previousAvgDurationResult] =
+      await Promise.all([
+        analyticsRepository
+          .createQueryBuilder('analytics')
+          .select(
+            'AVG(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.duration END)',
+            'avgDuration'
+          )
+          .where('analytics.gameId IS NOT NULL')
+          .andWhere('analytics.duration IS NOT NULL')
+          .andWhere('analytics.createdAt > :twentyFourHoursAgo', {
+            twentyFourHoursAgo,
+          })
+          .getRawOne(),
+        analyticsRepository
+          .createQueryBuilder('analytics')
+          .select(
+            'AVG(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.duration END)',
+            'avgDuration'
+          )
+          .where('analytics.gameId IS NOT NULL')
+          .andWhere('analytics.duration IS NOT NULL')
+          .andWhere('analytics.createdAt BETWEEN :start AND :end', {
+            start: fortyEightHoursAgo,
+            end: twentyFourHoursAgo,
+          })
+          .getRawOne(),
+      ]);
 
     // Convert to minutes before calculating percentage change
-    const currentAvgSessionDuration = Math.round(currentAvgDurationResult?.avgDuration || 0);
-    const previousAvgSessionDuration = Math.round(previousAvgDurationResult?.avgDuration || 0);
-    const avgSessionDurationPercentageChange = previousAvgSessionDuration > 0
-      ? Math.max(Math.min(((currentAvgSessionDuration - previousAvgSessionDuration) / previousAvgSessionDuration) * 100, 100), -100)
-      : 0;
+    const currentAvgSessionDuration = Math.round(
+      currentAvgDurationResult?.avgDuration || 0
+    );
+    const previousAvgSessionDuration = Math.round(
+      previousAvgDurationResult?.avgDuration || 0
+    );
+    const avgSessionDurationPercentageChange =
+      previousAvgSessionDuration > 0
+        ? Math.max(
+            Math.min(
+              ((currentAvgSessionDuration - previousAvgSessionDuration) /
+                previousAvgSessionDuration) *
+                100,
+              100
+            ),
+            -100
+          )
+        : 0;
 
     const [adultsCount, minorsCount] = await Promise.all([
       userRepository.count({ where: { isAdult: true } }),
@@ -336,11 +442,13 @@ export const getDashboardAnalytics = async (
       data: {
         totalUsers: {
           current: actualAppUserCount.toString(),
-          percentageChange: Number(totalUsersPercentageChange.toFixed(2))
+          percentageChange: Number(totalUsersPercentageChange.toFixed(2)),
         },
         totalRegisteredUsers: {
           current: actualRegisteredUsers,
-          percentageChange: Number(totalRegisteredUsersPercentageChange.toFixed(2))
+          percentageChange: Number(
+            totalRegisteredUsersPercentageChange.toFixed(2)
+          ),
         },
         activeUsers,
         inactiveUsers,
@@ -348,23 +456,25 @@ export const getDashboardAnalytics = async (
         minorsCount,
         totalGames: {
           current: actualGames,
-          percentageChange: Number(totalGamesPercentageChange.toFixed(2))
+          percentageChange: Number(totalGamesPercentageChange.toFixed(2)),
         },
         totalSessions: {
           current: actualSessions,
-          percentageChange: Number(totalSessionsPercentageChange.toFixed(2))
+          percentageChange: Number(totalSessionsPercentageChange.toFixed(2)),
         },
         totalTimePlayed: {
           current: totalPlayTime,
-          percentageChange: Number(totalTimePlayedPercentageChange.toFixed(2))
+          percentageChange: Number(totalTimePlayedPercentageChange.toFixed(2)),
         },
         mostPlayedGame,
         avgSessionDuration: {
           current: currentAvgSessionDuration,
-          percentageChange: Number(avgSessionDurationPercentageChange.toFixed(2))
+          percentageChange: Number(
+            avgSessionDurationPercentageChange.toFixed(2)
+          ),
         },
-        retentionRate
-      }
+        retentionRate,
+      },
     });
   } catch (error) {
     next(error);
@@ -397,10 +507,10 @@ export const runInactiveUsersCheck = async (
 ): Promise<void> => {
   try {
     await checkInactiveUsers();
-    
+
     res.status(200).json({
       success: true,
-      message: 'Inactive users check completed successfully'
+      message: 'Inactive users check completed successfully',
     });
   } catch (error) {
     next(error);
@@ -458,108 +568,119 @@ export const getUserActivityLog = async (
 ): Promise<void> => {
   try {
     const { page, limit, userId } = req.query;
-    
+
     // Only apply pagination if page or limit parameters are explicitly provided
     const shouldPaginate = page || limit;
     const pageNumber = shouldPaginate ? parseInt(page as string, 10) || 1 : 1;
-    const limitNumber = shouldPaginate ? parseInt(limit as string, 10) || 10 : undefined;
-    
+    const limitNumber = shouldPaginate
+      ? parseInt(limit as string, 10) || 10
+      : undefined;
+
     // First, get the list of users
-    const userQueryBuilder = userRepository.createQueryBuilder('user')
-      .select(['user.id', 'user.firstName', 'user.lastName', 'user.email', 'user.isActive', 'user.lastSeen']);
-    
+    const userQueryBuilder = userRepository
+      .createQueryBuilder('user')
+      .select([
+        'user.id',
+        'user.firstName',
+        'user.lastName',
+        'user.email',
+        'user.isActive',
+        'user.lastSeen',
+      ]);
+
     // Apply user filter if provided
     if (userId) {
       userQueryBuilder.where('user.id = :userId', { userId });
     }
-    
+
     // Get total count for pagination info
     const total = await userQueryBuilder.getCount();
-    
+
     // Apply pagination only if explicitly requested
     if (shouldPaginate && limitNumber) {
-      userQueryBuilder
-        .skip((pageNumber - 1) * limitNumber)
-        .take(limitNumber);
+      userQueryBuilder.skip((pageNumber - 1) * limitNumber).take(limitNumber);
     }
-    
-    userQueryBuilder.orderBy('user.createdAt', 'DESC');
-    
-    const users = await userQueryBuilder.getMany();
-    
-    // Format the data - one entry per user
-    const formattedActivities = await Promise.all(users.map(async (user) => {
-      // Get the user's latest activity
-      const latestActivity = await analyticsRepository.findOne({
-        where: { userId: user.id },
-        order: { createdAt: 'DESC' }
-      });
-      
-      // Get the user's last played game
-      const lastGameActivity = await analyticsRepository.findOne({
-        where: {
-          userId: user.id,
-          gameId: Not(IsNull())
-        },
-        relations: ['game'],
-        order: { startTime: 'DESC' }
-      });
-      
-      // Default values
-      let activity = '';
-      let gameTitle = '';
-      let gameStartTime: Date | null = null;
-      let gameEndTime: Date | null = null;
-      
-      // If we found an activity, use its data
-      if (latestActivity) {
-        activity = latestActivity.activityType;
-      }
-      
-      // If we found a game activity, use its data
-      if (lastGameActivity && lastGameActivity.game) {
-        gameTitle = lastGameActivity.game.title;
-        gameStartTime = lastGameActivity.startTime;
-        gameEndTime = lastGameActivity.endTime;
-      }
 
-      console.log('Activity:', activity)
-      console.log('User lastSeen:', user.lastSeen)
-      console.log('User isActive:', user.isActive)
-      
-      // Determine if user is online based on lastSeen timestamp and heartbeat system
-      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-      const isOnline = user.lastSeen && user.lastSeen > fiveMinutesAgo && user.isActive;
-      
-      console.log('Five minutes ago:', fiveMinutesAgo)
-      console.log('Is online calculation:', isOnline)
-      
-      return {
-        userId: user.id,
-        name: `${user.firstName || ""} ${user.lastName || ""}`,
-        userStatus: isOnline ? 'Online' : 'Offline',
-        activity: activity,
-        lastGamePlayed: gameTitle,
-        startTime: gameStartTime,
-        endTime: gameEndTime
-      };
-    }));
-    
+    userQueryBuilder.orderBy('user.createdAt', 'DESC');
+
+    const users = await userQueryBuilder.getMany();
+
+    // Format the data - one entry per user
+    const formattedActivities = await Promise.all(
+      users.map(async (user) => {
+        // Get the user's latest activity
+        const latestActivity = await analyticsRepository.findOne({
+          where: { userId: user.id },
+          order: { createdAt: 'DESC' },
+        });
+
+        // Get the user's last played game
+        const lastGameActivity = await analyticsRepository.findOne({
+          where: {
+            userId: user.id,
+            gameId: Not(IsNull()),
+          },
+          relations: ['game'],
+          order: { startTime: 'DESC' },
+        });
+
+        // Default values
+        let activity = '';
+        let gameTitle = '';
+        let gameStartTime: Date | null = null;
+        let gameEndTime: Date | null = null;
+
+        // If we found an activity, use its data
+        if (latestActivity) {
+          activity = latestActivity.activityType;
+        }
+
+        // If we found a game activity, use its data
+        if (lastGameActivity && lastGameActivity.game) {
+          gameTitle = lastGameActivity.game.title;
+          gameStartTime = lastGameActivity.startTime;
+          gameEndTime = lastGameActivity.endTime;
+        }
+
+        console.log('Activity:', activity);
+        console.log('User lastSeen:', user.lastSeen);
+        console.log('User isActive:', user.isActive);
+
+        // Determine if user is online based on lastSeen timestamp and heartbeat system
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+        const isOnline =
+          user.lastSeen && user.lastSeen > fiveMinutesAgo && user.isActive;
+
+        console.log('Five minutes ago:', fiveMinutesAgo);
+        console.log('Is online calculation:', isOnline);
+
+        return {
+          userId: user.id,
+          name: `${user.firstName || ''} ${user.lastName || ''}`,
+          userStatus: isOnline ? 'Online' : 'Offline',
+          activity: activity,
+          lastGamePlayed: gameTitle,
+          startTime: gameStartTime,
+          endTime: gameEndTime,
+        };
+      })
+    );
+
     // Prepare response with conditional pagination info
     const response: any = {
       success: true,
       count: formattedActivities.length,
       total,
-      data: formattedActivities
+      data: formattedActivities,
     };
-    
+
     // Only include pagination info if pagination was applied
     if (shouldPaginate && limitNumber) {
       response.page = pageNumber;
       response.limit = limitNumber;
       response.totalPages = Math.ceil(total / limitNumber);
     }
-    
+
     res.status(200).json(response);
   } catch (error) {
     next(error);
@@ -621,35 +742,32 @@ export const getGamesWithAnalytics = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { 
-      page, 
-      limit, 
-      categoryId, 
-      status, 
-      search
-    } = req.query;
-    
+    const { page, limit, categoryId, status, search } = req.query;
+
     // Only apply pagination if page or limit parameters are explicitly provided
     const shouldPaginate = page || limit;
     const pageNumber = shouldPaginate ? parseInt(page as string, 10) || 1 : 1;
-    const limitNumber = shouldPaginate ? parseInt(limit as string, 10) || 10 : undefined;
-    
+    const limitNumber = shouldPaginate
+      ? parseInt(limit as string, 10) || 10
+      : undefined;
+
     // Build query for games
-    const queryBuilder = gameRepository.createQueryBuilder('game')
+    const queryBuilder = gameRepository
+      .createQueryBuilder('game')
       .leftJoinAndSelect('game.category', 'category')
       .leftJoinAndSelect('game.thumbnailFile', 'thumbnailFile')
       .leftJoinAndSelect('game.createdBy', 'createdBy');
-    
+
     // Apply category filter if provided
     if (categoryId) {
       queryBuilder.andWhere('game.categoryId = :categoryId', { categoryId });
     }
-    
+
     // Apply status filter if provided
     if (status) {
       queryBuilder.andWhere('game.status = :status', { status });
     }
-    
+
     // Apply search filter if provided
     if (search) {
       queryBuilder.andWhere(
@@ -657,26 +775,23 @@ export const getGamesWithAnalytics = async (
         { search: `%${search}%` }
       );
     }
-    
+
     // Get total count for pagination info
     const total = await queryBuilder.getCount();
-    
+
     // Apply pagination only if explicitly requested
     if (shouldPaginate && limitNumber) {
-      queryBuilder
-        .skip((pageNumber - 1) * limitNumber)
-        .take(limitNumber);
+      queryBuilder.skip((pageNumber - 1) * limitNumber).take(limitNumber);
     }
-    
+
     queryBuilder.orderBy('game.position', 'ASC');
-    queryBuilder.addOrderBy('game.createdAt', 'DESC')
-    
-    
+    queryBuilder.addOrderBy('game.createdAt', 'DESC');
+
     const games = await queryBuilder.getMany();
-    
+
     // Get game IDs for analytics query
-    const gameIds = games.map(game => game.id);
-    
+    const gameIds = games.map((game) => game.id);
+
     // Get analytics data for these games
     let gamesAnalytics = [];
 
@@ -694,54 +809,57 @@ export const getGamesWithAnalytics = async (
         .getRawMany();
     }
 
-    
     // Create a map of game IDs to their analytics data
     const analyticsMap = new Map();
-    
-    gamesAnalytics.forEach(item => {
+
+    gamesAnalytics.forEach((item) => {
       analyticsMap.set(item.gameId, {
         uniquePlayers: parseInt(item.uniquePlayers) || 0,
         totalSessions: parseInt(item.totalSessions) || 0,
-        totalPlayTime: item.totalPlayTime || 0
+        totalPlayTime: item.totalPlayTime || 0,
       });
     });
-    
+
     // Combine game data with analytics data and transform URLs
-    const gamesWithAnalytics = games.map(game => {
+    const gamesWithAnalytics = games.map((game) => {
       const analytics = analyticsMap.get(game.id) || {
         uniquePlayers: 0,
         totalSessions: 0,
-        totalPlayTime: 0
+        totalPlayTime: 0,
       };
-      
+
       // Transform game data to include CloudFront URLs
       const transformedGame = {
         ...game,
-        thumbnailFile: game.thumbnailFile ? {
-          ...game.thumbnailFile,
-          url: game.thumbnailFile.s3Key ? `${s3Service.getBaseUrl()}/${game.thumbnailFile.s3Key}` : null
-        } : null,
-        analytics
+        thumbnailFile: game.thumbnailFile
+          ? {
+              ...game.thumbnailFile,
+              url: game.thumbnailFile.storageKey
+                ? storageService.getPublicUrl(game.thumbnailFile.storageKey)
+                : null,
+            }
+          : null,
+        analytics,
       };
-      
+
       return transformedGame;
     });
-    
+
     // Prepare response with conditional pagination info
     const response: any = {
       success: true,
       count: games.length,
       total,
-      data: gamesWithAnalytics
+      data: gamesWithAnalytics,
     };
-    
+
     // Only include pagination info if pagination was applied
     if (shouldPaginate && limitNumber) {
       response.page = pageNumber;
       response.limit = limitNumber;
       response.totalPages = Math.ceil(total / limitNumber);
     }
-    
+
     res.status(200).json(response);
   } catch (error) {
     next(error);
@@ -796,22 +914,22 @@ export const getGameAnalyticsById = async (
   try {
     const { id } = req.params;
     const { startDate, endDate } = req.query;
-    
+
     // Check if game exists
     const game = await gameRepository.findOne({
       where: { id },
-      relations: ['category', 'thumbnailFile', 'createdBy', 'gameFile']
+      relations: ['category', 'thumbnailFile', 'createdBy', 'gameFile'],
     });
-    
+
     if (!game) {
       return next(ApiError.notFound(`Game with id ${id} not found`));
     }
-    
+
     // Build where conditions for analytics queries
     const whereConditions: FindOptionsWhere<Analytics> = {
-      gameId: id
+      gameId: id,
     };
-    
+
     // Add date range if provided
     if (startDate && endDate) {
       whereConditions.startTime = Between(
@@ -824,7 +942,7 @@ export const getGameAnalyticsById = async (
         new Date()
       );
     }
-    
+
     // Get game's analytics summary
     const analyticsSummary = await analyticsRepository
       .createQueryBuilder('analytics')
@@ -836,7 +954,7 @@ export const getGameAnalyticsById = async (
       .andWhere('analytics.startTime IS NOT NULL')
       .andWhere('analytics.endTime IS NOT NULL')
       .getRawOne();
-    
+
     // Get top players for this game
     const topPlayers = await analyticsRepository
       .createQueryBuilder('analytics')
@@ -844,57 +962,83 @@ export const getGameAnalyticsById = async (
       .addSelect('user.email', 'userEmail')
       .addSelect('user.firstName', 'firstName')
       .addSelect('user.lastName', 'lastName')
-      .addSelect('COUNT(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.id END)', 'sessionCount')
-      .addSelect('SUM(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.duration ELSE 0 END)', 'totalPlayTime')
+      .addSelect(
+        'COUNT(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.id END)',
+        'sessionCount'
+      )
+      .addSelect(
+        'SUM(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.duration ELSE 0 END)',
+        'totalPlayTime'
+      )
       .leftJoin('analytics.user', 'user')
       .where(whereConditions)
       .groupBy('analytics.userId')
       .addGroupBy('user.email')
       .addGroupBy('user.firstName')
       .addGroupBy('user.lastName')
-      .orderBy('SUM(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.duration ELSE 0 END)', 'DESC')
+      .orderBy(
+        'SUM(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.duration ELSE 0 END)',
+        'DESC'
+      )
       .limit(10)
       .getRawMany();
-    
+
     // Format the top players data
-    const formattedTopPlayers = topPlayers.map(player => ({
+    const formattedTopPlayers = topPlayers.map((player) => ({
       userId: player.userId,
       email: player.userEmail,
       name: `${player.firstName} ${player.lastName}`,
       sessionCount: parseInt(player.sessionCount) || 0,
-      totalPlayTime: Math.round((player.totalPlayTime || 0) / 60) // Convert to minutes
+      totalPlayTime: Math.round((player.totalPlayTime || 0) / 60), // Convert to minutes
     }));
-    
+
     // Get daily play time for trend analysis
     const dailyPlayTime = await analyticsRepository
       .createQueryBuilder('analytics')
       .select('DATE(analytics.startTime)', 'date')
-      .addSelect('COUNT(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.id END)', 'sessions')
-      .addSelect('COUNT(DISTINCT CASE WHEN analytics.gameId IS NOT NULL THEN analytics.userId END)', 'players')
-      .addSelect('SUM(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.duration ELSE 0 END)', 'totalPlayTime')
+      .addSelect(
+        'COUNT(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.id END)',
+        'sessions'
+      )
+      .addSelect(
+        'COUNT(DISTINCT CASE WHEN analytics.gameId IS NOT NULL THEN analytics.userId END)',
+        'players'
+      )
+      .addSelect(
+        'SUM(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.duration ELSE 0 END)',
+        'totalPlayTime'
+      )
       .where(whereConditions)
       .groupBy('DATE(analytics.startTime)')
       .orderBy('date', 'ASC')
       .getRawMany();
-    
+
     // Format the daily play time data
-    const formattedDailyPlayTime = dailyPlayTime.map(day => ({
+    const formattedDailyPlayTime = dailyPlayTime.map((day) => ({
       date: day.date,
       sessions: parseInt(day.sessions) || 0,
       players: parseInt(day.players) || 0,
-      playTime: parseInt((day.totalPlayTime || 0))
+      playTime: parseInt(day.totalPlayTime || 0),
     }));
-    
+
     const transformedGame = {
       ...game,
-      thumbnailFile: game.thumbnailFile ? {
-        ...game.thumbnailFile,
-        url: game.thumbnailFile.s3Key ? `${s3Service.getBaseUrl()}/${game.thumbnailFile.s3Key}` : null
-      } : null,
-      gameFile: game.gameFile ? {
-        ...game.gameFile,
-        url: game.gameFile.s3Key ? `${s3Service.getBaseUrl()}/${game.gameFile.s3Key}` : null
-      } : null
+      thumbnailFile: game.thumbnailFile
+        ? {
+            ...game.thumbnailFile,
+            url: game.thumbnailFile.storageKey
+              ? storageService.getPublicUrl(game.thumbnailFile.storageKey)
+              : null,
+          }
+        : null,
+      gameFile: game.gameFile
+        ? {
+            ...game.gameFile,
+            url: game.gameFile.storageKey
+              ? storageService.getPublicUrl(game.gameFile.storageKey)
+              : null,
+          }
+        : null,
     };
 
     // Prepare the response
@@ -903,16 +1047,18 @@ export const getGameAnalyticsById = async (
       analytics: {
         uniquePlayers: parseInt(analyticsSummary?.uniquePlayers) || 0,
         totalSessions: parseInt(analyticsSummary?.totalSessions) || 0,
-        totalPlayTime: parseInt((analyticsSummary?.totalPlayTime || 0)),
-        avgSessionDuration: Math.round((analyticsSummary?.avgSessionDuration || 0) / 60), // Convert to minutes
+        totalPlayTime: parseInt(analyticsSummary?.totalPlayTime || 0),
+        avgSessionDuration: Math.round(
+          (analyticsSummary?.avgSessionDuration || 0) / 60
+        ), // Convert to minutes
         topPlayers: formattedTopPlayers,
-        dailyPlayTime: formattedDailyPlayTime
-      }
+        dailyPlayTime: formattedDailyPlayTime,
+      },
     };
-    
+
     res.status(200).json({
       success: true,
-      data: gameAnalytics
+      data: gameAnalytics,
     });
   } catch (error) {
     next(error);
@@ -974,9 +1120,9 @@ export const getUserAnalyticsById = async (
         role: {
           id: true,
           name: true,
-          description: true
-        }
-      }
+          description: true,
+        },
+      },
     });
 
     if (!user) {
@@ -999,9 +1145,15 @@ export const getUserAnalyticsById = async (
       .createQueryBuilder('analytics')
       .select('analytics.gameId', 'gameId')
       .addSelect('game.title', 'gameTitle')
-      .addSelect('thumbnailFile.s3Key', 'thumbnailKey')
-      .addSelect('COUNT(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.id END)', 'sessionCount')
-      .addSelect('SUM(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.duration ELSE 0 END)', 'totalPlayTime')
+      .addSelect('thumbnailFile.storageKey', 'thumbnailKey')
+      .addSelect(
+        'COUNT(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.id END)',
+        'sessionCount'
+      )
+      .addSelect(
+        'SUM(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.duration ELSE 0 END)',
+        'totalPlayTime'
+      )
       .addSelect('MAX(analytics.startTime)', 'lastPlayed')
       .leftJoin('analytics.game', 'game')
       .leftJoin('game.thumbnailFile', 'thumbnailFile')
@@ -1009,18 +1161,20 @@ export const getUserAnalyticsById = async (
       .andWhere('analytics.gameId IS NOT NULL')
       .groupBy('analytics.gameId')
       .addGroupBy('game.title')
-      .addGroupBy('thumbnailFile.s3Key')
+      .addGroupBy('thumbnailFile.storageKey')
       .orderBy('MAX(analytics.startTime)', 'DESC')
       .getRawMany();
 
     // Format the game activity data
-    const formattedGameActivity = gameActivity.map(game => ({
+    const formattedGameActivity = gameActivity.map((game) => ({
       gameId: game.gameId,
       gameTitle: game.gameTitle,
-      thumbnailUrl: game.thumbnailKey ? `${s3Service.getBaseUrl()}/${game.thumbnailKey}` : null,
+      thumbnailUrl: game.thumbnailKey
+        ? storageService.getPublicUrl(game.thumbnailKey)
+        : null,
       sessionCount: parseInt(game.sessionCount) || 0,
-      totalPlayTime: parseInt((game.totalPlayTime || 0)), // Convert to minutes
-      lastPlayed: game.lastPlayed
+      totalPlayTime: parseInt(game.totalPlayTime || 0), // Convert to minutes
+      lastPlayed: game.lastPlayed,
     }));
 
     // Prepare the response
@@ -1029,14 +1183,14 @@ export const getUserAnalyticsById = async (
       analytics: {
         totalGamesPlayed: parseInt(analyticsSummary?.totalGamesPlayed) || 0,
         totalSessionCount: parseInt(analyticsSummary?.totalSessionCount) || 0,
-        totalTimePlayed: parseInt((analyticsSummary?.totalTimePlayed || 0)), // Convert to minutes
-        gameActivity: formattedGameActivity
-      }
+        totalTimePlayed: parseInt(analyticsSummary?.totalTimePlayed || 0), // Convert to minutes
+        gameActivity: formattedGameActivity,
+      },
     };
 
     res.status(200).json({
       success: true,
-      data: userAnalytics
+      data: userAnalytics,
     });
   } catch (error) {
     next(error);
@@ -1098,86 +1252,96 @@ export const getGamesPopularityMetrics = async (
         title: true,
         status: true,
         thumbnailFile: {
-          s3Key: true
-        }
-      }
+          storageKey: true,
+        },
+      },
     });
 
     // Get metrics for all games
-    const gamesMetrics = await Promise.all(games.map(async (game) => {
-      // Get total plays and average play time
-      const overallMetrics = await analyticsRepository
-        .createQueryBuilder('analytics')
-        .select('COUNT(*)', 'totalPlays')
-        .addSelect('AVG(analytics.duration)', 'averagePlayTime')
-        .where('analytics.gameId = :gameId', { gameId: game.id })
-        .andWhere('analytics.startTime IS NOT NULL')
-        .andWhere('analytics.endTime IS NOT NULL')
-        .getRawOne();
+    const gamesMetrics = await Promise.all(
+      games.map(async (game) => {
+        // Get total plays and average play time
+        const overallMetrics = await analyticsRepository
+          .createQueryBuilder('analytics')
+          .select('COUNT(*)', 'totalPlays')
+          .addSelect('AVG(analytics.duration)', 'averagePlayTime')
+          .where('analytics.gameId = :gameId', { gameId: game.id })
+          .andWhere('analytics.startTime IS NOT NULL')
+          .andWhere('analytics.endTime IS NOT NULL')
+          .getRawOne();
 
-      // Get plays in last 24 hours
-      const currentPeriodPlays = await analyticsRepository
-        .createQueryBuilder('analytics')
-        .select('COUNT(*)', 'count')
-        .where('analytics.gameId = :gameId', { gameId: game.id })
-        .andWhere('analytics.startTime IS NOT NULL')
-        .andWhere('analytics.endTime IS NOT NULL')
-        .andWhere('analytics.createdAt > :twentyFourHoursAgo', { twentyFourHoursAgo })
-        .getRawOne();
+        // Get plays in last 24 hours
+        const currentPeriodPlays = await analyticsRepository
+          .createQueryBuilder('analytics')
+          .select('COUNT(*)', 'count')
+          .where('analytics.gameId = :gameId', { gameId: game.id })
+          .andWhere('analytics.startTime IS NOT NULL')
+          .andWhere('analytics.endTime IS NOT NULL')
+          .andWhere('analytics.createdAt > :twentyFourHoursAgo', {
+            twentyFourHoursAgo,
+          })
+          .getRawOne();
 
-      // Get plays in previous 24 hours
-      const previousPeriodPlays = await analyticsRepository
-        .createQueryBuilder('analytics')
-        .select('COUNT(*)', 'count')
-        .where('analytics.gameId = :gameId', { gameId: game.id })
-        .andWhere('analytics.startTime IS NOT NULL')
-        .andWhere('analytics.endTime IS NOT NULL')
-        .andWhere('analytics.createdAt BETWEEN :start AND :end', {
-          start: fortyEightHoursAgo,
-          end: twentyFourHoursAgo
-        })
-        .getRawOne();
+        // Get plays in previous 24 hours
+        const previousPeriodPlays = await analyticsRepository
+          .createQueryBuilder('analytics')
+          .select('COUNT(*)', 'count')
+          .where('analytics.gameId = :gameId', { gameId: game.id })
+          .andWhere('analytics.startTime IS NOT NULL')
+          .andWhere('analytics.endTime IS NOT NULL')
+          .andWhere('analytics.createdAt BETWEEN :start AND :end', {
+            start: fortyEightHoursAgo,
+            end: twentyFourHoursAgo,
+          })
+          .getRawOne();
 
-      // Get position with highest click count for this game
-      const mostPlayedAtPosition = await gamePositionHistoryRepository
-        .createQueryBuilder('history')
-        .select('history.position', 'position')
-        .addSelect('history.clickCount', 'clickCount')
-        .where('history.gameId = :gameId', { gameId: game.id })
-        .orderBy('history.clickCount', 'DESC')
-        .addOrderBy('history.position', 'ASC') // Tie-breaker: prefer lower position number
-        .limit(1)
-        .getRawOne();
+        // Get position with highest click count for this game
+        const mostPlayedAtPosition = await gamePositionHistoryRepository
+          .createQueryBuilder('history')
+          .select('history.position', 'position')
+          .addSelect('history.clickCount', 'clickCount')
+          .where('history.gameId = :gameId', { gameId: game.id })
+          .orderBy('history.clickCount', 'DESC')
+          .addOrderBy('history.position', 'ASC') // Tie-breaker: prefer lower position number
+          .limit(1)
+          .getRawOne();
 
-      const currentPlays = parseInt(currentPeriodPlays?.count) || 0;
-      const previousPlays = parseInt(previousPeriodPlays?.count) || 0;
+        const currentPlays = parseInt(currentPeriodPlays?.count) || 0;
+        const previousPlays = parseInt(previousPeriodPlays?.count) || 0;
 
-      // Determine popularity trend
-      let popularity: 'up' | 'down' = 'down';
-      if (currentPlays > previousPlays) {
-        popularity = 'up';
-      }
-
-      return {
-        id: game.id,
-        title: game.title,
-        thumbnailUrl: game.thumbnailFile?.s3Key ? `${s3Service.getBaseUrl()}/${game.thumbnailFile.s3Key}` : null,
-        status: game.status,
-        metrics: {
-          totalPlays: parseInt(overallMetrics?.totalPlays) || 0,
-          averagePlayTime: Math.round((overallMetrics?.averagePlayTime || 0) / 60), // Convert to minutes
-          popularity,
-          mostPlayedAt: mostPlayedAtPosition ? {
-            position: parseInt(mostPlayedAtPosition.position),
-            clickCount: parseInt(mostPlayedAtPosition.clickCount)
-          } : null
+        // Determine popularity trend
+        let popularity: 'up' | 'down' = 'down';
+        if (currentPlays > previousPlays) {
+          popularity = 'up';
         }
-      };
-    }));
+
+        return {
+          id: game.id,
+          title: game.title,
+          thumbnailUrl: game.thumbnailFile?.storageKey
+            ? storageService.getPublicUrl(game.thumbnailFile.storageKey)
+            : null,
+          status: game.status,
+          metrics: {
+            totalPlays: parseInt(overallMetrics?.totalPlays) || 0,
+            averagePlayTime: Math.round(
+              (overallMetrics?.averagePlayTime || 0) / 60
+            ), // Convert to minutes
+            popularity,
+            mostPlayedAt: mostPlayedAtPosition
+              ? {
+                  position: parseInt(mostPlayedAtPosition.position),
+                  clickCount: parseInt(mostPlayedAtPosition.clickCount),
+                }
+              : null,
+          },
+        };
+      })
+    );
 
     res.status(200).json({
       success: true,
-      data: gamesMetrics
+      data: gamesMetrics,
     });
   } catch (error) {
     next(error);
@@ -1208,9 +1372,9 @@ export const getUsersWithAnalytics = async (
         role: {
           id: true,
           name: true,
-          description: true
-        }
-      }
+          description: true,
+        },
+      },
     });
 
     // Get analytics data for all users
@@ -1231,62 +1395,70 @@ export const getUsersWithAnalytics = async (
       .select('analytics.userId', 'userId')
       .addSelect('analytics.gameId', 'gameId')
       .addSelect('game.title', 'gameTitle')
-      .addSelect('thumbnailFile.s3Key', 'thumbnailKey')
-      .addSelect('COUNT(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.id END)', 'sessionCount')
+      .addSelect('thumbnailFile.storageKey', 'thumbnailKey')
+      .addSelect(
+        'COUNT(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.id END)',
+        'sessionCount'
+      )
       .leftJoin('analytics.game', 'game')
       .leftJoin('game.thumbnailFile', 'thumbnailFile')
       .where('analytics.gameId IS NOT NULL')
       .groupBy('analytics.userId')
       .addGroupBy('analytics.gameId')
       .addGroupBy('game.title')
-      .addGroupBy('thumbnailFile.s3Key')
+      .addGroupBy('thumbnailFile.storageKey')
       .orderBy('analytics.userId')
-      .addOrderBy('COUNT(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.id END)', 'DESC')
+      .addOrderBy(
+        'COUNT(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.id END)',
+        'DESC'
+      )
       .getRawMany();
 
     // Create a map of user IDs to their most played game
     const mostPlayedGameMap = new Map();
-    usersMostPlayedGames.forEach(item => {
+    usersMostPlayedGames.forEach((item) => {
       // Only add the first game for each user (the most played one)
       if (!mostPlayedGameMap.has(item.userId)) {
         mostPlayedGameMap.set(item.userId, {
           gameId: item.gameId,
           gameTitle: item.gameTitle,
-          thumbnailUrl: item.thumbnailKey ? `${s3Service.getBaseUrl()}/${item.thumbnailKey}` : null,
-          sessionCount: parseInt(item.sessionCount) || 0
+          thumbnailUrl: item.thumbnailKey
+            ? storageService.getPublicUrl(item.thumbnailKey)
+            : null,
+          sessionCount: parseInt(item.sessionCount) || 0,
         });
       }
     });
 
     // Create a map of user IDs to their analytics data
     const analyticsMap = new Map();
-    usersAnalytics.forEach(item => {
+    usersAnalytics.forEach((item) => {
       analyticsMap.set(item.userId, {
         totalGamesPlayed: parseInt(item.totalGamesPlayed) || 0,
         totalSessionCount: parseInt(item.totalSessionCount) || 0,
-        totalTimePlayed: item.totalTimePlayed || 0, 
-        mostPlayedGame: mostPlayedGameMap.get(item.userId) || null
+        totalTimePlayed: item.totalTimePlayed || 0,
+        mostPlayedGame: mostPlayedGameMap.get(item.userId) || null,
       });
     });
 
     // Combine user data with analytics data
-    const usersWithAnalytics = users.map(user => {
+    const usersWithAnalytics = users.map((user) => {
       const analytics = analyticsMap.get(user.id) || {
         totalGamesPlayed: 0,
         totalSessionCount: 0,
-        totalTimePlayed: 0
+        totalTimePlayed: 0,
       };
 
       return {
         ...user,
-        analytics
+        analytics,
       };
     });
 
     res.status(200).json({
       success: true,
       count: users.length,
-      data: usersWithAnalytics
+      data: usersWithAnalytics,
     });
   } catch (error) {
     next(error);

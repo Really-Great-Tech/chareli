@@ -1,0 +1,123 @@
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+  S3ClientConfig,
+} from '@aws-sdk/client-s3';
+import { promises as fs } from 'fs';
+import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
+import mime from 'mime-types';
+
+import { IStorageService, UploadResult } from './storage.interface';
+import config from '../config/config';
+import logger from '../utils/logger';
+
+/**
+ * An adapter for the IStorageService interface that connects to AWS S3.
+ */
+export class S3StorageAdapter implements IStorageService {
+  private s3Client: S3Client;
+  private bucket: string;
+  private region: string;
+
+  constructor() {
+    // This is the AWS S3-specific configuration
+    const s3ClientConfig: S3ClientConfig = {
+      region: config.s3.region,
+    };
+
+    // Only add credentials if they are present (for local dev with IAM user)
+    // In production on ECS, this will use the Task Role automatically.
+    if (config.s3.accessKeyId && config.s3.secretAccessKey) {
+      s3ClientConfig.credentials = {
+        accessKeyId: config.s3.accessKeyId,
+        secretAccessKey: config.s3.secretAccessKey,
+      };
+    }
+
+    logger.info(`Initializing storage adapter for AWS S3`);
+    this.s3Client = new S3Client(s3ClientConfig);
+    this.bucket = config.s3.bucket;
+    this.region = config.s3.region;
+  }
+
+  /**
+   * @inheritdoc
+   */
+  getPublicUrl(key: string): string {
+    // For AWS S3, we construct the standard S3 object URL.
+    // If you were using CloudFront in front of S3, this is where you'd construct the CloudFront URL.
+    return `https://${this.bucket}.s3.${this.region}.amazonaws.com/${key}`;
+  }
+
+  /**
+   * The implementation for the following methods is identical to the R2 adapter
+   * because they both use the same underlying AWS SDK commands.
+   */
+
+  async uploadFile(
+    file: Buffer,
+    originalname: string,
+    contentType: string,
+    folder: string = 'files'
+  ): Promise<UploadResult> {
+    const fileId = uuidv4();
+    const extension = path.extname(originalname);
+    const filename = path
+      .basename(originalname, extension)
+      .replace(/\s+/g, '-')
+      .toLowerCase();
+    const key = `${folder}/${fileId}-${filename}${extension}`;
+
+    const command = new PutObjectCommand({
+      Bucket: this.bucket,
+      Key: key,
+      Body: file,
+      ContentType: contentType,
+    });
+
+    await this.s3Client.send(command);
+    logger.info(`Successfully uploaded file to S3 with key: ${key}`);
+
+    return {
+      key,
+      publicUrl: this.getPublicUrl(key),
+    };
+  }
+
+  async uploadDirectory(localPath: string, remotePath: string): Promise<void> {
+    const files = await fs.readdir(localPath, { withFileTypes: true });
+    for (const file of files) {
+      const fullLocalPath = path.join(localPath, file.name);
+      const fullRemotePath = path
+        .join(remotePath, file.name)
+        .replace(/\\/g, '/');
+      if (file.isDirectory()) {
+        await this.uploadDirectory(fullLocalPath, fullRemotePath);
+      } else {
+        const fileContent = await fs.readFile(fullLocalPath);
+        const contentType =
+          mime.lookup(fullLocalPath) || 'application/octet-stream';
+        const command = new PutObjectCommand({
+          Bucket: this.bucket,
+          Key: fullRemotePath,
+          Body: fileContent,
+          ContentType: contentType,
+        });
+        await this.s3Client.send(command);
+      }
+    }
+  }
+
+  async deleteFile(key: string): Promise<boolean> {
+    const command = new DeleteObjectCommand({ Bucket: this.bucket, Key: key });
+    try {
+      await this.s3Client.send(command);
+      return true;
+    } catch (error) {
+      logger.error('Error deleting file from S3:', { error, key });
+      return false;
+    }
+  }
+}

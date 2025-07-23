@@ -3,7 +3,6 @@ import {
   getAllGames,
   getGameById,
   getGameByPosition,
-  grantGameAccess,
   createGame,
   updateGame,
   deleteGame,
@@ -30,7 +29,6 @@ const router = Router();
 router.get('/', validateQuery(gameQuerySchema), getAllGames);
 router.get('/position/:position', getGameByPosition);
 router.get('/:id', validateParams(gameIdParamSchema), getGameById);
-router.post('/:id/access', authenticate, grantGameAccess);
 
 router.use(authenticate);
 router.use(isAdmin);

@@ -18,7 +18,7 @@ export interface Category {
 //Unified File Interface(Combine FileMetadata and GameFile interfaces)
 export interface File {
   id: string;
-  s3Key: string;
+  storageKey: string;
   type: string;
   createdAt: string;
   updatedAt: string;
@@ -78,15 +78,6 @@ export interface PaginatedResponse<T> {
   totalPages: number;
   data: T[];
 }
-
-// export interface GameFile {
-//   id: string;
-//   s3Key: string;
-//   url: string;
-//   type: string;
-//   createdAt: string;
-//   updatedAt: string;
-// }
 
 export interface SimilarGame {
   id: string;

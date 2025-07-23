@@ -7,6 +7,7 @@ dotenv.config({ path: path.join(__dirname, '../../.env') });
 interface Config {
   env: string;
   port: number;
+  storageProvider: 'r2' | 's3' | 'local';
   app: {
     clientUrl: string;
   };
@@ -68,6 +69,12 @@ interface Config {
     keyPairId: string;
     cookieExpiration: number;
   };
+  r2: {
+    accountId: string;
+    accessKeyId: string;
+    secretAccessKey: string;
+    publicUrl: string;
+  };
   twilio: {
     accountSid: string;
     authToken: string;
@@ -98,6 +105,7 @@ function getEnv(key: string, defaultValue?: string): string {
 const config: Config = {
   env: getEnv('NODE_ENV', 'development'),
   app: { clientUrl: getEnv('CLIENT_URL', 'http://localhost:5173') },
+  storageProvider: getEnv('STORAGE_PROVIDER', 'local') as 'r2' | 's3' | 'local',
   port: parseInt(getEnv('PORT', '5000'), 10),
   database: {
     host: getEnv('DB_HOST', 'localhost'),
@@ -160,6 +168,12 @@ const config: Config = {
       getEnv('AWS_SIGNED_URL_EXPIRATION', '3600'),
       10
     ),
+  },
+  r2: {
+    accountId: getEnv('CLOUDFLARE_ACCOUNT_ID'),
+    accessKeyId: getEnv('R2_ACCESS_KEY_ID'),
+    secretAccessKey: getEnv('R2_SECRET_ACCESS_KEY'),
+    publicUrl: getEnv('R2_PUBLIC_URL'),
   },
   cloudfront: {
     distributionDomain: getEnv('CLOUDFRONT_DISTRIBUTION_DOMAIN', ''),

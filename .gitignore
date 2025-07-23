@@ -18,6 +18,7 @@ yarn-error.log*
 .idea/
 .vscode/
 .history/
+.wrangler/
 *.swp
 *.swo
 

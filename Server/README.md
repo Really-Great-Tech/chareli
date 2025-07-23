@@ -72,7 +72,7 @@ src/
 │   ├── index.ts    # Main router
 │   └── userRoutes.ts # User routes
 ├── services/       # Business logic services
-│   ├── s3.service.ts        # AWS S3 file operations
+│   ├── storage.service.ts        # AWS S3 file operations
 │   └── cloudfront.service.ts # CloudFront signed cookies
 ├── utils/          # Utility functions
 │   └── logger.ts   # Winston logger configuration

@@ -1,0 +1,6 @@
+name = "chareli-r2-gatekeeper-testing"
+main = "src/worker.ts"
+compatibility_date = "2025-04-01"
+[[r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "chareli-games-cdn-test"

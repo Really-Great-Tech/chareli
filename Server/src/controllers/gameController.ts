@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from 'express';
-import config from '../config/config';
 import { AppDataSource } from '../config/database';
 import { Game, GameStatus } from '../entities/Games';
 import { GamePositionHistory } from '../entities/GamePositionHistory';
@@ -9,9 +8,8 @@ import { Analytics } from '../entities/Analytics';
 import { ApiError } from '../middlewares/errorHandler';
 import { RoleType } from '../entities/Role';
 import { Not } from 'typeorm';
-import { s3Service } from '../services/s3.service';
+import { storageService } from '../services/storage.service';
 import { zipService } from '../services/zip.service';
-import { cloudFrontService } from '../services/cloudfront.service';
 import multer from 'multer';
 import logger from '../utils/logger';
 import { v4 as uuidv4 } from 'uuid';
@@ -22,34 +20,36 @@ const gamePositionHistoryRepository =
 const categoryRepository = AppDataSource.getRepository(Category);
 const fileRepository = AppDataSource.getRepository(File);
 
-// HELPER FUNCTION TO TRANSFORM FILE URLS
-// This centralizes the logic for adding the 'url' property.
-const transformGameFiles = (game: Game | any): any => {
+/**
+ * A helper function to transform a game object by adding public URLs
+ * to its file assets using the configured storage service.
+ * It also handles transforming similar games if they exist.
+ */
+const transformGameWithUrls = (game: Game | any): any => {
   const transformedGame = { ...game };
 
-  // Construct the public URL for the thumbnail
-  if (transformedGame.thumbnailFile?.s3Key) {
-    transformedGame.thumbnailFile = {
-      ...transformedGame.thumbnailFile,
-      url: `${s3Service.getBaseUrl()}/${transformedGame.thumbnailFile.s3Key}`,
-    };
+  if (transformedGame.thumbnailFile?.storageKey) {
+    transformedGame.thumbnailFile.url = storageService.getPublicUrl(
+      transformedGame.thumbnailFile.storageKey
+    );
   }
 
-  // Also transform thumbnails for similar games if they exist
+  // The gameFile URL is intentionally NOT transformed here.
+  // The frontend will construct the secure URL needed to access it via the Worker.
+  // We only provide the key.
+
   if (transformedGame.similarGames) {
-    transformedGame.similarGames.forEach((similarGame: any) => {
-      if (similarGame.thumbnailFile?.s3Key) {
-        similarGame.thumbnailFile = {
-          ...similarGame.thumbnailFile,
-          url: `${s3Service.getBaseUrl()}/${similarGame.thumbnailFile.s3Key}`,
-        };
+    transformedGame.similarGames = transformedGame.similarGames.map(
+      (similarGame: any) => {
+        if (similarGame.thumbnailFile?.storageKey) {
+          similarGame.thumbnailFile.url = storageService.getPublicUrl(
+            similarGame.thumbnailFile.storageKey
+          );
+        }
+        return similarGame;
       }
-    });
+    );
   }
-
-  // NOTE: We do not construct a URL for the `gameFile` itself because it's meant
-  // to be private and accessed via CloudFront signed cookies, not a direct URL.
-  // The frontend will construct the CloudFront URL for the game iframe.
 
   return transformedGame;
 };
@@ -306,7 +306,7 @@ export const getAllGames = async (
     const games = await queryBuilder.getMany();
 
     // After fetching the games, transform their thumbnail URLs
-    const transformedGames = games.map(transformGameFiles);
+    const transformedGames = games.map(transformGameWithUrls);
     console.log(transformedGames);
 
     res.status(200).json({
@@ -411,14 +411,14 @@ export const getGameById = async (
           id: Not(id), // Exclude the current game
           status: GameStatus.ACTIVE,
         },
-        relations: ['thumbnailFile', 'gameFile'],
+        relations: ['thumbnailFile'],
         take: 5, // Limit to 5 similar games
         order: { createdAt: 'DESC' }, // Get the newest games first
       });
     }
 
     // Use the helper to transform the main game and its similar games
-    const transformedData = transformGameFiles({
+    const transformedData = transformGameWithUrls({
       ...game,
       similarGames: similarGames,
     });
@@ -588,24 +588,27 @@ export const createGame = async (
       // Generate unique game folder name
       const gameFolderId = uuidv4();
 
-      // Upload thumbnail to S3
-      logger.info('Uploading thumbnail file to S3...');
-      const thumbnailUploadResult = await s3Service.uploadFile(
+      // Upload thumbnail via storage service
+      logger.info('Uploading thumbnail file via storage service...');
+      const thumbnailUploadResult = await storageService.uploadFile(
         thumbnailFile.buffer,
         thumbnailFile.originalname,
         thumbnailFile.mimetype,
         'thumbnails'
       );
 
-      // Upload game folder to S3
-      logger.info('Uploading game folder to S3...');
-      const s3GamePath = `games/${gameFolderId}`;
-      await s3Service.uploadDirectory(processedZip.extractedPath, s3GamePath);
+      // Upload game folder via storage service
+      logger.info('Uploading game folder via storage service...');
+      const gamePath = `games/${gameFolderId}`;
+      await storageService.uploadDirectory(
+        processedZip.extractedPath,
+        gamePath
+      );
 
       // Create file records in the database using transaction
       logger.info('Creating file records in the database...');
       const thumbnailFileRecord = fileRepository.create({
-        s3Key: thumbnailUploadResult.key,
+        storageKey: thumbnailUploadResult.key,
         type: 'thumbnail',
       });
 
@@ -615,7 +618,7 @@ export const createGame = async (
 
       const indexPath = processedZip.indexPath.replace(/\\/g, '/');
       const gameFileRecord = fileRepository.create({
-        s3Key: `${s3GamePath}/${indexPath}`,
+        storageKey: `${gamePath}/${indexPath}`,
         type: 'game_file',
       });
 
@@ -665,18 +668,7 @@ export const createGame = async (
         return next(ApiError.notFound(`Game with id ${game.id} not found`));
       }
 
-      // Transform game file and thumbnail URLs to direct S3 URLs
-      // if (savedGame.gameFile) {
-      //   const s3Key = savedGame.gameFile.s3Key;
-      //   const baseUrl = s3Service.getBaseUrl();
-      //   savedGame.gameFile.s3Key = `${baseUrl}/${s3Key}`;
-      // }
-      // if (savedGame.thumbnailFile) {
-      //   const s3Key = savedGame.thumbnailFile.s3Key;
-      //   const baseUrl = s3Service.getBaseUrl();
-      //   savedGame.thumbnailFile.s3Key = `${baseUrl}/${s3Key}`;
-      // }
-      const transformedGame = transformGameFiles(savedGame);
+      const transformedGame = transformGameWithUrls(savedGame);
 
       res.status(201).json({
         success: true,
@@ -806,9 +798,9 @@ export const updateGame = async (
     if (files?.thumbnailFile && files.thumbnailFile[0]) {
       const thumbnailFile = files.thumbnailFile[0];
 
-      // Upload to S3
-      logger.info('Uploading new thumbnail file to S3...');
-      const thumbnailUploadResult = await s3Service.uploadFile(
+      // Upload via storage service
+      logger.info('Uploading new thumbnail file via storage service...');
+      const thumbnailUploadResult = await storageService.uploadFile(
         thumbnailFile.buffer,
         thumbnailFile.originalname,
         thumbnailFile.mimetype,
@@ -818,7 +810,7 @@ export const updateGame = async (
       // Create file record
       logger.info('Creating new thumbnail file record...');
       const thumbnailFileRecord = fileRepository.create({
-        s3Key: thumbnailUploadResult.key,
+        storageKey: thumbnailUploadResult.key,
         type: 'thumbnail',
       });
 
@@ -843,10 +835,13 @@ export const updateGame = async (
       // Generate unique game folder name
       const gameFolderId = uuidv4();
 
-      // Upload game folder to S3
-      logger.info('Uploading game folder to S3...');
-      const s3GamePath = `games/${gameFolderId}`;
-      await s3Service.uploadDirectory(processedZip.extractedPath, s3GamePath);
+      // Upload game folder via storage service
+      logger.info('Uploading game folder via storage service...');
+      const gamePath = `games/${gameFolderId}`;
+      await storageService.uploadDirectory(
+        processedZip.extractedPath,
+        gamePath
+      );
 
       // Create file record for the index.html
       logger.info('Creating new game file record...');
@@ -856,7 +851,7 @@ export const updateGame = async (
 
       const indexPath = processedZip.indexPath.replace(/\\/g, '/');
       const gameFileRecord = fileRepository.create({
-        s3Key: `${s3GamePath}/${indexPath}`,
+        storageKey: `${gamePath}/${indexPath}`,
         type: 'game_file',
       });
 
@@ -945,19 +940,7 @@ export const updateGame = async (
       return next(ApiError.notFound(`Game with id ${id} not found`));
     }
 
-    // Transform game file and thumbnail URLs to direct S3 URLs
-    // if (updatedGame.gameFile) {
-    //   const s3Key = updatedGame.gameFile.s3Key;
-    //   const baseUrl = s3Service.getBaseUrl();
-    //   updatedGame.gameFile.s3Key = `${baseUrl}/${s3Key}`;
-    // }
-    // if (updatedGame.thumbnailFile) {
-    //   const s3Key = updatedGame.thumbnailFile.s3Key;
-    //   const baseUrl = s3Service.getBaseUrl();
-    //   updatedGame.thumbnailFile.s3Key = `${baseUrl}/${s3Key}`;
-    // }
-
-    const transformedGame = transformGameFiles(updatedGame);
+    const transformedGame = transformGameWithUrls(updatedGame);
 
     res.status(200).json({
       success: true,
@@ -1107,84 +1090,13 @@ export const getGameByPosition = async (
       );
     }
 
-    // Transform game file and thumbnail URLs to direct S3 URLs
-    if (game.gameFile) {
-      const s3Key = game.gameFile.s3Key;
-      const baseUrl = s3Service.getBaseUrl();
-      game.gameFile.s3Key = `${baseUrl}/${s3Key}`;
-    }
-    if (game.thumbnailFile) {
-      const s3Key = game.thumbnailFile.s3Key;
-      const baseUrl = s3Service.getBaseUrl();
-      game.thumbnailFile.s3Key = `${baseUrl}/${s3Key}`;
-    }
+    // Transform game file and thumbnail URLs to direct via storage service URLs
+    const transformedGame = transformGameWithUrls(game);
 
     res.status(200).json({
       success: true,
-      data: game,
+      data: transformedGame,
     });
-  } catch (error) {
-    next(error);
-  }
-};
-
-/**
- * @swagger
- * /games/{id}/access:
- *   post:
- *     summary: Grant game access by setting signed cookies
- *     description: Authenticates a user and sets CloudFront signed cookies to allow access to private game files.
- *     tags: [Games]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *         description: ID of the game to access
- *     responses:
- *       200:
- *         description: Access cookies set successfully.
- *       401:
- *         description: Unauthorized.
- *       500:
- *         description: Internal server error.
- */
-export const grantGameAccess = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    if (config.env !== 'production') {
-      logger.info('Skipping cookie generation in non-production environment');
-      res
-        .status(200)
-        .json({ success: true, message: 'Access granted for development' });
-      return;
-    }
-
-    const signedCookieHeaders =
-      await cloudFrontService.getSignedCookieHeaders();
-    const rootDomain = '.testing.chareli.reallygreattech.com';
-
-    // Set each cookie on the response
-    for (const [key, value] of Object.entries(signedCookieHeaders)) {
-      res.cookie(key, value, {
-        // CRITICAL: The domain must be the root domain (with a leading dot)
-        // so the browser sends the cookie to subdomains like games.chareli...
-        domain: rootDomain,
-        path: '/',
-        httpOnly: true,
-        secure: config.env === 'production',
-        sameSite: 'lax',
-      });
-    }
-
-    res.status(200).json({ success: true, message: 'Game access granted.' });
   } catch (error) {
     next(error);
   }

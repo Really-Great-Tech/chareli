@@ -6,6 +6,7 @@ import { useGameClickHandler } from '../../hooks/useGameClickHandler';
 import GamesSkeleton from './GamesSkeleton';
 
 import emptyGameImg from '../../assets/empty-game.png';
+import { SecureImage } from './SecureImage';
 
 interface PopularSectionProps {
   searchQuery: string;
@@ -73,13 +74,20 @@ const PopularSection = ({
                   className="relative group cursor-pointer w-full"
                 >
                   <div className="relative">
-                    <img
+                    <SecureImage
                       src={game.thumbnailFile?.url}
                       alt={game.title}
                       loading="lazy"
                       className="w-full h-[290px] min-h-[290px] max-h-[290px] object-cover rounded-[32px] border-4 border-transparent group-hover:border-[#D946EF] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(217,70,239,0.3)] box-border"
                       onClick={() => handleGameClick(game.id)}
                     />
+                    {/* <img
+                      src={game.thumbnailFile?.url}
+                      alt={game.title}
+                      loading="lazy"
+                      className="w-full h-[290px] min-h-[290px] max-h-[290px] object-cover rounded-[32px] border-4 border-transparent group-hover:border-[#D946EF] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(217,70,239,0.3)] box-border"
+                      onClick={() => handleGameClick(game.id)}
+                    /> */}
                     {/* Game Info Overlay - Only visible on hover */}
                     <div className="absolute bottom-0 left-0 right-0 rounded-b-[28px] p-4 group-hover:opacity-100 transition-opacity duration-300 ease-in-out lg:opacity-0 lg:group-hover:opacity-100">
                       <h3 className="text-white font-semibold text-shadow-black/55 text-shadow-lg text-lg mb-1 truncate">

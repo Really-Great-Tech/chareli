@@ -4,11 +4,10 @@ import { useSignupAnalyticsData } from "../../backend/signup.analytics.service";
 
 const clickTypeLabels: Record<string, string> = {
   "navbar": "Navigation bar sign-up button clicks",
-  // "signup-modal": "Form sign-up button clicks",
-  "popup": "Pop-up sign-up button clicks",
+  "keep-playing": "Kepp Playing Pop-up sign-up button clicks",
 };
 
-const colors = ["#F3C4FB", "#D58DFB", "#B86EF7"];
+const colors = ["#F3C4FB", "#A21CAF"];
 
 const HorizontalBarChart = () => {
   const { data: analyticsData, isLoading, error, isError } = useSignupAnalyticsData(30); // Get last 30 days data
@@ -72,41 +71,61 @@ const HorizontalBarChart = () => {
   return (
     <Card className="w-full p-4 bg-[#F8FAFC] dark:bg-[#0F1221] shadow-none border-none rounded-2xl">
       <CardContent>
-        {/* Horizontally scrollable container for mobile responsiveness */}
+        {/* Improved layout for 2 bars */}
         <div className="overflow-x-auto">
-          <div style={{ minWidth: '500px' }}>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart layout="vertical" data={data}>
-                <CartesianGrid strokeDasharray="3 3" />
+          <div style={{ minWidth: '400px' }}>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart layout="vertical" data={data} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.6} />
                 <XAxis 
                   type="number" 
                   domain={[0, Math.max(5, ...data.map((item: ChartDataPoint) => item.value))]}
+                  tick={{ fill: "#64748B", fontSize: 12 }}
+                  tickLine={false}
+                  axisLine={false}
                 />
                 <YAxis
                   type="category"
                   dataKey="name"
-                  width={200}
+                  width={220}
                   tick={{
                     fill: "#64748B",
-                    fontSize: 12,
-                    fontFamily: "inherit"
+                    fontSize: 13,
+                    fontFamily: "inherit",
+                    fontWeight: 500
                   }}
                   tickLine={false}
                   axisLine={false}
                 />
                 <Tooltip 
                   contentStyle={{
-                    backgroundColor: '#fff',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '0.5rem',
-                    padding: '0.5rem'
+                    backgroundColor: '#ffffff',
+                    color: '#1f2937',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '0.75rem',
+                    padding: '12px 16px',
+                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    minWidth: '120px'
                   }}
+                  formatter={(value: number) => [
+                    <span style={{ color: '#1f2937', fontWeight: '700' }}>{value} clicks</span>, 
+                    <span style={{ color: '#6b7280', fontWeight: '500' }}>Count</span>
+                  ]}
+                  labelStyle={{ 
+                    color: '#374151', 
+                    fontWeight: '700',
+                    marginBottom: '6px',
+                    fontSize: '13px'
+                  }}
+                  cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
                 />
                 <Bar 
                   dataKey="value" 
-                  barSize={60}
+                  barSize={80}
                   fill="#F3C4FB"
-                  radius={[0, 4, 4, 0]}
+                  radius={[0, 8, 8, 0]}
                 >
                   {data.map((entry: ChartDataPoint, index: number) => (
                     <Cell key={`cell-${index}`} fill={entry.fill} />

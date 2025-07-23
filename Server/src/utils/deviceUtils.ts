@@ -1,14 +1,9 @@
-/**
- * Simple device type detection from user agent
- * @param userAgent The user agent string
- * @returns Device type: 'mobile', 'tablet', or 'desktop'
- */
+
 export function detectDeviceType(userAgent: string): string {
   if (!userAgent) return 'unknown';
   
   const ua = userAgent.toLowerCase();
   
-  // Check for tablets first (some tablets also identify as mobile)
   if (
     ua.includes('ipad') || 
     ua.includes('tablet') || 

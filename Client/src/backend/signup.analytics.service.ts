@@ -69,11 +69,7 @@ export const useTrackSignupClick = () => {
   });
 };
 
-/**
- * Hook to fetch signup analytics data
- * @param days - Number of days to include (default 30)
- * @returns Query result with signup analytics data
- */
+
 export const useSignupAnalyticsData = (days?: number) => {
   return useQuery<SignupAnalyticsData>({
     queryKey: [BackendRoute.SIGNUP_ANALYTICS_DATA, days],

@@ -6,15 +6,9 @@ import { getCountryFromIP, extractClientIP, getIPCacheStats } from '../utils/ipU
 
 const signupAnalyticsRepository = AppDataSource.getRepository(SignupAnalytics);
 
-/**
- * Simple device type detection from user agent
- * @param userAgent The user agent string
- * @returns Device type: 'mobile', 'tablet', or 'desktop'
- */
 function detectDeviceType(userAgent: string): string {
   const ua = userAgent.toLowerCase();
   
-  // Check for tablets first (some tablets also identify as mobile)
   if (
     ua.includes('ipad') || 
     ua.includes('tablet') || 
@@ -23,7 +17,6 @@ function detectDeviceType(userAgent: string): string {
     return 'tablet';
   }
   
-  // Check for mobile devices
   if (
     ua.includes('mobi') || 
     ua.includes('android') ||
@@ -35,7 +28,6 @@ function detectDeviceType(userAgent: string): string {
     return 'mobile';
   }
   
-  // Default to desktop
   return 'desktop';
 }
 
@@ -116,8 +108,6 @@ export const trackSignupClick = async (
     const forwarded = req.headers['x-forwarded-for'];
     const ipAddress = extractClientIP(forwarded, req.socket.remoteAddress || req.ip || '');
 
-    console.log('Detected IP address:', ipAddress); 
-
     const userAgent = req.headers['user-agent'] || '';
     const deviceType = detectDeviceType(userAgent);
 
@@ -175,59 +165,71 @@ export const getSignupAnalyticsData = async (
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - (req.query.days ? parseInt(req.query.days as string) : 30));
     
-    // Total clicks
-    const totalClicks = await signupAnalyticsRepository.count();
+    // Total clicks (excluding signup-modal to avoid double counting)
+    const totalClicks = await signupAnalyticsRepository
+      .createQueryBuilder('analytics')
+      .select('COUNT(*)', 'count')
+      .where('analytics.type != :excludeType', { excludeType: 'signup-modal' })
+      .getRawOne()
+      .then(result => parseInt(result?.count || '0'));
     
-    // Clicks in the selected period
-    const periodClicks = await signupAnalyticsRepository.count({
-      where: {
-        createdAt: Between(startDate, endDate)
-      }
-    });
+    // Clicks in the selected period (excluding signup-modal to avoid double counting)
+    const periodClicks = await signupAnalyticsRepository
+      .createQueryBuilder('analytics')
+      .select('COUNT(*)', 'count')
+      .where('analytics.createdAt BETWEEN :startDate AND :endDate', { startDate, endDate })
+      .andWhere('analytics.type != :excludeType', { excludeType: 'signup-modal' })
+      .getRawOne()
+      .then(result => parseInt(result?.count || '0'));
     
-    // Unique sessions
+    // Unique sessions (excluding signup-modal to avoid double counting)
     const uniqueSessions = await signupAnalyticsRepository
       .createQueryBuilder('analytics')
       .select('COUNT(DISTINCT analytics.sessionId)', 'count')
       .where('analytics.sessionId IS NOT NULL')
+      .andWhere('analytics.type != :excludeType', { excludeType: 'signup-modal' })
       .getRawOne();
     
-    // Clicks by country
+    // Clicks by country (excluding signup-modal to avoid double counting)
     const clicksByCountry = await signupAnalyticsRepository
       .createQueryBuilder('analytics')
       .select('analytics.country', 'country')
       .addSelect('COUNT(*)', 'count')
       .where('analytics.country IS NOT NULL')
+      .andWhere('analytics.type != :excludeType', { excludeType: 'signup-modal' })
       .groupBy('analytics.country')
       .orderBy('count', 'DESC')
       .limit(10)
       .getRawMany();
     
-    // Clicks by device type
+    // Clicks by device type (excluding signup-modal to avoid double counting)
     const clicksByDevice = await signupAnalyticsRepository
       .createQueryBuilder('analytics')
       .select('analytics.deviceType', 'deviceType')
       .addSelect('COUNT(*)', 'count')
       .where('analytics.deviceType IS NOT NULL')
+      .andWhere('analytics.type != :excludeType', { excludeType: 'signup-modal' })
       .groupBy('analytics.deviceType')
       .orderBy('count', 'DESC')
       .getRawMany();
     
-    // Clicks by day
+    // Clicks by day (excluding signup-modal to avoid double counting)
     const clicksByDay = await signupAnalyticsRepository
       .createQueryBuilder('analytics')
       .select('DATE(analytics.createdAt)', 'date')
       .addSelect('COUNT(*)', 'count')
       .where('analytics.createdAt BETWEEN :startDate AND :endDate', { startDate, endDate })
+      .andWhere('analytics.type != :excludeType', { excludeType: 'signup-modal' })
       .groupBy('DATE(analytics.createdAt)')
       .orderBy('date', 'ASC')
       .getRawMany();
     
-    // Clicks by type
+    // Clicks by type (excluding signup-modal to avoid double counting)
     const clicksByType = await signupAnalyticsRepository
       .createQueryBuilder('analytics')
       .select('analytics.type', 'type')
       .addSelect('COUNT(*)', 'count')
+      .where('analytics.type != :excludeType', { excludeType: 'signup-modal' })
       .groupBy('analytics.type')
       .orderBy('count', 'DESC')
       .getRawMany();

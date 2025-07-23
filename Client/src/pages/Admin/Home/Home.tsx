@@ -46,7 +46,7 @@ export default function Home() {
                 <div className="">
                   <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
                     <img src={click} alt="click" className="w-8 h-8 sm:w-10 sm:h-10 dark:text-white flex-shrink-0" />
-                    <p className="text-sm sm:text-lg text-[#64748A] dark:text-white">Total clicks on Sign-up form</p>
+                    <p className="text-sm sm:text-lg text-[#64748A] dark:text-white">Total clicks on Sign-up button</p>
                   </div>
                   
                   <SignupClickInsights />
@@ -90,7 +90,7 @@ function SignupClickInsights() {
   const didntRegisterCount = Math.max(0, totalClicks - verifiedCount);
 
   const chartData = [
-    { name: "Didn't register", value: didntRegisterCount, fill: "#F3C7FA" },
+    { name: "Didn't verify", value: didntRegisterCount, fill: "#F3C7FA" },
     { name: "Verified users", value: verifiedCount, fill: "#D24CFB" }
   ];
 

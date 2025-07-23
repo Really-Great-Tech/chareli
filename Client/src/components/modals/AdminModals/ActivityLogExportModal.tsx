@@ -89,8 +89,9 @@ const ActivityLogExportModal = ({
       "Last Game Played": activity.lastGamePlayed || "-",
       "Start Time": activity.startTime ? format(new Date(activity.startTime), "HH:mm") : "-",
       "End Time": activity.endTime ? format(new Date(activity.endTime), "HH:mm") : "-",
-      "Start Date": activity.startTime ? format(new Date(activity.startTime), "yyyy-MM-dd") : "-",
-      "End Date": activity.endTime ? format(new Date(activity.endTime), "yyyy-MM-dd") : "-"
+      "Last Session Time": activity.lastSessionDuration 
+        ? `${Math.floor(activity.lastSessionDuration / 60)}m ${activity.lastSessionDuration % 60}s`
+        : "-"
     }));
   };
 
@@ -101,7 +102,7 @@ const ActivityLogExportModal = ({
         return;
       }
 
-      // const loadingToast = toast.loading("Exporting activity log as CSV...");
+      const loadingToast = toast.loading("Exporting activity log as CSV...");
 
       const formattedData = formatActivityDataForExport(data);
       const filterSummary = generateFilterSummary();
@@ -139,8 +140,8 @@ const ActivityLogExportModal = ({
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
       
-      // toast.dismiss(loadingToast);
-      // toast.success("CSV file exported successfully");
+      toast.dismiss(loadingToast);
+      toast.success("CSV file exported successfully");
       setOpen(false);
     } catch (error) {
       toast.error(`Failed to export CSV file: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -154,7 +155,7 @@ const ActivityLogExportModal = ({
         return;
       }
 
-      // const loadingToast = toast.loading("Exporting activity log as XLS...");
+      const loadingToast = toast.loading("Exporting activity log as XLS...");
 
       const filename = `user_activity_log_${format(new Date(), "yyyy-MM-dd_HH-mm")}.xlsx`;
       const formattedData = formatActivityDataForExport(data);
@@ -201,8 +202,8 @@ const ActivityLogExportModal = ({
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      // toast.dismiss(loadingToast);
-      // toast.success("XLS file exported successfully");
+      toast.dismiss(loadingToast);
+      toast.success("XLS file exported successfully");
       setOpen(false);
     } catch (error) {
       toast.error(`Failed to export XLS file: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -216,7 +217,7 @@ const ActivityLogExportModal = ({
         return;
       }
 
-      // const loadingToast = toast.loading("Exporting activity log as JSON...");
+      const loadingToast = toast.loading("Exporting activity log as JSON...");
 
       const filename = `user_activity_log_${format(new Date(), "yyyy-MM-dd_HH-mm")}.json`;
       const formattedData = formatActivityDataForExport(data);
@@ -254,8 +255,8 @@ const ActivityLogExportModal = ({
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      // toast.dismiss(loadingToast);
-      // toast.success("JSON file exported successfully");
+      toast.dismiss(loadingToast);
+      toast.success("JSON file exported successfully");
       setOpen(false);
     } catch (error) {
       toast.error(`Failed to export JSON file: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -269,7 +270,7 @@ const ActivityLogExportModal = ({
         return;
       }
 
-      // const loadingToast = toast.loading("Generating activity log PDF report...");
+      const loadingToast = toast.loading("Generating activity log PDF report...");
 
       // Dynamically import pdfMake and fonts
       if (!pdfMake) {
@@ -278,27 +279,23 @@ const ActivityLogExportModal = ({
         pdfMake.vfs = (pdfFonts as any).vfs;
       }
 
-      // Transform data for the table
-      const tableBody = data.map(activity => [
-        { text: activity.name?.trim() || "-", alignment: 'left', margin: [8, 4] },
+      // Use the same transformation function as other exports for consistency
+      const formattedData = formatActivityDataForExport(data);
+      
+      // Transform formatted data for PDF table
+      const tableBody = formattedData.map(activity => [
+        { text: activity.Name, alignment: 'left', margin: [4, 2] },
         { 
-          text: activity.userStatus || "Offline", 
+          text: activity["User Status"], 
           alignment: 'center', 
-          margin: [8, 4],
-          color: activity.userStatus === "Online" ? '#4BA366' : '#E74C3C'
+          margin: [4, 2],
+          color: activity["User Status"] === "Online" ? '#4BA366' : '#E74C3C'
         },
-        { text: activity.activity || "-", alignment: 'left', margin: [8, 4] },
-        { text: activity.lastGamePlayed || "-", alignment: 'left', margin: [8, 4] },
-        { 
-          text: activity.startTime ? format(new Date(activity.startTime), "HH:mm") : "-", 
-          alignment: 'center', 
-          margin: [8, 4] 
-        },
-        { 
-          text: activity.endTime ? format(new Date(activity.endTime), "HH:mm") : "-", 
-          alignment: 'center', 
-          margin: [8, 4] 
-        }
+        { text: activity.Activity, alignment: 'left', margin: [4, 2] },
+        { text: activity["Last Game Played"], alignment: 'left', margin: [4, 2] },
+        { text: activity["Start Time"], alignment: 'center', margin: [4, 2] },
+        { text: activity["End Time"], alignment: 'center', margin: [4, 2] },
+        { text: activity["Last Session Time"], alignment: 'center', margin: [4, 2] }
       ]);
 
       // Calculate summary statistics
@@ -364,15 +361,16 @@ const ActivityLogExportModal = ({
           {
             table: {
               headerRows: 1,
-              widths: [120, 80, 150, 150, 80, 80] as number[],
+              widths: [90, 50, 110, 110, 50, 50, 90] as number[],
               body: [
                 [
-                  { text: 'Name', style: 'tableHeader', alignment: 'left', margin: [8, 4] },
-                  { text: 'Status', style: 'tableHeader', alignment: 'center', margin: [8, 4] },
-                  { text: 'Activity', style: 'tableHeader', alignment: 'left', margin: [8, 4] },
-                  { text: 'Last Game Played', style: 'tableHeader', alignment: 'left', margin: [8, 4] },
-                  { text: 'Start Time', style: 'tableHeader', alignment: 'center', margin: [8, 4] },
-                  { text: 'End Time', style: 'tableHeader', alignment: 'center', margin: [8, 4] }
+                  { text: 'Name', style: 'tableHeader', alignment: 'left', margin: [4, 2] },
+                  { text: 'Status', style: 'tableHeader', alignment: 'center', margin: [4, 2] },
+                  { text: 'Activity', style: 'tableHeader', alignment: 'left', margin: [4, 2] },
+                  { text: 'Last Game Played', style: 'tableHeader', alignment: 'left', margin: [4, 2] },
+                  { text: 'Start Time', style: 'tableHeader', alignment: 'center', margin: [4, 2] },
+                  { text: 'End Time', style: 'tableHeader', alignment: 'center', margin: [4, 2] },
+                  { text: 'Last Session Time', style: 'tableHeader', alignment: 'center', margin: [4, 2] }
                 ],
                 ...tableBody
               ]
@@ -415,8 +413,8 @@ const ActivityLogExportModal = ({
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
         
-        // toast.dismiss(loadingToast);
-        // toast.success("PDF report generated successfully");
+        toast.dismiss(loadingToast);
+        toast.success("PDF report generated successfully");
         setOpen(false);
       });
     } catch (error) {

@@ -214,6 +214,8 @@ export interface UserAnalytics {
   email: string;
   phoneNumber: string;
   country: string;
+  registrationIpAddress: string;
+  lastKnownDeviceType: string;
   isActive: boolean;
   isVerified: boolean;
   lastLoggedIn: string;

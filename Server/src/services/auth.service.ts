@@ -51,7 +51,9 @@ export class AuthService {
     phoneNumber: string,
     isAdult: boolean = false,
     hasAcceptedTerms: boolean = false,
-    country?: string
+    country?: string,
+    registrationIpAddress?: string,
+    lastKnownDeviceType?: string
   ): Promise<User> {
     // Check if user already exists by email or phone number (including deleted users)
     const existingUser = await userRepository.findOne({
@@ -95,7 +97,9 @@ export class AuthService {
       isActive: true,
       isAdult,
       hasAcceptedTerms,
-      country
+      country,
+      registrationIpAddress,
+      lastKnownDeviceType
     });
 
     await userRepository.save(user);
@@ -114,7 +118,9 @@ export class AuthService {
     phoneNumber: string,
     isAdult: boolean = false,
     hasAcceptedTerms: boolean = false,
-    country?: string
+    country?: string,
+    registrationIpAddress?: string,
+    lastKnownDeviceType?: string
   ): Promise<User> {
     // Find the invitation
     const invitation = await invitationRepository.findOne({
@@ -193,7 +199,9 @@ export class AuthService {
       isActive: true,
       isAdult,
       hasAcceptedTerms,
-      country
+      country,
+      registrationIpAddress,
+      lastKnownDeviceType
     });
 
     await userRepository.save(user);

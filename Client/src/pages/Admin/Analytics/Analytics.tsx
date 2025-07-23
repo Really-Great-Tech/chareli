@@ -33,7 +33,7 @@ export default function Analytics() {
                     className="w-10 h-10 dark:text-white"
                   />
                   <p className="text-sm sm:text-base lg:text-lg text-[#64748A] dark:text-white">
-                    Total clicks on Sign-up form
+                    Total clicks on Sign-up button
                   </p>
                 </div>
 

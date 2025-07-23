@@ -70,7 +70,7 @@ export default function Home() {
   );
 }
 
-// Separate component for signup click insights--
+// Separate component for signup click insights
 function SignupClickInsights() {
   const { data: signupAnalytics, isLoading: analyticsLoading } = useSignupAnalyticsData(30);
   // const { data: usersWithAnalytics, isLoading: usersLoading } = useUsersAnalytics();
@@ -85,7 +85,12 @@ function SignupClickInsights() {
   }
 
   const verifiedCount = dashboardAnalytics?.totalRegisteredUsers?.registered || 0;
-  const totalClicks = signupAnalytics?.totalClicks || 0;
+  
+  // Calculate total clicks from individual click types, excluding signup-modal
+  const allowedClickTypes = ['navbar', 'keep-playing'];
+  const totalClicks = signupAnalytics?.clicksByType
+    ?.filter(click => allowedClickTypes.includes(click.type))
+    ?.reduce((sum, click) => sum + parseInt(click.count), 0) || 0;
 
   const didntRegisterCount = Math.max(0, totalClicks - verifiedCount);
 

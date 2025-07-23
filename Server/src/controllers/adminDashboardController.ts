@@ -161,15 +161,37 @@ export const getDashboardAnalytics = async (
       ? Math.max(Math.min(((currentTotalRegisteredUsers - previousTotalRegisteredUsers) / previousTotalRegisteredUsers) * 100, 100), -100)
       : 0;
 
-    // Count active and inactive users (no percentage change needed as requested)
+    // Count active and inactive users based on business logic
+    // Active users: users who have logged in at least once and are still active
     const activeUsers = await userRepository.count({
-      where: { isActive: true, isDeleted: false }
+      where: { 
+        isActive: true, 
+        isDeleted: false,
+        lastLoggedIn: Not(IsNull()) // Only count users who have actually logged in
+      }
     });
     
-    const inactiveUsers = await userRepository.count({
-      where: { isActive: false, isDeleted: false }
-    });
+    // Inactive users: users who are either:
+    // 1. Set to inactive by the system, OR
+    // 2. Never logged in (regardless of isActive status)
+    const [systemInactiveUsers, neverLoggedInUsers] = await Promise.all([
+      userRepository.count({
+        where: { isActive: false, isDeleted: false }
+      }),
+      userRepository.count({
+        where: { 
+          isActive: true, 
+          isDeleted: false,
+          lastLoggedIn: IsNull()
+        }
+      })
+    ]);
+    
+    const inactiveUsers = systemInactiveUsers + neverLoggedInUsers;
+    const registeredButNeverLoggedIn = neverLoggedInUsers;
 
+
+    
     // 3. Game Coverage - Percentage of total games that have been played
     const totalGames = await gameRepository.count();
     
@@ -449,6 +471,7 @@ export const getDashboardAnalytics = async (
         },
         activeUsers,
         inactiveUsers,
+        registeredButNeverLoggedIn,
         adultsCount,
         minorsCount,
         gameCoverage: {
@@ -1429,6 +1452,8 @@ export const getUsersWithAnalytics = async (
         'user.lastName',
         'user.email',
         'user.country',
+        'user.registrationIpAddress',
+        'user.lastKnownDeviceType',
         'user.phoneNumber',
         'user.isActive',
         'user.isVerified',

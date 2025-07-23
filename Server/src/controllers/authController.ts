@@ -10,6 +10,7 @@ import { otpService } from '../services/otp.service';
 import * as crypto from 'crypto';
 import * as bcrypt from 'bcrypt';
 import { getCountryFromIP, extractClientIP } from '../utils/ipUtils';
+import { detectDeviceType } from '../utils/deviceUtils';
 import logger from '../utils/logger';
 
 // Section: Core Authentication
@@ -75,6 +76,10 @@ export const registerPlayer = async (
     // Get country from IP
     const country = await getCountryFromIP(ipAddress);
 
+    // Get device type from user agent
+    const userAgent = req.headers['user-agent'] || '';
+    const deviceType = detectDeviceType(userAgent);
+
     // Register the user
     const user = await authService.registerPlayer(
       firstName,
@@ -84,7 +89,9 @@ export const registerPlayer = async (
       phoneNumber,
       isAdult || false,
       hasAcceptedTerms,
-      country || undefined
+      country || undefined,
+      ipAddress,
+      deviceType
     );
 
     // Create analytics entry for signup
@@ -171,6 +178,10 @@ export const registerFromInvitation = async (
     // Get country from IP
     const country = await getCountryFromIP(ipAddress);
 
+    // Get device type from user agent
+    const userAgent = req.headers['user-agent'] || '';
+    const deviceType = detectDeviceType(userAgent);
+
     // Register the user
     const user = await authService.registerFromInvitation(
       token,
@@ -180,7 +191,9 @@ export const registerFromInvitation = async (
       phoneNumber,
       isAdult || false,
       hasAcceptedTerms,
-      country || undefined
+      country || undefined,
+      ipAddress,
+      deviceType
     );
 
     // Create analytics entry for signup from invitation
@@ -247,6 +260,14 @@ export const login = async (
     }
 
     const user = await authService.login(identifier, password);
+
+    // Update device type on login
+    const userAgent = req.headers['user-agent'] || '';
+    const deviceType = detectDeviceType(userAgent);
+    if (deviceType && deviceType !== user.lastKnownDeviceType) {
+      user.lastKnownDeviceType = deviceType;
+      await userRepository.save(user);
+    }
 
     if (user.hasCompletedFirstLogin) {
       const tokens = await authService.generateTokens(user);

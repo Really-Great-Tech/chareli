@@ -6,6 +6,8 @@ import { AppDataSource } from '../config/database';
 import { User } from '../entities/User';
 import { Invitation } from '../entities/Invitation';
 import { emailService } from '../services/email.service';
+import { getCountryFromIP, extractClientIP } from '../utils/ipUtils';
+import { detectDeviceType } from '../utils/deviceUtils';
 import * as bcrypt from 'bcrypt';
 
 const userRepository = AppDataSource.getRepository(User);

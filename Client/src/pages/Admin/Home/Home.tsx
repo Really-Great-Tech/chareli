@@ -72,7 +72,7 @@ export default function Home() {
 
 // Separate component for signup click insights
 function SignupClickInsights() {
-  const { data: signupAnalytics, isLoading: analyticsLoading } = useSignupAnalyticsData();
+  const { data: signupAnalytics, isLoading: analyticsLoading } = useSignupAnalyticsData(30);
   // const { data: usersWithAnalytics, isLoading: usersLoading } = useUsersAnalytics();
   const { data: dashboardAnalytics, isLoading: usersLoading } = useDashboardAnalytics();
   

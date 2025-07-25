@@ -215,11 +215,11 @@ jobs:
         id: frontend-status
         run: |
           if [[ "${{ needs.deploy-frontend.result }}" == "success" ]]; then
-            echo "frontend_msg=:white_check_mark: Frontend deployment to S3/CloudFront SUCCESSFUL" >> $GITHUB_OUTPUT
+            echo "frontend_msg=:white_check_mark: Frontend deployment to Cloudflare Pages SUCCESSFUL" >> $GITHUB_OUTPUT
           elif [[ "${{ needs.deploy-frontend.result }}" == "skipped" ]]; then
             echo "frontend_msg=:warning: Frontend deployment SKIPPED" >> $GITHUB_OUTPUT
           else
-            echo "frontend_msg=:x: Frontend deployment to S3/CloudFront FAILED" >> $GITHUB_OUTPUT
+            echo "frontend_msg=:x: Frontend deployment to Cloudflare Pages FAILED" >> $GITHUB_OUTPUT
           fi
 
       - name: Notify Discord

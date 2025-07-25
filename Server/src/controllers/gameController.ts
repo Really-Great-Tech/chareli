@@ -190,14 +190,17 @@ export const getAllGames = async (
         where: { key: 'popular_games_settings' }
       });
 
-      if (popularConfig?.value?.mode === 'manual' && popularConfig.value.selectedGameIds) {
+      if (popularConfig?.value?.mode === 'manual') {
         let gameIds: string[] = [];
-        if (Array.isArray(popularConfig.value.selectedGameIds)) {
-          gameIds = popularConfig.value.selectedGameIds;
-        } else if (typeof popularConfig.value.selectedGameIds === 'object') {
-          gameIds = Object.values(popularConfig.value.selectedGameIds);
+        if (popularConfig.value.selectedGameIds) {
+          if (Array.isArray(popularConfig.value.selectedGameIds)) {
+            gameIds = popularConfig.value.selectedGameIds;
+          } else if (typeof popularConfig.value.selectedGameIds === 'object') {
+            gameIds = Object.values(popularConfig.value.selectedGameIds);
+          }
         }
 
+        // If manual mode is selected, always return the selected games (even if empty)
         if (gameIds.length > 0) {
           const games = await gameRepository.find({
             where: {
@@ -208,11 +211,10 @@ export const getAllGames = async (
             order: { position: 'ASC' } // Order by position
           });
 
-          
+          // For manual mode, show ALL selected games (no limit applied)
           const orderedGames = gameIds
             .map((id: string) => games.find(game => game.id === id))
-            .filter((game: Game | undefined): game is Game => game !== undefined)
-            .slice(0, limitNumber || 4);
+            .filter((game: Game | undefined): game is Game => game !== undefined);
 
           orderedGames.forEach((game: Game) => {
             if (game.gameFile) {
@@ -229,6 +231,12 @@ export const getAllGames = async (
 
           res.status(200).json({
             data: orderedGames,
+          });
+          return;
+        } else {
+          // Manual mode with no games selected - return empty array
+          res.status(200).json({
+            data: [],
           });
           return;
         }

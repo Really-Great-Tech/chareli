@@ -48,6 +48,7 @@
   background-color: white;
   border: 1px solid #CBD5E0;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  z-index: 10000;
 }
 
 .react-select-container .react-select__option {
@@ -147,4 +148,108 @@
 
 .dark .react-select-container .react-select__clear-indicator:hover {
   color: #D946EF;
+}
+
+/* Specific styles for country filter dropdown */
+.country-filter-select .react-select__control {
+  background-color: white !important;
+  border: 1px solid #D1D5DB !important;
+  border-radius: 8px !important;
+  min-height: 40px !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.2s ease !important;
+}
+
+.country-filter-select .react-select__control:hover {
+  border-color: #D946EF !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1) !important;
+}
+
+.country-filter-select .react-select__control--is-focused {
+  border-color: #D946EF !important;
+  box-shadow: 0 0 0 3px rgba(217, 70, 239, 0.1) !important;
+}
+
+.country-filter-select .react-select__placeholder {
+  color: #6B7280 !important;
+  font-size: 14px !important;
+}
+
+.country-filter-select .react-select__menu {
+  z-index: 10001 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  border: 1px solid #E5E7EB !important;
+  margin-top: 4px !important;
+}
+
+.country-filter-select .react-select__menu-list {
+  padding: 4px !important;
+  max-height: 200px !important;
+}
+
+.country-filter-select .react-select__option {
+  border-radius: 6px !important;
+  margin: 1px 0 !important;
+  padding: 8px 12px !important;
+  font-size: 14px !important;
+}
+
+.country-filter-select .react-select__option:hover {
+  background-color: #F3E8FF !important;
+}
+
+.country-filter-select .react-select__option--is-selected {
+  background-color: #D946EF !important;
+  color: white !important;
+}
+
+.country-filter-select .react-select__option--is-focused {
+  background-color: #F3E8FF !important;
+  color: #374151 !important;
+}
+
+/* Dark mode styles for country filter */
+.dark .country-filter-select .react-select__control {
+  background-color: #374151 !important;
+  border-color: #4B5563 !important;
+}
+
+.dark .country-filter-select .react-select__control:hover {
+  border-color: #D946EF !important;
+}
+
+.dark .country-filter-select .react-select__control--is-focused {
+  border-color: #D946EF !important;
+  box-shadow: 0 0 0 3px rgba(217, 70, 239, 0.1) !important;
+}
+
+.dark .country-filter-select .react-select__placeholder {
+  color: #9CA3AF !important;
+}
+
+.dark .country-filter-select .react-select__single-value {
+  color: white !important;
+}
+
+.dark .country-filter-select .react-select__input-container {
+  color: white !important;
+}
+
+.dark .country-filter-select .react-select__menu {
+  background-color: #374151 !important;
+  border-color: #4B5563 !important;
+}
+
+.dark .country-filter-select .react-select__option {
+  color: white !important;
+}
+
+.dark .country-filter-select .react-select__option:hover {
+  background-color: #4B5563 !important;
+}
+
+.dark .country-filter-select .react-select__option--is-focused {
+  background-color: #4B5563 !important;
+  color: white !important;
 }

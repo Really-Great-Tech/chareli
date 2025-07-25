@@ -281,7 +281,7 @@ export default function GamePlay() {
         {!expanded && (
           <div className="flex items-center justify-between px-6 py-2 bg-[#2d0036] border-t border-purple-400 rounded-b-2xl">
             <span className="text-white text-sm font-semibold">
-              {game.title}
+              {game?.title}
             </span>
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">

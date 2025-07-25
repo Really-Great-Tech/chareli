@@ -27,7 +27,7 @@ router.get('/:key', validateParams(systemConfigKeyParamSchema), getSystemConfigB
 // Admin-only routes
 router.use(authenticate);
 router.use(isAdmin);
-router.use(apiLimiter);
+// router.use(apiLimiter);
 
 router.get('/', validateQuery(systemConfigQuerySchema), getAllSystemConfigs);
 router.post('/', 

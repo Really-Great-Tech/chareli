@@ -16,6 +16,7 @@ import Analytics from '../pages/Admin/Analytics/Analytics';
 import Configuration from '../pages/Admin/Configuration/Configuration';
 import ViewGame from '../pages/Admin/ViewGame';
 import GameCategories from '../pages/Admin/Category/GameCategories';
+import CategoryDetail from '../pages/Admin/Category/CategoryDetail';
 import UserManagementView from '../pages/Admin/UserMgtView';
 import TeamManagement from '../pages/Admin/Team/TeamManagement';
 import Settings from '../pages/Admin/Settings';
@@ -55,6 +56,7 @@ export const AppRoutes = () => {
             {/* <Route path="about" element={<AdminAbout />} />*/}
             <Route path="game-management" element={<GameManagement />} />
             <Route path="categories" element={<GameCategories />} />
+            <Route path="categories/:categoryId" element={<CategoryDetail />} />
             <Route path="management" element={<UserManagement />} />
             <Route path="management/:userId" element={<UserManagementView />} />
             <Route path="team" element={<TeamManagement />} />

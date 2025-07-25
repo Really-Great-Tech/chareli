@@ -45,6 +45,7 @@ const ExportModal = ({
       Phone: user.phoneNumber || "-",
       Country: user.country || "-",
       "IP Address": user.registrationIpAddress || "-",
+      "Device Type": user.lastKnownDeviceType || "-",
       "Registration Date": user.createdAt ? format(new Date(user.createdAt), "dd/MM/yyyy") : "-",
       "Games Played": user.analytics?.totalGamesPlayed || 0,
       "Time Played (minutes)": user.analytics?.totalTimePlayed 
@@ -460,6 +461,7 @@ const ExportModal = ({
         { text: user.phoneNumber || "-", alignment: "left", margin: [4, 2] },
         { text: user.country || "-", alignment: "left", margin: [4, 2] },
         { text: user.registrationIpAddress || "-", alignment: "left", margin: [4, 2] },
+        { text: user.lastKnownDeviceType || "-", alignment: "left", margin: [4, 2] },
         {
           text: format(new Date(user.createdAt), "dd/MM/yy"),
           alignment: "center",
@@ -585,7 +587,7 @@ const ExportModal = ({
           {
             table: {
               headerRows: 1,
-              widths: [70, 110, 65, 45, 85, 55, 35, 45, 35, 75] as number[],
+              widths: [60, 100, 55, 40, 75, 50, 50, 30, 40, 30, 65] as number[],
               body: [
                 [
                   {
@@ -614,6 +616,12 @@ const ExportModal = ({
                   },
                   {
                     text: "IP Address",
+                    style: "tableHeader",
+                    alignment: "left",
+                    margin: [4, 2],
+                  },
+                  {
+                    text: "Device Type",
                     style: "tableHeader",
                     alignment: "left",
                     margin: [4, 2],

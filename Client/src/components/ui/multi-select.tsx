@@ -60,6 +60,14 @@ const MultiSelect = React.forwardRef<any, MultiSelectProps>(
           },
         })}
         styles={{
+          menu: (provided) => ({
+            ...provided,
+            zIndex: 10001,
+          }),
+          menuList: (provided) => ({
+            ...provided,
+            maxHeight: '200px',
+          }),
           multiValue: (provided) => ({
             ...provided,
             backgroundColor: '#D946EF',

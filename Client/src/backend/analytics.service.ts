@@ -281,20 +281,29 @@ export interface DashboardTimeRange {
   endDate?: string;
 }
 
+// Dashboard filter interface that includes both time and country filters
+export interface DashboardFilters {
+  timeRange?: DashboardTimeRange;
+  countries?: string[];
+}
+
 /**
- * Hook to fetch dashboard analytics with time range support
- * @param timeRange - Time range filter options
+ * Hook to fetch dashboard analytics with time range and country filter support
+ * @param filters - Filter options including time range and countries
  * @returns Query result with dashboard analytics data
  */
-export const useDashboardAnalytics = (timeRange?: DashboardTimeRange) => {
+export const useDashboardAnalytics = (filters?: DashboardFilters) => {
   return useQuery<DashboardAnalytics>({
-    queryKey: [BackendRoute.ADMIN_DASHBOARD, timeRange],
+    queryKey: [BackendRoute.ADMIN_DASHBOARD, filters],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (timeRange) {
-        if (timeRange.period) params.append('period', timeRange.period);
-        if (timeRange.startDate) params.append('startDate', timeRange.startDate);
-        if (timeRange.endDate) params.append('endDate', timeRange.endDate);
+      if (filters?.timeRange) {
+        if (filters.timeRange.period) params.append('period', filters.timeRange.period);
+        if (filters.timeRange.startDate) params.append('startDate', filters.timeRange.startDate);
+        if (filters.timeRange.endDate) params.append('endDate', filters.timeRange.endDate);
+      }
+      if (filters?.countries && filters.countries.length > 0) {
+        filters.countries.forEach(country => params.append('country', country));
       }
       const url = `${BackendRoute.ADMIN_DASHBOARD}${params.toString() ? `?${params.toString()}` : ''}`;
       const response = await backendService.get(url);

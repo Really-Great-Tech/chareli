@@ -7,21 +7,21 @@ import {
   HiMiniArrowUp,
   HiOutlineUsers,
 } from "react-icons/hi2";
-import { useDashboardAnalytics, type DashboardTimeRange } from "../../../backend/analytics.service";
+import { useDashboardAnalytics, type DashboardFilters } from "../../../backend/analytics.service";
 import { Card } from "../../../components/ui/card";
 
 import { formatTime } from "../../../utils/main";
 
 interface StatsCardProps {
-  timeRange?: DashboardTimeRange;
+  filters?: DashboardFilters;
 }
 
-export default function StatsCard({ timeRange }: StatsCardProps) {
+export default function StatsCard({ filters }: StatsCardProps) {
   const {
     data: dashboardAnalytics,
     isError,
     isLoading,
-  } = useDashboardAnalytics(timeRange);
+  } = useDashboardAnalytics(filters);
 
   if (isLoading) {
     return (
@@ -47,6 +47,7 @@ export default function StatsCard({ timeRange }: StatsCardProps) {
   
   // Generate dynamic description based on time range
   const getTimeRangeDescription = () => {
+    const timeRange = filters?.timeRange;
     switch (timeRange?.period) {
       case 'last7days':
         return 'Over the last 7 days';

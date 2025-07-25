@@ -11,7 +11,6 @@ import {
 } from '../controllers/gameController';
 import { authenticate, isAdmin, optionalAuthenticate } from '../middlewares/authMiddleware';
 import { validateBody, validateParams, validateQuery } from '../middlewares/validationMiddleware';
-import { apiLimiter } from '../middlewares/rateLimitMiddleware';
 import {
   createGameSchema,
   updateGameSchema,
@@ -29,10 +28,6 @@ router.get('/:id', optionalAuthenticate, validateParams(gameIdParamSchema), getG
 router.use(authenticate);
 router.use(isAdmin);
 
-// Apply API rate limiter to all game routes
-router.use(apiLimiter);
-
-// Game routes
 router.post('/', uploadGameFiles, createGame);
 router.put('/:id', validateParams(gameIdParamSchema), uploadGameFilesForUpdate, updateGame);
 router.delete('/:id', validateParams(gameIdParamSchema), deleteGame);

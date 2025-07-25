@@ -1,6 +1,7 @@
 import { FiTrash2 } from "react-icons/fi";
 import { CiEdit } from "react-icons/ci";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import CreateCategory from "../../../components/single/CreateCategory-Sheet";
 import { EditCategory } from "../../../components/single/EditCategory-Sheet";
 import {
@@ -14,6 +15,7 @@ import { usePermissions } from "../../../hooks/usePermissions";
 
 export default function GameCategories() {
   const permissions = usePermissions();
+  const navigate = useNavigate();
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
@@ -70,7 +72,8 @@ export default function GameCategories() {
           categories.map((cat) => (
             <div
               key={cat.name}
-              className="bg-[#F1F5F9] rounded-2xl p-6 shadow flex flex-col gap-2 relative min-h-[120px] dark:bg-[#121C2D]"
+              className="bg-[#F1F5F9] rounded-2xl p-6 shadow flex flex-col gap-2 relative min-h-[120px] dark:bg-[#121C2D] cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => navigate(`/admin/categories/${cat.id}`)}
             >
               <div className="flex justify-between items-start mb-2">
                 <div className="flex items-center gap-2">
@@ -85,24 +88,26 @@ export default function GameCategories() {
                 </div>
                 {permissions.canManageGames ? (
                   <div className="flex gap-2">
-                    <button className="p-1 rounded transition">
-                      <CiEdit
-                        className="dark:text-white w-5 h-5 text-black cursor-pointer"
-                        onClick={() => {
-                          setSelectedCategoryId(cat.id);
-                          setEditOpen(true);
-                        }}
-                      />
+                    <button 
+                      className="p-1 rounded transition"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedCategoryId(cat.id);
+                        setEditOpen(true);
+                      }}
+                    >
+                      <CiEdit className="dark:text-white w-5 h-5 text-black cursor-pointer" />
                     </button>
                     {!cat.isDefault && (
-                      <button className="p-1 rounded transition">
-                        <FiTrash2
-                          className="text-black w-5 h-5 dark:text-white cursor-pointer"
-                          onClick={() => {
-                            setSelectedCategoryId(cat.id);
-                            setShowDeleteModal(true);
-                          }}
-                        />
+                      <button 
+                        className="p-1 rounded transition"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedCategoryId(cat.id);
+                          setShowDeleteModal(true);
+                        }}
+                      >
+                        <FiTrash2 className="text-black w-5 h-5 dark:text-white cursor-pointer" />
                       </button>
                     )}
                   </div>

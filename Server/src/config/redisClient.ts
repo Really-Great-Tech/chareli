@@ -1,0 +1,16 @@
+import Redis from 'ioredis';
+
+// Use REDIS_URL from environment or default to localhost
+const redisUrl = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
+
+const redis = new Redis(redisUrl);
+
+redis.on('connect', () => {
+  console.log('Redis client connected');
+});
+
+redis.on('error', (err) => {
+  console.error('Redis connection error:', err);
+});
+
+export default redis; 

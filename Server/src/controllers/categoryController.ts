@@ -135,6 +135,10 @@ export const getCategoryById = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
+    const { page = 1, limit = 5 } = req.query;
+    
+    const pageNumber = parseInt(page as string, 10);
+    const limitNumber = parseInt(limit as string, 10);
     
     const category = await categoryRepository.findOne({
       where: { id },
@@ -145,26 +149,106 @@ export const getCategoryById = async (
       return next(ApiError.notFound(`Category with id ${id} not found`));
     }
 
-    // Transform game URLs in the category
+    // Get analytics data for all games in this category
+    const analyticsQuery = `
+      SELECT 
+        g.id as game_id,
+        g.title,
+        COUNT(DISTINCT a.id) as total_sessions,
+        COALESCE(SUM(EXTRACT(EPOCH FROM (a."endTime" - a."startTime"))), 0) as total_time_played,
+        COUNT(DISTINCT a."user_id") as unique_players
+      FROM games g
+      LEFT JOIN analytics a ON g.id = a."game_id" AND a."endTime" IS NOT NULL
+      WHERE g."categoryId" = $1
+      GROUP BY g.id, g.title
+      ORDER BY total_sessions DESC, total_time_played DESC
+    `;
+
+    const analyticsResults = await AppDataSource.query(analyticsQuery, [id]);
+
+    // Create a map for quick lookup of analytics data
+    const analyticsMap = new Map();
+    analyticsResults.forEach((result: any, index: number) => {
+      analyticsMap.set(result.game_id, {
+        sessions: parseInt(result.total_sessions) || 0,
+        totalTimePlayed: parseInt(result.total_time_played) || 0,
+        uniquePlayers: parseInt(result.unique_players) || 0,
+        position: index + 1
+      });
+    });
+
+    // Transform games with analytics and URLs
+    const gamesWithAnalytics = await Promise.all(category.games.map(async game => {
+      const transformedGame: any = { ...game };
+      const baseUrl = s3Service.getBaseUrl();
+      
+      // Add file URLs
+      if (game.thumbnailFile?.s3Key) {
+        transformedGame.thumbnailFile = {
+          ...game.thumbnailFile,
+          url: `${baseUrl}/${game.thumbnailFile.s3Key}`
+        } as FileWithUrl;
+      }
+      if (game.gameFile?.s3Key) {
+        transformedGame.gameFile = {
+          ...game.gameFile,
+          url: `${baseUrl}/${game.gameFile.s3Key}`
+        } as FileWithUrl;
+      }
+
+      // Add analytics data
+      const analytics = analyticsMap.get(game.id) || {
+        sessions: 0,
+        totalTimePlayed: 0,
+        uniquePlayers: 0,
+        position: category.games.length
+      };
+      
+      transformedGame.analytics = analytics;
+      
+      return transformedGame;
+    }));
+
+    // Sort games by performance (sessions desc, then total time played desc)
+    gamesWithAnalytics.sort((a, b) => {
+      if (b.analytics.sessions !== a.analytics.sessions) {
+        return b.analytics.sessions - a.analytics.sessions;
+      }
+      return b.analytics.totalTimePlayed - a.analytics.totalTimePlayed;
+    });
+
+    // Update positions after sorting
+    gamesWithAnalytics.forEach((game, index) => {
+      game.analytics.position = index + 1;
+    });
+
+    // Calculate category-level metrics
+    const categoryMetrics = {
+      totalPlays: gamesWithAnalytics.reduce((sum, game) => sum + game.analytics.uniquePlayers, 0),
+      totalSessions: gamesWithAnalytics.reduce((sum, game) => sum + game.analytics.sessions, 0),
+      totalTimePlayed: gamesWithAnalytics.reduce((sum, game) => sum + game.analytics.totalTimePlayed, 0),
+      totalGames: gamesWithAnalytics.length
+    };
+
+    // Apply pagination to games
+    const totalGames = gamesWithAnalytics.length;
+    const totalPages = Math.ceil(totalGames / limitNumber);
+    const startIndex = (pageNumber - 1) * limitNumber;
+    const endIndex = startIndex + limitNumber;
+    const paginatedGames = gamesWithAnalytics.slice(startIndex, endIndex);
+
     const transformedCategory = {
       ...category,
-      games: await Promise.all(category.games.map(async game => {
-        const transformedGame: GameWithUrls = { ...game };
-        const baseUrl = s3Service.getBaseUrl();
-        if (game.thumbnailFile?.s3Key) {
-          transformedGame.thumbnailFile = {
-            ...game.thumbnailFile,
-            url: `${baseUrl}/${game.thumbnailFile.s3Key}`
-          } as FileWithUrl;
-        }
-        if (game.gameFile?.s3Key) {
-          transformedGame.gameFile = {
-            ...game.gameFile,
-            url: `${baseUrl}/${game.gameFile.s3Key}`
-          } as FileWithUrl;
-        }
-        return transformedGame;
-      }))
+      games: paginatedGames,
+      metrics: categoryMetrics,
+      pagination: {
+        currentPage: pageNumber,
+        totalPages,
+        totalItems: totalGames,
+        itemsPerPage: limitNumber,
+        hasNextPage: pageNumber < totalPages,
+        hasPrevPage: pageNumber > 1
+      }
     };
     
     res.status(200).json({

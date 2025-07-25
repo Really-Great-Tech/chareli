@@ -14,6 +14,7 @@ import { zipService } from '../services/zip.service';
 import multer from 'multer';
 import logger from '../utils/logger';
 import { v4 as uuidv4 } from 'uuid';
+// import { processImage } from '../services/file.service';
 
 const gameRepository = AppDataSource.getRepository(Game);
 const gamePositionHistoryRepository = AppDataSource.getRepository(GamePositionHistory);
@@ -686,6 +687,9 @@ export const createGame = async (
     const gameFile = files.gameFile[0];
     
     try {
+      // Convert and resize thumbnail to webp before upload
+      // const processedThumbnailBuffer = await processImage(thumbnailFile.buffer);
+      
       // Determine the final categoryId to use
       let finalCategoryId = categoryId;
       
@@ -718,8 +722,8 @@ export const createGame = async (
       logger.info('Uploading thumbnail file to S3...');
       const thumbnailUploadResult = await s3Service.uploadFile(
         thumbnailFile.buffer,
-        thumbnailFile.originalname,
-        thumbnailFile.mimetype,
+        thumbnailFile.originalname.replace(/\.[^.]+$/, '.webp'),
+        'image/webp',
         'thumbnails'
       );
 

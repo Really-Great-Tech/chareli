@@ -28,6 +28,7 @@ export class R2StorageAdapter implements IStorageService {
     const r2AccountId = config.r2.accountId;
     const endpoint = `https://${r2AccountId}.r2.cloudflarestorage.com`;
 
+    console.log(endpoint);
     const s3ClientConfig: S3ClientConfig = {
       region: 'auto', // R2 requires 'auto'
       endpoint: endpoint, // This is the key that points the SDK to R2
@@ -39,7 +40,7 @@ export class R2StorageAdapter implements IStorageService {
 
     logger.info(`Initializing storage adapter for Cloudflare R2`);
     this.s3Client = new S3Client(s3ClientConfig);
-    this.bucket = config.s3.bucket; // Your R2 bucket name
+    this.bucket = config.r2.bucket; // Your R2 bucket name
     this.publicUrl = config.r2.publicUrl; // e.g., https://games.yourdomain.com
   }
 

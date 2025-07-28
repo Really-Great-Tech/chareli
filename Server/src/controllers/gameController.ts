@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import config from '../config/config';
 import { AppDataSource } from '../config/database';
 import { Game, GameStatus } from '../entities/Games';
 import { GamePositionHistory } from '../entities/GamePositionHistory';
@@ -12,6 +13,7 @@ import { storageService } from '../services/storage.service';
 import { zipService } from '../services/zip.service';
 import multer from 'multer';
 import logger from '../utils/logger';
+import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 
 const gameRepository = AppDataSource.getRepository(Game);
@@ -1097,6 +1099,45 @@ export const getGameByPosition = async (
       success: true,
       data: transformedGame,
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const requestGameAccess = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = req.user!.userId;
+    const { id: gameId } = req.params;
+
+    const payload = {
+      userId,
+      gameId,
+    };
+
+    const gameToken = jwt.sign(payload, config.worker.jwtSecret, {
+      expiresIn: '15m',
+    });
+
+    // Set the secure cookie
+    res.cookie('game-auth-token', gameToken, {
+      httpOnly: true, // Prevents JS access
+      secure: true, // Only send over HTTPS in production
+      sameSite: 'none',
+      path: '/',
+      // For cross-subdomain access, set the domain
+      // domain:
+      //   config.env === 'production'
+      //     ? '.dev.chareli.reallygreattech.com'
+      //     : undefined,
+    });
+
+    res
+      .status(200)
+      .json({ success: true, message: 'Access granted. Ready to play.' });
   } catch (error) {
     next(error);
   }

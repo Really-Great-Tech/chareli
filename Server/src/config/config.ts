@@ -74,12 +74,16 @@ interface Config {
     accessKeyId: string;
     secretAccessKey: string;
     publicUrl: string;
+    bucket: string;
   };
   twilio: {
     accountSid: string;
     authToken: string;
     fromNumber: string;
     enabled: boolean;
+  };
+  worker: {
+    jwtSecret: string;
   };
 }
 
@@ -97,7 +101,9 @@ function getEnv(key: string, defaultValue?: string): string {
     process.exit(1);
   }
 
-  logger.warn(`Environment variable ${key} is not set using empty string.`);
+  logger.warn(
+    `Environment variable ${key} is not set, setting it to an empty string.`
+  );
 
   return '';
 }
@@ -174,6 +180,7 @@ const config: Config = {
     accessKeyId: getEnv('R2_ACCESS_KEY_ID'),
     secretAccessKey: getEnv('R2_SECRET_ACCESS_KEY'),
     publicUrl: getEnv('R2_PUBLIC_URL'),
+    bucket: getEnv('R2_BUCKET'),
   },
   cloudfront: {
     distributionDomain: getEnv('CLOUDFRONT_DISTRIBUTION_DOMAIN', ''),
@@ -185,6 +192,12 @@ const config: Config = {
     authToken: getEnv('TWILIO_AUTH_TOKEN', ''),
     fromNumber: getEnv('TWILIO_FROM_NUMBER', ''),
     enabled: getEnv('USE_TWILIO', 'false') === 'true',
+  },
+  worker: {
+    jwtSecret: getEnv(
+      'WORKER_JWT_SECRET',
+      'a_very_secure_secret_for_the_worker'
+    ),
   },
 };
 

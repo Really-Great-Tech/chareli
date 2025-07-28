@@ -6,6 +6,7 @@ import {
   createGame,
   updateGame,
   deleteGame,
+  requestGameAccess,
   uploadGameFiles,
   uploadGameFilesForUpdate,
 } from '../controllers/gameController';
@@ -45,5 +46,7 @@ router.put(
   updateGame
 );
 router.delete('/:id', validateParams(gameIdParamSchema), deleteGame);
+
+router.post('/:id/request-access', authenticate, requestGameAccess);
 
 export default router;

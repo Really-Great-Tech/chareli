@@ -43,6 +43,8 @@ export const useCreateGame = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES] });
       queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS] });
+      // Invalidate category queries to update category pages when new game is added
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.CATEGORIES] });
     },
   });
 };
@@ -61,6 +63,8 @@ export const useUpdateGame = () => {
       queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES, id] });
       queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS] });
       queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAME_ANALYTICS, id] });
+      // Invalidate category queries to update category pages when game category changes
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.CATEGORIES] });
     },
   });
 };
@@ -101,6 +105,8 @@ export const useDeleteGame = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES] });
       queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS] });
+      // Invalidate category queries to update category pages when game is deleted
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.CATEGORIES] });
     },
   });
 };

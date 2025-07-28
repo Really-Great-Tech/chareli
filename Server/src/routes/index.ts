@@ -10,12 +10,8 @@ import signupAnalyticsRoutes from './signupAnalyticsRoutes';
 import analyticsRoutes from './analyticsRoutes';
 import adminRoutes from './adminRoutes';
 import { ApiError } from '../middlewares/errorHandler';
-import { apiLimiter } from '../middlewares/rateLimitMiddleware';
 
 const router = Router();
-
-// Apply API rate limiter to all routes
-router.use(apiLimiter);
 
 /**
  * @swagger

@@ -27,10 +27,33 @@ const PopularSection = ({
     filter: "popular",
     status: "active",
     search: searchQuery || undefined,
-    limit: 4,
+    limit: 4, // This limit will only apply to auto mode, manual mode ignores it
   });
   const games: any = gamesData || [];
   const { handleGameClick } = useGameClickHandler();
+
+  // If no games and no search query, only show search bar (if enabled)
+  if (!isLoading && !error && games.length === 0 && !searchQuery) {
+    return (
+      <div className="p-4">
+        {uiSettings.showSearchBar && (
+          <div className="flex justify-end mb-8">
+            <div className="relative w-full md:w-[400px]">
+              <IoIosSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#64748A] text-xl pointer-events-none" />
+              <Input
+                className="pl-12 w-full h-12 rounded-2xl text-[#64748A] tracking-wider border-2 border-[#D946EF] focus:border-[#D946EF] focus:outline-none shadow-[0_0_8px_rgba(217,70,239,0.2)] 
+                            placeholder:text-[#64748A] bg-white/5
+                            placeholder:text-sm"
+                placeholder="What game do you want to search for?"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="p-4">
@@ -60,14 +83,14 @@ const PopularSection = ({
               Error loading games
             </div>
           )}
-          {!isLoading && !error && games.length === 0 && (
+          {!isLoading && !error && games.length === 0 && searchQuery && (
             <div className="text-center py-8 min-h-[60vh] flex flex-col items-center justify-center gap-4 text-[#C026D3] text-4xl">
               <img
                 src={emptyGameImg}
                 alt="No games"
                 className="w-80 h-80 object-contain"
               />
-              No popular games found {searchQuery ? `for "${searchQuery}"` : ""}
+              No popular games found for "{searchQuery}"
             </div>
           )}
           {!isLoading && !error && games.length > 0 && (

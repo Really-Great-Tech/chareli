@@ -3,7 +3,7 @@ import { AppDataSource } from '../config/database';
 import { SystemConfig } from '../entities/SystemConfig';
 import { File } from '../entities/Files';
 import { ApiError } from '../middlewares/errorHandler';
-import { s3Service } from '../services/s3.service';
+import { storageService } from '../services/storage.service';
 import multer from 'multer';
 
 const systemConfigRepository = AppDataSource.getRepository(SystemConfig);
@@ -79,11 +79,10 @@ export const getAllSystemConfigs = async (
         });
         
         if (file) {
-          // Transform S3 key to full URL
-          const baseUrl = s3Service.getBaseUrl();
+          // Transform storage key to full URL
           const fileWithUrl = {
             ...file,
-            s3Key: `${baseUrl}/${file.s3Key}`
+            s3Key: storageService.getPublicUrl(file.s3Key)
           };
           
           // Add file data to config value
@@ -140,48 +139,30 @@ export const getSystemConfigByKey = async (
     });
     
     if (!config) {
-      console.warn(`Config for key '${key}' not found.`);
       res.status(200).json({ success: false, message: 'No config found.' });
       return;
     }
-
-    console.log(`Found config for key ${key}:`, JSON.stringify(config, null, 2));
     
     // Handle file-based configs (like 'terms')
     if (key === 'terms' && config.value?.fileId) {
-      console.log(`Terms config has fileId: ${config.value.fileId}, fetching file...`);
       const file = await fileRepository.findOne({
         where: { id: config.value.fileId }
       });
       
-      console.log(`File record:`, JSON.stringify(file, null, 2));
-      
       if (file) {
-        // Transform S3 key to full URL
-        const baseUrl = s3Service.getBaseUrl();
-        console.log(`S3 base URL: ${baseUrl}`);
-        
+        // Transform storage key to full URL
         const fileWithUrl = {
           ...file,
-          s3Key: `${baseUrl}/${file.s3Key}`
+          s3Key: storageService.getPublicUrl(file.s3Key)
         };
-        
-        console.log(`Transformed file URL: ${fileWithUrl.s3Key}`);
         
         // Add file data to config value
         config.value = {
           ...config.value,
           file: fileWithUrl
         };
-      } else {
-        console.warn(`File with id ${config.value.fileId} not found.`);
       }
     }
-    
-    console.log(`Sending response:`, JSON.stringify({
-      success: true,
-      data: config,
-    }, null, 2));
     
     res.status(200).json({
       success: true,
@@ -227,11 +208,10 @@ export const getFormattedSystemConfigs = async (
         });
         
         if (file) {
-          // Transform S3 key to full URL
-          const baseUrl = s3Service.getBaseUrl();
+          // Transform storage key to full URL
           const fileWithUrl = {
             ...file,
-            s3Key: `${baseUrl}/${file.s3Key}`
+            s3Key: storageService.getPublicUrl(file.s3Key)
           };
           
           // Add file data to formatted config
@@ -317,8 +297,8 @@ export const createSystemConfig = async (
     let isNewConfig = false;
 
     if (key === 'terms' && file) {
-      // Upload file to S3
-      const uploadResult = await s3Service.uploadFile(
+      // Upload file to storage
+      const uploadResult = await storageService.uploadFile(
         file.buffer,
         file.originalname,
         file.mimetype,
@@ -386,11 +366,10 @@ export const createSystemConfig = async (
       });
       
       if (file) {
-        // Transform S3 key to full URL
-        const baseUrl = s3Service.getBaseUrl();
+        // Transform storage key to full URL
         const fileWithUrl = {
           ...file,
-          s3Key: `${baseUrl}/${file.s3Key}`
+          s3Key: storageService.getPublicUrl(file.s3Key)
         };
         
         // Add file data to config value
@@ -489,11 +468,10 @@ export const updateSystemConfig = async (
       });
       
       if (file) {
-        // Transform S3 key to full URL
-        const baseUrl = s3Service.getBaseUrl();
+        // Transform storage key to full URL
         const fileWithUrl = {
           ...file,
-          s3Key: `${baseUrl}/${file.s3Key}`
+          s3Key: storageService.getPublicUrl(file.s3Key)
         };
         
         // Add file data to config value

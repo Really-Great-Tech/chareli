@@ -8,7 +8,7 @@ import * as bcrypt from "bcrypt";
 import { authService } from "../services/auth.service";
 import { OtpType } from "../entities/Otp";
 import { Not, IsNull } from "typeorm";
-import { s3Service } from "../services/s3.service";
+import { storageService } from "../services/storage.service";
 import { getCountryFromIP, extractClientIP } from "../utils/ipUtils";
 import { detectDeviceType } from "../utils/deviceUtils";
 import { emailService } from "../services/email.service";
@@ -163,7 +163,7 @@ export const getCurrentUserStats = async (
         gameId: game.gameId,
         title: game.title,
         thumbnailUrl: game.thumbnailKey
-          ? `${s3Service.getBaseUrl()}/${game.thumbnailKey}`
+          ? storageService.getPublicUrl(game.thumbnailKey)
           : null,
         totalSeconds: game.totalDuration || 0,
         lastPlayed: game.lastPlayed,
@@ -307,19 +307,28 @@ export const createUser = async (
       hasAcceptedTerms,
     } = req.body;
 
-    // Get IP address
-    const forwarded = req.headers["x-forwarded-for"];
-    const ipAddress = extractClientIP(
-      forwarded,
-      req.socket.remoteAddress || req.ip || ""
-    );
+    // Get IP address with error handling
+    let ipAddress = '';
+    let country = null;
+    let deviceType = 'unknown';
+    
+    try {
+      const forwarded = req.headers["x-forwarded-for"];
+      ipAddress = extractClientIP(
+        forwarded,
+        req.socket.remoteAddress || req.ip || ""
+      );
 
-    // Get country from IP
-    const country = await getCountryFromIP(ipAddress);
+      // Get country from IP
+      country = await getCountryFromIP(ipAddress);
 
-    // Get device type from user agent
-    const userAgent = req.headers['user-agent'] || '';
-    const deviceType = detectDeviceType(userAgent);
+      // Get device type from user agent
+      const userAgent = req.headers['user-agent'] || '';
+      deviceType = detectDeviceType(userAgent);
+    } catch (error) {
+      console.error('Failed to extract IP/country information:', error);
+      // Continue with user creation even if IP extraction fails
+    }
 
     // Check if user with email already exists (including deleted users)
     if (email || phoneNumber) {

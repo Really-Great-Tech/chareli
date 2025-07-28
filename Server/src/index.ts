@@ -1,3 +1,4 @@
+import { loadConfiguration } from './services/secrets.service';
 import app from './app';
 import config from './config/config';
 import { initializeDatabase } from './config/database';
@@ -16,6 +17,14 @@ if (!fs.existsSync(logDir)) {
 
 const startServer = async () => {
   try {
+    await loadConfiguration();
+
+    const logDir = path.join(process.cwd(), 'logs');
+    if (!fs.existsSync(logDir)) {
+      fs.mkdirSync(logDir);
+      logger.info(`Created logs directory at ${logDir}`);
+    }
+
     // Initialize Sentry (will only be active in production)
     initializeSentry(app);
 

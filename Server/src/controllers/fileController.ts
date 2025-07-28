@@ -3,7 +3,7 @@ import { AppDataSource } from '../config/database';
 import { File } from '../entities/Files';
 import { ApiError } from '../middlewares/errorHandler';
 import { v4 as uuidv4 } from 'uuid';
-import { s3Service } from '../services/s3.service';
+import { storageService } from '../services/storage.service';
 import { zipService } from '../services/zip.service';
 import multer from 'multer';
 import logger from '../utils/logger';
@@ -12,14 +12,13 @@ import * as path from 'path';
 const fileRepository = AppDataSource.getRepository(File);
 
 /**
- * Transform file data to include S3 URLs
+ * Transform file data to include storage URLs
  */
-const transformFileWithS3Url = (file: any) => {
+const transformFileWithStorageUrl = (file: any) => {
   const transformedFile = { ...file };
   
   if (file.s3Key) {
-    const baseUrl = s3Service.getBaseUrl();
-    transformedFile.url = `${baseUrl}/${file.s3Key}`;
+    transformedFile.url = storageService.getPublicUrl(file.s3Key);
   }
   
   return transformedFile;
@@ -109,8 +108,8 @@ export const getAllFiles = async (
     
     const files = await queryBuilder.getMany();
     
-    // Transform files to include S3 URLs
-    const transformedFiles = files.map(file => transformFileWithS3Url(file));
+    // Transform files to include storage URLs
+    const transformedFiles = files.map(file => transformFileWithStorageUrl(file));
     
     res.status(200).json({
       success: true,
@@ -165,8 +164,8 @@ export const getFileById = async (
       return next(ApiError.notFound(`File with id ${id} not found`));
     }
     
-    // Transform file to include S3 URL
-    const transformedFile = transformFileWithS3Url(file);
+    // Transform file to include storage URL
+    const transformedFile = transformFileWithStorageUrl(file);
     
     res.status(200).json({
       success: true,
@@ -238,8 +237,8 @@ export const createFile = async (
 
       const gameId = uuidv4();
       
-      const s3GamePath = `games/${gameId}`;
-      await s3Service.uploadDirectory(processedZip.extractedPath, s3GamePath);
+      const gamePath = `games/${gameId}`;
+      await storageService.uploadDirectory(processedZip.extractedPath, gamePath);
 
       if (!processedZip.indexPath) {
         return next(ApiError.badRequest('No index.html found in the zip file'));
@@ -247,14 +246,14 @@ export const createFile = async (
 
       const indexPath = processedZip.indexPath.replace(/\\/g, '/');
       fileRecord = fileRepository.create({
-        s3Key: `${s3GamePath}/${indexPath}`,
+        s3Key: `${gamePath}/${indexPath}`,
         type: 'game_file'
       });
 
       await fileRepository.save(fileRecord);
     } else {
-      logger.info(`Uploading file to S3: ${file.originalname}`);
-      const uploadResult = await s3Service.uploadFile(
+      logger.info(`Uploading file to storage: ${file.originalname}`);
+      const uploadResult = await storageService.uploadFile(
         file.buffer,
         file.originalname,
         file.mimetype,
@@ -270,8 +269,8 @@ export const createFile = async (
       await fileRepository.save(fileRecord);
     }
     
-    // Transform file to include S3 URL
-    const transformedFile = transformFileWithS3Url(fileRecord);
+    // Transform file to include storage URL
+    const transformedFile = transformFileWithStorageUrl(fileRecord);
     
     res.status(201).json({
       success: true,
@@ -340,8 +339,8 @@ export const updateFile = async (
     }
     
     if (uploadedFile) {
-      logger.info(`Uploading new file to S3: ${uploadedFile.originalname}`);
-      const uploadResult = await s3Service.uploadFile(
+      logger.info(`Uploading new file to storage: ${uploadedFile.originalname}`);
+      const uploadResult = await storageService.uploadFile(
         uploadedFile.buffer,
         uploadedFile.originalname,
         uploadedFile.mimetype,
@@ -357,8 +356,8 @@ export const updateFile = async (
     
     await fileRepository.save(file);
     
-    // Transform file to include S3 URL
-    const transformedFile = transformFileWithS3Url(file);
+    // Transform file to include storage URL
+    const transformedFile = transformFileWithStorageUrl(file);
     
     res.status(200).json({
       success: true,
@@ -409,10 +408,10 @@ export const deleteFile = async (
     }
     
     try {
-      logger.info(`Deleting file from S3: ${file.s3Key}`);
-      await s3Service.deleteFile(file.s3Key);
+      logger.info(`Deleting file from storage: ${file.s3Key}`);
+      await storageService.deleteFile(file.s3Key);
     } catch (error) {
-      logger.warn(`Failed to delete file from S3: ${error}`);
+      logger.warn(`Failed to delete file from storage: ${error}`);
     }
     
     await fileRepository.remove(file);

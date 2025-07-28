@@ -8,7 +8,7 @@ import { GamePositionHistory } from '../entities/GamePositionHistory';
 import { ApiError } from '../middlewares/errorHandler';
 import { Between, FindOptionsWhere, In, LessThan, IsNull, Not } from 'typeorm';
 import { checkInactiveUsers } from '../jobs/userInactivityCheck';
-import { s3Service } from '../services/s3.service';
+import { storageService } from '../services/storage.service';
 
 const userRepository = AppDataSource.getRepository(User);
 const gameRepository = AppDataSource.getRepository(Game);
@@ -40,7 +40,9 @@ export const getDashboardAnalytics = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { period, startDate, endDate } = req.query;
+    const { period, startDate, endDate, country } = req.query;
+    
+    const countries = Array.isArray(country) ? country as string[] : country ? [country as string] : [];
     
     let now = new Date();
     let currentPeriodStart: Date;
@@ -92,7 +94,7 @@ export const getDashboardAnalytics = async (
     const fortyEightHoursAgo = previousPeriodStart;
 
     // Get users who played games yesterday (24-48 hours ago) for 30+ seconds
-    const yesterdayUsersResult = await analyticsRepository
+    let yesterdayUsersQuery = analyticsRepository
       .createQueryBuilder('analytics')
       .select('COUNT(DISTINCT analytics.userId)', 'count')
       .where('analytics.createdAt BETWEEN :start AND :end', {
@@ -102,11 +104,19 @@ export const getDashboardAnalytics = async (
       .andWhere('analytics.gameId IS NOT NULL')
       .andWhere('analytics.startTime IS NOT NULL')
       .andWhere('analytics.endTime IS NOT NULL')
-      .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
-      .getRawOne();
+      .andWhere('analytics.duration >= :minDuration', { minDuration: 30 });
+
+    // Add country filter if provided
+    if (countries.length > 0) {
+      yesterdayUsersQuery = yesterdayUsersQuery
+        .leftJoin('analytics.user', 'user')
+        .andWhere('user.country IN (:...countries)', { countries });
+    }
+
+    const yesterdayUsersResult = await yesterdayUsersQuery.getRawOne();
 
     // Among those users, count how many also played games today (last 24 hours) for 30+ seconds
-    const returningUsersResult = await analyticsRepository
+    let returningUsersQuery = analyticsRepository
       .createQueryBuilder('a1')
       .select('COUNT(DISTINCT a1.userId)', 'count')
       .innerJoin('analytics', 'a2', 'a1.userId = a2.userId')
@@ -122,8 +132,18 @@ export const getDashboardAnalytics = async (
       .andWhere('a2.gameId IS NOT NULL')
       .andWhere('a2.startTime IS NOT NULL')
       .andWhere('a2.endTime IS NOT NULL')
-      .andWhere('a2.duration >= :minDuration2', { minDuration2: 30 })
-      .getRawOne();
+      .andWhere('a2.duration >= :minDuration2', { minDuration2: 30 });
+
+    // Add country filter if provided
+    if (countries.length > 0) {
+      returningUsersQuery = returningUsersQuery
+        .leftJoin('a1.user', 'user1')
+        .leftJoin('a2.user', 'user2')
+        .andWhere('user1.country IN (:...countries)', { countries })
+        .andWhere('user2.country IN (:...countries)', { countries });
+    }
+
+    const returningUsersResult = await returningUsersQuery.getRawOne();
 
     const yesterdayUsers = parseInt(yesterdayUsersResult?.count) || 0;
     const returningUsers = parseInt(returningUsersResult?.count) || 0;
@@ -135,7 +155,7 @@ export const getDashboardAnalytics = async (
     const dailyActiveUsersNow = new Date();
     const dailyActiveUsers24HoursAgo = new Date(dailyActiveUsersNow.getTime() - 24 * 60 * 60 * 1000);
     
-    const dailyActiveUsersResult = await analyticsRepository
+    let dailyActiveUsersQuery = analyticsRepository
       .createQueryBuilder('analytics')
       .select('COUNT(DISTINCT analytics.userId)', 'count')
       .where('analytics.gameId IS NOT NULL')
@@ -143,30 +163,43 @@ export const getDashboardAnalytics = async (
       .andWhere('analytics.createdAt BETWEEN :start AND :end', {
         start: dailyActiveUsers24HoursAgo,
         end: dailyActiveUsersNow
-      })
-      .getRawOne();
+      });
+
+    // Add country filter if provided
+    if (countries.length > 0) {
+      dailyActiveUsersQuery = dailyActiveUsersQuery
+        .leftJoin('analytics.user', 'user')
+        .andWhere('user.country IN (:...countries)', { countries });
+    }
+
+    const dailyActiveUsersResult = await dailyActiveUsersQuery.getRawOne();
 
     const dailyActiveUsers = parseInt(dailyActiveUsersResult?.count) || 0;
 
     // 2. Total Registered Users with active/inactive breakdown
+    let currentRegisteredWhere: any = {
+      createdAt: Between(twentyFourHoursAgo, now),
+      isDeleted: false,
+      hasCompletedFirstLogin: true
+    };
+    let previousRegisteredWhere: any = {
+      createdAt: Between(fortyEightHoursAgo, twentyFourHoursAgo),
+      isDeleted: false,
+      hasCompletedFirstLogin: true
+    };
+    let actualRegisteredWhere: any = { isDeleted: false, hasCompletedFirstLogin: true };
+
+    // Add country filter if provided
+    if (countries.length > 0) {
+      currentRegisteredWhere.country = In(countries);
+      previousRegisteredWhere.country = In(countries);
+      actualRegisteredWhere.country = In(countries);
+    }
+
     const [currentTotalRegisteredUsers, previousTotalRegisteredUsers, actualRegisteredUsers] = await Promise.all([
-      userRepository.count({
-        where: {
-          createdAt: Between(twentyFourHoursAgo, now),
-          isDeleted: false,
-          hasCompletedFirstLogin: true
-        }
-      }),
-      userRepository.count({
-        where: {
-          createdAt: Between(fortyEightHoursAgo, twentyFourHoursAgo),
-          isDeleted: false,
-          hasCompletedFirstLogin: true
-        }
-      }),
-      userRepository.count({
-        where: { isDeleted: false, hasCompletedFirstLogin: true }
-      })
+      userRepository.count({ where: currentRegisteredWhere }),
+      userRepository.count({ where: previousRegisteredWhere }),
+      userRepository.count({ where: actualRegisteredWhere })
     ]);
 
     const totalRegisteredUsersPercentageChange = previousTotalRegisteredUsers > 0
@@ -174,41 +207,41 @@ export const getDashboardAnalytics = async (
       : 0;
 
     // Count active and inactive users based on business logic
+    let activeUsersWhere: any = { 
+      isActive: true, 
+      isDeleted: false,
+      lastLoggedIn: Not(IsNull()) // Only count users who have actually logged in
+    };
+    let systemInactiveWhere: any = { isActive: false, isDeleted: false };
+    let neverLoggedInWhere: any = { 
+      isActive: true, 
+      isDeleted: false,
+      lastLoggedIn: IsNull()
+    };
+
+    // Add country filter if provided
+    if (countries.length > 0) {
+      activeUsersWhere.country = In(countries);
+      systemInactiveWhere.country = In(countries);
+      neverLoggedInWhere.country = In(countries);
+    }
+
     // Active users: users who have logged in at least once and are still active
-    const activeUsers = await userRepository.count({
-      where: { 
-        isActive: true, 
-        isDeleted: false,
-        lastLoggedIn: Not(IsNull()) // Only count users who have actually logged in
-      }
-    });
+    const activeUsers = await userRepository.count({ where: activeUsersWhere });
     
-    // Inactive users: users who are either:
-    // 1. Set to inactive by the system, OR
-    // 2. Never logged in (regardless of isActive status)
     const [systemInactiveUsers, neverLoggedInUsers] = await Promise.all([
-      userRepository.count({
-        where: { isActive: false, isDeleted: false }
-      }),
-      userRepository.count({
-        where: { 
-          isActive: true, 
-          isDeleted: false,
-          lastLoggedIn: IsNull()
-        }
-      })
+      userRepository.count({ where: systemInactiveWhere }),
+      userRepository.count({ where: neverLoggedInWhere })
     ]);
     
     const inactiveUsers = systemInactiveUsers + neverLoggedInUsers;
     const registeredButNeverLoggedIn = neverLoggedInUsers;
 
-
-    
     // 3. Game Coverage - Percentage of total games that have been played
     const totalGames = await gameRepository.count();
     
     // Get games played in current period
-    const currentPlayedGamesResult = await analyticsRepository
+    let currentPlayedGamesQuery = analyticsRepository
       .createQueryBuilder('analytics')
       .select('COUNT(DISTINCT analytics.gameId)', 'count')
       .where('analytics.gameId IS NOT NULL')
@@ -216,11 +249,10 @@ export const getDashboardAnalytics = async (
       .andWhere('analytics.createdAt BETWEEN :start AND :end', {
         start: twentyFourHoursAgo,
         end: now
-      })
-      .getRawOne();
+      });
 
     // Get games played in previous period
-    const previousPlayedGamesResult = await analyticsRepository
+    let previousPlayedGamesQuery = analyticsRepository
       .createQueryBuilder('analytics')
       .select('COUNT(DISTINCT analytics.gameId)', 'count')
       .where('analytics.gameId IS NOT NULL')
@@ -228,8 +260,21 @@ export const getDashboardAnalytics = async (
       .andWhere('analytics.createdAt BETWEEN :start AND :end', {
         start: fortyEightHoursAgo,
         end: twentyFourHoursAgo
-      })
-      .getRawOne();
+      });
+
+    // Add country filter if provided
+    if (countries.length > 0) {
+      currentPlayedGamesQuery = currentPlayedGamesQuery
+        .leftJoin('analytics.user', 'user')
+        .andWhere('user.country IN (:...countries)', { countries });
+      
+      previousPlayedGamesQuery = previousPlayedGamesQuery
+        .leftJoin('analytics.user', 'user')
+        .andWhere('user.country IN (:...countries)', { countries });
+    }
+
+    const currentPlayedGamesResult = await currentPlayedGamesQuery.getRawOne();
+    const previousPlayedGamesResult = await previousPlayedGamesQuery.getRawOne();
 
     const currentPlayedGames = parseInt(currentPlayedGamesResult?.count) || 0;
     const previousPlayedGames = parseInt(previousPlayedGamesResult?.count) || 0;
@@ -242,27 +287,40 @@ export const getDashboardAnalytics = async (
       : 0;
 
     // 4. Total Active Users - Users who have analytics records within the selected period
+    let currentTotalActiveUsersQuery = analyticsRepository
+      .createQueryBuilder('analytics')
+      .select('COUNT(DISTINCT analytics.userId)', 'count')
+      .where('analytics.gameId IS NOT NULL')
+      .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
+      .andWhere('analytics.createdAt BETWEEN :start AND :end', {
+        start: twentyFourHoursAgo,
+        end: now
+      });
+
+    let previousTotalActiveUsersQuery = analyticsRepository
+      .createQueryBuilder('analytics')
+      .select('COUNT(DISTINCT analytics.userId)', 'count')
+      .where('analytics.gameId IS NOT NULL')
+      .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
+      .andWhere('analytics.createdAt BETWEEN :start AND :end', {
+        start: fortyEightHoursAgo,
+        end: twentyFourHoursAgo
+      });
+
+    // Add country filter if provided
+    if (countries.length > 0) {
+      currentTotalActiveUsersQuery = currentTotalActiveUsersQuery
+        .leftJoin('analytics.user', 'user')
+        .andWhere('user.country IN (:...countries)', { countries });
+      
+      previousTotalActiveUsersQuery = previousTotalActiveUsersQuery
+        .leftJoin('analytics.user', 'user')
+        .andWhere('user.country IN (:...countries)', { countries });
+    }
+
     const [currentTotalActiveUsers, previousTotalActiveUsers] = await Promise.all([
-      analyticsRepository
-        .createQueryBuilder('analytics')
-        .select('COUNT(DISTINCT analytics.userId)', 'count')
-        .where('analytics.gameId IS NOT NULL')
-        .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
-        .andWhere('analytics.createdAt BETWEEN :start AND :end', {
-          start: twentyFourHoursAgo,
-          end: now
-        })
-        .getRawOne(),
-      analyticsRepository
-        .createQueryBuilder('analytics')
-        .select('COUNT(DISTINCT analytics.userId)', 'count')
-        .where('analytics.gameId IS NOT NULL')
-        .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
-        .andWhere('analytics.createdAt BETWEEN :start AND :end', {
-          start: fortyEightHoursAgo,
-          end: twentyFourHoursAgo
-        })
-        .getRawOne()
+      currentTotalActiveUsersQuery.getRawOne(),
+      previousTotalActiveUsersQuery.getRawOne()
     ]);
 
     const currentActiveUsers = parseInt(currentTotalActiveUsers?.count) || 0;
@@ -272,36 +330,54 @@ export const getDashboardAnalytics = async (
       : 0;
 
     // 4. Total Sessions (game-related only, duration >= 30 seconds)
+    let currentTotalSessionsQuery = analyticsRepository
+      .createQueryBuilder('analytics')
+      .where('analytics.gameId IS NOT NULL')
+      .andWhere('analytics.startTime IS NOT NULL')
+      .andWhere('analytics.endTime IS NOT NULL')
+      .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
+      .andWhere('analytics.createdAt BETWEEN :start AND :end', {
+        start: twentyFourHoursAgo,
+        end: now
+      });
+
+    let previousTotalSessionsQuery = analyticsRepository
+      .createQueryBuilder('analytics')
+      .where('analytics.gameId IS NOT NULL')
+      .andWhere('analytics.startTime IS NOT NULL')
+      .andWhere('analytics.endTime IS NOT NULL')
+      .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
+      .andWhere('analytics.createdAt BETWEEN :start AND :end', {
+        start: fortyEightHoursAgo,
+        end: twentyFourHoursAgo
+      });
+
+    let actualSessionsQuery = analyticsRepository
+      .createQueryBuilder('analytics')
+      .where('analytics.gameId IS NOT NULL')
+      .andWhere('analytics.startTime IS NOT NULL')
+      .andWhere('analytics.endTime IS NOT NULL')
+      .andWhere('analytics.duration >= :minDuration', { minDuration: 30 });
+
+    // Add country filter if provided
+    if (countries.length > 0) {
+      currentTotalSessionsQuery = currentTotalSessionsQuery
+        .leftJoin('analytics.user', 'user')
+        .andWhere('user.country IN (:...countries)', { countries });
+      
+      previousTotalSessionsQuery = previousTotalSessionsQuery
+        .leftJoin('analytics.user', 'user')
+        .andWhere('user.country IN (:...countries)', { countries });
+      
+      actualSessionsQuery = actualSessionsQuery
+        .leftJoin('analytics.user', 'user')
+        .andWhere('user.country IN (:...countries)', { countries });
+    }
+
     const [currentTotalSessions, previousTotalSessions, actualSessions] = await Promise.all([
-      analyticsRepository
-        .createQueryBuilder('analytics')
-        .where('analytics.gameId IS NOT NULL')
-        .andWhere('analytics.startTime IS NOT NULL')
-        .andWhere('analytics.endTime IS NOT NULL')
-        .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
-        .andWhere('analytics.createdAt BETWEEN :start AND :end', {
-          start: twentyFourHoursAgo,
-          end: now
-        })
-        .getCount(),
-      analyticsRepository
-        .createQueryBuilder('analytics')
-        .where('analytics.gameId IS NOT NULL')
-        .andWhere('analytics.startTime IS NOT NULL')
-        .andWhere('analytics.endTime IS NOT NULL')
-        .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
-        .andWhere('analytics.createdAt BETWEEN :start AND :end', {
-          start: fortyEightHoursAgo,
-          end: twentyFourHoursAgo
-        })
-        .getCount(),
-      analyticsRepository
-        .createQueryBuilder('analytics')
-        .where('analytics.gameId IS NOT NULL')
-        .andWhere('analytics.startTime IS NOT NULL')
-        .andWhere('analytics.endTime IS NOT NULL')
-        .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
-        .getCount()
+      currentTotalSessionsQuery.getCount(),
+      previousTotalSessionsQuery.getCount(),
+      actualSessionsQuery.getCount()
     ]);
 
     const totalSessionsPercentageChange = previousTotalSessions > 0
@@ -309,41 +385,57 @@ export const getDashboardAnalytics = async (
       : 0;
 
     // 5. Total Time Played (in minutes, game-related only, duration >= 30 seconds)
+    let currentTotalTimePlayedQuery = analyticsRepository
+      .createQueryBuilder('analytics')
+      .select('SUM(analytics.duration)', 'totalPlayTime')
+      .where('analytics.gameId IS NOT NULL')
+      .andWhere('analytics.startTime IS NOT NULL')
+      .andWhere('analytics.endTime IS NOT NULL')
+      .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
+      .andWhere('analytics.startTime BETWEEN :start AND :end', {
+        start: twentyFourHoursAgo,
+        end: now
+      });
+
+    let previousTotalTimePlayedQuery = analyticsRepository
+      .createQueryBuilder('analytics')
+      .select('SUM(analytics.duration)', 'totalPlayTime')
+      .where('analytics.gameId IS NOT NULL')
+      .andWhere('analytics.startTime IS NOT NULL')
+      .andWhere('analytics.endTime IS NOT NULL')
+      .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
+      .andWhere('analytics.startTime BETWEEN :start AND :end', {
+        start: fortyEightHoursAgo,
+        end: twentyFourHoursAgo
+      });
+
+    let actualTimePlayedQuery = analyticsRepository
+      .createQueryBuilder('analytics')
+      .select('SUM(analytics.duration)', 'totalPlayTime')
+      .where('analytics.gameId IS NOT NULL')
+      .andWhere('analytics.startTime IS NOT NULL')
+      .andWhere('analytics.endTime IS NOT NULL')
+      .andWhere('analytics.duration >= :minDuration', { minDuration: 30 });
+
+    // Add country filter if provided
+    if (countries.length > 0) {
+      currentTotalTimePlayedQuery = currentTotalTimePlayedQuery
+        .leftJoin('analytics.user', 'user')
+        .andWhere('user.country IN (:...countries)', { countries });
+      
+      previousTotalTimePlayedQuery = previousTotalTimePlayedQuery
+        .leftJoin('analytics.user', 'user')
+        .andWhere('user.country IN (:...countries)', { countries });
+      
+      actualTimePlayedQuery = actualTimePlayedQuery
+        .leftJoin('analytics.user', 'user')
+        .andWhere('user.country IN (:...countries)', { countries });
+    }
+
     const [currentTotalTimePlayedResult, previousTotalTimePlayedResult, actualTimePlayed] = await Promise.all([
-      analyticsRepository
-        .createQueryBuilder('analytics')
-        .select('SUM(analytics.duration)', 'totalPlayTime')
-        .where('analytics.gameId IS NOT NULL')
-        .andWhere('analytics.startTime IS NOT NULL')
-        .andWhere('analytics.endTime IS NOT NULL')
-        .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
-        .andWhere('analytics.startTime BETWEEN :start AND :end', {
-          start: twentyFourHoursAgo,
-          end: now
-        })
-        .getRawOne(),
-
-      analyticsRepository
-        .createQueryBuilder('analytics')
-        .select('SUM(analytics.duration)', 'totalPlayTime')
-        .where('analytics.gameId IS NOT NULL')
-        .andWhere('analytics.startTime IS NOT NULL')
-        .andWhere('analytics.endTime IS NOT NULL')
-        .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
-        .andWhere('analytics.startTime BETWEEN :start AND :end', {
-          start: fortyEightHoursAgo,
-          end: twentyFourHoursAgo
-        })
-        .getRawOne(),
-
-      analyticsRepository
-        .createQueryBuilder('analytics')
-        .select('SUM(analytics.duration)', 'totalPlayTime')
-        .where('analytics.gameId IS NOT NULL')
-        .andWhere('analytics.startTime IS NOT NULL')
-        .andWhere('analytics.endTime IS NOT NULL')
-        .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
-        .getRawOne()
+      currentTotalTimePlayedQuery.getRawOne(),
+      previousTotalTimePlayedQuery.getRawOne(),
+      actualTimePlayedQuery.getRawOne()
     ]);
 
     const totalPlayTime = Number(actualTimePlayed?.totalPlayTime) || 0;
@@ -355,7 +447,7 @@ export const getDashboardAnalytics = async (
       : 0;
 
     // 6. Most Played Games (top 3) with percentage change (for the current period, duration >= 30 seconds)
-    const mostPlayedGamesResults = await analyticsRepository
+    let mostPlayedGamesQuery = analyticsRepository
       .createQueryBuilder('analytics')
       .select('analytics.gameId', 'gameId')
       .addSelect('game.title', 'gameTitle')
@@ -370,7 +462,16 @@ export const getDashboardAnalytics = async (
       .andWhere('analytics.createdAt BETWEEN :start AND :end', {
         start: twentyFourHoursAgo,
         end: now
-      })
+      });
+
+    // Add country filter if provided
+    if (countries.length > 0) {
+      mostPlayedGamesQuery = mostPlayedGamesQuery
+        .leftJoin('analytics.user', 'user')
+        .andWhere('user.country IN (:...countries)', { countries });
+    }
+
+    const mostPlayedGamesResults = await mostPlayedGamesQuery
       .groupBy('analytics.gameId')
       .addGroupBy('game.title')
       .addGroupBy('thumbnailFile.s3Key')
@@ -388,18 +489,17 @@ export const getDashboardAnalytics = async (
     if (mostPlayedGamesResults && mostPlayedGamesResults.length > 0) {
       mostPlayedGames = await Promise.all(mostPlayedGamesResults.map(async (gameResult) => {
         // Get current period sessions for this game
-        const currentSessions = await analyticsRepository
+        let currentSessionsQuery = analyticsRepository
           .createQueryBuilder('analytics')
           .select('COUNT(*)', 'count')
           .where('analytics.gameId = :gameId', { gameId: gameResult.gameId })
           .andWhere('analytics.startTime IS NOT NULL')
           .andWhere('analytics.endTime IS NOT NULL')
           .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
-          .andWhere('analytics.createdAt > :twentyFourHoursAgo', { twentyFourHoursAgo })
-          .getRawOne();
+          .andWhere('analytics.createdAt > :twentyFourHoursAgo', { twentyFourHoursAgo });
 
         // Get previous period sessions for this game
-        const previousSessions = await analyticsRepository
+        let previousSessionsQuery = analyticsRepository
           .createQueryBuilder('analytics')
           .select('COUNT(*)', 'count')
           .where('analytics.gameId = :gameId', { gameId: gameResult.gameId })
@@ -409,8 +509,21 @@ export const getDashboardAnalytics = async (
           .andWhere('analytics.createdAt BETWEEN :start AND :end', {
             start: fortyEightHoursAgo,
             end: twentyFourHoursAgo
-          })
-          .getRawOne();
+          });
+
+        // Add country filter if provided
+        if (countries.length > 0) {
+          currentSessionsQuery = currentSessionsQuery
+            .leftJoin('analytics.user', 'user')
+            .andWhere('user.country IN (:...countries)', { countries });
+          
+          previousSessionsQuery = previousSessionsQuery
+            .leftJoin('analytics.user', 'user')
+            .andWhere('user.country IN (:...countries)', { countries });
+        }
+
+        const currentSessions = await currentSessionsQuery.getRawOne();
+        const previousSessions = await previousSessionsQuery.getRawOne();
 
         const current = parseInt(currentSessions?.count) || 0;
         const previous = parseInt(previousSessions?.count) || 0;
@@ -421,7 +534,7 @@ export const getDashboardAnalytics = async (
         return {
           id: gameResult.gameId,
           title: gameResult.gameTitle,
-          thumbnailUrl: gameResult.thumbnailKey ? `${s3Service.getBaseUrl()}/${gameResult.thumbnailKey}` : null,
+          thumbnailUrl: gameResult.thumbnailKey ? storageService.getPublicUrl(gameResult.thumbnailKey) : null,
           sessionCount: parseInt(gameResult.sessionCount),
           percentageChange: Number(percentageChange.toFixed(2))
         };
@@ -432,29 +545,42 @@ export const getDashboardAnalytics = async (
     const overallPercentageChange = mostPlayedGames.length > 0 ? mostPlayedGames[0].percentageChange : 0;
     
     // 7. Average Session Duration (in minutes, game-related only, duration >= 30 seconds)
+    let currentAvgDurationQuery = analyticsRepository
+      .createQueryBuilder('analytics')
+      .select('AVG(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.duration END)', 'avgDuration')
+      .where('analytics.gameId IS NOT NULL')
+      .andWhere('analytics.duration IS NOT NULL')
+      .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
+      .andWhere('analytics.createdAt BETWEEN :start AND :end', {
+        start: twentyFourHoursAgo,
+        end: now
+      });
+
+    let previousAvgDurationQuery = analyticsRepository
+      .createQueryBuilder('analytics')
+      .select('AVG(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.duration END)', 'avgDuration')
+      .where('analytics.gameId IS NOT NULL')
+      .andWhere('analytics.duration IS NOT NULL')
+      .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
+      .andWhere('analytics.createdAt BETWEEN :start AND :end', {
+        start: fortyEightHoursAgo,
+        end: twentyFourHoursAgo
+      });
+
+    // Add country filter if provided
+    if (countries.length > 0) {
+      currentAvgDurationQuery = currentAvgDurationQuery
+        .leftJoin('analytics.user', 'user')
+        .andWhere('user.country IN (:...countries)', { countries });
+      
+      previousAvgDurationQuery = previousAvgDurationQuery
+        .leftJoin('analytics.user', 'user')
+        .andWhere('user.country IN (:...countries)', { countries });
+    }
+
     const [currentAvgDurationResult, previousAvgDurationResult] = await Promise.all([
-      analyticsRepository
-        .createQueryBuilder('analytics')
-        .select('AVG(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.duration END)', 'avgDuration')
-        .where('analytics.gameId IS NOT NULL')
-        .andWhere('analytics.duration IS NOT NULL')
-        .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
-        .andWhere('analytics.createdAt BETWEEN :start AND :end', {
-          start: twentyFourHoursAgo,
-          end: now
-        })
-        .getRawOne(),
-      analyticsRepository
-        .createQueryBuilder('analytics')
-        .select('AVG(CASE WHEN analytics.gameId IS NOT NULL THEN analytics.duration END)', 'avgDuration')
-        .where('analytics.gameId IS NOT NULL')
-        .andWhere('analytics.duration IS NOT NULL')
-        .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
-        .andWhere('analytics.createdAt BETWEEN :start AND :end', {
-          start: fortyEightHoursAgo,
-          end: twentyFourHoursAgo
-        })
-        .getRawOne()
+      currentAvgDurationQuery.getRawOne(),
+      previousAvgDurationQuery.getRawOne()
     ]);
 
     // Convert to minutes before calculating percentage change
@@ -464,9 +590,19 @@ export const getDashboardAnalytics = async (
       ? Math.max(Math.min(((currentAvgSessionDuration - previousAvgSessionDuration) / previousAvgSessionDuration) * 100, 100), -100)
       : 0;
 
+    // Count adults and minors with country filter
+    let adultsWhere: any = { isAdult: true, isDeleted: false };
+    let minorsWhere: any = { isAdult: false, isDeleted: false };
+
+    // Add country filter if provided
+    if (countries.length > 0) {
+      adultsWhere.country = In(countries);
+      minorsWhere.country = In(countries);
+    }
+
     const [adultsCount, minorsCount] = await Promise.all([
-      userRepository.count({ where: { isAdult: true, isDeleted: false } }),
-      userRepository.count({ where: { isAdult: false, isDeleted: false } }),
+      userRepository.count({ where: adultsWhere }),
+      userRepository.count({ where: minorsWhere }),
     ]);
 
     res.status(200).json({
@@ -954,7 +1090,7 @@ export const getGamesWithAnalytics = async (
         ...game,
         thumbnailFile: game.thumbnailFile ? {
           ...game.thumbnailFile,
-          url: game.thumbnailFile.s3Key ? `${s3Service.getBaseUrl()}/${game.thumbnailFile.s3Key}` : null
+        url: game.thumbnailFile.s3Key ? storageService.getPublicUrl(game.thumbnailFile.s3Key) : null
         } : null,
         analytics
       };
@@ -1125,11 +1261,11 @@ export const getGameAnalyticsById = async (
       ...game,
       thumbnailFile: game.thumbnailFile ? {
         ...game.thumbnailFile,
-        url: game.thumbnailFile.s3Key ? `${s3Service.getBaseUrl()}/${game.thumbnailFile.s3Key}` : null
+        url: game.thumbnailFile.s3Key ? storageService.getPublicUrl(game.thumbnailFile.s3Key) : null
       } : null,
       gameFile: game.gameFile ? {
         ...game.gameFile,
-        url: game.gameFile.s3Key ? `${s3Service.getBaseUrl()}/${game.gameFile.s3Key}` : null
+        url: game.gameFile.s3Key ? storageService.getPublicUrl(game.gameFile.s3Key) : null
       } : null
     };
 
@@ -1255,7 +1391,7 @@ export const getUserAnalyticsById = async (
     const formattedGameActivity = gameActivity.map(game => ({
       gameId: game.gameId,
       gameTitle: game.gameTitle,
-      thumbnailUrl: game.thumbnailKey ? `${s3Service.getBaseUrl()}/${game.thumbnailKey}` : null,
+      thumbnailUrl: game.thumbnailKey ? storageService.getPublicUrl(game.thumbnailKey) : null,
       sessionCount: parseInt(game.sessionCount) || 0,
       totalPlayTime: parseInt((game.totalPlayTime || 0)), // Convert to minutes
       lastPlayed: game.lastPlayed
@@ -1402,7 +1538,7 @@ export const getGamesPopularityMetrics = async (
       return {
         id: game.id,
         title: game.title,
-        thumbnailUrl: game.thumbnailFile?.s3Key ? `${s3Service.getBaseUrl()}/${game.thumbnailFile.s3Key}` : null,
+        thumbnailUrl: game.thumbnailFile?.s3Key ? storageService.getPublicUrl(game.thumbnailFile.s3Key) : null,
         status: game.status,
         metrics: {
           totalPlays: parseInt(overallMetrics?.totalPlays) || 0,
@@ -1580,7 +1716,7 @@ export const getUsersWithAnalytics = async (
         mostPlayedGameMap.set(item.userId, {
           gameId: item.gameId,
           gameTitle: item.gameTitle,
-          thumbnailUrl: item.thumbnailKey ? `${s3Service.getBaseUrl()}/${item.thumbnailKey}` : null,
+          thumbnailUrl: item.thumbnailKey ? storageService.getPublicUrl(item.thumbnailKey) : null,
           sessionCount: parseInt(item.sessionCount) || 0
         });
       }

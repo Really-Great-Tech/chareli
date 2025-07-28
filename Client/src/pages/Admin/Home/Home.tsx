@@ -2,6 +2,7 @@ import click from '../../../assets/click.svg'
 import { Card } from "../../../components/ui/card";
 import { AcceptInvitationModal } from "../../../components/modals/AdminModals/AcceptInvitationModal";
 import { DashboardTimeFilter } from "../../../components/single/DashboardTimeFilter";
+import { DashboardCountryFilter } from "../../../components/single/DashboardCountryFilter";
 import StatsCard from "./StatsCard";
 import PieChart from '../../../components/charts/piechart';
 import { useState } from 'react';
@@ -15,6 +16,7 @@ export default function Home() {
   const permissions = usePermissions();
   const [isAcceptInviteOpen, setIsAcceptInviteOpen] = useState(false);
   const [timeRange, setTimeRange] = useState<DashboardTimeRange>({ period: 'last24hours' });
+  const [countryFilter, setCountryFilter] = useState<string[]>([]);
   return (
     <div>
       <div className="px-6 pb-3">
@@ -23,15 +25,21 @@ export default function Home() {
             Dashboard
           </h1>
           {permissions.canFilter && (
-            <DashboardTimeFilter 
-              value={timeRange} 
-              onChange={setTimeRange} 
-            />
+            <div className="flex flex-col sm:flex-row gap-2">
+              <DashboardTimeFilter 
+                value={timeRange} 
+                onChange={setTimeRange} 
+              />
+              <DashboardCountryFilter 
+                value={countryFilter} 
+                onChange={setCountryFilter} 
+              />
+            </div>
           )}
         </div>
       </div>
       <div className="px-6">
-        <StatsCard timeRange={timeRange} />
+        <StatsCard filters={{ timeRange, countries: countryFilter }} />
 
         {/* insights */}
         <div className="col-span-1 md:col-span-2 lg:col-span-4 mb-6 mt-6">

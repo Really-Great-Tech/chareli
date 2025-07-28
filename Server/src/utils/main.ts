@@ -19,14 +19,6 @@ export const formatTime = (seconds: number): string => {
  * Get frontend URL based on environment
  */
 export const getFrontendUrl = (): string => {
-  switch (config.env) {
-    case 'development':
-      return 'https://dev.chareli.reallygreattech.com';
-    case 'staging':
-      return 'https://staging.chareli.reallygreattech.com';
-    case 'production':
-      return ''; // Production URL not ready yet
-    default:
-      return 'https://dev.chareli.reallygreattech.com'; // Default fallback
-  }
+  const clientUrl = config.app.clientUrl;
+  return clientUrl;
 };

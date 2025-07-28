@@ -9,7 +9,7 @@ import { SystemConfig } from '../entities/SystemConfig';
 import { ApiError } from '../middlewares/errorHandler';
 import { RoleType } from '../entities/Role';
 import { Not, In } from 'typeorm';
-import { s3Service } from '../services/s3.service';
+import { storageService } from '../services/storage.service';
 import { zipService } from '../services/zip.service';
 import multer from 'multer';
 import logger from '../utils/logger';
@@ -219,13 +219,11 @@ export const getAllGames = async (
           orderedGames.forEach((game: Game) => {
             if (game.gameFile) {
               const s3Key = game.gameFile.s3Key;
-              const baseUrl = s3Service.getBaseUrl();
-              game.gameFile.s3Key = `${baseUrl}/${s3Key}`;
+              game.gameFile.s3Key = storageService.getPublicUrl(s3Key);
             }
             if (game.thumbnailFile) {
               const s3Key = game.thumbnailFile.s3Key;
-              const baseUrl = s3Service.getBaseUrl();
-              game.thumbnailFile.s3Key = `${baseUrl}/${s3Key}`;
+              game.thumbnailFile.s3Key = storageService.getPublicUrl(s3Key);
             }
           });
 
@@ -363,13 +361,11 @@ export const getAllGames = async (
         games.forEach(game => {
           if (game.gameFile) {
             const s3Key = game.gameFile.s3Key;
-            const baseUrl = s3Service.getBaseUrl();
-            game.gameFile.s3Key = `${baseUrl}/${s3Key}`;
+            game.gameFile.s3Key = storageService.getPublicUrl(s3Key);
           }
           if (game.thumbnailFile) {
             const s3Key = game.thumbnailFile.s3Key;
-            const baseUrl = s3Service.getBaseUrl();
-            game.thumbnailFile.s3Key = `${baseUrl}/${s3Key}`;
+            game.thumbnailFile.s3Key = storageService.getPublicUrl(s3Key);
           }
         });
         
@@ -416,17 +412,15 @@ export const getAllGames = async (
     
     const games = await queryBuilder.getMany();
 
-    // Transform game file and thumbnail URLs to direct S3 URLs
+    // Transform game file and thumbnail URLs to direct storage URLs
     games.forEach(game => {
       if (game.gameFile) {
         const s3Key = game.gameFile.s3Key;
-        const baseUrl = s3Service.getBaseUrl();
-        game.gameFile.s3Key = `${baseUrl}/${s3Key}`;
+        game.gameFile.s3Key = storageService.getPublicUrl(s3Key);
       }
       if (game.thumbnailFile) {
         const s3Key = game.thumbnailFile.s3Key;
-        const baseUrl = s3Service.getBaseUrl();
-        game.thumbnailFile.s3Key = `${baseUrl}/${s3Key}`;
+        game.thumbnailFile.s3Key = storageService.getPublicUrl(s3Key);
       }
     });
     
@@ -518,16 +512,14 @@ export const getGameById = async (
       return next(ApiError.notFound(`Game with id ${id} not found`));
     }
     
-    // Transform game file and thumbnail URLs to direct S3 URLs
+    // Transform game file and thumbnail URLs to direct storage URLs
     if (game.gameFile) {
       const s3Key = game.gameFile.s3Key;
-      const baseUrl = s3Service.getBaseUrl();
-      game.gameFile.s3Key = `${baseUrl}/${s3Key}`;
+      game.gameFile.s3Key = storageService.getPublicUrl(s3Key);
     }
     if (game.thumbnailFile) {
       const s3Key = game.thumbnailFile.s3Key;
-      const baseUrl = s3Service.getBaseUrl();
-      game.thumbnailFile.s3Key = `${baseUrl}/${s3Key}`;
+      game.thumbnailFile.s3Key = storageService.getPublicUrl(s3Key);
     }
 
     // Find similar games (same category, different ID, active status)
@@ -545,17 +537,15 @@ export const getGameById = async (
         order: { createdAt: 'DESC' } // Get the newest games first
       });
 
-      // Transform similar games' file and thumbnail URLs to direct S3 URLs
+      // Transform similar games' file and thumbnail URLs to direct storage URLs
       similarGames.forEach(similarGame => {
         if (similarGame.gameFile) {
           const s3Key = similarGame.gameFile.s3Key;
-          const baseUrl = s3Service.getBaseUrl();
-          similarGame.gameFile.s3Key = `${baseUrl}/${s3Key}`;
+          similarGame.gameFile.s3Key = storageService.getPublicUrl(s3Key);
         }
         if (similarGame.thumbnailFile) {
           const s3Key = similarGame.thumbnailFile.s3Key;
-          const baseUrl = s3Service.getBaseUrl();
-          similarGame.thumbnailFile.s3Key = `${baseUrl}/${s3Key}`;
+          similarGame.thumbnailFile.s3Key = storageService.getPublicUrl(s3Key);
         }
       });
     }
@@ -722,19 +712,19 @@ export const createGame = async (
       // Generate unique game folder name
       const gameFolderId = uuidv4();
 
-      // Upload thumbnail to S3
-      logger.info('Uploading thumbnail file to S3...');
-      const thumbnailUploadResult = await s3Service.uploadFile(
+      // Upload thumbnail to storage
+      logger.info('Uploading thumbnail file to storage...');
+      const thumbnailUploadResult = await storageService.uploadFile(
         thumbnailFile.buffer,
         thumbnailFile.originalname,
         thumbnailFile.mimetype,
         'thumbnails'
       );
 
-      // Upload game folder to S3
-      logger.info('Uploading game folder to S3...');
-      const s3GamePath = `games/${gameFolderId}`;
-      await s3Service.uploadDirectory(processedZip.extractedPath, s3GamePath);
+      // Upload game folder to storage
+      logger.info('Uploading game folder to storage...');
+      const gamePath = `games/${gameFolderId}`;
+      await storageService.uploadDirectory(processedZip.extractedPath, gamePath);
 
       // Create file records in the database using transaction
       logger.info('Creating file records in the database...');
@@ -749,7 +739,7 @@ export const createGame = async (
 
       const indexPath = processedZip.indexPath.replace(/\\/g, '/');
       const gameFileRecord = fileRepository.create({
-        s3Key: `${s3GamePath}/${indexPath}`,
+        s3Key: `${gamePath}/${indexPath}`,
         type: 'game_file'
       });
 
@@ -792,16 +782,14 @@ export const createGame = async (
         return next(ApiError.notFound(`Game with id ${game.id} not found`));
       }
 
-      // Transform game file and thumbnail URLs to direct S3 URLs
+      // Transform game file and thumbnail URLs to direct storage URLs
       if (savedGame.gameFile) {
         const s3Key = savedGame.gameFile.s3Key;
-        const baseUrl = s3Service.getBaseUrl();
-        savedGame.gameFile.s3Key = `${baseUrl}/${s3Key}`;
+        savedGame.gameFile.s3Key = storageService.getPublicUrl(s3Key);
       }
       if (savedGame.thumbnailFile) {
         const s3Key = savedGame.thumbnailFile.s3Key;
-        const baseUrl = s3Service.getBaseUrl();
-        savedGame.thumbnailFile.s3Key = `${baseUrl}/${s3Key}`;
+        savedGame.thumbnailFile.s3Key = storageService.getPublicUrl(s3Key);
       }
 
       res.status(201).json({
@@ -934,9 +922,9 @@ export const updateGame = async (
     if (files?.thumbnailFile && files.thumbnailFile[0]) {
       const thumbnailFile = files.thumbnailFile[0];
       
-      // Upload to S3
-      logger.info('Uploading new thumbnail file to S3...');
-      const thumbnailUploadResult = await s3Service.uploadFile(
+      // Upload to storage
+      logger.info('Uploading new thumbnail file to storage...');
+      const thumbnailUploadResult = await storageService.uploadFile(
         thumbnailFile.buffer,
         thumbnailFile.originalname,
         thumbnailFile.mimetype,
@@ -971,10 +959,10 @@ export const updateGame = async (
       // Generate unique game folder name
       const gameFolderId = uuidv4();
 
-      // Upload game folder to S3
-      logger.info('Uploading game folder to S3...');
-      const s3GamePath = `games/${gameFolderId}`;
-      await s3Service.uploadDirectory(processedZip.extractedPath, s3GamePath);
+      // Upload game folder to storage
+      logger.info('Uploading game folder to storage...');
+      const gamePath = `games/${gameFolderId}`;
+      await storageService.uploadDirectory(processedZip.extractedPath, gamePath);
 
       // Create file record for the index.html
       logger.info('Creating new game file record...');
@@ -984,7 +972,7 @@ export const updateGame = async (
 
       const indexPath = processedZip.indexPath.replace(/\\/g, '/');
       const gameFileRecord = fileRepository.create({
-        s3Key: `${s3GamePath}/${indexPath}`,
+        s3Key: `${gamePath}/${indexPath}`,
         type: 'game_file'
       });
       
@@ -1068,16 +1056,14 @@ export const updateGame = async (
         return next(ApiError.notFound(`Game with id ${id} not found`));
       }
 
-      // Transform game file and thumbnail URLs to direct S3 URLs
+      // Transform game file and thumbnail URLs to direct storage URLs
       if (updatedGame.gameFile) {
         const s3Key = updatedGame.gameFile.s3Key;
-        const baseUrl = s3Service.getBaseUrl();
-        updatedGame.gameFile.s3Key = `${baseUrl}/${s3Key}`;
+        updatedGame.gameFile.s3Key = storageService.getPublicUrl(s3Key);
       }
       if (updatedGame.thumbnailFile) {
         const s3Key = updatedGame.thumbnailFile.s3Key;
-        const baseUrl = s3Service.getBaseUrl();
-        updatedGame.thumbnailFile.s3Key = `${baseUrl}/${s3Key}`;
+        updatedGame.thumbnailFile.s3Key = storageService.getPublicUrl(s3Key);
       }
     
       res.status(200).json({
@@ -1222,16 +1208,14 @@ export const getGameByPosition = async (
       return next(ApiError.notFound(`No game found at position ${positionNumber}`));
     }
     
-    // Transform game file and thumbnail URLs to direct S3 URLs
+    // Transform game file and thumbnail URLs to direct storage URLs
     if (game.gameFile) {
       const s3Key = game.gameFile.s3Key;
-      const baseUrl = s3Service.getBaseUrl();
-      game.gameFile.s3Key = `${baseUrl}/${s3Key}`;
+      game.gameFile.s3Key = storageService.getPublicUrl(s3Key);
     }
     if (game.thumbnailFile) {
       const s3Key = game.thumbnailFile.s3Key;
-      const baseUrl = s3Service.getBaseUrl();
-      game.thumbnailFile.s3Key = `${baseUrl}/${s3Key}`;
+      game.thumbnailFile.s3Key = storageService.getPublicUrl(s3Key);
     }
     
     res.status(200).json({

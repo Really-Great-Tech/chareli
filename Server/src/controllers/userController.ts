@@ -8,7 +8,7 @@ import * as bcrypt from "bcrypt";
 import { authService } from "../services/auth.service";
 import { OtpType } from "../entities/Otp";
 import { Not, IsNull } from "typeorm";
-import { s3Service } from "../services/s3.service";
+import { storageService } from "../services/storage.service";
 import { getCountryFromIP, extractClientIP } from "../utils/ipUtils";
 import { detectDeviceType } from "../utils/deviceUtils";
 import { emailService } from "../services/email.service";
@@ -163,7 +163,7 @@ export const getCurrentUserStats = async (
         gameId: game.gameId,
         title: game.title,
         thumbnailUrl: game.thumbnailKey
-          ? `${s3Service.getBaseUrl()}/${game.thumbnailKey}`
+          ? storageService.getPublicUrl(game.thumbnailKey)
           : null,
         totalSeconds: game.totalDuration || 0,
         lastPlayed: game.lastPlayed,

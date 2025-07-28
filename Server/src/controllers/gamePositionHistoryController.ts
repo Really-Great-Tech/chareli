@@ -3,7 +3,7 @@ import { AppDataSource } from '../config/database';
 import { GamePositionHistory } from '../entities/GamePositionHistory';
 import { Game } from '../entities/Games';
 import { ApiError } from '../middlewares/errorHandler';
-import { s3Service } from '../services/s3.service';
+import { storageService } from '../services/storage.service';
 
 const gamePositionHistoryRepository = AppDataSource.getRepository(GamePositionHistory);
 const gameRepository = AppDataSource.getRepository(Game);
@@ -376,18 +376,16 @@ export const getAllPositionHistory = async (
     
     const history = await queryBuilder.getMany();
 
-    // Transform game file and thumbnail URLs to direct S3 URLs
+    // Transform game file and thumbnail URLs to direct storage URLs
     history.forEach(historyItem => {
       if (historyItem.game) {
         if (historyItem.game.gameFile) {
           const s3Key = historyItem.game.gameFile.s3Key;
-          const baseUrl = s3Service.getBaseUrl();
-          historyItem.game.gameFile.s3Key = `${baseUrl}/${s3Key}`;
+          historyItem.game.gameFile.s3Key = storageService.getPublicUrl(s3Key);
         }
         if (historyItem.game.thumbnailFile) {
           const s3Key = historyItem.game.thumbnailFile.s3Key;
-          const baseUrl = s3Service.getBaseUrl();
-          historyItem.game.thumbnailFile.s3Key = `${baseUrl}/${s3Key}`;
+          historyItem.game.thumbnailFile.s3Key = storageService.getPublicUrl(s3Key);
         }
       }
     });

@@ -3,7 +3,7 @@ import { AppDataSource } from '../config/database';
 import { Category } from '../entities/Category';
 import { ApiError } from '../middlewares/errorHandler';
 import { File } from '../entities/Files';
-import { s3Service } from '../services/s3.service';
+import { storageService } from '../services/storage.service';
 
 // Extend File type to include url
 type FileWithUrl = File & { url?: string };
@@ -180,19 +180,18 @@ export const getCategoryById = async (
     // Transform games with analytics and URLs
     const gamesWithAnalytics = await Promise.all(category.games.map(async game => {
       const transformedGame: any = { ...game };
-      const baseUrl = s3Service.getBaseUrl();
       
       // Add file URLs
       if (game.thumbnailFile?.s3Key) {
         transformedGame.thumbnailFile = {
           ...game.thumbnailFile,
-          url: `${baseUrl}/${game.thumbnailFile.s3Key}`
+          url: storageService.getPublicUrl(game.thumbnailFile.s3Key)
         } as FileWithUrl;
       }
       if (game.gameFile?.s3Key) {
         transformedGame.gameFile = {
           ...game.gameFile,
-          url: `${baseUrl}/${game.gameFile.s3Key}`
+          url: storageService.getPublicUrl(game.gameFile.s3Key)
         } as FileWithUrl;
       }
 

@@ -452,10 +452,7 @@ export class AuthService {
     await invitationRepository.save(invitation);
 
     // Generate invitation link - point to frontend route
-    // const frontendUrl = getFrontendUrl();
-
-    //hardcode this for now, to be removed
-    const frontendUrl = 'https://staging.chareli.reallygreattech.com';
+    const frontendUrl = getFrontendUrl();
     const invitationLink = `${frontendUrl}/register-invitation/${token}`;
 
     // Send invitation email
@@ -540,12 +537,7 @@ export class AuthService {
     await userRepository.save(user);
 
     // Generate reset link - point to frontend route instead of API endpoint
-    // const frontendUrl = getFrontendUrl();
-
-
-    //hardcode this for now, will be removed 
-
-    const frontendUrl = 'https://staging.chareli.reallygreattech.com';
+    const frontendUrl = getFrontendUrl();
     const resetLink = `${frontendUrl}/reset-password/${resetToken}`;
 
     try {

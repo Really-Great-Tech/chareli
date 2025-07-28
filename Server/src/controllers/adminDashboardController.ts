@@ -8,7 +8,7 @@ import { GamePositionHistory } from '../entities/GamePositionHistory';
 import { ApiError } from '../middlewares/errorHandler';
 import { Between, FindOptionsWhere, In, LessThan, IsNull, Not } from 'typeorm';
 import { checkInactiveUsers } from '../jobs/userInactivityCheck';
-import { s3Service } from '../services/s3.service';
+import { storageService } from '../services/storage.service';
 
 const userRepository = AppDataSource.getRepository(User);
 const gameRepository = AppDataSource.getRepository(Game);
@@ -534,7 +534,7 @@ export const getDashboardAnalytics = async (
         return {
           id: gameResult.gameId,
           title: gameResult.gameTitle,
-          thumbnailUrl: gameResult.thumbnailKey ? `${s3Service.getBaseUrl()}/${gameResult.thumbnailKey}` : null,
+          thumbnailUrl: gameResult.thumbnailKey ? storageService.getPublicUrl(gameResult.thumbnailKey) : null,
           sessionCount: parseInt(gameResult.sessionCount),
           percentageChange: Number(percentageChange.toFixed(2))
         };
@@ -1090,7 +1090,7 @@ export const getGamesWithAnalytics = async (
         ...game,
         thumbnailFile: game.thumbnailFile ? {
           ...game.thumbnailFile,
-          url: game.thumbnailFile.s3Key ? `${s3Service.getBaseUrl()}/${game.thumbnailFile.s3Key}` : null
+        url: game.thumbnailFile.s3Key ? storageService.getPublicUrl(game.thumbnailFile.s3Key) : null
         } : null,
         analytics
       };
@@ -1261,11 +1261,11 @@ export const getGameAnalyticsById = async (
       ...game,
       thumbnailFile: game.thumbnailFile ? {
         ...game.thumbnailFile,
-        url: game.thumbnailFile.s3Key ? `${s3Service.getBaseUrl()}/${game.thumbnailFile.s3Key}` : null
+        url: game.thumbnailFile.s3Key ? storageService.getPublicUrl(game.thumbnailFile.s3Key) : null
       } : null,
       gameFile: game.gameFile ? {
         ...game.gameFile,
-        url: game.gameFile.s3Key ? `${s3Service.getBaseUrl()}/${game.gameFile.s3Key}` : null
+        url: game.gameFile.s3Key ? storageService.getPublicUrl(game.gameFile.s3Key) : null
       } : null
     };
 
@@ -1391,7 +1391,7 @@ export const getUserAnalyticsById = async (
     const formattedGameActivity = gameActivity.map(game => ({
       gameId: game.gameId,
       gameTitle: game.gameTitle,
-      thumbnailUrl: game.thumbnailKey ? `${s3Service.getBaseUrl()}/${game.thumbnailKey}` : null,
+      thumbnailUrl: game.thumbnailKey ? storageService.getPublicUrl(game.thumbnailKey) : null,
       sessionCount: parseInt(game.sessionCount) || 0,
       totalPlayTime: parseInt((game.totalPlayTime || 0)), // Convert to minutes
       lastPlayed: game.lastPlayed
@@ -1538,7 +1538,7 @@ export const getGamesPopularityMetrics = async (
       return {
         id: game.id,
         title: game.title,
-        thumbnailUrl: game.thumbnailFile?.s3Key ? `${s3Service.getBaseUrl()}/${game.thumbnailFile.s3Key}` : null,
+        thumbnailUrl: game.thumbnailFile?.s3Key ? storageService.getPublicUrl(game.thumbnailFile.s3Key) : null,
         status: game.status,
         metrics: {
           totalPlays: parseInt(overallMetrics?.totalPlays) || 0,
@@ -1716,7 +1716,7 @@ export const getUsersWithAnalytics = async (
         mostPlayedGameMap.set(item.userId, {
           gameId: item.gameId,
           gameTitle: item.gameTitle,
-          thumbnailUrl: item.thumbnailKey ? `${s3Service.getBaseUrl()}/${item.thumbnailKey}` : null,
+          thumbnailUrl: item.thumbnailKey ? storageService.getPublicUrl(item.thumbnailKey) : null,
           sessionCount: parseInt(item.sessionCount) || 0
         });
       }

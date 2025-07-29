@@ -2,7 +2,6 @@ import { loadConfiguration } from './services/secrets.service';
 import app from './app';
 import config from './config/config';
 import { initializeDatabase } from './config/database';
-import { initializeSentry, captureException } from './config/sentry';
 import logger from './utils/logger';
 import fs from 'fs';
 import path from 'path';
@@ -25,8 +24,6 @@ const startServer = async () => {
       logger.info(`Created logs directory at ${logDir}`);
     }
 
-    // Initialize Sentry (will only be active in production)
-    initializeSentry(app);
 
     logger.info('Initializing database connection...');
     try {
@@ -67,8 +64,6 @@ const startServer = async () => {
       logger.error(`${err.name}: ${err.message}`);
       logger.error(err.stack || 'No stack trace available');
 
-      // Report to Sentry in production
-      captureException(err);
 
       server.close(() => {
         process.exit(1);
@@ -81,8 +76,6 @@ const startServer = async () => {
       logger.error(`${err.name}: ${err.message}`);
       logger.error(err.stack || 'No stack trace available');
 
-      // Report to Sentry in production
-      captureException(err);
 
       process.exit(1);
     });
@@ -100,10 +93,6 @@ const startServer = async () => {
       error instanceof Error ? error.stack || error.message : String(error)
     );
 
-    // Report to Sentry in production
-    if (error instanceof Error) {
-      captureException(error);
-    }
 
     process.exit(1);
   }

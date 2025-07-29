@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import logger from '../utils/logger';
-import { captureException } from '../config/sentry';
 import config from '../config/config';
 
 interface AppError extends Error {
@@ -22,10 +21,6 @@ export const errorHandler = (
     logger.error(`${statusCode} - ${message} - ${req.originalUrl} - ${req.method} - ${req.ip}`);
     logger.error(err.stack || 'No stack trace available');
     
-    // Report to Sentry in production
-    if (config.env === 'production') {
-      captureException(err);
-    }
   } else {
     logger.warn(`${statusCode} - ${message} - ${req.originalUrl} - ${req.method} - ${req.ip}`);
   }

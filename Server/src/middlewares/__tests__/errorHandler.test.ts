@@ -7,10 +7,6 @@ jest.mock('../../utils/logger', () => ({
   warn: jest.fn(),
 }))
 
-// Mock sentry
-jest.mock('../../config/sentry', () => ({
-  captureException: jest.fn(),
-}))
 
 // Mock config
 jest.mock('../../config/config', () => ({

@@ -149,7 +149,7 @@ const config: Config = {
     dsn: process.env.SENTRY_DSN || '',
     environment: process.env.NODE_ENV || 'development',
     tracesSampleRate: parseFloat(process.env.SENTRY_TRACES_SAMPLE_RATE || '0.2'),
-    enabled: process.env.NODE_ENV === 'production'
+    enabled: false
   },
   s3: {
     region: process.env.AWS_REGION || 'us-east-1',

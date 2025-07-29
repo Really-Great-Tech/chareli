@@ -3,6 +3,11 @@ import type { AxiosRequestConfig, AxiosError } from 'axios';
 import { BackendRoute } from './constants';
 import { toast } from 'sonner';
 
+// Extend AxiosRequestConfig to include suppressErrorToast
+interface CustomAxiosRequestConfig extends AxiosRequestConfig {
+  suppressErrorToast?: boolean;
+}
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:5000',
   headers: {
@@ -52,12 +57,15 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     if (error.response?.status !== 401 || originalRequest._retry) {
-      if (error.response?.data?.error?.message) {
-        toast.error(error.response?.data?.error?.message);
-      } else if (error.message) {
-        toast.error(`Error: ${error.message}`);
-      } else {
-        toast.error('An error occurred. Please try again.');
+      // Don't show toast if suppressErrorToast is set in config
+      if (!originalRequest.suppressErrorToast) {
+        if (error.response?.data?.error?.message) {
+          toast.error(error.response?.data?.error?.message);
+        } else if (error.message) {
+          toast.error(`Error: ${error.message}`);
+        } else {
+          toast.error('An error occurred. Please try again.');
+        }
       }
       return Promise.reject(error);
     }
@@ -149,12 +157,13 @@ api.interceptors.response.use(
  * Backend service for API calls
  */
 export const backendService = {
-  get: (url: string, config?: AxiosRequestConfig) => api.get(url, config),
-  post: (url: string, data?: any, config?: AxiosRequestConfig) =>
+  get: (url: string, config?: CustomAxiosRequestConfig) => api.get(url, config),
+  post: (url: string, data?: unknown, config?: CustomAxiosRequestConfig) =>
     api.post(url, data, config),
-  put: (url: string, data?: any, config?: AxiosRequestConfig) =>
+  put: (url: string, data?: unknown, config?: CustomAxiosRequestConfig) =>
     api.put(url, data, config),
-  patch: (url: string, data?: any, config?: AxiosRequestConfig) =>
+  patch: (url: string, data?: unknown, config?: CustomAxiosRequestConfig) =>
     api.patch(url, data, config),
-  delete: (url: string, config?: AxiosRequestConfig) => api.delete(url, config),
+  delete: (url: string, config?: CustomAxiosRequestConfig) => api.delete(url, config),
+  getFile: (id: string) => api.get(`/files/${id}`),
 };

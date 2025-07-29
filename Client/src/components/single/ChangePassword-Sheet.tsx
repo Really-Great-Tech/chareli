@@ -30,18 +30,21 @@ interface ChangePasswordValues {
 
 const validationSchema = Yup.object({
   oldPassword: Yup.string().required("Old password is required"),
-  newPassword: passwordSchema
+  newPassword: passwordSchema,
 });
 
 const initialValues: ChangePasswordValues = {
   oldPassword: "",
-  newPassword: ""
+  newPassword: "",
 };
 
-export function ChangePasswordSheet({ open, onOpenChange }: ChangePasswordSheetProps) {
+export function ChangePasswordSheet({
+  open,
+  onOpenChange,
+}: ChangePasswordSheetProps) {
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
-  
+
   const changePassword = useChangePassword();
   const { user } = useAuth();
 
@@ -54,7 +57,7 @@ export function ChangePasswordSheet({ open, onOpenChange }: ChangePasswordSheetP
 
       await changePassword.mutateAsync({
         password: values.newPassword,
-        oldPassword: values.oldPassword
+        oldPassword: values.oldPassword,
       });
       toast.success("Password changed successfully");
       onOpenChange(false);
@@ -65,9 +68,14 @@ export function ChangePasswordSheet({ open, onOpenChange }: ChangePasswordSheetP
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="max-w-md w-full p-6 font-boogaloo dark:bg-[#0F1621]">
+      <SheetContent
+        side="right"
+        className="max-w-md w-full p-6 font-dmmono dark:bg-[#0F1621]"
+      >
         <SheetHeader>
-          <SheetTitle className="text-lg mt-4 tracking-wider border-b">Change Password</SheetTitle>
+          <SheetTitle className="text-lg mt-4 tracking-wider border-b">
+            Change Password
+          </SheetTitle>
         </SheetHeader>
         <Formik
           initialValues={initialValues}
@@ -88,11 +96,11 @@ export function ChangePasswordSheet({ open, onOpenChange }: ChangePasswordSheetP
                       name="oldPassword"
                       type={showOldPassword ? "text" : "password"}
                       placeholder="Enter old password"
-                      className="bg-[#F1F5F9] mt-1 font-pincuk text-xl tracking-wider dark:bg-[#121C2D] dark:text-white h-14 shadow-none pr-12"
+                      className="bg-[#F1F5F9] mt-1 font-worksans text-xl tracking-wider dark:bg-[#121C2D] dark:text-white h-14 shadow-none pr-12"
                     />
                     <button
                       type="button"
-                      onClick={() => setShowOldPassword(v => !v)}
+                      onClick={() => setShowOldPassword((v) => !v)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500"
                       tabIndex={-1}
                     >
@@ -100,7 +108,9 @@ export function ChangePasswordSheet({ open, onOpenChange }: ChangePasswordSheetP
                     </button>
                   </div>
                   {errors.oldPassword && touched.oldPassword && (
-                    <p className="text-red-500 text-xs mt-1">{errors.oldPassword}</p>
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.oldPassword}
+                    </p>
                   )}
                 </div>
                 <div>
@@ -114,11 +124,11 @@ export function ChangePasswordSheet({ open, onOpenChange }: ChangePasswordSheetP
                       name="newPassword"
                       type={showNewPassword ? "text" : "password"}
                       placeholder="Enter new password"
-                      className="bg-[#F1F5F9] mt-1 font-pincuk text-xl tracking-wider dark:bg-[#121C2D] dark:text-white h-14 shadow-none pr-12"
+                      className="bg-[#F1F5F9] mt-1 font-worksans text-xl tracking-wider dark:bg-[#121C2D] dark:text-white h-14 shadow-none pr-12"
                     />
                     <button
                       type="button"
-                      onClick={() => setShowNewPassword(v => !v)}
+                      onClick={() => setShowNewPassword((v) => !v)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-white"
                       tabIndex={-1}
                     >
@@ -126,26 +136,28 @@ export function ChangePasswordSheet({ open, onOpenChange }: ChangePasswordSheetP
                     </button>
                   </div>
                   {errors.newPassword && touched.newPassword && (
-                    <p className="text-red-500 text-xs mt-1">{errors.newPassword}</p>
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.newPassword}
+                    </p>
                   )}
                 </div>
               </div>
               <SheetFooter className="flex flex-row justify-end mt-8 gap-4">
                 <SheetClose asChild>
-                  <Button 
+                  <Button
                     type="button"
-                    variant="outline" 
-                    className="w-24 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] shadow-none dark:text-white"
+                    variant="outline"
+                    className="w-24 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] shadow-none dark:text-white cursor-pointer"
                   >
                     Cancel
                   </Button>
                 </SheetClose>
-                <Button 
+                <Button
                   type="submit"
-                  className="w-24 h-12 bg-[#D946EF] hover:bg-[#e782f7] text-white"
-          disabled={isSubmitting || changePassword.isPending}
-        >
-          {(isSubmitting || changePassword.isPending) ? "..." : "Update"}
+                  className="w-24 h-12 bg-[#D946EF] hover:bg-[#e782f7] text-white cursor-pointer"
+                  disabled={isSubmitting || changePassword.isPending}
+                >
+                  {isSubmitting || changePassword.isPending ? "..." : "Update"}
                 </Button>
               </SheetFooter>
             </Form>

@@ -1,79 +1,60 @@
 import click from '../../../assets/click.svg'
 import { Card } from "../../../components/ui/card";
-import { Button } from "../../../components/ui/button";
-import { PopUpSheet } from "../../../components/single/PopUp-Sheet";
 import { AcceptInvitationModal } from "../../../components/modals/AdminModals/AcceptInvitationModal";
+import { DashboardTimeFilter } from "../../../components/single/DashboardTimeFilter";
+import { DashboardCountryFilter } from "../../../components/single/DashboardCountryFilter";
 import StatsCard from "./StatsCard";
 import PieChart from '../../../components/charts/piechart';
 import { useState } from 'react';
 import { useSignupAnalyticsData } from '../../../backend/signup.analytics.service';
-import { useUsersAnalytics } from '../../../backend/analytics.service';
-import { useSystemConfigByKey } from '../../../backend/configuration.service';
-import KeepPlayingModal from '../../../components/modals/KeepPlayingModal';
+import { useDashboardAnalytics, type DashboardTimeRange } from '../../../backend/analytics.service';
 import { MostPlayedGames } from './MostPlayedGames';
-import { RecentUserActivity } from './RecentUserActivity';
+import { usePermissions } from '../../../hooks/usePermissions';
+// import { RecentUserActivity } from './RecentUserActivity';
 
 export default function Home() {
-
+  const permissions = usePermissions();
   const [isAcceptInviteOpen, setIsAcceptInviteOpen] = useState(false);
-  const [showKeepPlayingModal, setShowKeepPlayingModal] = useState(false);
-  const { data: popupConfig } = useSystemConfigByKey('popup');
-
-  const handleShowPopup = () => {
-    if (popupConfig?.value?.enabled) {
-      const delay = (popupConfig?.value?.delay || 3) * 1000;
-      setTimeout(() => {
-        setShowKeepPlayingModal(true);
-      }, delay);
-    }
-  };
+  const [timeRange, setTimeRange] = useState<DashboardTimeRange>({ period: 'last24hours' });
+  const [countryFilter, setCountryFilter] = useState<string[]>([]);
   return (
     <div>
       <div className="px-6 pb-3">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+            Dashboard
+          </h1>
+          {permissions.canFilter && (
+            <div className="flex flex-col sm:flex-row gap-2">
+              <DashboardTimeFilter 
+                value={timeRange} 
+                onChange={setTimeRange} 
+              />
+              <DashboardCountryFilter 
+                value={countryFilter} 
+                onChange={setCountryFilter} 
+              />
+            </div>
+          )}
+        </div>
       </div>
       <div className="px-6">
-        <StatsCard />
-        {/* pop up */}
-        <div className="col-span-1 md:col-span-2 lg:col-span-4 my-6">
-          <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
-            <div className="justify-between items-center flex p-3">
-              <p className="text-3xl dark:text-[#D946EF]">Dynamic Popup System</p>
-              <PopUpSheet>
-                <Button className="bg-[#D946EF] hover:bg-[#C026D3] text-white transition-colors duration-200">
-                  Create New Pop-up
-                </Button>
-              </PopUpSheet>
-            </div>
-            {/* inner card */}
-            <Card className="bg-[#F8FAFC] dark:bg-[#0F1221] shadow-none border-none mx-3 p-4">
-              <div className="justify-end flex flex-col p-3 space-y-4">
-                <p className="text-lg">User View</p>
-                <p className="text-lg">Pop-Up will appear after {popupConfig?.value?.delay || 3} seconds</p>
-                <Button 
-                  onClick={handleShowPopup}
-                  className="w-32 bg-[#D946EF] hover:bg-[#C026D3] text-white transition-colors duration-200"
-                >
-                  Show Pop-up Now
-                </Button>
-              </div>
-            </Card>
-          </Card>
-        </div>
+        <StatsCard filters={{ timeRange, countries: countryFilter }} />
 
         {/* insights */}
-        <div className="col-span-1 md:col-span-2 lg:col-span-4 mb-6">
+        <div className="col-span-1 md:col-span-2 lg:col-span-4 mb-6 mt-6">
           <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
-            <div className="justify-between items-center flex p-3">
-              <p className="text-3xl">Click insights</p>
+            <div className="flex p-3">
+              <p className="text-lg sm:text-2xl">Click insights</p>
             </div>
             {/* inner card */}
             <Card className="bg-[#F8FAFC] dark:bg-[#0F1221] shadow-none border-none mx-3 p-4">
               <div className="flex flex-col space-y-8">
 
                 <div className="">
-                  <div className="justify-start flex items-center gap-4">
-                    <img src={click} alt="click" className="w-10 h-10 dark:text-white" />
-                    <p className="text-lg text-[#64748A] dark:text-white">Total clicks on Sign-up form</p>
+                  <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
+                    <img src={click} alt="click" className="w-8 h-8 sm:w-10 sm:h-10 dark:text-white flex-shrink-0" />
+                    <p className="text-sm sm:text-lg text-[#64748A] dark:text-white">Total clicks on Sign-up button</p>
                   </div>
                   
                   <SignupClickInsights />
@@ -87,40 +68,42 @@ export default function Home() {
           <MostPlayedGames />
         </div>
 
-        <div className="col-span-1 md:col-span-2 lg:col-span-4 mb-6">
+        {/* <div className="col-span-1 md:col-span-2 lg:col-span-4 mb-6">
           <RecentUserActivity />
-        </div>
+        </div> */}
       </div>
 
       <AcceptInvitationModal open={isAcceptInviteOpen} onOpenChange={setIsAcceptInviteOpen} isExistingUser={true} />
-      <KeepPlayingModal 
-        open={showKeepPlayingModal} 
-        openSignUpModal={() => setShowKeepPlayingModal(false)}
-        isGameLoading={false}
-      />
     </div>
   );
 }
 
 // Separate component for signup click insights
 function SignupClickInsights() {
-  const { data: signupAnalytics, isLoading: analyticsLoading } = useSignupAnalyticsData();
-  const { data: usersWithAnalytics, isLoading: usersLoading } = useUsersAnalytics();
+  const { data: signupAnalytics, isLoading: analyticsLoading } = useSignupAnalyticsData(30);
+  // const { data: usersWithAnalytics, isLoading: usersLoading } = useUsersAnalytics();
+  const { data: dashboardAnalytics, isLoading: usersLoading } = useDashboardAnalytics();
   
   if (analyticsLoading || usersLoading) {
     return <div className="text-center py-4">Loading...</div>;
   }
   
-  if (!signupAnalytics || !usersWithAnalytics) {
+  if (!signupAnalytics || !dashboardAnalytics) {
     return <div className="text-center py-4">No data available</div>;
   }
 
-  // Total registered users is the verified count
-  const verifiedCount = usersWithAnalytics.length;
-  const didntRegisterCount = signupAnalytics.totalClicks - verifiedCount;
+  const verifiedCount = dashboardAnalytics?.totalRegisteredUsers?.registered || 0;
+  
+  // Calculate total clicks from individual click types, excluding signup-modal
+  const allowedClickTypes = ['navbar', 'keep-playing'];
+  const totalClicks = signupAnalytics?.clicksByType
+    ?.filter(click => allowedClickTypes.includes(click.type))
+    ?.reduce((sum, click) => sum + parseInt(click.count), 0) || 0;
+
+  const didntRegisterCount = Math.max(0, totalClicks - verifiedCount);
 
   const chartData = [
-    { name: "Didn't register", value: didntRegisterCount, fill: "#F3C7FA" },
+    { name: "Didn't verify", value: didntRegisterCount, fill: "#F3C7FA" },
     { name: "Verified users", value: verifiedCount, fill: "#D24CFB" }
   ];
 

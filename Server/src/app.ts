@@ -7,7 +7,6 @@ import routes from './routes';
 import { errorHandler } from './middlewares/errorHandler';
 import { requestLogger } from './middlewares/requestLogger';
 import { sanitizeInput } from './middlewares/sanitizationMiddleware';
-import { sentryRequestHandler, sentryTracingHandler, sentryErrorHandler } from './config/sentry';
 import logger from './utils/logger';
 import { specs } from './config/swagger';
 import config from './config/config';
@@ -18,20 +17,18 @@ const app: Express = express();
 // Request logging middleware
 app.use(requestLogger);
 
-// Initialize Sentry request handler (only in production)
-app.use(sentryRequestHandler());
 
 // Security middleware
 app.use(helmet()); // Adds various HTTP headers for security
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://yourfrontenddomain.com'] // Restrict in production
-    : '*', // Allow all in development
+  origin: process.env.NODE_ENV === 'production'
+    ? [config.app.clientUrl] // Change this line to use the configured client URL
+    : '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
   maxAge: 86400 // 24 hours
-})); 
+}));
 
 // Content Security Policy
 app.use((req, res, next) => {
@@ -49,8 +46,6 @@ app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 // Input sanitization middleware
 app.use(sanitizeInput);
 
-// Initialize Sentry tracing (only in production)
-app.use(sentryTracingHandler());
 
 // Swagger documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
@@ -154,8 +149,6 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
 // API Routes
 app.use('/api', routes);
 
-// Sentry error handler must be before other error middleware (only in production)
-app.use(sentryErrorHandler());
 
 // Error handling middleware
 app.use(errorHandler);

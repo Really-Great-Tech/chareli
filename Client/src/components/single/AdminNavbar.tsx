@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { Button } from '../ui/button';
+import { usePermissions } from '../../hooks/usePermissions';
 
 import { IoMdSettings } from "react-icons/io";
 // import { IoIosSearch } from "react-icons/io";
@@ -16,25 +18,14 @@ import moon from '../../assets/moon.svg';
 
 const AdminNavbar: React.FC = () => {
   const { logout } = useAuth();
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const savedMode = localStorage.getItem('darkMode');
-    return savedMode ? JSON.parse(savedMode) : false;
-  });
+  const { isDarkMode, toggleDarkMode } = useTheme();
+  const permissions = usePermissions();
 
   const [showSearch, setShowSearch] = useState(false);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   // const [searchValue, setSearchValue] = useState("");
 
   const navigate = useNavigate();
-
-  useEffect(() => {
-    localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isDarkMode]);
 
   useEffect(() => {
     if (!showSearch) return;
@@ -51,16 +42,11 @@ const AdminNavbar: React.FC = () => {
     }
   }, [showSearch]);
 
-  const toggleDarkMode = () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setIsDarkMode((prev: any) => !prev);
-  };
-
   return (
     <header className="flex justify-between p-4 items-center bg-white dark:bg-[#0f1221] transition-colors duration-300">
       <div
         onClick={() => navigate('/')}
-        className="text-2xl font-extrabold text-[#D946EF] dark:text-[#E879F9] cursor-pointer"
+        className="text-2xl font-extrabold text-[#D946EF] dark:text-[#E879F9] font-ponggame cursor-pointer tracking-wider"
       >
         CHARELI
       </div>
@@ -101,9 +87,11 @@ const AdminNavbar: React.FC = () => {
               )}
             </div>
           )} */}
-          <IoMdSettings className='w-6 h-6 cursor-pointer' onClick={() => navigate('/admin/settings')} />
+          {permissions.canAccessConfig && (
+            <IoMdSettings className='w-6 h-6 cursor-pointer' onClick={() => navigate('/admin/settings')} />
+          )}
         </div>
-        <div className="space-x-4 flex items-center">
+        <div className="space-x-4 flex items-center cursor-pointer">
           <img
             onClick={toggleDarkMode}
             src={isDarkMode ? moon : sun}
@@ -115,7 +103,7 @@ const AdminNavbar: React.FC = () => {
               logout();
               navigate('/');
             }}
-            className="bg-transparent flex items-center gap-2 text-red-500 hover:bg-red-500 hover:text-white"
+            className="bg-transparent flex items-center gap-2 text-red-500 hover:bg-red-500 hover:text-white cursor-pointer"
           >
             <IoExitOutline className="w-5 h-5" />
             Logout

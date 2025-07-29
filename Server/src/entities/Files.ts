@@ -9,9 +9,11 @@ export class File {
   s3Key: string; 
 
   @Column()
+  @Index()
   type: string;
 
   @CreateDateColumn()
+  @Index()
   createdAt: Date;
 
   @UpdateDateColumn()

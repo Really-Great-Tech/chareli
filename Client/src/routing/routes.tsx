@@ -16,10 +16,13 @@ import Analytics from '../pages/Admin/Analytics/Analytics';
 import Configuration from '../pages/Admin/Configuration/Configuration';
 import ViewGame from '../pages/Admin/ViewGame';
 import GameCategories from '../pages/Admin/Category/GameCategories';
+import CategoryDetail from '../pages/Admin/Category/CategoryDetail';
 import UserManagementView from '../pages/Admin/UserMgtView';
 import TeamManagement from '../pages/Admin/Team/TeamManagement';
 import Settings from '../pages/Admin/Settings';
 import ViewProfile from '../pages/Admin/ViewProfile';
+import Terms from '../pages/TermsOfService/Terms';
+import Privacy from '../pages/PrivacyPolicy/Privacy';
 
 
 export const AppRoutes = () => {
@@ -33,6 +36,8 @@ export const AppRoutes = () => {
           <Route path="about" element={<About />} />
           <Route path="categories" element={<Categories />} />
           <Route path="gameplay/:gameId" element={<GamePlay />} />
+          <Route path="terms" element={<Terms />} />
+          <Route path="privacy" element={<Privacy />} />
 
 
           <Route path="*" element={<ErrorPage />} />
@@ -51,16 +56,21 @@ export const AppRoutes = () => {
             {/* <Route path="about" element={<AdminAbout />} />*/}
             <Route path="game-management" element={<GameManagement />} />
             <Route path="categories" element={<GameCategories />} />
+            <Route path="categories/:categoryId" element={<CategoryDetail />} />
             <Route path="management" element={<UserManagement />} />
             <Route path="management/:userId" element={<UserManagementView />} />
             <Route path="team" element={<TeamManagement />} />
             <Route path="analytics" element={<Analytics />} />
-            <Route path="config" element={<Configuration />} />
             <Route path="view-game/:gameId" element={<ViewGame />} />
-
-            {/* settings */}
-            <Route path="settings" element={<Settings />} />
             <Route path="view-profile" element={<ViewProfile />} />
+          </Route>
+        </Route>
+
+        {/* Config routes - require config access (excludes viewers) */}
+        <Route path="admin/" element={<ProtectedRoute requireAdmin={true} requireConfig={true} />}>
+          <Route element={<AdminLayout />}>
+            <Route path="config" element={<Configuration />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
         </Route>
 

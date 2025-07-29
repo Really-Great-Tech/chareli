@@ -1,4 +1,5 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "../ui/dialog";
+import { Dialog } from "../ui/dialog";
+import { CustomDialogContent } from "../ui/custom-dialog-content";
 import { Button } from "../ui/button";
 import { XIcon } from "lucide-react";
 
@@ -8,7 +9,7 @@ interface DeleteConfirmationModalProps {
   onConfirm: () => void;
   isDeleting?: boolean;
   title?: string;
-  description?: string;
+  description?: string | React.ReactNode;
   confirmButtonText?: string;
   loadingText?: string;
 }
@@ -21,40 +22,53 @@ export function DeleteConfirmationModal({
   title = "Are you sure you want to delete?",
   description = "This action cannot be reversed",
   confirmButtonText = "Delete",
-  loadingText = "Deleting..."
+  loadingText = "Deleting...",
 }: DeleteConfirmationModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="rounded-2xl border-0 shadow-sm p-8 max-w-lg font-boogaloo tracking-wide dark:bg-[#334154]"
-        style={{ boxShadow: "0 2px 4px 2px #e879f9" }}
-        hideClose
+      <CustomDialogContent 
+        className="bg-white dark:bg-[#334154] rounded-2xl shadow-lg p-4 sm:p-8 min-w-[320px] max-w-[90vw] w-full sm:w-[420px] border-none font-dmmono tracking-wide"
       >
-        <DialogHeader>
-          <DialogTitle className="text-2xl tracking-wider mb-2">{title}</DialogTitle>
-        </DialogHeader>
-        <div className="mb-8 text-[#22223B] text-xl tracking-wider dark:text-white">{description}</div>
-        <DialogFooter className="flex justify-end gap-4">
-          <DialogClose asChild>
-            <Button variant="outline" className="w-20 h-12 text-lg rounded-lg dark:bg-white dark:text-black">
-              Cancel
-            </Button>
-          </DialogClose>
+        {/* Custom Close Button */}
+        <button
+          className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#C026D3] flex items-center justify-center shadow-lg hover:bg-[#a21caf] transition-colors z-10"
+          onClick={() => onOpenChange(false)}
+          aria-label="Close"
+        >
+          <XIcon className="w-6 h-6 text-white" />
+        </button>
+
+        {/* Title */}
+        <div className="mb-4 sm:mb-6">
+          <h2 className="text-lg sm:text-xl tracking-wider font-semibold text-[#0F1621] dark:text-white">
+            {title}
+          </h2>
+        </div>
+
+        {/* Description */}
+        <div className="mb-6 sm:mb-8 text-[#22223B] text-sm sm:text-[16px] tracking-wider dark:text-white break-all overflow-wrap-anywhere">
+          {description}
+        </div>
+
+        {/* Buttons */}
+        <div className="flex flex-col sm:flex-row sm:justify-end gap-3 sm:gap-4">
+          <Button
+            variant="outline"
+            className="w-full sm:w-auto h-10 sm:h-12 text-sm rounded-lg dark:bg-white dark:text-black order-2 sm:order-1 cursor-pointer"
+            onClick={() => onOpenChange(false)}
+          >
+            Cancel
+          </Button>
           <Button
             variant="destructive"
-            className="w-20 h-12 text-lg rounded-lg dark:bg-[#EF4444]"
+            className="w-full sm:w-auto h-10 sm:h-12 text-sm rounded-lg dark:bg-[#EF4444] order-1 sm:order-2 cursor-pointer"
             onClick={onConfirm}
             disabled={isDeleting}
           >
             {isDeleting ? loadingText : confirmButtonText}
           </Button>
-        </DialogFooter>
-        <DialogClose asChild>
-          <button className="absolute -top-4 -right-4 rounded-full bg-[#C026D3] w-10 h-10 flex items-center justify-center text-white">
-            <XIcon className="w-6 h-6" />
-          </button>
-        </DialogClose>
-      </DialogContent>
+        </div>
+      </CustomDialogContent>
     </Dialog>
   );
 }

@@ -5,7 +5,8 @@ export enum RoleType {
   SUPERADMIN = 'superadmin',
   ADMIN = 'admin',
   EDITOR = 'editor',
-  PLAYER = 'player'
+  PLAYER = 'player',
+  VIEWER = 'viewer'
 }
 
 @Entity('roles')

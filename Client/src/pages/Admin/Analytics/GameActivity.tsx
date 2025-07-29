@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { Card } from "../../../components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../../components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../../components/ui/table";
 import { FaChevronUp, FaChevronDown } from "react-icons/fa6";
 import { RiGamepadLine } from "react-icons/ri";
 import { useGamesWithPopularity } from "../../../backend/analytics.service";
@@ -18,21 +25,25 @@ export default function GameActivity() {
       <div className="col-span-1 md:col-span-2 lg:col-span-4 mt-4">
         <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full pl-4">
           <div className="justify-between items-center flex p-3">
-            <p className="text-3xl">Game Activity</p>
+            <p className="text-lg md:text-2xl">Game Activity</p>
           </div>
           <Table>
             <TableHeader>
-              <TableRow className="text-lg font-bold">
+              <TableRow className="text-base font-normal">
                 <TableHead>Game</TableHead>
                 <TableHead>Total Plays</TableHead>
                 <TableHead>Average Play Time</TableHead>
+                <TableHead>Most Played At</TableHead>
                 <TableHead>Game Status</TableHead>
                 <TableHead>Popularity</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-6 bg-[#F8FAFC] dark:bg-[#0F1221]">
+                <TableCell
+                  colSpan={5}
+                  className="text-center py-6 bg-[#F8FAFC] dark:bg-[#0F1221]"
+                >
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D946EF] mx-auto"></div>
                 </TableCell>
               </TableRow>
@@ -48,7 +59,7 @@ export default function GameActivity() {
       <div className="col-span-1 md:col-span-2 lg:col-span-4 mt-4">
         <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full pl-4">
           <div className="justify-between items-center flex p-3">
-            <p className="text-3xl">Game Activity</p>
+            <p className="text-lg md:text-2xl">Game Activity</p>
           </div>
           <Table>
             <TableHeader>
@@ -56,14 +67,20 @@ export default function GameActivity() {
                 <TableHead>Game</TableHead>
                 <TableHead>Total Plays</TableHead>
                 <TableHead>Average Play Time</TableHead>
+                <TableHead>Most Played At</TableHead>
                 <TableHead>Game Status</TableHead>
                 <TableHead>Popularity</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-6 bg-[#F8FAFC] dark:bg-[#0F1221]">
-                  <div className="text-red-500">Error loading game activity data</div>
+                <TableCell
+                  colSpan={5}
+                  className="text-center py-6 bg-[#F8FAFC] dark:bg-[#0F1221]"
+                >
+                  <div className="text-red-500">
+                    Error loading game activity data
+                  </div>
                 </TableCell>
               </TableRow>
             </TableBody>
@@ -83,79 +100,238 @@ export default function GameActivity() {
     <div className="col-span-1 md:col-span-2 lg:col-span-4 mt-4">
       <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full pl-4">
         <div className="justify-between items-center flex p-3">
-          <p className="text-3xl">Game Activity</p>
+          <p className="text-lg md:text-2xl">Game Activity</p>
         </div>
         <Table>
           <TableHeader>
-            <TableRow className="text-lg font-bold">
-              <TableHead>Game</TableHead>
-              <TableHead>Total Plays</TableHead>
-              <TableHead>Average Play Time</TableHead>
-              <TableHead>Game Status</TableHead>
-              <TableHead>Popularity</TableHead>
+            <TableRow className="text-base">
+              <TableHead>
+                <p className="pr-8">Game</p>
+              </TableHead>
+              <TableHead>
+                {" "}
+                <p className="pr-8">Total Plays</p>
+              </TableHead>
+              <TableHead>
+                {" "}
+                <p className="pr-8">Average Play Time</p>
+              </TableHead>
+              <TableHead>Most Played At</TableHead>
+              <TableHead>
+                {" "}
+                <p className="pr-8">Game Status</p>
+              </TableHead>
+              <TableHead>
+                {" "}
+                <p className="pr-8">Popularity</p>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-          {!gamesToShow.length ? (
-            <TableRow>
-              <TableCell colSpan={5} className="text-center py-6 bg-[#F8FAFC] dark:bg-[#0F1221]">
-                <NoResults 
-                  title="No game activity"
-                  message="There are no game activity records to display at this time."
-                  icon={<RiGamepadLine className="w-12 h-12 text-gray-400" />}
-                />
-              </TableCell>
-            </TableRow>
-          ) : gamesToShow.map((game: any) => (
-              <TableRow key={game.id} className="font-pincuk text-xl tracking-wider">
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <GameThumbnail src={game.thumbnailUrl} alt={game.title} />
-                    <span className="font-bold">{game.title}</span>
-                  </div>
-                </TableCell>
-                <TableCell>{game.metrics.totalPlays}</TableCell>
-                <TableCell>{game.metrics.averagePlayTime} min</TableCell>
-                <TableCell>
-                  {game.status === "active" ? (
-                    <span className="inline-flex items-center gap-2 p-1 rounded bg-[#419E6A] text-white font-pincuk text-xl tracking-wider">
-                      <span className="w-2 h-2 bg-white rounded-full inline-block"></span>
-                      Active
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-2 p-1 rounded bg-[#CBD5E0] text-[#22223B] font-pincuk text-xl tracking-wider">
-                      <span className="w-2 h-2 bg-red-500 rounded-full inline-block"></span>
-                      Inactive
-                    </span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  {game.metrics.popularity === "up" ? (
-                    <span className="text-green-500 text-2xl"><FaChevronUp /></span>
-                  ) : (
-                    <span className="text-red-500 text-2xl"><FaChevronDown /></span>
-                  )}
+            {!gamesToShow.length ? (
+              <TableRow>
+                <TableCell
+                  colSpan={5}
+                  className="text-center py-6 bg-[#F8FAFC] dark:bg-[#0F1221]"
+                >
+                  <NoResults
+                    title="No game activity"
+                    message="There are no game activity records to display at this time."
+                    icon={<RiGamepadLine className="w-12 h-12 text-gray-400" />}
+                  />
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              gamesToShow.map((game: any) => (
+                <TableRow key={game.id} className="text-sm tracking-wider">
+                  <TableCell>
+                    <div className="flex items-center gap-3 pr-12">
+                      <GameThumbnail src={game.thumbnailUrl} alt={game.title} />
+                      <span className="font-dmmono">{game.title ?? '-'}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <p className="font-dmmono pr-8">
+                      {game.metrics.totalPlays ?? '-'}
+                    </p>
+                  </TableCell>
+                  <TableCell>
+                    <p className="font-dmmono pr-8">
+                      {game.metrics.averagePlayTime} min
+                    </p>
+                  </TableCell>
+                  <TableCell>
+                    <p className="font-dmmono">{game.metrics?.mostPlayedAt?.position ?? '-'}</p>
+                  </TableCell>
+                  <TableCell>
+                    {game.status === "active" ? (
+                      <span className="inline-flex items-center gap-2 p-1 rounded bg-[#419E6A] text-white font-dmmono  tracking-wider">
+                        <span className="w-2 h-2 bg-white rounded-full inline-block"></span>
+                        Active
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-2 p-1 rounded bg-[#CBD5E0] text-[#22223B] font-dmmono  tracking-wider">
+                        <span className="w-2 h-2 bg-red-500 rounded-full inline-block"></span>
+                        Inactive
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {game.metrics.popularity === "up" ? (
+                      <span className="text-green-500 text-2xl">
+                        <FaChevronUp />
+                      </span>
+                    ) : (
+                      <span className="text-red-500 text-2xl">
+                        <FaChevronDown />
+                      </span>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
         {gamesToShow.length > 0 && (
-          <div className="flex justify-between items-center mt-4 pr-4">
-            <span className="text-sm">
-              Showing {startIdx + 1}-{Math.min(endIdx, allGames.length)} from {allGames.length} data
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-4 pr-4 gap-3">
+            <span className="text-sm order-2 sm:order-1">
+              Showing {startIdx + 1}-{Math.min(endIdx, allGames.length)} from{" "}
+              {allGames.length} data
             </span>
-            <div className="flex items-center gap-2 rounded-xl space-x-4 pr-1 pl-0.5 border border-[#D946EF] dark:text-white">
-              {Array.from({ length: totalGamePages }, (_, i) => (
+            {totalGamePages > 1 && (
+              <div className="flex items-center gap-1 order-1 sm:order-2">
+                {/* Previous button */}
                 <button
-                  key={i + 1}
-                  className={`w-7 h-7 rounded-full ${gamePage === i + 1 ? "bg-[#D946EF] text-white dark:bg-gray-400" : "bg-transparent text-[#D946EF] dark:text-gray-400 hover:bg-[#f3e8ff]"}`}
-                  onClick={() => setGamePage(i + 1)}
+                  className={`w-8 h-8 rounded-full transition-colors border border-[#D946EF] ${
+                    gamePage === 1
+                      ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
+                      : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                  }`}
+                  onClick={() => setGamePage(Math.max(1, gamePage - 1))}
+                  disabled={gamePage === 1}
                 >
-                  {i + 1}
+                  ‹
                 </button>
-              ))}
-            </div>
+
+                {/* Mobile: Show only current page info */}
+                <div className="sm:hidden flex items-center gap-1 px-3 py-1 rounded-full border border-[#D946EF]">
+                  <span className="text-sm text-black dark:text-white">
+                    {gamePage} / {totalGamePages}
+                  </span>
+                </div>
+
+                {/* Desktop: Show page numbers with smart truncation */}
+                <div className="hidden sm:flex items-center gap-1 rounded-full border border-[#D946EF] p-1">
+                  {(() => {
+                    const pages = [];
+                    const maxVisiblePages = 5;
+                    
+                    if (totalGamePages <= maxVisiblePages) {
+                      // Show all pages if total is small
+                      for (let i = 1; i <= totalGamePages; i++) {
+                        pages.push(
+                          <button
+                            key={i}
+                            className={`w-8 h-8 rounded-full transition-colors ${
+                              gamePage === i
+                                ? "bg-[#D946EF] text-white"
+                                : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                            }`}
+                            onClick={() => setGamePage(i)}
+                          >
+                            {i}
+                          </button>
+                        );
+                      }
+                    } else {
+                      // Smart truncation for many pages
+                      const startPage = Math.max(1, gamePage - 2);
+                      const endPage = Math.min(totalGamePages, gamePage + 2);
+                      
+                      // First page
+                      if (startPage > 1) {
+                        pages.push(
+                          <button
+                            key={1}
+                            className={`w-8 h-8 rounded-full transition-colors ${
+                              gamePage === 1
+                                ? "bg-[#D946EF] text-white"
+                                : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                            }`}
+                            onClick={() => setGamePage(1)}
+                          >
+                            1
+                          </button>
+                        );
+                        if (startPage > 2) {
+                          pages.push(
+                            <span key="start-ellipsis" className="px-2 text-gray-500">
+                              ...
+                            </span>
+                          );
+                        }
+                      }
+                      
+                      // Current range
+                      for (let i = startPage; i <= endPage; i++) {
+                        pages.push(
+                          <button
+                            key={i}
+                            className={`w-8 h-8 rounded-full transition-colors ${
+                              gamePage === i
+                                ? "bg-[#D946EF] text-white"
+                                : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                            }`}
+                            onClick={() => setGamePage(i)}
+                          >
+                            {i}
+                          </button>
+                        );
+                      }
+                      
+                      // Last page
+                      if (endPage < totalGamePages) {
+                        if (endPage < totalGamePages - 1) {
+                          pages.push(
+                            <span key="end-ellipsis" className="px-2 text-gray-500">
+                              ...
+                            </span>
+                          );
+                        }
+                        pages.push(
+                          <button
+                            key={totalGamePages}
+                            className={`w-8 h-8 rounded-full transition-colors ${
+                              gamePage === totalGamePages
+                                ? "bg-[#D946EF] text-white"
+                                : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                            }`}
+                            onClick={() => setGamePage(totalGamePages)}
+                          >
+                            {totalGamePages}
+                          </button>
+                        );
+                      }
+                    }
+                    
+                    return pages;
+                  })()}
+                </div>
+
+                {/* Next button */}
+                <button
+                  className={`w-8 h-8 rounded-full transition-colors border border-[#D946EF] ${
+                    gamePage === totalGamePages
+                      ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
+                      : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                  }`}
+                  onClick={() => setGamePage(Math.min(totalGamePages, gamePage + 1))}
+                  disabled={gamePage === totalGamePages}
+                >
+                  ›
+                </button>
+              </div>
+            )}
           </div>
         )}
       </Card>

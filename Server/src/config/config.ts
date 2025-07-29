@@ -7,6 +7,10 @@ dotenv.config({ path: path.join(__dirname, '../../.env') });
 interface Config {
   env: string;
   port: number;
+  storageProvider: 'r2' | 's3' | 'local';
+  app: {
+    clientUrl: string;
+  };
   database: {
     host: string;
     port: number;
@@ -65,11 +69,44 @@ interface Config {
     keyPairId: string;
     cookieExpiration: number;
   };
+  r2: {
+    accountId: string;
+    accessKeyId: string;
+    secretAccessKey: string;
+    publicUrl: string;
+  };
+  twilio: {
+    accountSid: string;
+    authToken: string;
+    fromNumber: string;
+    enabled: boolean;
+  };
+}
+
+function getEnv(key: string, defaultValue?: string): string {
+  const value = process.env[key];
+  if (value) {
+    return value;
+  }
+  if (defaultValue !== undefined) {
+    return defaultValue;
+  }
+
+  if (process.env.NODE_ENV === 'production') {
+    console.error(`FATAL: Environment variable ${key} is not set`);
+    process.exit(1);
+  }
+
+  console.warn(`Environment variable ${key} is not set using empty string.`);
+
+  return '';
 }
 
 const config: Config = {
-  env: process.env.NODE_ENV || 'development',
-  port: parseInt(process.env.PORT || '5000', 10),
+  env: getEnv('NODE_ENV', 'development'),
+  app: { clientUrl: getEnv('CLIENT_URL', 'http://localhost:5173') },
+  storageProvider: getEnv('STORAGE_PROVIDER', 's3') as 'r2' | 's3' | 'local',
+  port: parseInt(getEnv('PORT', '5000'), 10),
   database: {
     host: process.env.DB_HOST || 'localhost',
     port: parseInt(process.env.DB_PORT || '5432', 10),
@@ -112,7 +149,7 @@ const config: Config = {
     dsn: process.env.SENTRY_DSN || '',
     environment: process.env.NODE_ENV || 'development',
     tracesSampleRate: parseFloat(process.env.SENTRY_TRACES_SAMPLE_RATE || '0.2'),
-    enabled: process.env.NODE_ENV === 'production'
+    enabled: false
   },
   s3: {
     region: process.env.AWS_REGION || 'us-east-1',
@@ -127,6 +164,18 @@ const config: Config = {
     distributionDomain: process.env.CLOUDFRONT_DISTRIBUTION_DOMAIN || '',
     keyPairId: process.env.CLOUDFRONT_KEY_PAIR_ID || '',
     cookieExpiration: 86400, // 1 day in seconds
+  },
+  r2: {
+    accountId: getEnv('CLOUDFLARE_ACCOUNT_ID'),
+    accessKeyId: getEnv('R2_ACCESS_KEY_ID'),
+    secretAccessKey: getEnv('R2_SECRET_ACCESS_KEY'),
+    publicUrl: getEnv('R2_PUBLIC_URL'),
+  },
+  twilio: {
+    accountSid: process.env.TWILIO_ACCOUNT_SID || '',
+    authToken: process.env.TWILIO_AUTH_TOKEN || '',
+    fromNumber: process.env.TWILIO_FROM_NUMBER || '',
+    enabled: process.env.USE_TWILIO === 'true',
   }
 };
 

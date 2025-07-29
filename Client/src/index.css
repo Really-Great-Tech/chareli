@@ -2,26 +2,29 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* @font-face { */
+/* font-family: 'Pong-Game'; */
+/* src: url('./fonts/Pong-Game.ttf'), */
+/* font-weight: normal; */
+/* font-style: normal; */
+/* src: url('./fonts/Boogaloo-Regular.ttf'), */
+/* font-weight: normal; */
+/* font-style: normal; */
+/* } */
+
 @font-face {
-  font-family: 'Pong-Game';
-  src: url('./fonts/Pong-Game.ttf'),
-    /* font-weight: normal; */
-    /* font-style: normal; */
-    /* src: url('./fonts/Boogaloo-Regular.ttf'), */
-    /* font-weight: normal; */
-    /* font-style: normal; */
+  font-family: "Dm Mono";
+  src: url("./fonts/dm mono/DMMono-Regular.ttf");
 }
 
 @font-face {
-  font-family: 'Boogaloo';
-  src: url('./fonts/Boogaloo-Regular.ttf'),
-    /* font-weight: normal; */
-    /* font-style: normal; */
+  font-family: "Work Sans";
+  src: url("./fonts/work sans/WorkSans-Regular.ttf");
 }
 
 @font-face {
-  font-family: 'Pincuk';
-  src: url('./fonts/Pincuk.ttf'),
+  font-family: 'Pong Game';
+  src: url('./fonts/pong game/Pong-Game.ttf'),
 }
 
 @layer base {
@@ -42,62 +45,60 @@
   }
 }
 
-
-
-.font-boogaloo {
-  font-family: 'Boogaloo', cursive;
+/* headers */
+.font-dmmono {
+  font-family: "Dm Mono", cursive;
 }
 
-
-.font-pincuk {
-  font-family: 'Pincuk', cursive;
+/* sub texts */
+.font-worksans {
+  font-family: "Work Sans", cursive;
 }
 
-body {
-  cursor: url('./assets/icn_hand.svg'), auto;
+/* logo text */
+.font-ponggame {
+  font-family: 'Pong Game', cursive;
+}
+
+/* Custom cursor disabled - using normal system cursors */
+/* body {
+  cursor: url("./assets/icn_hand.svg"), auto;
 }
 
 button,
 [role="button"] {
-  cursor: url('./assets/icn_hand.svg'), auto;
+  cursor: url("./assets/icn_hand.svg"), auto;
 }
 
 a,
 .cursor-pointer {
-  cursor: url('./assets/icn_hand.svg'), pointer;
+  cursor: url("./assets/icn_hand.svg"), pointer;
 }
 
 img.cursor-pointer {
-  cursor: url('./assets/icn_hand.svg'), pointer;
+  cursor: url("./assets/icn_hand.svg"), pointer;
+} */
+
+p,
+span,
+th,
+li,
+label {
+  font-family: "Work Sans", cursive;
 }
 
-/* Override custom cursor for admin routes */
-body.admin-route,
-body.admin-route *,
-body.admin-route button,
-body.admin-route [role="button"],
-body.admin-route a,
-body.admin-route .cursor-pointer,
-body.admin-route img.cursor-pointer {
-  cursor: default !important;
+h1,
+h2,
+h3,
+h4,
+h5,
+tr,
+td,
+h6 {
+  font-family: "Dm Mono", cursive;
 }
 
-body.admin-route a:hover,
-body.admin-route button:hover,
-body.admin-route [role="button"]:hover,
-body.admin-route .cursor-pointer:hover {
-  cursor: pointer !important;
-}
-
-/* Ensure input fields have text cursor in admin */
-body.admin-route input[type="text"],
-body.admin-route input[type="email"],
-body.admin-route input[type="password"],
-body.admin-route input[type="search"],
-body.admin-route input[type="number"],
-body.admin-route textarea {
-  cursor: text !important;
-}
+/* Admin route cursor overrides removed - using normal system cursors throughout */
 
 /* card hover box shadow */
 .gradient-shadow-hover {
@@ -122,9 +123,8 @@ body.admin-route textarea {
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.3s;
-  filter: drop-shadow(8px 8px 10px #D946EF);
+  filter: drop-shadow(8px 8px 10px #d946ef);
 }
-
 
 /* in your CSS */
 .backdrop-blur-sm {
@@ -157,4 +157,48 @@ body.admin-route textarea {
 .animate-shimmer {
   animation: shimmer 2s infinite linear;
   background-size: 1000px 100%;
+}
+
+.custom-scrollbar {
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #850891 transparent;
+
+  /* Webkit browsers */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 0px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 0px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: transparent;
+  }
+}
+
+/* Date picker icon styling */
+.date-input-dark::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: none;
+  opacity: 1;
+}
+
+/* Dark mode specific styling */
+.dark .date-input-dark::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(1.2) !important;
+  opacity: 0.9 !important;
+}
+
+/* Force styling for dark mode class - highest specificity */
+:is(.dark) .date-input-dark::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(1.2) !important;
+  opacity: 0.9 !important;
 }

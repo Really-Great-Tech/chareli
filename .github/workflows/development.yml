@@ -3,7 +3,7 @@ name: Deploy to Dev Environment (Chareli)
 on:
   push:
     branches:
-      - staging
+      - development
 
 permissions:
   packages: write
@@ -92,7 +92,7 @@ jobs:
     name: Deploy Backend to App Runner
     needs: build-and-test
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/development'
 
     steps:
       - name: Checkout Code
@@ -126,7 +126,7 @@ jobs:
     name: Deploy Frontend to S3 & Invalidate CloudFront
     needs: build-and-test
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/development'
 
     steps:
       # Checkout code is not strictly needed here if the artifact contains everything for deployment
@@ -160,7 +160,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/staging' }}
+    if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/development' }}
 
     steps:
       - name: Generate Build Status

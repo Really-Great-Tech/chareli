@@ -4,17 +4,14 @@ import authRoutes from './authRoutes';
 import categoryRoutes from './categoryRoutes';
 import fileRoutes from './fileRoutes';
 import gameRoutes from './gameRoutes';
+import gamePositionHistoryRoutes from './gamePositionHistoryRoutes';
 import systemConfigRoutes from './systemConfigRoutes';
 import signupAnalyticsRoutes from './signupAnalyticsRoutes';
 import analyticsRoutes from './analyticsRoutes';
 import adminRoutes from './adminRoutes';
 import { ApiError } from '../middlewares/errorHandler';
-import { apiLimiter } from '../middlewares/rateLimitMiddleware';
 
 const router = Router();
-
-// Apply API rate limiter to all routes
-router.use(apiLimiter);
 
 /**
  * @swagger
@@ -40,6 +37,7 @@ router.use('/users', userRoutes);
 router.use('/categories', categoryRoutes);
 router.use('/files', fileRoutes);
 router.use('/games', gameRoutes);
+router.use('/game-position-history', gamePositionHistoryRoutes);
 router.use('/system-configs', systemConfigRoutes);
 router.use('/signup-analytics', signupAnalyticsRoutes);
 router.use('/analytics', analyticsRoutes);

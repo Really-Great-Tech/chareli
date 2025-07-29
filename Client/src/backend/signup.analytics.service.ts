@@ -1,6 +1,6 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { backendService } from './api.service';
-import { BackendRoute } from './constants';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { backendService } from "./api.service";
+import { BackendRoute } from "./constants";
 
 interface SignupAnalyticsData {
   totalClicks: number;
@@ -29,32 +29,60 @@ interface SignupAnalyticsData {
  * @returns Mutation function to track signup clicks
  */
 export const useTrackSignupClick = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: { sessionId?: string; type: string }) => {
-      const response = await backendService.post(BackendRoute.SIGNUP_ANALYTICS_CLICK, data);
+      const response = await backendService.post(
+        BackendRoute.SIGNUP_ANALYTICS_CLICK,
+        data
+      );
       return response.data;
-    }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.USER] });
+      queryClient.invalidateQueries({ queryKey: ["allTeamMembers"] });
+      queryClient.invalidateQueries({
+        queryKey: [BackendRoute.ANALYTICS],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [BackendRoute.ADMIN_DASHBOARD],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [BackendRoute.ADMIN_USERS_ANALYTICS],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [BackendRoute.ADMIN_USER_ANALYTICS],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [BackendRoute.ADMIN_GAME_ANALYTICS],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [BackendRoute.ADMIN_USER_ACTIVITY],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [BackendRoute.SIGNUP_ANALYTICS_DATA],
+      });
+    },
   });
 };
 
-/**
- * Hook to fetch signup analytics data
- * @param days - Number of days to include (default 30)
- * @returns Query result with signup analytics data
- */
+
 export const useSignupAnalyticsData = (days?: number) => {
   return useQuery<SignupAnalyticsData>({
     queryKey: [BackendRoute.SIGNUP_ANALYTICS_DATA, days],
     queryFn: async () => {
-      const url = days 
+      const url = days
         ? `${BackendRoute.SIGNUP_ANALYTICS_DATA}?days=${days}`
         : BackendRoute.SIGNUP_ANALYTICS_DATA;
       const response = await backendService.get(url);
-      
+
       const analyticsData = response.data;
       return analyticsData;
     },
     refetchOnWindowFocus: false,
-    retry: 3
+    retry: 3,
   });
 };

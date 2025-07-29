@@ -7,9 +7,10 @@ import { welcomeEmailTemplate } from '../templates/emails/welcome.template';
 import { resetPasswordEmailTemplate } from '../templates/emails/reset.template';
 import { otpEmailTemplate } from '../templates/emails/otp.template';
 import { roleRevokedEmailTemplate, roleChangedEmailTemplate } from '../templates/emails/role.template';
+import { accountDeletionEmailTemplate } from '../templates/emails/account-deletion.template';
 
 // Provider selection flag - set to true to use Gmail, false to use SES
-const USE_GMAIL = true;
+const USE_GMAIL = false;
 
 export interface EmailServiceInterface {
   sendInvitationEmail(email: string, invitationLink: string, role: string): Promise<boolean>;
@@ -18,6 +19,7 @@ export interface EmailServiceInterface {
   sendOtpEmail(email: string, otp: string): Promise<boolean>;
   sendRoleRevokedEmail(email: string, oldRole: string): Promise<boolean>;
   sendRoleChangedEmail(email: string, oldRole: string, newRole: string): Promise<boolean>;
+  sendAccountDeletionEmail(email: string, userName: string, isDeactivation?: boolean): Promise<boolean>;
 }
 
 interface EmailProvider {
@@ -29,17 +31,17 @@ class SESProvider implements EmailProvider {
 
   constructor() {
     this.sesClient = new SESClient({
-      region: "",
+      region: config.s3.region,
       credentials: {
-        accessKeyId: "",
-        secretAccessKey: "",
+        accessKeyId: config.s3.accessKeyId,
+        secretAccessKey: config.s3.secretAccessKey,
       }
     });
   }
 
   async sendEmail(to: string, subject: string, html: string): Promise<boolean> {
     try {
-      const emailsToSkip = ["admin@example.com", "edmondboakye1622@gmail.com"];
+      const emailsToSkip = ["admin@example.com"];
 
       // In development mode, just log the email instead of sending
       if (emailsToSkip.includes(to)) {
@@ -63,7 +65,7 @@ class SESProvider implements EmailProvider {
             Data: subject,
           },
         },
-        Source: 'no-reply@dev.chareli.reallygreattech.com'
+        Source: config.ses.fromEmail
       });
 
       await this.sesClient.send(command);
@@ -81,17 +83,20 @@ class GmailProvider implements EmailProvider {
 
   constructor() {
     this.transporter = nodemailer.createTransport({
-      service: 'gmail',
+      service: config.email.service,
       auth: {
-        user: 'edmondboakye1622@gmail.com',
-        pass: 'ogmm ioqb bzdb ogpg'
+        user: config.email.user,
+        pass: config.email.password
       }
     });
   }
 
   async sendEmail(to: string, subject: string, html: string): Promise<boolean> {
     try {
-      const emailsToSkip = ["admin@example.com", "edmondboakye1622@gmail.com"];
+
+      console.log(config.email.password, config.email.service, config.email.user)
+      
+      const emailsToSkip = ["admin@example.com"];
 
       // In development mode, just log the email instead of sending
       if (emailsToSkip.includes(to)) {
@@ -100,7 +105,7 @@ class GmailProvider implements EmailProvider {
       }
 
       const mailOptions = {
-        from: '"Chareli Team" <edmondboakye1622@gmail.com>',
+        from: `"Chareli Team" <${config.email.user}>`,
         to: to,
         subject: subject,
         html: html
@@ -169,6 +174,17 @@ export class EmailService implements EmailServiceInterface {
   async sendRoleChangedEmail(email: string, oldRole: string, newRole: string): Promise<boolean> {
     const html = roleChangedEmailTemplate(oldRole, newRole);
     return this.sendEmail(email, 'Your Role Has Been Updated', html);
+  }
+
+  /**
+   * Send email notification when a user's account is deleted or deactivated
+   */
+  async sendAccountDeletionEmail(email: string, userName: string, isDeactivation: boolean = false): Promise<boolean> {
+    const html = accountDeletionEmailTemplate(userName, isDeactivation);
+    const subject = isDeactivation 
+      ? 'Your Chareli Account Has Been Deactivated' 
+      : 'Your Chareli Account Has Been Deleted';
+    return this.sendEmail(email, subject, html);
   }
 
   /**

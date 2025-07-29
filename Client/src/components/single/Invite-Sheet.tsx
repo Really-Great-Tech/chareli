@@ -9,31 +9,60 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "../ui/sheet";
+import { SearchableSelect } from "../ui/searchable-select";
 import React from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { useInviteTeamMember } from "../../backend/teams.service";
+import { useAuth } from "../../context/AuthContext";
 import { toast } from "sonner";
 import * as Yup from "yup";
 import type { InviteUserRequest } from "../../backend/teams.service";
 
-const inviteSchema = Yup.object().shape({
+// Dynamic validation schema based on user role
+const createInviteSchema = (availableRoles: string[]) => Yup.object().shape({
   email: Yup.string()
     .email("Invalid email format")
     .required("Email is required"),
   role: Yup.string()
-    .oneOf(["admin"], "Invalid role")
+    .oneOf(availableRoles, "Invalid role")
     .required("Role is required"),
 });
 
-const initialValues: InviteUserRequest = {
+const getInitialValues = (availableRoles: string[]): InviteUserRequest => ({
   email: "",
-  role: "admin",
-};
+  role: availableRoles[0] as any, // Default to first available role
+});
 
 export function InviteSheet({ children }: { children: React.ReactNode }) {
   const formikRef = React.useRef<any>(null);
   const { mutate: inviteTeamMember, isPending } = useInviteTeamMember();
+  const { user } = useAuth();
   const [open, setOpen] = React.useState(false);
+
+  // Determine available roles based on current user's role
+  const getAvailableRoles = () => {
+    const userRole = user?.role?.name?.toLowerCase();
+    
+    if (userRole === 'superadmin') {
+      return [
+        { value: "superadmin", label: "Super Admin" },
+        { value: "admin", label: "Admin" },
+        { value: "viewer", label: "Viewer" }
+      ];
+    } else if (userRole === 'admin') {
+      return [
+        { value: "viewer", label: "Viewer" }
+      ];
+    }
+    
+    // Default fallback (shouldn't happen if permissions are correct)
+    return [{ value: "viewer", label: "Viewer" }];
+  };
+
+  const availableRoles = getAvailableRoles();
+  const availableRoleValues = availableRoles.map(role => role.value);
+  const initialValues = getInitialValues(availableRoleValues);
+  const inviteSchema = createInviteSchema(availableRoleValues);
 
   const handleInvite = async (
     values: InviteUserRequest,
@@ -46,7 +75,7 @@ export function InviteSheet({ children }: { children: React.ReactNode }) {
         setOpen(false);
       },
       onError: (error: any) => {
-        console.log("my error", error)
+        console.log("my error", error);
         const message =
           error?.response?.data?.message ||
           error?.message ||
@@ -58,8 +87,8 @@ export function InviteSheet({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <Sheet 
-      open={open} 
+    <Sheet
+      open={open}
       onOpenChange={(newOpen) => {
         if (!newOpen && formikRef.current) {
           formikRef.current.resetForm();
@@ -68,9 +97,9 @@ export function InviteSheet({ children }: { children: React.ReactNode }) {
       }}
     >
       <SheetTrigger asChild>{children}</SheetTrigger>
-      <SheetContent className="font-boogaloo dark:bg-[#0F1621] max-w-md w-full">
+      <SheetContent className="font-dmmono dark:bg-[#0F1621] max-w-md w-full">
         <SheetHeader>
-          <SheetTitle className="text-xl font-normal tracking-wider mt-6">
+          <SheetTitle className="text-lg font-normal tracking-wider mt-6">
             Share Admin Invite
           </SheetTitle>
           <div className="border border-b-gray-200"></div>
@@ -84,7 +113,7 @@ export function InviteSheet({ children }: { children: React.ReactNode }) {
           {({ isSubmitting, isValid, dirty }) => (
             <Form className="grid gap-6 px-4">
               <div className="flex flex-col space-y-2">
-                <Label htmlFor="email" className="text-lg">
+                <Label htmlFor="email" className="text-base">
                   User Email
                 </Label>
                 <Field
@@ -93,7 +122,7 @@ export function InviteSheet({ children }: { children: React.ReactNode }) {
                   name="email"
                   type="email"
                   placeholder="Enter email"
-                  className="col-span-3 shadow-none text-gray-400 font-thin text-xl tracking-wider h-14 bg-[#F1F5F9] border border-[#CBD5E0] dark:bg-[#121C2D] dark:text-white"
+                  className="col-span-3 shadow-none text-gray-400 font-thin text-sm tracking-wider h-14 bg-[#F1F5F9] border border-[#CBD5E0] dark:bg-[#121C2D] dark:text-white"
                 />
                 <ErrorMessage
                   name="email"
@@ -102,16 +131,20 @@ export function InviteSheet({ children }: { children: React.ReactNode }) {
                 />
               </div>
               <div className="flex flex-col space-y-2">
-                <Label htmlFor="role" className="text-lg">
+                <Label className="text-base">
                   Role
                 </Label>
-                <Field
-                  as="select"
-                  id="role"
-                  name="role"
-                  className="col-span-3 shadow-none text-gray-400 font-thin font-pincuk text-xl tracking-wider h-14 bg-[#F1F5F9] border border-[#CBD5E0] rounded-lg dark:bg-[#121C2D] dark:text-white p-2"
-                >
-                  <option value="admin">Admin</option>
+                <Field name="role">
+                  {({ field, form }: any) => (
+                    <SearchableSelect
+                      value={field.value}
+                      onValueChange={(value: string) => form.setFieldValue("role", value)}
+                      options={availableRoles}
+                      placeholder="Select role"
+                      searchPlaceholder="Search roles..."
+                      emptyText="No roles found"
+                    />
+                  )}
                 </Field>
                 <ErrorMessage
                   name="role"
@@ -123,7 +156,7 @@ export function InviteSheet({ children }: { children: React.ReactNode }) {
                 <SheetClose asChild>
                   <Button
                     type="button"
-                    className="w-20 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-accent"
+                    className="w-20 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-[#E2E8F0] dark:text-gray-300 dark:bg-[#1E293B] dark:border-[#334155] dark:hover:bg-[#334155] cursor-pointer"
                     onClick={() => formikRef.current?.resetForm()}
                   >
                     Cancel
@@ -131,7 +164,7 @@ export function InviteSheet({ children }: { children: React.ReactNode }) {
                 </SheetClose>
                 <Button
                   type="submit"
-                  className="w-22 h-12 bg-[#D946EF] dark:text-white hover:text-[#D946EF] hover:bg-[#F3E8FF]"
+                  className="w-fit h-12 bg-[#D946EF] text-white hover:bg-[#C026D3] dark:text-white dark:hover:bg-[#C026D3] cursor-pointer"
                   disabled={isSubmitting || isPending || !isValid || !dirty}
                 >
                   {isSubmitting || isPending ? "Sending..." : "Send Invite"}

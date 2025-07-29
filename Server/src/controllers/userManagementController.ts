@@ -6,6 +6,8 @@ import { AppDataSource } from '../config/database';
 import { User } from '../entities/User';
 import { Invitation } from '../entities/Invitation';
 import { emailService } from '../services/email.service';
+import { getCountryFromIP, extractClientIP } from '../utils/ipUtils';
+import { detectDeviceType } from '../utils/deviceUtils';
 import * as bcrypt from 'bcrypt';
 
 const userRepository = AppDataSource.getRepository(User);
@@ -69,12 +71,12 @@ export const inviteUser = async (
       return next(ApiError.forbidden('Only admin and superadmin can invite users'));
     }
 
-    // Superadmin can invite any role, admin can only invite editor and player
+    // Superadmin can invite any role, admin can invite editor, player, and viewer roles
     if (
       req.user.role === RoleType.ADMIN &&
       (role === RoleType.SUPERADMIN || role === RoleType.ADMIN)
     ) {
-      return next(ApiError.forbidden('Admin can only invite editor and player roles'));
+      return next(ApiError.forbidden('Admin can only invite editor, player, and viewer roles'));
     }
 
     // Create invitation
@@ -129,7 +131,7 @@ export const getCurrentUser = async (
     }
 
     const user = await userRepository.findOne({
-      where: { id: userId },
+      where: { id: userId, isDeleted: false },
       relations: ['role']
     });
 
@@ -175,7 +177,7 @@ export const getAllInvitations = async (
 ): Promise<void> => {
   try {
     // Only admin and superadmin can view all invitations
-    if (req.user?.role !== RoleType.ADMIN && req.user?.role !== RoleType.SUPERADMIN) {
+    if (req.user?.role !== RoleType.ADMIN && req.user?.role !== RoleType.SUPERADMIN && req.user?.role !== RoleType.VIEWER) {
       return next(ApiError.forbidden('Only admin and superadmin can view all invitations'));
     }
 
@@ -230,7 +232,7 @@ export const deleteInvitation = async (
     const { id } = req.params;
 
     // Only admin and superadmin can delete invitations
-    if (req.user?.role !== RoleType.ADMIN && req.user?.role !== RoleType.SUPERADMIN) {
+    if (req.user?.role !== RoleType.ADMIN && req.user?.role !== RoleType.SUPERADMIN && req.user?.role !== RoleType.VIEWER) {
       return next(ApiError.forbidden('Only admin and superadmin can delete invitations'));
     }
 
@@ -243,12 +245,12 @@ export const deleteInvitation = async (
       return next(ApiError.notFound('Invitation not found'));
     }
 
-    // Admin can only delete invitations for editor and player roles
+    // Admin can only delete invitations for editor, player, and viewer roles
     if (
       req.user.role === RoleType.ADMIN &&
       (invitation.role.name === RoleType.SUPERADMIN || invitation.role.name === RoleType.ADMIN)
     ) {
-      return next(ApiError.forbidden('Admin can only delete invitations for editor and player roles'));
+      return next(ApiError.forbidden('Admin can only delete invitations for editor, player, and viewer roles'));
     }
 
     await invitationRepository.remove(invitation);
@@ -310,19 +312,36 @@ export const verifyInvitationToken = async (
       return next(ApiError.badRequest('Invitation has expired'));
     }
 
-    // Check if user already exists
-    const existingUser = await userRepository.findOne({
-      where: { email: invitation.email }
+    // Check if active user already exists
+    const existingActiveUser = await userRepository.findOne({
+      where: { email: invitation.email, isDeleted: false }
     });
 
-    if (existingUser) {
-      // User already exists, they can reset password directly
+    // Check if soft-deleted user exists
+    const softDeletedUser = await userRepository.findOne({
+      where: { email: invitation.email, isDeleted: true }
+    });
+
+    if (existingActiveUser) {
+      // Active user already exists, they can reset password directly
       res.status(200).json({
         success: true,
         message: 'User with this email already exists. You can reset your password directly.',
         data: {
           email: invitation.email,
           userExists: true,
+          role: invitation.role.name
+        }
+      });
+    } else if (softDeletedUser) {
+      // Soft-deleted user exists, they can restore their account
+      res.status(200).json({
+        success: true,
+        message: 'Your account will be restored. Please proceed to set your new password.',
+        data: {
+          email: invitation.email,
+          userExists: true,
+          isRestoration: true,
           role: invitation.role.name
         }
       });
@@ -414,10 +433,17 @@ export const resetPasswordFromInvitation = async (
       return next(ApiError.badRequest('Invitation has expired'));
     }
 
-    // Find the user
-    const user = await userRepository.findOne({
-      where: { email: invitation.email }
+    // Find the user (check both active and soft-deleted users)
+    let user = await userRepository.findOne({
+      where: { email: invitation.email, isDeleted: false }
     });
+
+    // If no active user found, check for soft-deleted user
+    if (!user) {
+      user = await userRepository.findOne({
+        where: { email: invitation.email, isDeleted: true }
+      });
+    }
 
     if (!user) {
       return next(ApiError.badRequest('User not found'));
@@ -431,6 +457,14 @@ export const resetPasswordFromInvitation = async (
     user.password = hashedPassword;
     user.role = invitation.role;
     user.roleId = invitation.roleId;
+
+    // If user was soft-deleted, restore their account
+    if (user.isDeleted) {
+      user.isDeleted = false;
+      user.deletedAt = null as any;
+      user.isActive = true;
+    }
+
     await userRepository.save(user);
 
     // Mark invitation as accepted
@@ -502,7 +536,7 @@ export const changePassword = async (
     }
 
     const user = await userRepository.findOne({
-      where: { id: userId },
+      where: { id: userId, isDeleted: false },
       select: ['id', 'password']
     });
 
@@ -545,7 +579,7 @@ export const revokeRole = async (
 
     // Find the user whose role will be revoked
     const user = await userRepository.findOne({
-      where: { id },
+      where: { id, isDeleted: false },
       relations: ['role']
     });
 
@@ -681,9 +715,9 @@ export const changeUserRole = async (
 
     // Check permission based on role hierarchy
     if (currentUserRole === RoleType.ADMIN) {
-      // Admin can only assign editor and player roles
+      // Admin can only assign editor, player, and viewer roles
       if (newRoleName === RoleType.SUPERADMIN || newRoleName === RoleType.ADMIN) {
-        return next(ApiError.forbidden('Admin can only assign editor and player roles'));
+        return next(ApiError.forbidden('Admin can only assign editor, player, and viewer roles'));
       }
     } else if (currentUserRole !== RoleType.SUPERADMIN) {
       return next(ApiError.forbidden('You do not have permission to change roles'));

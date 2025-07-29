@@ -1,9 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Checkbox } from '../../../components/ui/checkbox';
 import { Label } from '../../../components/ui/label';
 import { useCreateSystemConfig, useSystemConfigByKey } from '../../../backend/configuration.service';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { BackendRoute } from '../../../backend/constants';
+import SearchBarConfiguration, { type SearchBarConfigurationRef } from '../../../components/single/SearchBarConfiguration';
+import DynamicPopupConfiguration from '../../../components/single/DynamicPopupConfiguration';
+import UserInactivityConfiguration, { type UserInactivityConfigurationRef } from '../../../components/single/UserInactivityConfiguration';
+import PopularGamesConfiguration, { type PopularGamesConfigurationRef } from '../../../components/single/PopularGamesConfiguration';
 
 interface AuthMethodSettings {
   enabled: boolean;
@@ -16,6 +22,7 @@ interface AuthSettings {
   sms: AuthMethodSettings;
   both: {
     enabled: boolean;
+    otpDeliveryMethod: 'email' | 'sms' | 'none';
   };
 }
 
@@ -32,11 +39,16 @@ export default function Configuration() {
       lastName: false
     },
     both: {
-      enabled: false
+      enabled: false,
+      otpDeliveryMethod: 'none'
     }
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const searchBarConfigRef = useRef<SearchBarConfigurationRef>(null);
+  const userInactivityConfigRef = useRef<UserInactivityConfigurationRef>(null);
+  const popularGamesConfigRef = useRef<PopularGamesConfigurationRef>(null);
+  const queryClient = useQueryClient();
   const { mutateAsync: createConfig } = useCreateSystemConfig();
   const { data: configData, isLoading: isLoadingConfig } = useSystemConfigByKey('authentication_settings');
 
@@ -60,7 +72,8 @@ export default function Configuration() {
         lastName: false
       },
       both: {
-        enabled: false
+        enabled: false,
+        otpDeliveryMethod: 'none'
       }
     });
   };
@@ -78,7 +91,8 @@ export default function Configuration() {
         lastName: false
       },
       both: {
-        enabled: false
+        enabled: false,
+        otpDeliveryMethod: 'none'
       }
     });
   };
@@ -96,7 +110,8 @@ export default function Configuration() {
         lastName: false
       },
       both: {
-        enabled: checked
+        enabled: checked,
+        otpDeliveryMethod: 'none'
       }
     });
   };
@@ -141,31 +156,79 @@ export default function Configuration() {
     }));
   };
 
+  const handleOtpDeliveryMethod = (method: 'email' | 'sms' | 'none') => {
+    setAuthSettings(prev => ({
+      ...prev,
+      both: {
+        ...prev.both,
+        otpDeliveryMethod: method
+      }
+    }));
+  };
+
   const handleSave = async () => {
     setIsSubmitting(true);
     try {
+      // Save authentication settings
       await createConfig({
         key: 'authentication_settings',
         value: {
           settings: authSettings
         }
       });
-      toast.success('Authentication settings saved successfully!');
+
+      // Save UI settings
+      if (searchBarConfigRef.current) {
+        const uiSettings = searchBarConfigRef.current.getSettings();
+        await createConfig({
+          key: 'ui_settings',
+          value: uiSettings,
+          description: 'UI visibility settings for the application'
+        });
+      }
+
+      // Save user inactivity settings
+      if (userInactivityConfigRef.current) {
+        const inactivitySettings = userInactivityConfigRef.current.getSettings();
+        await createConfig({
+          key: 'user_inactivity_settings',
+          value: inactivitySettings,
+          description: 'User inactivity timer configuration'
+        });
+      }
+
+      // Save popular games settings
+      if (popularGamesConfigRef.current) {
+        const popularGamesSettings = popularGamesConfigRef.current.getSettings();
+        await createConfig({
+          key: 'popular_games_settings',
+          value: popularGamesSettings,
+          description: 'Popular games configuration for homepage'
+        });
+        
+        // Invalidate games queries to refresh popular section
+        queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES] });
+      }
+
+      toast.success('Configuration saved successfully!');
     } catch (error) {
-      toast.error('Failed to save authentication settings');
+      toast.error('Failed to save configuration');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="p-4 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 relative">
+    <div className="min-h-screen p-4 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 relative">
       {isLoadingConfig && (
         <div className="absolute inset-0 bg-white/50 dark:bg-gray-900/50 flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
         </div>
       )}
-      <h1 className="text-3xl text-[#D946EF] mb-4">User Sign Up Configuration</h1>
+      
+      <SearchBarConfiguration ref={searchBarConfigRef} disabled={isSubmitting} />
+      
+      <h1 className="text-lg sm:text-2xl font-worksans text-[#D946EF] mb-4">User Sign Up Configuration</h1>
       <div className="space-y-4">
         {/* Email Authentication Section */}
         <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
@@ -253,7 +316,7 @@ export default function Configuration() {
 
         {/* Both Section */}
         <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
-          <div className="flex items-center">
+          <div className="flex items-center mb-2">
             <Checkbox
               checked={authSettings.both.enabled}
               onCheckedChange={handleBoth}
@@ -264,11 +327,68 @@ export default function Configuration() {
               Both
             </Label>
           </div>
+          
+          {/* OTP Delivery Method Selection */}
+          {authSettings.both.enabled && (
+            <div className="ml-6 mt-4">
+              <Label className="text-base font-medium text-black dark:text-white mb-3 block">
+                OTP Delivery Method:
+              </Label>
+              <div className="space-y-2">
+                <div className="flex items-center">
+                  <input
+                    type="radio"
+                    id="otp-email"
+                    name="otpDeliveryMethod"
+                    value="email"
+                    checked={authSettings.both.otpDeliveryMethod === 'email'}
+                    onChange={() => handleOtpDeliveryMethod('email')}
+                    className="w-4 h-4 text-[#D946EF] bg-gray-100 border-gray-300 dark:bg-gray-700 dark:border-gray-600"
+                  />
+                  <Label htmlFor="otp-email" className="ml-2 text-base">
+                    Email
+                  </Label>
+                </div>
+                <div className="flex items-center">
+                  <input
+                    type="radio"
+                    id="otp-sms"
+                    name="otpDeliveryMethod"
+                    value="sms"
+                    checked={authSettings.both.otpDeliveryMethod === 'sms'}
+                    onChange={() => handleOtpDeliveryMethod('sms')}
+                    className="w-4 h-4 text-[#D946EF] bg-gray-100 border-gray-300 dark:bg-gray-700 dark:border-gray-600"
+                  />
+                  <Label htmlFor="otp-sms" className="ml-2 text-base">
+                    SMS
+                  </Label>
+                </div>
+                <div className="flex items-center">
+                  <input
+                    type="radio"
+                    id="otp-none"
+                    name="otpDeliveryMethod"
+                    value="none"
+                    checked={authSettings.both.otpDeliveryMethod === 'none'}
+                    onChange={() => handleOtpDeliveryMethod('none')}
+                    className="w-4 h-4 text-[#D946EF] bg-gray-100 border-gray-300 dark:bg-gray-700 dark:border-gray-600"
+                  />
+                  <Label htmlFor="otp-none" className="ml-2 text-base">
+                    None (No OTP required)
+                  </Label>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
-      <div className="flex justify-end mt-4">
+      <DynamicPopupConfiguration />
+      <UserInactivityConfiguration ref={userInactivityConfigRef} disabled={isSubmitting} />
+      <PopularGamesConfiguration ref={popularGamesConfigRef} disabled={isSubmitting} />
+      
+      <div className="flex justify-end mt-6 mb-4 px-2">
         <button
-          className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer font-medium text-sm sm:text-base min-w-[140px] justify-center shadow-lg"
           onClick={handleSave}
           disabled={isSubmitting || isLoadingConfig}
         >

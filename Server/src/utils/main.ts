@@ -1,3 +1,5 @@
+import config from '../config/config';
+
 export const formatTime = (seconds: number): string => {
   if (seconds < 60) return `${seconds}s`;
   
@@ -11,4 +13,12 @@ export const formatTime = (seconds: number): string => {
   if (remainingSeconds > 0) result += `${remainingSeconds}s`;
 
   return result.trim();
+};
+
+/**
+ * Get frontend URL based on environment
+ */
+export const getFrontendUrl = (): string => {
+  const clientUrl = config.app.clientUrl;
+  return clientUrl;
 };

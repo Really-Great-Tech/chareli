@@ -20,14 +20,24 @@ export const useCategories = () => {
 /**
  * Hook to fetch a specific category by ID
  * @param id - Category ID
+ * @param params - Optional pagination parameters
  * @returns Query result with category data
  */
-export const useCategoryById = (id: string) => {
-  return useQuery<Category>({
-    queryKey: [BackendRoute.CATEGORIES, id],
+export const useCategoryById = (id: string, params?: { page?: number; limit?: number }) => {
+  return useQuery<any>({
+    queryKey: [BackendRoute.CATEGORIES, id, params],
     queryFn: async () => {
-      const response = await backendService.get(BackendRoute.CATEGORY_BY_ID.replace(':id', id));
-      return response.data as Category;
+      const response = await backendService.get(BackendRoute.CATEGORY_BY_ID.replace(':id', id), { 
+        params,
+        suppressErrorToast: true
+      });
+      return response.data;
+    },
+    retry: (failureCount, error: any) => {
+      if (error?.response?.status === 404) {
+        return false;
+      }
+      return failureCount < 3;
     },
   });
 };
@@ -43,6 +53,9 @@ export const useCreateCategory = () => {
       backendService.post(BackendRoute.CATEGORIES, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [BackendRoute.CATEGORIES] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES] });
     },
   });
 };
@@ -59,6 +72,9 @@ export const useUpdateCategory = () => {
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: [BackendRoute.CATEGORIES] });
       queryClient.invalidateQueries({ queryKey: [BackendRoute.CATEGORIES, id] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES] });
     },
   });
 };
@@ -72,8 +88,13 @@ export const useDeleteCategory = () => {
   return useMutation({
     mutationFn: (id: string) =>
       backendService.delete(BackendRoute.CATEGORY_BY_ID.replace(':id', id)),
-    onSuccess: () => {
+    onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: [BackendRoute.CATEGORIES] });
+      // Remove the specific category query to prevent refetching
+      queryClient.removeQueries({ queryKey: [BackendRoute.CATEGORIES, id] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES] });
     },
   });
 };

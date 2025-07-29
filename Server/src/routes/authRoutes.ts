@@ -42,7 +42,7 @@ import * as yup from 'yup';
 const router = Router();
 
 // Public routes with rate limiting
-router.post('/register', createUserLimiter, validateBody(registerPlayerSchema), registerPlayer);
+router.post('/register', validateBody(registerPlayerSchema), registerPlayer);
 router.post(
   '/register/:token',
   createUserLimiter,
@@ -50,9 +50,9 @@ router.post(
   validateBody(registerFromInvitationSchema),
   registerFromInvitation
 );
-router.post('/login', authLimiter, validateBody(loginSchema), login);
-router.post('/verify-otp', authLimiter, validateBody(otpVerificationSchema), verifyOtp);
-router.post('/request-otp', authLimiter, validateBody(requestOtpSchema), requestOtp);
+router.post('/login', validateBody(loginSchema), login);
+router.post('/verify-otp', validateBody(otpVerificationSchema), verifyOtp);
+router.post('/request-otp', validateBody(requestOtpSchema), requestOtp);
 router.post('/refresh-token', validateBody(refreshTokenSchema), refreshToken);
 router.get(
   '/verify-invitation/:token',
@@ -67,17 +67,16 @@ router.post(
 );
 
 // Email-based password reset routes
-router.post('/forgot-password', authLimiter, validateBody(forgotPasswordSchema), forgotPassword);
+router.post('/forgot-password', validateBody(forgotPasswordSchema), forgotPassword);
 router.get('/reset-password/:token', validateParams(yup.object({ token: yup.string().required('Token is required') })), verifyResetToken);
 // Password reset routes (supports both email and phone)
-router.post('/forgot-password/phone', authLimiter, validateBody(yup.object({
+router.post('/forgot-password/phone', validateBody(yup.object({
   phoneNumber: yup.string().required('Phone number is required')
 })), forgotPasswordPhone);
 
 // Email-based reset (with token)
 router.post(
   '/reset-password/:token',
-  authLimiter,
   validateBody(resetPasswordSchema),
   resetPassword
 );
@@ -85,7 +84,6 @@ router.post(
 // Phone-based reset (no token)
 router.post(
   '/reset-password',
-  authLimiter,
   validateBody(resetPasswordSchema),
   resetPassword
 );

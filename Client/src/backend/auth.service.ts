@@ -51,7 +51,7 @@ export const useVerifyResetOtp = () => {
 
 export const useRequestOtp = () => {
   return useMutation({
-    mutationFn: async ({ userId, otpType }: { userId: string; otpType: 'SMS' | 'EMAIL' | 'BOTH' }) => {
+    mutationFn: async ({ userId, otpType }: { userId: string; otpType: 'SMS' | 'EMAIL' | 'NONE' }) => {
       return backendService.post(BackendRoute.AUTH_REQUEST_OTP, { userId, otpType });
     },
   });

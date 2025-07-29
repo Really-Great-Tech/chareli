@@ -13,7 +13,11 @@ import { useUpdateUserData } from "../../backend/user.service";
 import { toast } from "sonner";
 import { useAuth } from "../../context/AuthContext";
 import { Formik, Form, Field, ErrorMessage } from "formik";
+import type { FieldProps } from "formik";
 import * as Yup from "yup";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
+import "../../styles/phone-input.css";
 
 interface EditProfileSheetProps {
   open: boolean;
@@ -40,10 +44,17 @@ const validationSchema = Yup.object().shape({
     .required("Email is required"),
   phone: Yup.string()
     .nullable()
-    .matches(/^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/, "Invalid phone number format")
+    .matches(
+      /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/,
+      "Invalid phone number format"
+    ),
 });
 
-export function EditProfileSheet({ open, onOpenChange, profile }: EditProfileSheetProps) {
+export function EditProfileSheet({
+  open,
+  onOpenChange,
+  profile,
+}: EditProfileSheetProps) {
   const updateUser = useUpdateUserData();
   const { user } = useAuth();
 
@@ -51,7 +62,7 @@ export function EditProfileSheet({ open, onOpenChange, profile }: EditProfileShe
     firstName: profile.firstName,
     lastName: profile.lastName,
     email: profile.email,
-    phone: profile.phone
+    phone: profile.phone,
   };
 
   const handleSubmit = async (values: typeof initialValues) => {
@@ -66,7 +77,7 @@ export function EditProfileSheet({ open, onOpenChange, profile }: EditProfileShe
         firstName: values.firstName.trim(),
         lastName: values.lastName.trim(),
         email: values.email,
-        phoneNumber: values.phone || undefined
+        phoneNumber: values.phone || undefined,
       });
 
       toast.success("Profile updated successfully");
@@ -78,9 +89,14 @@ export function EditProfileSheet({ open, onOpenChange, profile }: EditProfileShe
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="max-w-md w-full p-6 font-boogaloo dark:bg-[#0F1621]">
+      <SheetContent
+        side="right"
+        className="max-w-md w-full p-6 font-dmmono dark:bg-[#0F1621]"
+      >
         <SheetHeader>
-          <SheetTitle className="text-lg mt-4 tracking-wider">Edit Profile</SheetTitle>
+          <SheetTitle className="text-lg mt-4 tracking-wider">
+            Edit Profile
+          </SheetTitle>
         </SheetHeader>
         <Formik
           initialValues={initialValues}
@@ -98,8 +114,10 @@ export function EditProfileSheet({ open, onOpenChange, profile }: EditProfileShe
                   id="firstName"
                   name="firstName"
                   placeholder="Enter first name"
-                  className={`bg-[#F1F5F9] mt-1 font-pincuk text-xl tracking-wider dark:bg-[#121C2D] dark:text-white ${
-                    errors.firstName && touched.firstName ? "border-red-500" : ""
+                  className={`bg-[#F1F5F9] mt-1 font-worksans text-sm tracking-wider dark:bg-[#121C2D] dark:text-white ${
+                    errors.firstName && touched.firstName
+                      ? "border-red-500"
+                      : ""
                   }`}
                 />
                 <ErrorMessage
@@ -117,7 +135,7 @@ export function EditProfileSheet({ open, onOpenChange, profile }: EditProfileShe
                   id="lastName"
                   name="lastName"
                   placeholder="Enter last name"
-                  className={`bg-[#F1F5F9] mt-1 font-pincuk text-xl tracking-wider dark:bg-[#121C2D] dark:text-white ${
+                  className={`bg-[#F1F5F9] mt-1 font-worksans text-sm tracking-wider dark:bg-[#121C2D] dark:text-white ${
                     errors.lastName && touched.lastName ? "border-red-500" : ""
                   }`}
                 />
@@ -137,7 +155,7 @@ export function EditProfileSheet({ open, onOpenChange, profile }: EditProfileShe
                   name="email"
                   type="email"
                   placeholder="Enter email"
-                  className={`bg-[#F1F5F9] mt-1 font-pincuk text-xl tracking-wider dark:bg-[#121C2D] dark:text-white ${
+                  className={`bg-[#F1F5F9] mt-1 font-worksans text-sm tracking-wider dark:bg-[#121C2D] dark:text-white ${
                     errors.email && touched.email ? "border-red-500" : ""
                   }`}
                 />
@@ -151,15 +169,48 @@ export function EditProfileSheet({ open, onOpenChange, profile }: EditProfileShe
                 <Label htmlFor="phone" className="text-base mb-1">
                   Phone Number
                 </Label>
-                <Field
-                  as={Input}
-                  id="phone"
-                  name="phone"
-                  placeholder="Enter phone number"
-                  className={`bg-[#F1F5F9] mt-1 font-pincuk text-xl tracking-wider dark:bg-[#121C2D] dark:text-white ${
-                    errors.phone && touched.phone ? "border-red-500" : ""
-                  }`}
-                />
+                <Field name="phone">
+                  {({ field, form }: FieldProps) => (
+                    <div className="w-full mt-1">
+                      <PhoneInput
+                        country="us"
+                        value={field.value}
+                        onChange={(value) =>
+                          form.setFieldValue("phone", value ? `+${value}` : "")
+                        }
+                        inputStyle={{
+                          width: "100%",
+                          height: "48px",
+                          backgroundColor: "#E2E8F0",
+                          border: "0",
+                          borderRadius: "0.375rem",
+                          fontFamily: "Dm Mono, cursive",
+                          fontSize: "11px",
+                        }}
+                        containerClass="dark:bg-[#121C2D]"
+                        buttonStyle={{
+                          backgroundColor: "#F1F5F9",
+                          border: "0",
+                          borderRadius: "0.375rem 0 0 0.375rem",
+                        }}
+                        dropdownStyle={{
+                          backgroundColor: "#F1F5F9",
+                          color: "#000",
+                        }}
+                        searchStyle={{
+                          backgroundColor: "#F1F5F9",
+                          color: "#000",
+                        }}
+                        enableAreaCodeStretch
+                        autoFormat
+                        enableSearch
+                        disableSearchIcon
+                        autocompleteSearch
+                        countryCodeEditable={false}
+                      />
+                    </div>
+                  )}
+                </Field>
                 <ErrorMessage
                   name="phone"
                   component="div"
@@ -168,13 +219,16 @@ export function EditProfileSheet({ open, onOpenChange, profile }: EditProfileShe
               </div>
               <SheetFooter className="flex flex-row justify-end mt-8 gap-4">
                 <SheetClose asChild>
-                  <Button variant="outline" className="w-20 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] dark:text-white">
+                  <Button
+                    variant="outline"
+                    className="w-20 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] dark:text-white cursor-pointer"
+                  >
                     Cancel
                   </Button>
                 </SheetClose>
-                <Button 
+                <Button
                   type="submit"
-                  className="w-20 h-12 bg-[#D946EF] text-white tracking-wide"
+                  className="w-20 h-12 bg-[#D946EF] text-white tracking-wide cursor-pointer"
                   disabled={updateUser.isPending}
                 >
                   {updateUser.isPending ? "..." : "Update"}

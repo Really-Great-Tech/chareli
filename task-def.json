@@ -1,0 +1,206 @@
+{
+    "taskDefinition": {
+        "taskDefinitionArn": "arn:aws:ecs:us-east-1:330858616968:task-definition/chareli-task-production-v1:3",
+        "containerDefinitions": [
+            {
+                "name": "chareli-ecs-backend-production-server-v1",
+                "image": "330858616968.dkr.ecr.us-east-1.amazonaws.com/chareli-server-production-v1:latest",
+                "cpu": 0,
+                "portMappings": [
+                    {
+                        "containerPort": 5000,
+                        "hostPort": 5000,
+                        "protocol": "tcp",
+                        "name": "chareli-ecs-backend-production-server-v1-5000-tcp"
+                    }
+                ],
+                "essential": true,
+                "environment": [
+                    {
+                        "name": "REDIS_HOST",
+                        "value": "chareli-production-v1.ayv7lb.ng.0001.use1.cache.amazonaws.com"
+                    },
+                    {
+                        "name": "AWS_REGION",
+                        "value": "us-east-1"
+                    },
+                    {
+                        "name": "AWS_S3_BUCKET",
+                        "value": "chareli-games-cdn-production-v1"
+                    },
+                    {
+                        "name": "AWS_SECRET_NAME",
+                        "value": "chareli/production/v1/application-secrets"
+                    },
+                    {
+                        "name": "REDIS_PORT",
+                        "value": "6379"
+                    },
+                    {
+                        "name": "CLIENT_URL",
+                        "value": "https://chareli.reallygreattech.com"
+                    },
+                    {
+                        "name": "SES_REGION",
+                        "value": "eu-central-1"
+                    },
+                    {
+                        "name": "R2_BUCKET_NAME",
+                        "value": "chareli-games-cdn-production-v1"
+                    }
+                ],
+                "mountPoints": [],
+                "volumesFrom": [],
+                "secrets": [
+                    {
+                        "name": "CLOUDFLARE_ACCOUNT_ID",
+                        "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/production/v1/application-secrets-PNu7WL:CLOUDFLARE_ACCOUNT_ID::"
+                    },
+                    {
+                        "name": "DB_DATABASE",
+                        "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/production/v1/application-secrets-PNu7WL:DB_DATABASE::"
+                    },
+                    {
+                        "name": "DB_HOST",
+                        "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/production/v1/application-secrets-PNu7WL:DB_HOST::"
+                    },
+                    {
+                        "name": "DB_PASSWORD",
+                        "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/production/v1/application-secrets-PNu7WL:DB_PASSWORD::"
+                    },
+                    {
+                        "name": "DB_PORT",
+                        "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/production/v1/application-secrets-PNu7WL:DB_PORT::"
+                    },
+                    {
+                        "name": "DB_USERNAME",
+                        "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/production/v1/application-secrets-PNu7WL:DB_USERNAME::"
+                    },
+                    {
+                        "name": "EMAIL_PASSWORD",
+                        "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/production/v1/application-secrets-PNu7WL:EMAIL_PASSWORD::"
+                    },
+                    {
+                        "name": "EMAIL_USER",
+                        "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/production/v1/application-secrets-PNu7WL:EMAIL_USER::"
+                    },
+                    {
+                        "name": "JWT_REFRESH_SECRET",
+                        "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/production/v1/application-secrets-PNu7WL:JWT_REFRESH_SECRET::"
+                    },
+                    {
+                        "name": "JWT_SECRET",
+                        "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/production/v1/application-secrets-PNu7WL:JWT_SECRET::"
+                    },
+                    {
+                        "name": "R2_ACCESS_KEY_ID",
+                        "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/production/v1/application-secrets-PNu7WL:R2_ACCESS_KEY_ID::"
+                    },
+                    {
+                        "name": "R2_BUCKET",
+                        "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/production/v1/application-secrets-PNu7WL:R2_BUCKET::"
+                    },
+                    {
+                        "name": "R2_SECRET_ACCESS_KEY",
+                        "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/production/v1/application-secrets-PNu7WL:R2_SECRET_ACCESS_KEY::"
+                    },
+                    {
+                        "name": "SENTRY_DSN",
+                        "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/production/v1/application-secrets-PNu7WL:SENTRY_DSN::"
+                    },
+                    {
+                        "name": "STORAGE_PROVIDER",
+                        "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/production/v1/application-secrets-PNu7WL:STORAGE_PROVIDER::"
+                    },
+                    {
+                        "name": "SUPERADMIN_EMAIL",
+                        "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/production/v1/application-secrets-PNu7WL:SUPERADMIN_EMAIL::"
+                    },
+                    {
+                        "name": "SUPERADMIN_PASSWORD",
+                        "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/production/v1/application-secrets-PNu7WL:SUPERADMIN_PASSWORD::"
+                    },
+                    {
+                        "name": "TWILIO_ACCOUNT_SID",
+                        "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/production/v1/application-secrets-PNu7WL:TWILIO_ACCOUNT_SID::"
+                    },
+                    {
+                        "name": "TWILIO_AUTH_TOKEN",
+                        "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/production/v1/application-secrets-PNu7WL:TWILIO_AUTH_TOKEN::"
+                    },
+                    {
+                        "name": "TWILIO_FROM_NUMBER",
+                        "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/production/v1/application-secrets-PNu7WL:TWILIO_FROM_NUMBER::"
+                    },
+                    {
+                        "name": "WORKER_JWT_SECRET",
+                        "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/production/v1/application-secrets-PNu7WL:WORKER_JWT_SECRET::"
+                    },
+                    {
+                        "name": "R2_PUBLIC_URL",
+                        "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/production/v1/application-secrets-PNu7WL:R2_PUBLIC_URL"
+                    }
+                ],
+                "logConfiguration": {
+                    "logDriver": "awslogs",
+                    "options": {
+                        "awslogs-group": "/ecs/chareli-production-v1",
+                        "awslogs-region": "us-east-1",
+                        "awslogs-stream-prefix": "ecs"
+                    },
+                    "secretOptions": []
+                },
+                "systemControls": []
+            }
+        ],
+        "family": "chareli-task-production-v1",
+        "taskRoleArn": "arn:aws:iam::330858616968:role/chareli-ecs-task-role-production-v1",
+        "executionRoleArn": "arn:aws:iam::330858616968:role/chareli-ecs-task-execution-production-v1",
+        "networkMode": "awsvpc",
+        "revision": 3,
+        "volumes": [],
+        "status": "ACTIVE",
+        "requiresAttributes": [
+            {
+                "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
+            },
+            {
+                "name": "ecs.capability.execution-role-awslogs"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.ecr-auth"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+            },
+            {
+                "name": "ecs.capability.secrets.asm.environment-variables"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.task-iam-role"
+            },
+            {
+                "name": "ecs.capability.execution-role-ecr-pull"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
+            },
+            {
+                "name": "ecs.capability.task-eni"
+            }
+        ],
+        "placementConstraints": [],
+        "compatibilities": [
+            "EC2",
+            "FARGATE"
+        ],
+        "requiresCompatibilities": [
+            "FARGATE"
+        ],
+        "cpu": "1024",
+        "memory": "2048",
+        "registeredAt": "2025-07-29T18:48:07.930000+00:00",
+        "registeredBy": "arn:aws:iam::330858616968:user/christian_k"
+    },
+    "tags": []
+}

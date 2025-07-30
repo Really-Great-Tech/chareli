@@ -211,6 +211,7 @@ export default function Configuration() {
       }
 
       toast.success('Configuration saved successfully!');
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       toast.error('Failed to save configuration');
     } finally {
@@ -228,7 +229,7 @@ export default function Configuration() {
       
       <SearchBarConfiguration ref={searchBarConfigRef} disabled={isSubmitting} />
       
-      <h1 className="text-lg sm:text-2xl font-worksans text-[#D946EF] mb-4">User Sign Up Configuration</h1>
+      <h1 className="text-lg sm:text-xl font-worksans text-[#D946EF] mb-4">User Sign Up Configuration</h1>
       <div className="space-y-4">
         {/* Email Authentication Section */}
         <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">

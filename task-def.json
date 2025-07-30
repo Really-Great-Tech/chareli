@@ -127,8 +127,8 @@
           "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/production/v1/application-secrets-PNu7WL:TWILIO_AUTH_TOKEN::"
         },
         {
-          "name": "TWILIO_FROM_NUMBER",
-          "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/production/v1/application-secrets-PNu7WL:TWILIO_FROM_NUMBER::"
+          "name": "TWILIO_SERVICE_SID",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:330858616968:secret:chareli/production/v1/application-secrets-PNu7WL:TWILIO_SERVICE_SID::"
         },
         {
           "name": "WORKER_JWT_SECRET",

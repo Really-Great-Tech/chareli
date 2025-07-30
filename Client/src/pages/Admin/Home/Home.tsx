@@ -15,8 +15,13 @@ import { usePermissions } from '../../../hooks/usePermissions';
 export default function Home() {
   const permissions = usePermissions();
   const [isAcceptInviteOpen, setIsAcceptInviteOpen] = useState(false);
+  
+  // Dashboard filters (main dashboard)
   const [timeRange, setTimeRange] = useState<DashboardTimeRange>({ period: 'last24hours' });
   const [countryFilter, setCountryFilter] = useState<string[]>([]);
+  
+  // Clicks insight filters (separate from dashboard)
+  const [clicksTimeRange, setClicksTimeRange] = useState<DashboardTimeRange>({ period: 'last24hours' });
   return (
     <div>
       <div className="px-6 pb-3">
@@ -44,8 +49,14 @@ export default function Home() {
         {/* insights */}
         <div className="col-span-1 md:col-span-2 lg:col-span-4 mb-6 mt-6">
           <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
-            <div className="flex p-3">
+            <div className="flex justify-between items-center p-3">
               <p className="text-lg sm:text-2xl">Click insights</p>
+              {permissions.canFilter && (
+                <DashboardTimeFilter 
+                  value={clicksTimeRange} 
+                  onChange={setClicksTimeRange} 
+                />
+              )}
             </div>
             {/* inner card */}
             <Card className="bg-[#F8FAFC] dark:bg-[#0F1221] shadow-none border-none mx-3 p-4">
@@ -57,7 +68,7 @@ export default function Home() {
                     <p className="text-sm sm:text-lg text-[#64748A] dark:text-white">Total clicks on Sign-up button</p>
                   </div>
                   
-                  <SignupClickInsights />
+                  <SignupClickInsights filters={{ timeRange: clicksTimeRange }} />
                 </div>
               </div>
             </Card>
@@ -79,10 +90,14 @@ export default function Home() {
 }
 
 // Separate component for signup click insights
-function SignupClickInsights() {
-  const { data: signupAnalytics, isLoading: analyticsLoading } = useSignupAnalyticsData(30);
-  // const { data: usersWithAnalytics, isLoading: usersLoading } = useUsersAnalytics();
-  const { data: dashboardAnalytics, isLoading: usersLoading } = useDashboardAnalytics();
+function SignupClickInsights({ filters }: { filters: { timeRange: DashboardTimeRange } }) {
+  // Use the new filter-based API for signup analytics
+  const signupFilters = {
+    timeRange: filters.timeRange
+  };
+
+  const { data: signupAnalytics, isLoading: analyticsLoading } = useSignupAnalyticsData(signupFilters);
+  const { data: dashboardAnalytics, isLoading: usersLoading } = useDashboardAnalytics({ timeRange: filters.timeRange });
   
   if (analyticsLoading || usersLoading) {
     return <div className="text-center py-4">Loading...</div>;
@@ -92,18 +107,20 @@ function SignupClickInsights() {
     return <div className="text-center py-4">No data available</div>;
   }
 
-  const verifiedCount = dashboardAnalytics?.totalRegisteredUsers?.registered || 0;
+  // For clicks insight, we need users who completed first login in the selected period
+  // The dashboard API returns users who REGISTERED in the period, but we need users who FIRST LOGGED IN
+  const registeredInPeriod = dashboardAnalytics?.totalRegisteredUsers?.current || 0;
   
-  // Calculate total clicks from individual click types, excluding signup-modal
-  const allowedClickTypes = ['navbar', 'keep-playing'];
-  const totalClicks = signupAnalytics?.clicksByType
-    ?.filter(click => allowedClickTypes.includes(click.type))
-    ?.reduce((sum, click) => sum + parseInt(click.count), 0) || 0;
+  // Use the periodClicks from signup analytics (already filtered by time range)
+  const totalClicks = signupAnalytics?.periodClicks || 0;
 
-  const didntRegisterCount = Math.max(0, totalClicks - verifiedCount);
+  // For now, use registered users as a proxy for verified users
+  // This is the closest we can get with current data structure
+  const verifiedCount = registeredInPeriod;
+  const didntVerifyCount = Math.max(0, totalClicks - verifiedCount);
 
   const chartData = [
-    { name: "Didn't verify", value: didntRegisterCount, fill: "#F3C7FA" },
+    { name: "Didn't verify", value: didntVerifyCount, fill: "#F3C7FA" },
     { name: "Verified users", value: verifiedCount, fill: "#D24CFB" }
   ];
 

@@ -145,7 +145,25 @@ export const trackSignupClick = async (
  *         schema:
  *           type: integer
  *           minimum: 1
- *         description: Number of days to include (default 30)
+ *         description: Number of days to include (legacy parameter)
+ *       - in: query
+ *         name: period
+ *         schema:
+ *           type: string
+ *           enum: [last24hours, last7days, last30days, custom]
+ *         description: Time period filter
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date for custom period (YYYY-MM-DD)
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End date for custom period (YYYY-MM-DD)
  *     responses:
  *       200:
  *         description: Analytics data retrieved successfully
@@ -160,10 +178,50 @@ export const getSignupAnalyticsData = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    // Get date range from query params or default to last 30 days
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - (req.query.days ? parseInt(req.query.days as string) : 30));
+    // Get date range from query params
+    let startDate: Date;
+    let endDate: Date = new Date();
+
+    // Support both legacy 'days' parameter and new time range filtering
+    if (req.query.days) {
+      // Legacy API - use days parameter
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() - parseInt(req.query.days as string));
+    } else if (req.query.period) {
+      // New API - use period parameter
+      const period = req.query.period as string;
+      startDate = new Date();
+      
+      switch (period) {
+        case 'last24hours':
+          startDate.setHours(startDate.getHours() - 24);
+          break;
+        case 'last7days':
+          startDate.setDate(startDate.getDate() - 7);
+          break;
+        case 'last30days':
+          startDate.setDate(startDate.getDate() - 30);
+          break;
+        case 'custom':
+          if (req.query.startDate && req.query.endDate) {
+            startDate = new Date(req.query.startDate as string);
+            endDate = new Date(req.query.endDate as string);
+            // Set end date to end of day
+            endDate.setHours(23, 59, 59, 999);
+          } else {
+            // Fallback to last 30 days if custom dates not provided
+            startDate.setDate(startDate.getDate() - 30);
+          }
+          break;
+        default:
+          // Default to last 30 days
+          startDate.setDate(startDate.getDate() - 30);
+      }
+    } else {
+      // Default to last 30 days if no parameters provided
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() - 30);
+    }
     
     // Total clicks (excluding signup-modal to avoid double counting)
     const totalClicks = await signupAnalyticsRepository
@@ -182,32 +240,35 @@ export const getSignupAnalyticsData = async (
       .getRawOne()
       .then(result => parseInt(result?.count || '0'));
     
-    // Unique sessions (excluding signup-modal to avoid double counting)
+    // Unique sessions (excluding signup-modal to avoid double counting) - FILTERED BY DATE RANGE
     const uniqueSessions = await signupAnalyticsRepository
       .createQueryBuilder('analytics')
       .select('COUNT(DISTINCT analytics.sessionId)', 'count')
       .where('analytics.sessionId IS NOT NULL')
+      .andWhere('analytics.createdAt BETWEEN :startDate AND :endDate', { startDate, endDate })
       .andWhere('analytics.type != :excludeType', { excludeType: 'signup-modal' })
       .getRawOne();
     
-    // Clicks by country (excluding signup-modal to avoid double counting)
+    // Clicks by country (excluding signup-modal to avoid double counting) - FILTERED BY DATE RANGE
     const clicksByCountry = await signupAnalyticsRepository
       .createQueryBuilder('analytics')
       .select('analytics.country', 'country')
       .addSelect('COUNT(*)', 'count')
       .where('analytics.country IS NOT NULL')
+      .andWhere('analytics.createdAt BETWEEN :startDate AND :endDate', { startDate, endDate })
       .andWhere('analytics.type != :excludeType', { excludeType: 'signup-modal' })
       .groupBy('analytics.country')
       .orderBy('count', 'DESC')
       .limit(10)
       .getRawMany();
     
-    // Clicks by device type (excluding signup-modal to avoid double counting)
+    // Clicks by device type (excluding signup-modal to avoid double counting) - FILTERED BY DATE RANGE
     const clicksByDevice = await signupAnalyticsRepository
       .createQueryBuilder('analytics')
       .select('analytics.deviceType', 'deviceType')
       .addSelect('COUNT(*)', 'count')
       .where('analytics.deviceType IS NOT NULL')
+      .andWhere('analytics.createdAt BETWEEN :startDate AND :endDate', { startDate, endDate })
       .andWhere('analytics.type != :excludeType', { excludeType: 'signup-modal' })
       .groupBy('analytics.deviceType')
       .orderBy('count', 'DESC')
@@ -224,12 +285,13 @@ export const getSignupAnalyticsData = async (
       .orderBy('date', 'ASC')
       .getRawMany();
     
-    // Clicks by type (excluding signup-modal to avoid double counting)
+    // Clicks by type (excluding signup-modal to avoid double counting) - FILTERED BY DATE RANGE
     const clicksByType = await signupAnalyticsRepository
       .createQueryBuilder('analytics')
       .select('analytics.type', 'type')
       .addSelect('COUNT(*)', 'count')
-      .where('analytics.type != :excludeType', { excludeType: 'signup-modal' })
+      .where('analytics.createdAt BETWEEN :startDate AND :endDate', { startDate, endDate })
+      .andWhere('analytics.type != :excludeType', { excludeType: 'signup-modal' })
       .groupBy('analytics.type')
       .orderBy('count', 'DESC')
       .getRawMany();

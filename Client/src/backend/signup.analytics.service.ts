@@ -70,17 +70,41 @@ export const useTrackSignupClick = () => {
 };
 
 
-export const useSignupAnalyticsData = (days?: number) => {
-  return useQuery<SignupAnalyticsData>({
-    queryKey: [BackendRoute.SIGNUP_ANALYTICS_DATA, days],
-    queryFn: async () => {
-      const url = days
-        ? `${BackendRoute.SIGNUP_ANALYTICS_DATA}?days=${days}`
-        : BackendRoute.SIGNUP_ANALYTICS_DATA;
-      const response = await backendService.get(url);
+// Import the types from analytics service
+import type { DashboardTimeRange } from './analytics.service';
 
-      const analyticsData = response.data;
-      return analyticsData;
+interface SignupAnalyticsFilters {
+  timeRange: DashboardTimeRange;
+}
+
+export const useSignupAnalyticsData = (filters?: SignupAnalyticsFilters | number) => {
+  // Support both old API (number of days) and new API (filters object)
+  const isLegacyAPI = typeof filters === 'number';
+  const days = isLegacyAPI ? filters : undefined;
+  const filtersObj = !isLegacyAPI ? filters : undefined;
+
+  return useQuery<SignupAnalyticsData>({
+    queryKey: [BackendRoute.SIGNUP_ANALYTICS_DATA, isLegacyAPI ? days : filtersObj],
+    queryFn: async () => {
+      let url = BackendRoute.SIGNUP_ANALYTICS_DATA;
+      const params = new URLSearchParams();
+
+      if (isLegacyAPI && days) {
+        // Legacy API - just days parameter
+        params.append('days', days.toString());
+      } else if (filtersObj?.timeRange) {
+        // New API - time range filter support only
+        if (filtersObj.timeRange.period) params.append('period', filtersObj.timeRange.period);
+        if (filtersObj.timeRange.startDate) params.append('startDate', filtersObj.timeRange.startDate);
+        if (filtersObj.timeRange.endDate) params.append('endDate', filtersObj.timeRange.endDate);
+      }
+
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
+
+      const response = await backendService.get(url);
+      return response.data;
     },
     refetchOnWindowFocus: false,
     retry: 3,

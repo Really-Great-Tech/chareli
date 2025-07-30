@@ -12,7 +12,7 @@ import { usePermissions } from '../../hooks/usePermissions';
 
 import sun from '../../assets/sun.svg';
 import moon from '../../assets/moon.svg';
-import bolt from '../../assets/bolt.svg';
+// import bolt from '../../assets/bolt.svg';
 import profileImg from '../../assets/profile.svg'
 
 import { SignUpModal } from '../modals/SignUpModal';
@@ -110,7 +110,7 @@ const Navbar: React.FC = () => {
                   </Button>
                 )}
                 <div className="grid grid-cols-2 gap-4">
-                  <button
+                  {/* <button
                     onClick={() => {
                       setIsStatsModalOpen(true);
                       setIsMobileMenuOpen(false);
@@ -123,7 +123,7 @@ const Navbar: React.FC = () => {
                       className="w-4 h-4 filter brightness-0 invert"
                     />
                     <span className="text-sm font-semibold">Stats</span>
-                  </button>
+                  </button> */}
                   <button
                     onClick={() => {
                       setIsProfileModalOpen(true);
@@ -229,12 +229,12 @@ const Navbar: React.FC = () => {
               </Button>
             )}
 
-            <img
+            {/* <img
               src={bolt}
               alt="bolt"
               className="cursor-pointer"
               onClick={() => setIsStatsModalOpen(true)}
-            />
+            /> */}
 
             <img
               src={profileImg}

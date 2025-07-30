@@ -5,15 +5,19 @@ import HorizontalBarChart from "../../../components/charts/barChart";
 import click from "../../../assets/click.svg";
 import UserActivityLog from "./UserActivityLog";
 import GameActivity from "./GameActivity";
-import { useDashboardAnalytics } from "../../../backend/analytics.service";
+import type { DashboardTimeRange } from "../../../backend/analytics.service";
+import { DashboardTimeFilter } from "../../../components/single/DashboardTimeFilter";
+import { useState } from "react";
 
 export default function Analytics() {
-  const { data: dashboardData } = useDashboardAnalytics();
+  // State for bar chart filter
+  const [barChartTimeRange, setBarChartTimeRange] = useState<DashboardTimeRange>({ period: 'last30days' });
 
-  const adultsCount = dashboardData?.adultsCount ?? 0;
-  const minorsCount = dashboardData?.minorsCount ?? 0;
-  const totalRegistered = adultsCount + minorsCount;
-  console.log("Age Counts:", { adultsCount, minorsCount, totalRegistered });
+  // Commented out for the disabled user age chart
+  // const { data: dashboardData } = useDashboardAnalytics();
+  // const adultsCount = dashboardData?.adultsCount ?? 0;
+  // const minorsCount = dashboardData?.minorsCount ?? 0;
+  // const totalRegistered = adultsCount + minorsCount;
   return (
     <div className="space-y-6">
       {/* bar chart for user age */}
@@ -79,11 +83,15 @@ export default function Analytics() {
         </Card>
       </div>
 
-      {/* bar chart */}
+      {/* bar chart - insights */}
       <div className="w-full">
         <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
           <div className="justify-between items-center flex p-3">
             <p className="text-base sm:text-xl lg:text-2xl">Click insights</p>
+            <DashboardTimeFilter
+              value={barChartTimeRange}
+              onChange={setBarChartTimeRange}
+            />
           </div>
           {/* inner card */}
           <Card className="bg-[#F8FAFC] dark:bg-[#0F1221] shadow-none border-none mx-3 p-4">
@@ -100,7 +108,7 @@ export default function Analytics() {
                   </p>
                 </div>
 
-                <HorizontalBarChart />
+                <HorizontalBarChart timeRange={barChartTimeRange} />
               </div>
             </div>
           </Card>

@@ -15,10 +15,14 @@ import { usePermissions } from '../../../hooks/usePermissions';
 export default function Home() {
   const permissions = usePermissions();
   const [isAcceptInviteOpen, setIsAcceptInviteOpen] = useState(false);
-  const [timeRange, setTimeRange] = useState<DashboardTimeRange>({ period: 'last24hours' });
+  // Separate state for stats cards filter
+  const [statsTimeRange, setStatsTimeRange] = useState<DashboardTimeRange>({ period: 'last24hours' });
   const [countryFilter, setCountryFilter] = useState<string[]>([]);
+  // Separate state for insights filter
+  const [insightsTimeRange, setInsightsTimeRange] = useState<DashboardTimeRange>({ period: 'last24hours' });
   return (
     <div>
+      {/* stats cards */}
       <div className="px-6 pb-3">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
@@ -26,20 +30,20 @@ export default function Home() {
           </h1>
           {permissions.canFilter && (
             <div className="flex flex-col sm:flex-row gap-2">
-              <DashboardTimeFilter 
-                value={timeRange} 
-                onChange={setTimeRange} 
+              <DashboardTimeFilter
+                value={statsTimeRange}
+                onChange={setStatsTimeRange}
               />
-              <DashboardCountryFilter 
-                value={countryFilter} 
-                onChange={setCountryFilter} 
+              <DashboardCountryFilter
+                value={countryFilter}
+                onChange={setCountryFilter}
               />
             </div>
           )}
         </div>
       </div>
       <div className="px-6">
-        <StatsCard filters={{ timeRange, countries: countryFilter }} />
+        <StatsCard filters={{ timeRange: statsTimeRange, countries: countryFilter }} />
 
         <div className="col-span-1 md:col-span-2 lg:col-span-4 mb-6">
           <MostPlayedGames />
@@ -48,8 +52,12 @@ export default function Home() {
         {/* insights */}
         <div className="col-span-1 md:col-span-2 lg:col-span-4 mb-6 mt-6">
           <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
-            <div className="flex p-3">
+            <div className="flex p-3 justify-between">
               <p className="text-lg sm:text-2xl">Click insights</p>
+              <DashboardTimeFilter
+                value={insightsTimeRange}
+                onChange={setInsightsTimeRange}
+              />
             </div>
             {/* inner card */}
             <Card className="bg-[#F8FAFC] dark:bg-[#0F1221] shadow-none border-none mx-3 p-4">
@@ -61,7 +69,7 @@ export default function Home() {
                     <p className="text-sm sm:text-lg text-[#64748A] dark:text-white">Total clicks on Sign-up button</p>
                   </div>
                   
-                  <SignupClickInsights />
+                  <SignupClickInsights timeRange={insightsTimeRange} />
                 </div>
               </div>
             </Card>
@@ -79,10 +87,13 @@ export default function Home() {
 }
 
 // Separate component for signup click insights
-function SignupClickInsights() {
-  const { data: signupAnalytics, isLoading: analyticsLoading } = useSignupAnalyticsData(30);
+function SignupClickInsights({ timeRange }: { timeRange: DashboardTimeRange }) {
+  // Use the new filtering approach - pass only the time range filter
+  const filters = { timeRange };
+
+  const { data: signupAnalytics, isLoading: analyticsLoading } = useSignupAnalyticsData(filters);
   // const { data: usersWithAnalytics, isLoading: usersLoading } = useUsersAnalytics();
-  const { data: dashboardAnalytics, isLoading: usersLoading } = useDashboardAnalytics();
+  const { data: dashboardAnalytics, isLoading: usersLoading } = useDashboardAnalytics(filters);
   
   if (analyticsLoading || usersLoading) {
     return <div className="text-center py-4">Loading...</div>;
@@ -93,7 +104,7 @@ function SignupClickInsights() {
   }
 
   const verifiedCount = dashboardAnalytics?.totalRegisteredUsers?.registered || 0;
-  
+
   // Calculate total clicks from individual click types, excluding signup-modal
   const allowedClickTypes = ['navbar', 'keep-playing'];
   const totalClicks = signupAnalytics?.clicksByType
@@ -107,5 +118,5 @@ function SignupClickInsights() {
     { name: "Verified users", value: verifiedCount, fill: "#D24CFB" }
   ];
 
-  return <PieChart data={chartData} />;
+  return <PieChart data={chartData} totalClicks={totalClicks} />;
 }

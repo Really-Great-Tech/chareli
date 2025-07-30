@@ -379,7 +379,7 @@ export const createUser = async (
       isAdult: isAdult || false,
       hasAcceptedTerms,
       country: country || undefined,
-      registrationIpAddress: ipAddress,
+      registrationIpAddress: ipAddress || undefined,
       lastKnownDeviceType: deviceType,
     });
 

@@ -41,6 +41,10 @@ export default function Home() {
       <div className="px-6">
         <StatsCard filters={{ timeRange, countries: countryFilter }} />
 
+        <div className="col-span-1 md:col-span-2 lg:col-span-4 mb-6">
+          <MostPlayedGames />
+        </div>
+
         {/* insights */}
         <div className="col-span-1 md:col-span-2 lg:col-span-4 mb-6 mt-6">
           <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
@@ -62,10 +66,6 @@ export default function Home() {
               </div>
             </Card>
           </Card>
-        </div>
-
-        <div className="col-span-1 md:col-span-2 lg:col-span-4 mb-6">
-          <MostPlayedGames />
         </div>
 
         {/* <div className="col-span-1 md:col-span-2 lg:col-span-4 mb-6">

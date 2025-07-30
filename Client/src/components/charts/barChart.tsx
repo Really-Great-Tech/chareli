@@ -122,7 +122,7 @@ const HorizontalBarChart = ({ timeRange }: HorizontalBarChartProps) => {
                     fontWeight: '600',
                     minWidth: '120px'
                   }}
-                  formatter={(value: number, name: string, props: any) => {
+                  formatter={(value: number, _name: string, props: any) => {
                     const clickCount = props.payload?.clickCount || 0;
                     return [
                       <span style={{ color: '#1f2937', fontWeight: '700' }}>

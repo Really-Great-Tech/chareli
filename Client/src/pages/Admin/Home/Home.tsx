@@ -103,20 +103,64 @@ function SignupClickInsights({ timeRange }: { timeRange: DashboardTimeRange }) {
     return <div className="text-center py-4">No data available</div>;
   }
 
-  const verifiedCount = dashboardAnalytics?.totalRegisteredUsers?.registered || 0;
+ // For clicks insight, we need users who completed first login in the selected period
+  // The dashboard API returns users who REGISTERED in the period, but we need users who FIRST LOGGED IN
+  const registeredInPeriod = dashboardAnalytics?.totalRegisteredUsers?.current || 0;
+  
+  // Use the periodClicks from signup analytics (already filtered by time range)
+  const totalClicks = signupAnalytics?.periodClicks || 0;
 
-  // Calculate total clicks from individual click types, excluding signup-modal
-  const allowedClickTypes = ['navbar', 'keep-playing'];
-  const totalClicks = signupAnalytics?.clicksByType
-    ?.filter(click => allowedClickTypes.includes(click.type))
-    ?.reduce((sum, click) => sum + parseInt(click.count), 0) || 0;
-
-  const didntRegisterCount = Math.max(0, totalClicks - verifiedCount);
+  // For now, use registered users as a proxy for verified users
+  // This is the closest we can get with current data structure
+  const verifiedCount = registeredInPeriod;
+  const didntVerifyCount = Math.max(0, totalClicks - verifiedCount);
 
   const chartData = [
-    { name: "Didn't verify", value: didntRegisterCount, fill: "#F3C7FA" },
+    { name: "Didn't verify", value: didntVerifyCount, fill: "#F3C7FA" },
     { name: "Verified users", value: verifiedCount, fill: "#D24CFB" }
   ];
 
   return <PieChart data={chartData} totalClicks={totalClicks} />;
 }
+
+
+
+
+
+// // Separate component for signup click insights
+// function SignupClickInsights({ filters }: { filters: { timeRange: DashboardTimeRange } }) {
+//   // Use the new filter-based API for signup analytics
+//   const signupFilters = {
+//     timeRange: filters.timeRange
+//   };
+
+//   const { data: signupAnalytics, isLoading: analyticsLoading } = useSignupAnalyticsData(signupFilters);
+//   const { data: dashboardAnalytics, isLoading: usersLoading } = useDashboardAnalytics({ timeRange: filters.timeRange });
+  
+//   if (analyticsLoading || usersLoading) {
+//     return <div className="text-center py-4">Loading...</div>;
+//   }
+  
+//   if (!signupAnalytics || !dashboardAnalytics) {
+//     return <div className="text-center py-4">No data available</div>;
+//   }
+
+//   // For clicks insight, we need users who completed first login in the selected period
+//   // The dashboard API returns users who REGISTERED in the period, but we need users who FIRST LOGGED IN
+//   const registeredInPeriod = dashboardAnalytics?.totalRegisteredUsers?.current || 0;
+  
+//   // Use the periodClicks from signup analytics (already filtered by time range)
+//   const totalClicks = signupAnalytics?.periodClicks || 0;
+
+//   // For now, use registered users as a proxy for verified users
+//   // This is the closest we can get with current data structure
+//   const verifiedCount = registeredInPeriod;
+//   const didntVerifyCount = Math.max(0, totalClicks - verifiedCount);
+
+//   const chartData = [
+//     { name: "Didn't verify", value: didntVerifyCount, fill: "#F3C7FA" },
+//     { name: "Verified users", value: verifiedCount, fill: "#D24CFB" }
+//   ];
+
+//   return <PieChart data={chartData} />;
+// }

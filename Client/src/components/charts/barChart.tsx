@@ -4,7 +4,7 @@ import { useSignupAnalyticsData } from "../../backend/signup.analytics.service";
 
 const clickTypeLabels: Record<string, string> = {
   "navbar": "Navigation bar sign-up button clicks",
-  "keep-playing": "Kepp Playing Pop-up sign-up button clicks",
+  "keep-playing": "Keep Playing Pop-up sign-up button clicks",
 };
 
 const colors = ["#F3C4FB", "#A21CAF"];

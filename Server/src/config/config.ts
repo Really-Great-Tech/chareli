@@ -80,6 +80,7 @@ interface Config {
     authToken: string;
     fromNumber: string;
     enabled: boolean;
+    verifySid: string;
   };
 }
 
@@ -136,7 +137,7 @@ const config: Config = {
     password: process.env.EMAIL_PASSWORD || '',
   },
   ses: {
-    region: process.env.AWS_REGION || 'eu-central-1',
+    region: process.env.SES_REGION || 'eu-central-1',
     accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
     fromEmail: process.env.AWS_SES_FROM_EMAIL || 'no-reply@dev.chareli.reallygreattech.com',
@@ -176,6 +177,7 @@ const config: Config = {
     authToken: process.env.TWILIO_AUTH_TOKEN || '',
     fromNumber: process.env.TWILIO_FROM_NUMBER || '',
     enabled: process.env.USE_TWILIO === 'true',
+    verifySid: process.env.TWILIO_SERVICE_SID || '',
   }
 };
 

@@ -1,5 +1,5 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:eu-central-1:330858616968:task-definition/chareli-task-test-v1:3",
+    "taskDefinitionArn": "arn:aws:ecs:eu-central-1:330858616968:task-definition/chareli-task-test-v1:10",
     "containerDefinitions": [
         {
             "name": "chareli-ecs-backend-test-server-v1",
@@ -97,6 +97,14 @@
                 {
                     "name": "R2_SECRET_ACCESS_KEY",
                     "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/test/v1/application-secrets-ApDihG:R2_SECRET_ACCESS_KEY::"
+                },
+                {
+                    "name": "CLOUDFLARE_ACCOUNT_ID",
+                    "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/test/v1/application-secrets-ApDihG:CLOUDFLARE_ACCOUNT_ID::"
+                },
+                {
+                    "name": "R2_PUBLIC_URL",
+                    "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/test/v1/application-secrets-ApDihG:R2_PUBLIC_URL::"
                 }
             ],
             "logConfiguration": {
@@ -114,7 +122,7 @@
     "taskRoleArn": "arn:aws:iam::330858616968:role/chareli-ecs-task-role-test-v1",
     "executionRoleArn": "arn:aws:iam::330858616968:role/chareli-ecs-task-execution-test-v1",
     "networkMode": "awsvpc",
-    "revision": 3,
+    "revision": 10,
     "volumes": [],
     "status": "ACTIVE",
     "requiresAttributes": [
@@ -156,6 +164,6 @@
     ],
     "cpu": "1024",
     "memory": "2048",
-    "registeredAt": "2025-07-30T13:59:00.117000+00:00",
+    "registeredAt": "2025-07-31T09:22:13.796000+00:00",
     "registeredBy": "arn:aws:iam::330858616968:user/christian_k"
 }

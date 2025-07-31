@@ -94,7 +94,7 @@ export function LoginModal({
   const [loginError, setLoginError] = useState("");
   const [isForgotPasswordModalOpen, setIsForgotPasswordModalOpen] =
     useState(false);
-  const [activeTab, setActiveTab] = useState<"email" | "phone">("email");
+  const [activeTab, setActiveTab] = useState<"email" | "phone">("phone");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();

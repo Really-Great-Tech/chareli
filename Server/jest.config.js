@@ -17,6 +17,7 @@ module.exports = {
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
   setupFilesAfterEnv: ['<rootDir>/src/test/setup.ts'],
+  globalTeardown: '<rootDir>/src/test/teardown.ts',
   testTimeout: 10000,
   clearMocks: true,
   restoreMocks: true,

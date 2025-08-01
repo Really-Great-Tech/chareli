@@ -24,27 +24,15 @@ export const useGameById = (id: string) => {
   return useQuery<any>({
     queryKey: [BackendRoute.GAMES, id],
     queryFn: async () => {
-      const response = await backendService.get(BackendRoute.GAME_BY_ID.replace(':id', id));
+      const response = await backendService.get(BackendRoute.GAME_BY_ID.replace(':id', id), {
+        withCredentials: true, // Important for cookies to be sent and received
+      });
       console.log('Game API Response:', response.data);
       return response.data as GameResponse;
     },
   });
 };
 
-export const useRequestGameAccess = () => {
-  return useMutation({
-    mutationFn: async (gameId: string) => {
-      const response = await backendService.post(
-        `/api/games/${gameId}/request-access`,
-        {},
-        {
-          withCredentials: true, // Important for cookies
-        }
-      );
-      return response.data;
-    },
-  });
-};
 
 export const useCreateGame = () => {
   const queryClient = useQueryClient();

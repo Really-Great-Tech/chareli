@@ -22,11 +22,11 @@ app.use(requestLogger);
 app.use(helmet()); // Adds various HTTP headers for security
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
-    ? [config.app.clientUrl] // Change this line to use the configured client URL
-    : '*',
+    ? [config.app.clientUrl, 'https://dev.chareli.reallygreattech.com'] // Allow both production and dev domains
+    : ['http://localhost:5173', 'http://localhost:3000', 'https://dev.chareli.reallygreattech.com'], // Allow local dev and staging
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
+  credentials: true, // Essential for cookies!
   maxAge: 86400 // 24 hours
 }));
 

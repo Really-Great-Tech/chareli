@@ -5,7 +5,7 @@ import { LazyImage } from "../../components/ui/LazyImage";
 import { LuExpand, LuX } from "react-icons/lu";
 import KeepPlayingModal from "../../components/modals/KeepPlayingModal";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { useGameById, useRequestGameAccess } from "../../backend/games.service";
+import { useGameById } from "../../backend/games.service";
 import {
   useCreateAnalytics,
   useUpdateAnalytics,
@@ -20,10 +20,7 @@ export default function GamePlay() {
   const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
   const { data: game, isLoading, error } = useGameById(gameId || "");
   const { mutate: createAnalytics } = useCreateAnalytics();
-  const { mutate: requestGameAccess, isPending: isRequestingAccess, error: accessError } = useRequestGameAccess();
   const analyticsIdRef = useRef<string | null>(null);
-  const hasRequestedAccessRef = useRef<boolean>(false);
-  const [hasGameAccess, setHasGameAccess] = useState(false);
 
   const handleOpenSignUpModal = () => {
     setIsSignUpModalOpen(true);
@@ -42,28 +39,7 @@ export default function GamePlay() {
     setIsGameLoading(true);
     setLoadProgress(0);
     setTimeRemaining(null);
-    setHasGameAccess(false);
-    hasRequestedAccessRef.current = false; // Reset access request flag
   }, [gameId]);
-
-  // Request game access when game is loaded
-  useEffect(() => {
-    if (game?.id && !hasRequestedAccessRef.current) {
-      hasRequestedAccessRef.current = true;
-      console.log('Requesting access for game:', game.id);
-      
-      requestGameAccess(game.id, {
-        onSuccess: () => {
-          console.log('Game access granted');
-          setHasGameAccess(true);
-        },
-        onError: (error) => {
-          console.error('Failed to get game access:', error);
-          hasRequestedAccessRef.current = false; // Reset on error to allow retry
-        }
-      });
-    }
-  }, [game?.id]); // Only depend on game.id, not on requestGameAccess
 
   useEffect(() => {
     if (game?.gameFile?.s3Key) {
@@ -206,25 +182,7 @@ export default function GamePlay() {
             {error instanceof Error ? error.message : "Error loading game"}
           </span>
         </div>
-      ) : accessError ? (
-        <div className="flex items-center justify-center h-[80vh]">
-          <div className="text-center">
-            <span className="text-xl text-red-500 block mb-4">
-              Unable to access game
-            </span>
-            <button 
-              onClick={() => window.location.reload()} 
-              className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
-            >
-              Try Again
-            </button>
-          </div>
-        </div>
-      ) : isRequestingAccess ? (
-        <div className="flex items-center justify-center h-[80vh]">
-          <span className="text-xl">Requesting game access...</span>
-        </div>
-      ) : game?.gameFile?.s3Key && hasGameAccess ? (
+      ) : game?.gameFile?.s3Key ? (
         <>
           <div className={expanded ? "fixed inset-0 z-40 bg-black" : "relative"}>
             <div

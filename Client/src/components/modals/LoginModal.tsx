@@ -94,7 +94,7 @@ export function LoginModal({
   const [loginError, setLoginError] = useState("");
   const [isForgotPasswordModalOpen, setIsForgotPasswordModalOpen] =
     useState(false);
-  const [activeTab, setActiveTab] = useState<"email" | "phone">("email");
+  const [activeTab, setActiveTab] = useState<"email" | "phone">("phone");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -110,6 +110,9 @@ export function LoginModal({
     if (!open) {
       setLoginError("");
       setShowPassword(false); // Reset password visibility when modal closes
+    } else {
+      // Reset to phone tab when modal opens
+      setActiveTab("phone");
     }
   }, [open]);
 

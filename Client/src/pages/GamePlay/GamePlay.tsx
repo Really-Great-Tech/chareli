@@ -22,6 +22,7 @@ export default function GamePlay() {
   const { mutate: createAnalytics } = useCreateAnalytics();
   const { mutate: requestGameAccess, isPending: isRequestingAccess, error: accessError } = useRequestGameAccess();
   const analyticsIdRef = useRef<string | null>(null);
+  const hasRequestedAccessRef = useRef<boolean>(false);
   const [hasGameAccess, setHasGameAccess] = useState(false);
 
   const handleOpenSignUpModal = () => {
@@ -42,11 +43,15 @@ export default function GamePlay() {
     setLoadProgress(0);
     setTimeRemaining(null);
     setHasGameAccess(false);
+    hasRequestedAccessRef.current = false; // Reset access request flag
   }, [gameId]);
 
   // Request game access when game is loaded
   useEffect(() => {
-    if (game?.id && !hasGameAccess && !isRequestingAccess) {
+    if (game?.id && !hasRequestedAccessRef.current) {
+      hasRequestedAccessRef.current = true;
+      console.log('Requesting access for game:', game.id);
+      
       requestGameAccess(game.id, {
         onSuccess: () => {
           console.log('Game access granted');
@@ -54,10 +59,11 @@ export default function GamePlay() {
         },
         onError: (error) => {
           console.error('Failed to get game access:', error);
+          hasRequestedAccessRef.current = false; // Reset on error to allow retry
         }
       });
     }
-  }, [game?.id, hasGameAccess, isRequestingAccess, requestGameAccess]);
+  }, [game?.id]); // Only depend on game.id, not on requestGameAccess
 
   useEffect(() => {
     if (game?.gameFile?.s3Key) {

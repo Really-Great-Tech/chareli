@@ -31,6 +31,21 @@ export const useGameById = (id: string) => {
   });
 };
 
+export const useRequestGameAccess = () => {
+  return useMutation({
+    mutationFn: async (gameId: string) => {
+      const response = await backendService.post(
+        `/games/${gameId}/request-access`,
+        {},
+        {
+          withCredentials: true, // Important for cookies
+        }
+      );
+      return response.data;
+    },
+  });
+};
+
 export const useCreateGame = () => {
   const queryClient = useQueryClient();
   return useMutation({

@@ -7,7 +7,8 @@ import {
   updateGame,
   deleteGame,
   uploadGameFiles,
-  uploadGameFilesForUpdate
+  uploadGameFilesForUpdate,
+  requestGameAccess
 } from '../controllers/gameController';
 import { authenticate, isAdmin, optionalAuthenticate } from '../middlewares/authMiddleware';
 import { validateBody, validateParams, validateQuery } from '../middlewares/validationMiddleware';
@@ -24,6 +25,7 @@ const router = Router();
 router.get('/', optionalAuthenticate, validateQuery(gameQuerySchema), getAllGames);
 router.get('/position/:position', optionalAuthenticate, getGameByPosition);
 router.get('/:id', optionalAuthenticate, validateParams(gameIdParamSchema), getGameById);
+router.post('/:id/request-access', optionalAuthenticate, validateParams(gameIdParamSchema), requestGameAccess);
 
 router.use(authenticate);
 router.use(isAdmin);

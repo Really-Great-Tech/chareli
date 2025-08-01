@@ -14,6 +14,8 @@ import { zipService } from '../services/zip.service';
 import multer from 'multer';
 import logger from '../utils/logger';
 import { v4 as uuidv4 } from 'uuid';
+import jwt from 'jsonwebtoken';
+import config from '../config/config';
 // import { processImage } from '../services/file.service';
 
 const gameRepository = AppDataSource.getRepository(Game);
@@ -1227,6 +1229,104 @@ export const getGameByPosition = async (
       data: game
     });
   } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @swagger
+ * /games/{id}/request-access:
+ *   post:
+ *     summary: Request access to play a game
+ *     description: Generate a JWT token for game access and set it as a secure cookie. Works for both authenticated and guest users.
+ *     tags: [Games]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID of the game to request access for
+ *     responses:
+ *       200:
+ *         description: Game access granted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Game access granted
+ *       404:
+ *         description: Game not found
+ *       500:
+ *         description: Internal server error
+ */
+export const requestGameAccess = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { id: gameId } = req.params;
+    const user = req.user; // from optionalAuthenticate middleware (can be null for guests)
+    
+    // Verify game exists
+    const game = await gameRepository.findOne({
+      where: { id: gameId }
+    });
+    
+    if (!game) {
+      return next(ApiError.notFound(`Game with id ${gameId} not found`));
+    }
+    
+    // Generate session ID for guest users
+    const generateSessionId = (): string => {
+      return `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    };
+    
+    // Get WORKER_JWT_SECRET from environment
+    const workerJwtSecret = process.env.WORKER_JWT_SECRET;
+    if (!workerJwtSecret) {
+      logger.error('WORKER_JWT_SECRET is not configured');
+      return next(ApiError.internal('Game access configuration error'));
+    }
+    
+    // Generate JWT token
+    const tokenPayload = {
+      userId: user?.userId || null,
+      gameId: gameId,
+      isAuthenticated: !!user,
+      sessionId: user ? user.userId : generateSessionId(),
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + (2 * 60 * 60) // 2 hours expiration
+    };
+    
+    const token = jwt.sign(tokenPayload, workerJwtSecret);
+    
+    // Set secure HTTP-only cookie
+    res.cookie('game-auth-token', token, {
+      httpOnly: true, // Prevents JavaScript access
+      secure: config.env === 'production', // HTTPS only in production
+      sameSite: 'lax', // Allow cross-site requests
+      domain: config.env === 'production' ? '.chareli.reallygreattech.com' : undefined,
+      maxAge: 2 * 60 * 60 * 1000, // 2 hours in milliseconds
+      path: '/' // Available for all paths
+    });
+    
+    logger.info(`Game access granted for ${user ? 'authenticated user' : 'guest'}: ${user?.userId || 'guest'} for game: ${gameId}`);
+    
+    res.status(200).json({
+      success: true,
+      message: 'Game access granted'
+    });
+  } catch (error) {
+    logger.error('Error granting game access:', error);
     next(error);
   }
 };

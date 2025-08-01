@@ -1,4 +1,4 @@
-name: Deploy to Dev Environment (Chareli)
+name: Deploy to Dev Environment (Chareli - New Architecture)
 
 on:
   push:
@@ -13,12 +13,13 @@ permissions:
 env:
   AWS_REGION: eu-central-1
   ECR_REGISTRY: 330858616968.dkr.ecr.eu-central-1.amazonaws.com
-  ECR_REPO_SERVER: chareli-dev-repo
-  IMAGE_TAG_SERVER_COMMIT: server-dev-${{ github.sha }}
-  IMAGE_TAG_SERVER_FIXED: server-dev
-
-  S3_BUCKET_CLIENT: chareli-react-app-dev-ea15b364
-  CLOUDFRONT_DISTRIBUTION_ID_CLIENT: ED93QD3A93Q1N
+  ECR_REPO_SERVER: chareli-server-development-v2
+  ECS_SERVICE: chareli-service-development-v2
+  ECS_CLUSTER: chareli-ecs-cluster-development-v2
+  ECS_TASK_DEFINITION: ./task-def.json
+  CONTAINER_NAME: chareli-ecs-backend-development-server-v2
+  IMAGE_TAG_SERVER_COMMIT: server-development-${{ github.sha }}
+  IMAGE_TAG_SERVER_FIXED: latest
 
 jobs:
   build-and-test:
@@ -26,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: ["22.x"]
+        node-version: ['22.x']
 
     steps:
       - name: Checkout Code
@@ -37,7 +38,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: "npm"
+          cache: 'npm'
           cache-dependency-path: Server/package-lock.json
 
       - name: Install Backend Dependencies
@@ -59,7 +60,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: "npm"
+          cache: 'npm'
           cache-dependency-path: Client/package-lock.json
 
       - name: Install Frontend Dependencies
@@ -79,7 +80,8 @@ jobs:
       - name: Build Frontend
         working-directory: ./Client
         env:
-          VITE_API_URL: ""
+          VITE_API_URL: 'https://api.dev.chareli.reallygreattech.com'
+          VITE_GAMES_CDN_URL: 'https://chareli-games-gatekeeper-v2.netalie.workers.dev'
         run: npm run build
 
       - name: Archive Frontend Build
@@ -89,7 +91,7 @@ jobs:
           path: ./Client/dist
 
   deploy-backend:
-    name: Deploy Backend to App Runner
+    name: Deploy Backend to ECS
     needs: build-and-test
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/development'
@@ -101,7 +103,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::330858616968:role/chareli-dev-oidc-role
+          role-to-assume: arn:aws:iam::330858616968:role/chareli-development-v2-github-oidc-role
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Set up Docker BuildX
@@ -112,6 +114,7 @@ jobs:
 
       - name: Build and Push Backend Docker Image
         uses: docker/build-push-action@v6
+        id: build-image
         with:
           context: ./Server
           file: ./Server/Dockerfile
@@ -122,41 +125,47 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ${{ env.ECS_TASK_DEFINITION }}
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO_SERVER }}:${{ env.IMAGE_TAG_SERVER_COMMIT }}
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          # wait-for-service-stability: true
+
   deploy-frontend:
-    name: Deploy Frontend to S3 & Invalidate CloudFront
+    name: Deploy Frontend to Cloudflare Pages
     needs: build-and-test
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/development'
 
     steps:
-      # Checkout code is not strictly needed here if the artifact contains everything for deployment
-      # but can be useful if scripts or other files from the repo are needed for the deploy steps.
-      # - name: Checkout Code
-      #   uses: actions/checkout@v4
-
       - name: Download Frontend Build Artifact
         uses: actions/download-artifact@v4
         with:
           name: frontend-build
           path: ./frontend-build-output
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: Deploy to Cloudflare
+        uses: cloudflare/wrangler-action@v3
         with:
-          role-to-assume: arn:aws:iam::330858616968:role/chareli-dev-oidc-role
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Deploy Frontend to S3
-        run: aws s3 sync ./frontend-build-output/ s3://${{ env.S3_BUCKET_CLIENT }}/ --delete
-        # Note: The artifact path might be just ./frontend-build-output/ if Client/dist was the root of the artifact.
-        # If the artifact preserved the Client/dist structure, then it would be ./frontend-build-output/Client/dist/
-
-      - name: Invalidate CloudFront Distribution
-        run: aws cloudfront create-invalidation --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID_CLIENT }} --paths "/*"
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy ./frontend-build-output/ --project-name=chareli-dev
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
   notify-discord:
     name: Notify Discord
-    needs: [build-and-test, deploy-backend, deploy-frontend]
+    needs: [build-and-test, deploy-frontend, deploy-backend]
+    #needs: [build-and-test, deploy-backend, deploy-frontend]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -171,29 +180,26 @@ jobs:
           else
             echo "build_msg=:x: Build & Test FAILED" >> $GITHUB_OUTPUT
           fi
-
       - name: Generate Backend Deploy Status
         id: backend-status
         run: |
           if [[ "${{ needs.deploy-backend.result }}" == "success" ]]; then
-            echo "backend_msg=:white_check_mark: Backend deployment to App Runner SUCCESSFUL" >> $GITHUB_OUTPUT
+            echo "backend_msg=:white_check_mark: Backend deployment to ECS SUCCESSFUL" >> $GITHUB_OUTPUT
           elif [[ "${{ needs.deploy-backend.result }}" == "skipped" ]]; then
             echo "backend_msg=:warning: Backend deployment SKIPPED" >> $GITHUB_OUTPUT
           else
-            echo "backend_msg=:x: Backend deployment to App Runner FAILED" >> $GITHUB_OUTPUT
+            echo "backend_msg=:x: Backend deployment to ECS FAILED" >> $GITHUB_OUTPUT
           fi
-
       - name: Generate Frontend Deploy Status
         id: frontend-status
         run: |
           if [[ "${{ needs.deploy-frontend.result }}" == "success" ]]; then
-            echo "frontend_msg=:white_check_mark: Frontend deployment to S3/CloudFront SUCCESSFUL" >> $GITHUB_OUTPUT
+            echo "frontend_msg=:white_check_mark: Frontend deployment to Cloudflare Pages SUCCESSFUL" >> $GITHUB_OUTPUT
           elif [[ "${{ needs.deploy-frontend.result }}" == "skipped" ]]; then
             echo "frontend_msg=:warning: Frontend deployment SKIPPED" >> $GITHUB_OUTPUT
           else
-            echo "frontend_msg=:x: Frontend deployment to S3/CloudFront FAILED" >> $GITHUB_OUTPUT
+            echo "frontend_msg=:x: Frontend deployment to Cloudflare Pages FAILED" >> $GITHUB_OUTPUT
           fi
-
       - name: Notify Discord
         if: always()
         uses: appleboy/discord-action@v1.2.0
@@ -202,13 +208,10 @@ jobs:
           username: Chareli Dev Pipeline Bot
           message: |
             🚀 **Chareli Dev Deployment Summary**
-
             🔀 Branch: `${{ github.ref_name }}`
             📄 Commit: `${{ github.sha }}` by `${{ github.actor }}`
             🏗️ Event: `${{ github.event_name }}`
-
             🧪 **Build & Test:** ${{ steps.build-status.outputs.build_msg }}
-            🖥️ **Backend (App Runner):** ${{ steps.backend-status.outputs.backend_msg }}
+            🖥️ **Backend (ECS):** ${{ steps.backend-status.outputs.backend_msg }}
             🌐 **Frontend (S3/CloudFront):** ${{ steps.frontend-status.outputs.frontend_msg }}
-
             🔗 [View Run on GitHub](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})

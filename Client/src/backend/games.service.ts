@@ -35,7 +35,7 @@ export const useRequestGameAccess = () => {
   return useMutation({
     mutationFn: async (gameId: string) => {
       const response = await backendService.post(
-        `/games/${gameId}/request-access`,
+        `/api/games/${gameId}/request-access`,
         {},
         {
           withCredentials: true, // Important for cookies

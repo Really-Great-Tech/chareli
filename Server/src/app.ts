@@ -13,21 +13,16 @@ import config from './config/config';
 // import { cloudFrontService } from './services/cloudfront.service';
 
 const app: Express = express();
-
-// Request logging middleware
 app.use(requestLogger);
-
-
-// Security middleware
-app.use(helmet()); // Adds various HTTP headers for security
+app.use(helmet());
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
-    ? [config.app.clientUrl, 'https://dev.chareli.reallygreattech.com'] // Allow both production and dev domains
-    : ['http://localhost:5173', 'http://localhost:3000', 'https://dev.chareli.reallygreattech.com'], // Allow local dev and staging
+    ? [config.app.clientUrl]
+    : '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true, // Essential for cookies!
-  maxAge: 86400 // 24 hours
+  credentials: true,
+  maxAge: 86400
 }));
 
 // Content Security Policy

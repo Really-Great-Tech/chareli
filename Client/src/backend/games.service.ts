@@ -24,9 +24,7 @@ export const useGameById = (id: string) => {
   return useQuery<any>({
     queryKey: [BackendRoute.GAMES, id],
     queryFn: async () => {
-      const response = await backendService.get(BackendRoute.GAME_BY_ID.replace(':id', id), {
-        withCredentials: true, // Important for cookies to be sent and received
-      });
+      const response = await backendService.get(BackendRoute.GAME_BY_ID.replace(':id', id));
       console.log('Game API Response:', response.data);
       return response.data as GameResponse;
     },

@@ -18,9 +18,6 @@ import jwt from 'jsonwebtoken';
 import config from '../config/config';
 // import { processImage } from '../services/file.service';
 
-// Worker JWT secret - this should match the WORKER_JWT_SECRET in your Cloudflare Worker
-const WORKER_JWT_SECRET = process.env.WORKER_JWT_SECRET || 'your-worker-jwt-secret';
-
 const gameRepository = AppDataSource.getRepository(Game);
 const gamePositionHistoryRepository = AppDataSource.getRepository(GamePositionHistory);
 const categoryRepository = AppDataSource.getRepository(Category);

@@ -74,6 +74,7 @@ interface Config {
     accessKeyId: string;
     secretAccessKey: string;
     publicUrl: string;
+    workerJwtSecret: string;
   };
   twilio: {
     accountSid: string;
@@ -170,6 +171,7 @@ const config: Config = {
     accessKeyId: getEnv('R2_ACCESS_KEY_ID'),
     secretAccessKey: getEnv('R2_SECRET_ACCESS_KEY'),
     publicUrl: getEnv('R2_PUBLIC_URL'),
+    workerJwtSecret: getEnv('WORKER_JWT_SECRET', 'your-worker-jwt-secret'),
   },
   twilio: {
     accountSid: process.env.TWILIO_ACCOUNT_SID || '',

@@ -7,7 +7,7 @@ import logger from '../utils/logger';
 import jwt from 'jsonwebtoken';
 
 // Worker JWT secret - this should match the WORKER_JWT_SECRET in your Cloudflare Worker
-const WORKER_JWT_SECRET = process.env.WORKER_JWT_SECRET || 'your-worker-jwt-secret';
+const WORKER_JWT_SECRET = config.r2.workerJwtSecret;
 
 const gameRepository = AppDataSource.getRepository(Game);
 
@@ -118,7 +118,7 @@ export const generateGameAccessToken = async (
     const token = jwt.sign(payload, WORKER_JWT_SECRET);
     
     // Get the game file URL through the worker
-    const workerUrl = config.r2.publicUrl; // This should be your worker URL
+    const workerUrl = config.r2.publicUrl; 
     const gameFileKey = game.gameFile.s3Key;
     const gameUrl = `${workerUrl}/${gameFileKey}`;
     

@@ -19,16 +19,9 @@ router.use(authenticate);
  *   description: Endpoints for testing R2 bucket access through Cloudflare Worker
  */
 
-// Configuration check endpoint
 router.get('/configuration', checkConfiguration);
-
-// Comprehensive test endpoint
 router.post('/comprehensive-test', testR2Access);
-
-// Generate access token for specific game
 router.post('/generate-access-token/:gameId', generateGameAccessToken);
-
-// Quick test for specific game
 router.get('/quick-test/:gameId', quickTest);
 
 export default router;

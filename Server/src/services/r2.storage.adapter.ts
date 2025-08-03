@@ -39,7 +39,7 @@ export class R2StorageAdapter implements IStorageService {
 
     logger.info(`Initializing storage adapter for Cloudflare R2`);
     this.s3Client = new S3Client(s3ClientConfig);
-    this.bucket = config.s3.bucket; // Your R2 bucket name
+    this.bucket = config.r2.bucket; // Your R2 bucket name
     this.publicUrl = config.r2.publicUrl; // e.g., https://games.yourdomain.com
   }
 

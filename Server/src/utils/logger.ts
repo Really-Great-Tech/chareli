@@ -32,7 +32,9 @@ winston.addColors(colors);
 // Define the format for console output
 const consoleFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
-  winston.format.colorize({ all: true }),
+  process.env.NODE_ENV !== 'production'
+    ? winston.format.colorize({ all: true })
+    : winston.format.uncolorize(),
   winston.format.printf(
     (info) => `${info.timestamp} ${info.level}: ${info.message}`
   )
@@ -56,13 +58,13 @@ const logger = winston.createLogger({
     new winston.transports.Console({
       format: consoleFormat,
     }),
-    
+
     // File transport for all logs
     new winston.transports.File({
       filename: path.join(logDir, 'all.log'),
       format: fileFormat,
     }),
-    
+
     // File transport for error logs
     new winston.transports.File({
       filename: path.join(logDir, 'error.log'),

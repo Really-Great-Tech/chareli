@@ -9,6 +9,7 @@ import { ApiError } from '../middlewares/errorHandler';
 import { Between, FindOptionsWhere, In, LessThan, IsNull, Not } from 'typeorm';
 import { checkInactiveUsers } from '../jobs/userInactivityCheck';
 import { storageService } from '../services/storage.service';
+import redis from '../config/redisClient';
 
 const userRepository = AppDataSource.getRepository(User);
 const gameRepository = AppDataSource.getRepository(Game);
@@ -41,6 +42,16 @@ export const getDashboardAnalytics = async (
 ): Promise<void> => {
   try {
     const { period, startDate, endDate, country } = req.query;
+    const cacheKey = `admin:dashboard:${JSON.stringify(req.query)}`;
+
+    // Try to get cached data
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      console.log('[Redis] Cache HIT for getDashboardAnalytics:', cacheKey);
+      res.status(200).json(JSON.parse(cached));
+      return;
+    }
+    console.log('[Redis] Cache MISS for getDashboardAnalytics:', cacheKey);
     
     const countries = Array.isArray(country) ? country as string[] : country ? [country as string] : [];
     
@@ -108,7 +119,7 @@ export const getDashboardAnalytics = async (
       .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
       .andWhere('user.hasCompletedFirstLogin = :hasCompleted', { hasCompleted: true });
 
-    // Add country filter if provided
+    
     if (countries.length > 0) {
       yesterdayUsersQuery = yesterdayUsersQuery
         .andWhere('user.country IN (:...countries)', { countries });
@@ -624,7 +635,7 @@ export const getDashboardAnalytics = async (
       userRepository.count({ where: minorsWhere }),
     ]);
 
-    res.status(200).json({
+    const response = {
       success: true,
       data: {
         dailyActiveUsers: {
@@ -667,7 +678,12 @@ export const getDashboardAnalytics = async (
         },
         retentionRate
       }
-    });
+    };
+
+    // Cache the result for 5 minutes (dashboard needs relatively fresh data)
+    await redis.set(cacheKey, JSON.stringify(response), 'EX', 300);
+    
+    res.status(200).json(response);
   } catch (error) {
     next(error);
   }
@@ -1018,6 +1034,17 @@ export const getGamesWithAnalytics = async (
       search
     } = req.query;
     
+    const cacheKey = `admin:games-analytics:${JSON.stringify(req.query)}`;
+
+    // Try to get cached data
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      console.log('[Redis] Cache HIT for getGamesWithAnalytics:', cacheKey);
+      res.status(200).json(JSON.parse(cached));
+      return;
+    }
+    console.log('[Redis] Cache MISS for getGamesWithAnalytics:', cacheKey);
+    
     // Only apply pagination if page or limit parameters are explicitly provided
     const shouldPaginate = page || limit;
     const pageNumber = shouldPaginate ? parseInt(page as string, 10) || 1 : 1;
@@ -1131,6 +1158,9 @@ export const getGamesWithAnalytics = async (
       response.limit = limitNumber;
       response.totalPages = Math.ceil(total / limitNumber);
     }
+    
+    // Cache the result for 10 minutes
+    await redis.set(cacheKey, JSON.stringify(response), 'EX', 600);
     
     res.status(200).json(response);
   } catch (error) {
@@ -1479,6 +1509,17 @@ export const getGamesPopularityMetrics = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    const cacheKey = 'admin:games-popularity';
+
+    // Try to get cached data
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      console.log('[Redis] Cache HIT for getGamesPopularityMetrics:', cacheKey);
+      res.status(200).json(JSON.parse(cached));
+      return;
+    }
+    console.log('[Redis] Cache MISS for getGamesPopularityMetrics:', cacheKey);
+
     const now = new Date();
     const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
     const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
@@ -1571,10 +1612,15 @@ export const getGamesPopularityMetrics = async (
       };
     }));
 
-    res.status(200).json({
+    const response = {
       success: true,
       data: gamesMetrics
-    });
+    };
+
+    // Cache the result for 15 minutes (popularity metrics don't change frequently)
+    await redis.set(cacheKey, JSON.stringify(response), 'EX', 900);
+
+    res.status(200).json(response);
   } catch (error) {
     next(error);
   }
@@ -1603,6 +1649,17 @@ export const getUsersWithAnalytics = async (
       ageGroup,
       sortByMaxTimePlayed
     } = req.query;
+
+    const cacheKey = `admin:users-analytics:${JSON.stringify(req.query)}`;
+
+    // Try to get cached data
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      console.log('[Redis] Cache HIT for getUsersWithAnalytics:', cacheKey);
+      res.status(200).json(JSON.parse(cached));
+      return;
+    }
+    console.log('[Redis] Cache MISS for getUsersWithAnalytics:', cacheKey);
 
     // Handle multi-select parameters (they come as arrays)
     const gameTitles = Array.isArray(gameTitle) ? gameTitle : gameTitle ? [gameTitle] : [];
@@ -1912,11 +1969,16 @@ export const getUsersWithAnalytics = async (
       );
     }
 
-    res.status(200).json({
+    const response = {
       success: true,
       count: filteredUsers.length,
       data: filteredUsers
-    });
+    };
+
+    // Cache the result for 10 minutes (user analytics data)
+    await redis.set(cacheKey, JSON.stringify(response), 'EX', 600);
+
+    res.status(200).json(response);
   } catch (error) {
     next(error);
   }

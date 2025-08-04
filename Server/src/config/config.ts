@@ -49,12 +49,7 @@ interface Config {
     expiryMinutes: number;
     invitationExpiryDays: number;
   };
-  sentry: {
-    dsn: string;
-    environment: string;
-    tracesSampleRate: number;
-    enabled: boolean;
-  };
+
   s3: {
     region: string;
     accessKeyId: string;
@@ -82,6 +77,7 @@ interface Config {
     authToken: string;
     fromNumber: string;
     enabled: boolean;
+    verifySid: string;
   };
 }
 
@@ -139,7 +135,7 @@ const config: Config = {
     password: process.env.EMAIL_PASSWORD || '',
   },
   ses: {
-    region: process.env.AWS_REGION || 'eu-central-1',
+    region: process.env.SES_REGION || 'eu-central-1',
     accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
     fromEmail:
@@ -152,14 +148,6 @@ const config: Config = {
       process.env.INVITATION_EXPIRY_DAYS || '7',
       10
     ),
-  },
-  sentry: {
-    dsn: process.env.SENTRY_DSN || '',
-    environment: process.env.NODE_ENV || 'development',
-    tracesSampleRate: parseFloat(
-      process.env.SENTRY_TRACES_SAMPLE_RATE || '0.2'
-    ),
-    enabled: false,
   },
   s3: {
     region: process.env.AWS_REGION || 'us-east-1',
@@ -191,6 +179,7 @@ const config: Config = {
     authToken: process.env.TWILIO_AUTH_TOKEN || '',
     fromNumber: process.env.TWILIO_FROM_NUMBER || '',
     enabled: process.env.USE_TWILIO === 'true',
+    verifySid: process.env.TWILIO_SERVICE_SID || '',
   },
 };
 

@@ -3,6 +3,7 @@ import { AppDataSource } from '../config/database';
 import { Analytics } from '../entities/Analytics';
 import { ApiError } from '../middlewares/errorHandler';
 import { Between, FindOptionsWhere } from 'typeorm';
+import redis from '../config/redisClient';
 
 const analyticsRepository = AppDataSource.getRepository(Analytics);
 
@@ -87,6 +88,25 @@ export const createAnalytics = async (
     
     await analyticsRepository.save(analytics);
     
+    // Invalidate all analytics cache (simple approach)
+        // Invalidate all related cache (comprehensive cache invalidation)
+        const cachePatterns = [
+          'analytics:all:*',
+          'admin:games-analytics:*', // Admin games show analytics data
+          'admin:dashboard:*'        // Dashboard shows analytics summaries
+        ];
+        
+        for (const pattern of cachePatterns) {
+          const keys = await redis.keys(pattern);
+          if (keys.length > 0) {
+            await redis.del(keys);
+            console.log(`Invalidated ${keys.length} cache keys matching pattern: ${pattern}`);
+          }
+        }
+
+    // Invalidate user stats cache for this user
+    await redis.del(`users:stats:${userId}`);
+
     res.status(201).json({
       success: true,
       data: analytics
@@ -164,7 +184,17 @@ export const getAllAnalytics = async (
 ): Promise<void> => {
   try {
     const { userId, gameId, activityType, startDate, endDate, page = 1, limit = 10 } = req.query;
-    
+    const cacheKey = `analytics:all:${JSON.stringify(req.query)}`;
+
+    // Try to get cached data
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      console.log('[Redis] Cache HIT for getAllAnalytics:', cacheKey);
+      res.status(200).json(JSON.parse(cached));
+      return;
+    }
+    console.log('[Redis] Cache MISS for getAllAnalytics:', cacheKey);
+
     const pageNumber = parseInt(page as string, 10);
     const limitNumber = parseInt(limit as string, 10);
     
@@ -211,7 +241,7 @@ export const getAllAnalytics = async (
       relations: ['user', 'game']
     });
     
-    res.status(200).json({
+    const response = {
       success: true,
       count: analytics.length,
       total,
@@ -219,7 +249,10 @@ export const getAllAnalytics = async (
       limit: limitNumber,
       totalPages: Math.ceil(total / limitNumber),
       data: analytics
-    });
+    };
+    // Cache the result for 5 minutes
+    await redis.set(cacheKey, JSON.stringify(response), 'EX', 300);
+    res.status(200).json(response);
   } catch (error) {
     next(error);
   }
@@ -258,6 +291,15 @@ export const getAnalyticsById = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
+    const cacheKey = `analytics:id:${id}`;
+    // Try to get cached data
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      console.log('[Redis] Cache HIT for getAnalyticsById:', cacheKey);
+      res.status(200).json(JSON.parse(cached));
+      return;
+    }
+    console.log('[Redis] Cache MISS for getAnalyticsById:', cacheKey);
     
     const analytics = await analyticsRepository.findOne({
       where: { id },
@@ -268,10 +310,13 @@ export const getAnalyticsById = async (
       return next(ApiError.notFound(`Analytics entry with id ${id} not found`));
     }
     
-    res.status(200).json({
+    const response = {
       success: true,
       data: analytics
-    });
+    };
+    // Cache the result for 5 minutes
+    await redis.set(cacheKey, JSON.stringify(response), 'EX', 300);
+    res.status(200).json(response);
   } catch (error) {
     next(error);
   }
@@ -355,6 +400,22 @@ export const updateAnalytics = async (
         // Delete the analytics record if it's a game session with duration < 30 seconds
         await analyticsRepository.remove(analytics);
         
+    // Invalidate all related cache (comprehensive cache invalidation)
+    const cachePatterns = [
+      'analytics:all:*',
+      'admin:games-analytics:*', // Admin games show analytics data
+      'admin:dashboard:*'        // Dashboard shows analytics summaries
+    ];
+    
+    for (const pattern of cachePatterns) {
+      const keys = await redis.keys(pattern);
+      if (keys.length > 0) {
+        await redis.del(keys);
+        console.log(`Invalidated ${keys.length} cache keys matching pattern: ${pattern}`);
+      }
+    }
+    await redis.del(`analytics:id:${id}`);
+
         res.status(200).json({
           success: true,
           message: 'Analytics entry removed due to insufficient duration (< 30 seconds)',
@@ -366,6 +427,21 @@ export const updateAnalytics = async (
     
     await analyticsRepository.save(analytics);
     
+    // Invalidate all related cache (comprehensive cache invalidation)
+    const cachePatterns = [
+      'analytics:all:*',
+      'admin:games-analytics:*', // Admin games show analytics data
+      'admin:dashboard:*'        // Dashboard shows analytics summaries
+    ];
+    
+    for (const pattern of cachePatterns) {
+      const keys = await redis.keys(pattern);
+      if (keys.length > 0) {
+        await redis.del(keys);
+        console.log(`Invalidated ${keys.length} cache keys matching pattern: ${pattern}`);
+      }
+    }
+    await redis.del(`analytics:id:${id}`);
     res.status(200).json({
       success: true,
       data: analytics
@@ -457,6 +533,11 @@ export const updateAnalyticsEndTime = async (
         // Delete the analytics record if it's a game session with duration < 30 seconds
         await analyticsRepository.remove(analytics);
         
+        // Invalidate cache for this analytics and all lists
+        await redis.del(`analytics:id:${id}`);
+        const keys = await redis.keys('analytics:all:*');
+        if (keys.length > 0) await redis.del(keys);
+
         res.status(200).json({
           success: true,
           message: 'Analytics entry removed due to insufficient duration (< 30 seconds)',
@@ -468,6 +549,10 @@ export const updateAnalyticsEndTime = async (
     
     await analyticsRepository.save(analytics);
     
+    // Invalidate cache for this analytics and all lists
+    await redis.del(`analytics:id:${id}`);
+    const keys = await redis.keys('analytics:all:*');
+    if (keys.length > 0) await redis.del(keys);
     res.status(200).json({
       success: true,
       data: analytics
@@ -495,6 +580,10 @@ export const deleteAnalytics = async (
     
     await analyticsRepository.remove(analytics);
     
+    // Invalidate cache for this analytics and all lists
+    await redis.del(`analytics:id:${id}`);
+    const keys = await redis.keys('analytics:all:*');
+    if (keys.length > 0) await redis.del(keys);
     res.status(200).json({
       success: true,
       message: 'Analytics entry deleted successfully'

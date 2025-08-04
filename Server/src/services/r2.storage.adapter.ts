@@ -2,8 +2,11 @@ import {
   S3Client,
   PutObjectCommand,
   DeleteObjectCommand,
+  GetObjectCommand,
+  PutBucketCorsCommand,
   S3ClientConfig,
 } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -41,6 +44,11 @@ export class R2StorageAdapter implements IStorageService {
     this.s3Client = new S3Client(s3ClientConfig);
     this.bucket = config.r2.bucket; // Your R2 bucket name
     this.publicUrl = config.r2.publicUrl; // e.g., https://games.yourdomain.com
+
+    // Configure CORS for direct uploads (run async, don't block initialization)
+    this.configureCORS().catch((error: Error) => {
+      logger.warn('Failed to configure CORS, direct uploads may not work:', error.message);
+    });
   }
 
   /**
@@ -157,6 +165,70 @@ export class R2StorageAdapter implements IStorageService {
       logger.error('Error deleting file from R2:', { error, key });
       // Don't throw, just return false for a failed deletion
       return false;
+    }
+  }
+
+  /**
+   * Generate a presigned URL for direct upload to R2
+   */
+  async generatePresignedUploadUrl(
+    key: string,
+    contentType: string,
+    expiresIn: number = 3600
+  ): Promise<string> {
+    try {
+      const command = new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        ContentType: contentType,
+      });
+
+      const presignedUrl = await getSignedUrl(this.s3Client, command, {
+        expiresIn,
+      });
+
+      logger.info(`Generated presigned upload URL for key: ${key}`);
+      return presignedUrl;
+    } catch (error) {
+      logger.error('Error generating presigned upload URL:', { error, key });
+      throw new Error(
+        `Failed to generate presigned upload URL: ${(error as Error).message}`
+      );
+    }
+  }
+
+  /**
+   * Configure CORS for the R2 bucket to allow direct uploads from frontend
+   */
+  private async configureCORS(): Promise<void> {
+    try {
+      const corsConfiguration = {
+        CORSRules: [
+          {
+            AllowedHeaders: ['*'],
+            AllowedMethods: ['GET', 'PUT', 'POST', 'DELETE', 'HEAD'],
+            AllowedOrigins: [
+              'http://localhost:3000',
+              'http://localhost:5173',
+              'http://localhost:5000',
+              config.app.clientUrl || '*'
+            ],
+            ExposeHeaders: ['ETag'],
+            MaxAgeSeconds: 3000,
+          },
+        ],
+      };
+
+      const command = new PutBucketCorsCommand({
+        Bucket: this.bucket,
+        CORSConfiguration: corsConfiguration,
+      });
+
+      await this.s3Client.send(command);
+      logger.info('✅ Successfully configured CORS for R2 bucket');
+    } catch (error) {
+      logger.error('❌ Failed to configure CORS for R2 bucket:', error);
+      throw error;
     }
   }
 }

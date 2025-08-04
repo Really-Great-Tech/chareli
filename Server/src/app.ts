@@ -15,9 +15,23 @@ import path from 'path';
 import config from './config/config';
 // import { cloudFrontService } from './services/cloudfront.service';
 
-const swaggerDocument = JSON.parse(
-  fs.readFileSync(path.join(__dirname, 'swagger.json'), 'utf-8')
-);
+let swaggerDocument: any = null;
+try {
+  swaggerDocument = JSON.parse(
+    fs.readFileSync(path.join(__dirname, 'swagger.json'), 'utf-8')
+  );
+} catch (error) {
+  logger.warn('swagger.json not found, API documentation will not be available');
+  swaggerDocument = {
+    openapi: '3.0.0',
+    info: {
+      title: 'Chareli API',
+      version: '1.0.0',
+      description: 'API documentation not available - swagger.json not found'
+    },
+    paths: {}
+  };
+}
 
 const app: Express = express();
 app.use(requestLogger);

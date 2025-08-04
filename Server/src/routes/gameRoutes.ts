@@ -7,7 +7,10 @@ import {
   updateGame,
   deleteGame,
   uploadGameFiles,
-  uploadGameFilesForUpdate
+  uploadGameFilesForUpdate,
+  prepareAsyncUpload,
+  getUploadStatus,
+  confirmUpload
 } from '../controllers/gameController';
 import { authenticate, isAdmin, optionalAuthenticate } from '../middlewares/authMiddleware';
 import { validateBody, validateParams, validateQuery } from '../middlewares/validationMiddleware';
@@ -28,6 +31,12 @@ router.get('/:id', optionalAuthenticate, validateParams(gameIdParamSchema), getG
 router.use(authenticate);
 router.use(isAdmin);
 
+// Async upload routes
+router.post('/upload/prepare', prepareAsyncUpload);
+router.get('/upload/status/:jobId', getUploadStatus);
+router.post('/upload/confirm', confirmUpload);
+
+// Traditional sync upload routes
 router.post('/', uploadGameFiles, createGame);
 router.put('/:id', validateParams(gameIdParamSchema), uploadGameFilesForUpdate, updateGame);
 router.delete('/:id', validateParams(gameIdParamSchema), deleteGame);

@@ -15,4 +15,9 @@ export interface IStorageService {
   uploadDirectory(localPath: string, remotePath: string): Promise<void>;
   deleteFile(key: string): Promise<boolean>;
   getPublicUrl(key: string): string;
+  generatePresignedUploadUrl?(
+    key: string,
+    contentType: string,
+    expiresIn?: number
+  ): Promise<string>;
 }

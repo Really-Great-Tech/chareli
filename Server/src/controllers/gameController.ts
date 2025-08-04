@@ -11,6 +11,9 @@ import { RoleType } from '../entities/Role';
 import { Not, In } from 'typeorm';
 import { storageService } from '../services/storage.service';
 import { zipService } from '../services/zip.service';
+import { directUploadService } from '../services/direct-upload.service';
+import { jobQueueService } from '../services/job-queue.service';
+import { UploadJobType } from '../entities/UploadJob';
 import multer from 'multer';
 import logger from '../utils/logger';
 import { v4 as uuidv4 } from 'uuid';
@@ -1227,6 +1230,276 @@ export const getGameByPosition = async (
     res.status(200).json({
       success: true,
       data: game
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ============================================================================
+// ASYNC UPLOAD ENDPOINTS
+// ============================================================================
+
+/**
+ * @swagger
+ * /games/upload/prepare:
+ *   post:
+ *     summary: Prepare async game upload
+ *     description: Generate direct upload URLs and create upload job for async processing
+ *     tags: [Games]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *               - thumbnailFilename
+ *               - gameFilename
+ *             properties:
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               thumbnailFilename:
+ *                 type: string
+ *               gameFilename:
+ *                 type: string
+ *               categoryId:
+ *                 type: string
+ *                 format: uuid
+ *               config:
+ *                 type: integer
+ *               position:
+ *                 type: integer
+ *                 minimum: 1
+ *     responses:
+ *       200:
+ *         description: Upload URLs generated successfully
+ *       400:
+ *         description: Bad request
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Internal server error
+ */
+export const prepareAsyncUpload = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const {
+      title,
+      description,
+      thumbnailFilename,
+      gameFilename,
+      categoryId,
+      config = 1,
+      position
+    } = req.body;
+
+    if (!title || !thumbnailFilename || !gameFilename) {
+      return next(ApiError.badRequest('Title, thumbnail filename, and game filename are required'));
+    }
+
+    // Validate file extensions
+    if (!thumbnailFilename.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+      return next(ApiError.badRequest('Thumbnail must be an image file'));
+    }
+
+    if (!gameFilename.toLowerCase().endsWith('.zip')) {
+      return next(ApiError.badRequest('Game file must be a ZIP file'));
+    }
+
+    // Generate direct upload URLs
+    const thumbnailUpload = await directUploadService.generateUploadUrl({
+      filename: thumbnailFilename,
+      contentType: 'image/*',
+      folder: 'thumbnails',
+      gameTitle: title
+    });
+
+    const gameUpload = await directUploadService.generateUploadUrl({
+      filename: gameFilename,
+      contentType: 'application/zip',
+      folder: 'temp-uploads',
+      gameTitle: title
+    });
+
+    // Create upload job
+    const job = await jobQueueService.createJob({
+      type: UploadJobType.GAME,
+      userId: req.user!.userId,
+      metadata: {
+        title,
+        description,
+        categoryId,
+        config,
+        position: position ? parseInt(position) : undefined,
+        thumbnailKey: thumbnailUpload.key,
+        gameFileKey: gameUpload.key,
+        originalFilename: gameFilename
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        jobId: job.id,
+        uploadUrls: {
+          thumbnail: thumbnailUpload.uploadUrl,
+          game: gameUpload.uploadUrl
+        },
+        keys: {
+          thumbnail: thumbnailUpload.key,
+          game: gameUpload.key
+        }
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @swagger
+ * /games/upload/status/{jobId}:
+ *   get:
+ *     summary: Get upload job status
+ *     description: Check the status of an async upload job
+ *     tags: [Games]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: jobId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Upload job ID
+ *     responses:
+ *       200:
+ *         description: Job status retrieved successfully
+ *       404:
+ *         description: Job not found
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+export const getUploadStatus = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { jobId } = req.params;
+
+    const job = await jobQueueService.getJob(jobId);
+    if (!job) {
+      return next(ApiError.notFound('Upload job not found'));
+    }
+
+    // Check if user owns this job
+    if (job.userId !== req.user!.userId) {
+      return next(ApiError.forbidden('You do not have access to this upload job'));
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        jobId: job.id,
+        status: job.status,
+        progress: job.progress,
+        currentStep: job.currentStep,
+        result: job.result,
+        errorMessage: job.errorMessage,
+        createdAt: job.createdAt,
+        completedAt: job.completedAt
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @swagger
+ * /games/upload/confirm:
+ *   post:
+ *     summary: Confirm files uploaded and start processing
+ *     description: Notify server that files have been uploaded and processing can begin
+ *     tags: [Games]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - jobId
+ *             properties:
+ *               jobId:
+ *                 type: string
+ *                 format: uuid
+ *     responses:
+ *       200:
+ *         description: Upload confirmed, processing started
+ *       400:
+ *         description: Bad request
+ *       404:
+ *         description: Job not found
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+export const confirmUpload = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { jobId } = req.body;
+
+    if (!jobId) {
+      return next(ApiError.badRequest('Job ID is required'));
+    }
+
+    const job = await jobQueueService.getJob(jobId);
+    if (!job) {
+      return next(ApiError.notFound('Upload job not found'));
+    }
+
+    // Check if user owns this job
+    if (job.userId !== req.user!.userId) {
+      return next(ApiError.forbidden('You do not have access to this upload job'));
+    }
+
+    // Update job status to indicate files are uploaded
+    await jobQueueService.updateJobProgress({
+      jobId,
+      progress: 5,
+      currentStep: 'Getting ready to process your game...',
+      status: job.status // Keep current status
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Upload confirmed. Processing will begin shortly.',
+      data: {
+        jobId,
+        status: 'confirmed'
+      }
     });
   } catch (error) {
     next(error);

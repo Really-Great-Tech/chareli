@@ -7,6 +7,8 @@ const redisPort = parseInt(process.env.REDIS_PORT || '6379', 10);
 const redis = new Redis({
   host: redisHost,
   port: redisPort,
+  maxRetriesPerRequest: null, // Required for BullMQ
+  enableReadyCheck: false,
 });
 
 

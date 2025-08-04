@@ -349,9 +349,20 @@ export const createCategory = async (
     
     await categoryRepository.save(category);
     
-    // Invalidate categories cache
-    const keys = await redis.keys('categories:*');
-    if (keys.length > 0) await redis.del(keys);
+    // Invalidate all related cache (comprehensive cache invalidation)
+    const cachePatterns = [
+      'categories:*',
+      'games:all:*',           // Games lists show category names
+      'admin:games-analytics:*' // Admin games show category data
+    ];
+    
+    for (const pattern of cachePatterns) {
+      const keys = await redis.keys(pattern);
+      if (keys.length > 0) {
+        await redis.del(keys);
+        console.log(`Invalidated ${keys.length} cache keys matching pattern: ${pattern}`);
+      }
+    }
     
     res.status(201).json({
       success: true,
@@ -441,9 +452,20 @@ export const updateCategory = async (
     
     await categoryRepository.save(category);
     
-    // Invalidate categories cache
-    const keys = await redis.keys('categories:*');
-    if (keys.length > 0) await redis.del(keys);
+    // Invalidate all related cache (comprehensive cache invalidation)
+    const cachePatterns = [
+      'categories:*',
+      'games:all:*',           // Games lists show category names
+      'admin:games-analytics:*' // Admin games show category data
+    ];
+    
+    for (const pattern of cachePatterns) {
+      const keys = await redis.keys(pattern);
+      if (keys.length > 0) {
+        await redis.del(keys);
+        console.log(`Invalidated ${keys.length} cache keys matching pattern: ${pattern}`);
+      }
+    }
     
     res.status(200).json({
       success: true,
@@ -514,9 +536,20 @@ export const deleteCategory = async (
     
     await categoryRepository.remove(category);
     
-    // Invalidate categories cache
-    const keys = await redis.keys('categories:*');
-    if (keys.length > 0) await redis.del(keys);
+    // Invalidate all related cache (comprehensive cache invalidation)
+    const cachePatterns = [
+      'categories:*',
+      'games:all:*',           // Games lists show category names
+      'admin:games-analytics:*' // Admin games show category data
+    ];
+    
+    for (const pattern of cachePatterns) {
+      const keys = await redis.keys(pattern);
+      if (keys.length > 0) {
+        await redis.del(keys);
+        console.log(`Invalidated ${keys.length} cache keys matching pattern: ${pattern}`);
+      }
+    }
     
     res.status(200).json({
       success: true,

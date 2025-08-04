@@ -7,7 +7,7 @@ import fs from 'fs';
 import path from 'path';
 import { authService } from './services/auth.service';
 import { initializeScheduledJobs } from './jobs';
-import { UploadWorker } from './workers/upload-worker';
+// import { UploadWorker } from './workers/upload-worker';
 
 const logDir = path.join(process.cwd(), 'logs');
 if (!fs.existsSync(logDir)) {
@@ -38,14 +38,14 @@ const startServer = async () => {
       initializeScheduledJobs();
 
       // Initialize upload worker
-      try {
-        const uploadWorker = new UploadWorker();
-        await uploadWorker.start();
-        logger.info('✅ Upload worker started successfully');
-      } catch (workerError) {
-        logger.warn('⚠️ Upload worker failed to start, uploads will use sync mode');
-        logger.warn(workerError instanceof Error ? workerError.message : String(workerError));
-      }
+      // try {
+      //   // const uploadWorker = new UploadWorker();
+      //   await uploadWorker.start();
+      //   logger.info('✅ Upload worker started successfully');
+      // } catch (workerError) {
+      //   logger.warn('⚠️ Upload worker failed to start, uploads will use sync mode');
+      //   logger.warn(workerError instanceof Error ? workerError.message : String(workerError));
+      // }
     } catch (dbError) {
       if (config.env === 'development') {
         logger.warn(

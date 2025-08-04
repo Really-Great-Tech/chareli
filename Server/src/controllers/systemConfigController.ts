@@ -402,9 +402,20 @@ export const createSystemConfig = async (
     await queryRunner.manager.save(config);
     await queryRunner.commitTransaction();
 
-    // Invalidate system configs cache
-    const keys = await redis.keys('system-configs:*');
-    if (keys.length > 0) await redis.del(keys);
+    // Invalidate all related cache (comprehensive cache invalidation)
+    const cachePatterns = [
+      'system-configs:*',
+      'games:all:*',           // Popular games config affects games lists
+      'admin:games-analytics:*' // Admin views affected by config changes
+    ];
+    
+    for (const pattern of cachePatterns) {
+      const keys = await redis.keys(pattern);
+      if (keys.length > 0) {
+        await redis.del(keys);
+        console.log(`Invalidated ${keys.length} cache keys matching pattern: ${pattern}`);
+      }
+    }
 
     // Fetch the saved config with file data if applicable
     const savedConfig = await systemConfigRepository.findOne({
@@ -512,9 +523,20 @@ export const updateSystemConfig = async (
     
     await systemConfigRepository.save(config);
     
-    // Invalidate system configs cache
-    const keys = await redis.keys('system-configs:*');
-    if (keys.length > 0) await redis.del(keys);
+    // Invalidate all related cache (comprehensive cache invalidation)
+    const cachePatterns = [
+      'system-configs:*',
+      'games:all:*',           // Popular games config affects games lists
+      'admin:games-analytics:*' // Admin views affected by config changes
+    ];
+    
+    for (const pattern of cachePatterns) {
+      const keys = await redis.keys(pattern);
+      if (keys.length > 0) {
+        await redis.del(keys);
+        console.log(`Invalidated ${keys.length} cache keys matching pattern: ${pattern}`);
+      }
+    }
     
     // Handle file-based configs for response
     if (key === 'terms' && config.value?.fileId) {
@@ -592,9 +614,20 @@ export const deleteSystemConfig = async (
     
     await systemConfigRepository.remove(config);
     
-    // Invalidate system configs cache
-    const keys = await redis.keys('system-configs:*');
-    if (keys.length > 0) await redis.del(keys);
+    // Invalidate all related cache (comprehensive cache invalidation)
+    const cachePatterns = [
+      'system-configs:*',
+      'games:all:*',           // Popular games config affects games lists
+      'admin:games-analytics:*' // Admin views affected by config changes
+    ];
+    
+    for (const pattern of cachePatterns) {
+      const keys = await redis.keys(pattern);
+      if (keys.length > 0) {
+        await redis.del(keys);
+        console.log(`Invalidated ${keys.length} cache keys matching pattern: ${pattern}`);
+      }
+    }
     
     res.status(200).json({
       success: true,

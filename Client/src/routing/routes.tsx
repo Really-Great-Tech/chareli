@@ -21,7 +21,8 @@ import UserManagementView from '../pages/Admin/UserMgtView';
 import TeamManagement from '../pages/Admin/Team/TeamManagement';
 import Settings from '../pages/Admin/Settings';
 import ViewProfile from '../pages/Admin/ViewProfile';
-import TestAsyncUpload from '../pages/Admin/TestAsyncUpload';
+// import TestAsyncUpload from '../pages/Admin/TestAsyncUpload';
+import { FrontendUploadDemo } from '../components/FrontendUploadDemo';
 import Terms from '../pages/TermsOfService/Terms';
 import Privacy from '../pages/PrivacyPolicy/Privacy';
 
@@ -62,7 +63,8 @@ export const AppRoutes = () => {
             <Route path="management/:userId" element={<UserManagementView />} />
             <Route path="team" element={<TeamManagement />} />
             <Route path="analytics" element={<Analytics />} />
-            <Route path="test-async-upload" element={<TestAsyncUpload />} />
+            {/* <Route path="test-async-upload" element={<TestAsyncUpload />} /> */}
+            <Route path="test-frontend-upload" element={<FrontendUploadDemo />} />
             <Route path="view-game/:gameId" element={<ViewGame />} />
             <Route path="view-profile" element={<ViewProfile />} />
           </Route>

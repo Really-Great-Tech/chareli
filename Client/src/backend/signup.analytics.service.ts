@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { backendService } from "./api.service";
 import { BackendRoute } from "./constants";
-import type { DashboardFilters } from "./analytics.service";
 
 interface SignupAnalyticsData {
   totalClicks: number;
@@ -71,31 +70,13 @@ export const useTrackSignupClick = () => {
 };
 
 
-export const useSignupAnalyticsData = (filters?: DashboardFilters | { days?: number } | number) => {
+export const useSignupAnalyticsData = (days?: number) => {
   return useQuery<SignupAnalyticsData>({
-    queryKey: [BackendRoute.SIGNUP_ANALYTICS_DATA, filters],
+    queryKey: [BackendRoute.SIGNUP_ANALYTICS_DATA, days],
     queryFn: async () => {
-      const params = new URLSearchParams();
-
-      // Handle direct days parameter for backward compatibility
-      if (typeof filters === 'number') {
-        params.append('days', filters.toString());
-      }
-      // Handle new filter format (DashboardFilters)
-      else if (filters && typeof filters === 'object' && 'timeRange' in filters) {
-        if (filters.timeRange?.period) params.append('period', filters.timeRange.period);
-        if (filters.timeRange?.startDate) params.append('startDate', filters.timeRange.startDate);
-        if (filters.timeRange?.endDate) params.append('endDate', filters.timeRange.endDate);
-        if (filters.countries && filters.countries.length > 0) {
-          filters.countries.forEach(country => params.append('country', country));
-        }
-      }
-      // Handle legacy format (days parameter) for backward compatibility
-      else if (filters && typeof filters === 'object' && 'days' in filters && filters.days) {
-        params.append('days', filters.days.toString());
-      }
-
-      const url = `${BackendRoute.SIGNUP_ANALYTICS_DATA}${params.toString() ? `?${params.toString()}` : ''}`;
+      const url = days
+        ? `${BackendRoute.SIGNUP_ANALYTICS_DATA}?days=${days}`
+        : BackendRoute.SIGNUP_ANALYTICS_DATA;
       const response = await backendService.get(url);
 
       const analyticsData = response.data;

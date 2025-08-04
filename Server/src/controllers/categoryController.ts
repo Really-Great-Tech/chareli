@@ -4,7 +4,6 @@ import { Category } from '../entities/Category';
 import { ApiError } from '../middlewares/errorHandler';
 import { File } from '../entities/Files';
 import { storageService } from '../services/storage.service';
-import redis from '../config/redisClient';
 
 // Extend File type to include url
 type FileWithUrl = File & { url?: string };
@@ -64,16 +63,6 @@ export const getAllCategories = async (
 ): Promise<void> => {
   try {
     const { page = 1, limit = 10, search } = req.query;
-    const cacheKey = `categories:all:${JSON.stringify(req.query)}`;
-
-    // Try to get cached data
-    const cached = await redis.get(cacheKey);
-    if (cached) {
-      console.log('[Redis] Cache HIT for getAllCategories:', cacheKey);
-      res.status(200).json(JSON.parse(cached));
-      return;
-    }
-    console.log('[Redis] Cache MISS for getAllCategories:', cacheKey);
     
     const pageNumber = parseInt(page as string, 10);
     const limitNumber = parseInt(limit as string, 10);
@@ -96,7 +85,7 @@ export const getAllCategories = async (
     
     const categories = await queryBuilder.getMany();
     
-    const response = {
+    res.status(200).json({
       success: true,
       count: categories.length,
       total,
@@ -104,12 +93,7 @@ export const getAllCategories = async (
       limit: limitNumber,
       totalPages: Math.ceil(total / limitNumber),
       data: categories,
-    };
-
-    // Cache the result for 15 minutes (categories don't change often)
-    await redis.set(cacheKey, JSON.stringify(response), 'EX', 900);
-    
-    res.status(200).json(response);
+    });
   } catch (error) {
     next(error);
   }
@@ -152,16 +136,6 @@ export const getCategoryById = async (
   try {
     const { id } = req.params;
     const { page = 1, limit = 5 } = req.query;
-    const cacheKey = `categories:id:${id}:${JSON.stringify(req.query)}`;
-
-    // Try to get cached data
-    const cached = await redis.get(cacheKey);
-    if (cached) {
-      console.log('[Redis] Cache HIT for getCategoryById:', cacheKey);
-      res.status(200).json(JSON.parse(cached));
-      return;
-    }
-    console.log('[Redis] Cache MISS for getCategoryById:', cacheKey);
     
     const pageNumber = parseInt(page as string, 10);
     const limitNumber = parseInt(limit as string, 10);
@@ -276,15 +250,10 @@ export const getCategoryById = async (
       }
     };
     
-    const response = {
+    res.status(200).json({
       success: true,
       data: transformedCategory,
-    };
-
-    // Cache the result for 10 minutes (includes analytics data)
-    await redis.set(cacheKey, JSON.stringify(response), 'EX', 600);
-    
-    res.status(200).json(response);
+    });
   } catch (error) {
     next(error);
   }
@@ -348,21 +317,6 @@ export const createCategory = async (
     });
     
     await categoryRepository.save(category);
-    
-    // Invalidate all related cache (comprehensive cache invalidation)
-    const cachePatterns = [
-      'categories:*',
-      'games:all:*',           // Games lists show category names
-      'admin:games-analytics:*' // Admin games show category data
-    ];
-    
-    for (const pattern of cachePatterns) {
-      const keys = await redis.keys(pattern);
-      if (keys.length > 0) {
-        await redis.del(keys);
-        console.log(`Invalidated ${keys.length} cache keys matching pattern: ${pattern}`);
-      }
-    }
     
     res.status(201).json({
       success: true,
@@ -452,21 +406,6 @@ export const updateCategory = async (
     
     await categoryRepository.save(category);
     
-    // Invalidate all related cache (comprehensive cache invalidation)
-    const cachePatterns = [
-      'categories:*',
-      'games:all:*',           // Games lists show category names
-      'admin:games-analytics:*' // Admin games show category data
-    ];
-    
-    for (const pattern of cachePatterns) {
-      const keys = await redis.keys(pattern);
-      if (keys.length > 0) {
-        await redis.del(keys);
-        console.log(`Invalidated ${keys.length} cache keys matching pattern: ${pattern}`);
-      }
-    }
-    
     res.status(200).json({
       success: true,
       data: category,
@@ -535,21 +474,6 @@ export const deleteCategory = async (
     }
     
     await categoryRepository.remove(category);
-    
-    // Invalidate all related cache (comprehensive cache invalidation)
-    const cachePatterns = [
-      'categories:*',
-      'games:all:*',           // Games lists show category names
-      'admin:games-analytics:*' // Admin games show category data
-    ];
-    
-    for (const pattern of cachePatterns) {
-      const keys = await redis.keys(pattern);
-      if (keys.length > 0) {
-        await redis.del(keys);
-        console.log(`Invalidated ${keys.length} cache keys matching pattern: ${pattern}`);
-      }
-    }
     
     res.status(200).json({
       success: true,

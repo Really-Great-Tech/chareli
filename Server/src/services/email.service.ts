@@ -30,21 +30,13 @@ class SESProvider implements EmailProvider {
   private sesClient: SESClient;
 
   constructor() {
-    const sesConfig: any = {
-      region: config.ses.region,
-    };
-
-    if (config.ses.accessKeyId && config.ses.secretAccessKey) {
-      sesConfig.credentials = {
-        accessKeyId: config.ses.accessKeyId,
-        secretAccessKey: config.ses.secretAccessKey,
-      };
-      logger.info('SES configured with explicit credentials');
-    } else {
-      logger.info('SES configured to use IAM role credentials');
-    }
-
-    this.sesClient = new SESClient(sesConfig);
+    this.sesClient = new SESClient({
+      region: config.s3.region,
+      credentials: {
+        accessKeyId: config.s3.accessKeyId,
+        secretAccessKey: config.s3.secretAccessKey,
+      }
+    });
   }
 
   async sendEmail(to: string, subject: string, html: string): Promise<boolean> {

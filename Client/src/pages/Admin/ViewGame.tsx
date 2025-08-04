@@ -18,9 +18,9 @@ import { toast } from "sonner";
 import { DeleteConfirmationModal } from "../../components/modals/DeleteConfirmationModal";
 import { ToggleGameStatusModal } from "../../components/modals/ToggleGameStatusModal";
 import { useState } from "react";
+import { EditSheet } from "../../components/single/Edit-Sheet";
 import { formatTime } from "../../utils/main";
 import { usePermissions } from "../../hooks/usePermissions";
-import { EditSheetUppy } from "../../components/single/EditSheetUppy";
 
 export default function ViewGame() {
   const permissions = usePermissions();
@@ -270,7 +270,7 @@ export default function ViewGame() {
       />
 
       {/* Edit Sheet */}
-      <EditSheetUppy
+      <EditSheet
         open={editOpen}
         onOpenChange={setEditOpen}
         gameId={gameId || ""}

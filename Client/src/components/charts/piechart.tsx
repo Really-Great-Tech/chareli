@@ -23,12 +23,10 @@ interface ChartData {
 
 interface PieChartProps {
   data: ChartData[];
-  totalClicks?: number;
 }
 
-export default function Component({ data, totalClicks }: PieChartProps) {
-  // Use provided totalClicks or fallback to sum of data values
-  const displayTotalClicks = totalClicks !== undefined ? totalClicks : data.reduce((sum, entry) => sum + entry.value, 0);
+export default function Component({ data }: PieChartProps) {
+  const totalClicks = data.reduce((sum, entry) => sum + entry.value, 0);
   return (
     <Card className="flex flex-col shadow-none border border-none bg-[#F8FAFC] dark:bg-[#0F1221] rounded-lg sm:rounded-xl">
       <CardHeader className="items-center pb-0">
@@ -65,7 +63,7 @@ export default function Component({ data, totalClicks }: PieChartProps) {
           </div>
         </div>
         <div className="text-center font-bold text-lg sm:text-xl mt-2 dark:text-white text-[#5B6B7A] tracking-wider px-2">
-          Total Clicks = {displayTotalClicks}
+          Total Clicks = {totalClicks}
         </div>
         <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-8 mt-4 w-full">
           {data.map((item, index) => (

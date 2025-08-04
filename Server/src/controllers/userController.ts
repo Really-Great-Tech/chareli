@@ -13,7 +13,6 @@ import { getCountryFromIP, extractClientIP } from "../utils/ipUtils";
 import { detectDeviceType } from "../utils/deviceUtils";
 import { emailService } from "../services/email.service";
 import { anonymizationService } from "../services/anonymization.service";
-import redis from "../config/redisClient";
 
 const userRepository = AppDataSource.getRepository(User);
 const roleRepository = AppDataSource.getRepository(Role);
@@ -112,16 +111,6 @@ export const getCurrentUserStats = async (
     }
 
     const userId = req.user.userId;
-    const cacheKey = `users:stats:${userId}`;
-
-    // Try to get cached data
-    const cached = await redis.get(cacheKey);
-    if (cached) {
-      console.log('[Redis] Cache HIT for getCurrentUserStats:', cacheKey);
-      res.status(200).json(JSON.parse(cached));
-      return;
-    }
-    console.log('[Redis] Cache MISS for getCurrentUserStats:', cacheKey);
 
     // Get total minutes played
     const totalTimeResult = await analyticsRepository
@@ -184,19 +173,14 @@ export const getCurrentUserStats = async (
     // Send total duration in seconds
     const totalSeconds = totalTimeResult?.totalDuration || 0;
 
-    const response = {
+    res.status(200).json({
       success: true,
       data: {
         totalSeconds,
         totalPlays: totalPlaysResult,
         gamesPlayed: formattedGames,
       },
-    };
-
-    // Cache the result for 10 minutes (user stats update frequently)
-    await redis.set(cacheKey, JSON.stringify(response), 'EX', 600);
-
-    res.status(200).json(response);
+    });
   } catch (error) {
     next(error);
   }
@@ -395,7 +379,7 @@ export const createUser = async (
       isAdult: isAdult || false,
       hasAcceptedTerms,
       country: country || undefined,
-      registrationIpAddress: ipAddress || undefined,
+      registrationIpAddress: ipAddress,
       lastKnownDeviceType: deviceType,
     });
 

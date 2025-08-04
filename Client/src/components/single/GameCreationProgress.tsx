@@ -40,9 +40,9 @@ const GameCreationProgress = ({
               {currentStep}
             </div>
             
-            {/* Time indicator */}
+            {/* Time indicator (placeholder) */}
             <div className="text-gray-400 text-sm">
-              {isComplete ? 'Done!' : ''}
+              {isComplete ? 'Done!' : '10s left'}
             </div>
           </div>
           

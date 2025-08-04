@@ -23,9 +23,9 @@ import {
   RiEqualizer2Line,
   RiGamepadLine,
 } from "react-icons/ri";
-import { CreateGameSheetUppy } from "../../../components/single/CreateGameSheetUppy";
+import { CreateGameSheet } from "../../../components/single/CreateGame-Sheet";
 import { useNavigate } from "react-router-dom";
-import { EditSheetUppy } from "../../../components/single/EditSheetUppy";
+import { EditSheet } from "../../../components/single/Edit-Sheet";
 import { cn } from "../../../lib/utils";
 import { formatTime } from "../../../utils/main";
 import GameThumbnail from "../Analytics/GameThumbnail";
@@ -195,11 +195,11 @@ export default function GameManagement() {
                 </Button>
               )}
               {!reorderOpen && (
-                <CreateGameSheetUppy>
+                <CreateGameSheet>
                   <Button className="bg-[#D946EF] text-white hover:bg-[#c026d3] tracking-wider py-2 sm:py-[14px] text-sm sm:text-base h-[48px] font-dmmono cursor-pointer">
                     Create New Game
                   </Button>
-                </CreateGameSheetUppy>
+                </CreateGameSheet>
               )}
             </>
           )}
@@ -762,7 +762,7 @@ export default function GameManagement() {
       )}
 
       {editOpen && selectedGameId && (
-        <EditSheetUppy
+        <EditSheet
           open={editOpen}
           onOpenChange={setEditOpen}
           gameId={selectedGameId}

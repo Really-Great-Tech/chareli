@@ -11,7 +11,7 @@
     "migration:create": "npm run typeorm migration:create",
     "migration:run": "npm run typeorm migration:run -- -d src/config/database.ts",
     "migration:revert": "npm run typeorm migration:revert -- -d src/config/database.ts",
-    // "postbuild": "ts-node src/utils/generateSwagger.ts",
+    "postbuild": "ts-node src/utils/generateSwagger.ts",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",

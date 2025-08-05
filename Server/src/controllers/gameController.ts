@@ -658,11 +658,17 @@ export const createGame = async (
       categoryId, 
       status = GameStatus.ACTIVE,
       config = 0,
-      position
+      position,
+      thumbnailFileKey,
+      gameFileKey
     } = req.body;
     
     if (!title) {
       return next(ApiError.badRequest('Game title is required'));
+    }
+    
+    if (!thumbnailFileKey || !gameFileKey) {
+      return next(ApiError.badRequest('Thumbnail and game file keys are required'));
     }
     
     if (position) {
@@ -676,137 +682,119 @@ export const createGame = async (
       }
     }
     
-    // Get files from request
-    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+    // Determine the final categoryId to use
+    let finalCategoryId = categoryId;
     
-    if (!files || !files.thumbnailFile || !files.thumbnailFile[0] || !files.gameFile || !files.gameFile[0]) {
-      return next(ApiError.badRequest('Thumbnail and game files are required'));
+    if (categoryId) {
+      // Check if provided category exists
+      const category = await queryRunner.manager.findOne(Category, {
+        where: { id: categoryId }
+      });
+      
+      if (!category) {
+        throw new ApiError(400, `Category with id ${categoryId} not found`);
+      }
+    } else {
+      // Auto-assign default "General" category if no category provided
+      finalCategoryId = await getDefaultCategoryId(queryRunner);
     }
+
+    // Download and process the uploaded ZIP file from storage
+    logger.info('Downloading and processing game ZIP file from storage...');
+    const zipBuffer = await storageService.downloadFile(gameFileKey);
+    const processedZip = await zipService.processGameZip(zipBuffer);
     
-    const thumbnailFile = files.thumbnailFile[0];
-    const gameFile = files.gameFile[0];
-    
+    if (processedZip.error) {
+      throw new ApiError(400, processedZip.error);
+    }
+
+    // Generate unique game folder name
+    const gameFolderId = uuidv4();
+    const gamePath = `games/${gameFolderId}`;
+
+    // Upload extracted game files to permanent storage location
+    logger.info('Uploading extracted game files to permanent storage...');
+    await storageService.uploadDirectory(processedZip.extractedPath, gamePath);
+
+    // Create file records in the database using transaction
+    logger.info('Creating file records in the database...');
+    const thumbnailFileRecord = fileRepository.create({
+      s3Key: thumbnailFileKey,
+      type: 'thumbnail'
+    });
+
+    if (!processedZip.indexPath) {
+      throw new ApiError(400, 'No index.html found in the zip file');
+    }
+
+    const indexPath = processedZip.indexPath.replace(/\\/g, '/');
+    const gameFileRecord = fileRepository.create({
+      s3Key: `${gamePath}/${indexPath}`,
+      type: 'game_file'
+    });
+
+    await queryRunner.manager.save([thumbnailFileRecord, gameFileRecord]);
+
+    // Assign position for the new game
+    logger.info('Assigning position for new game...');
+    const assignedPosition = await assignPositionForNewGame(position ? parseInt(position) : undefined, queryRunner);
+
+    // Create new game with file IDs and position using transaction
+    logger.info('Creating game record...');
+    const game = gameRepository.create({
+      title,
+      description,
+      thumbnailFileId: thumbnailFileRecord.id,
+      gameFileId: gameFileRecord.id,
+      categoryId: finalCategoryId,
+      status,
+      config,
+      position: assignedPosition,
+      createdById: req.user?.userId
+    });
+
+    await queryRunner.manager.save(game);
+
+    // Create initial position history record
+    logger.info('Creating initial position history record...');
+    await createOrUpdatePositionHistoryRecord(game.id, assignedPosition, queryRunner);
+
+    // Clean up temporary files
+    logger.info('Cleaning up temporary files...');
     try {
-      // Convert and resize thumbnail to webp before upload
-      // const processedThumbnailBuffer = await processImage(thumbnailFile.buffer);
-      
-      // Determine the final categoryId to use
-      let finalCategoryId = categoryId;
-      
-      if (categoryId) {
-        // Check if provided category exists
-        const category = await queryRunner.manager.findOne(Category, {
-          where: { id: categoryId }
-        });
-        
-        if (!category) {
-          throw new ApiError(400, `Category with id ${categoryId} not found`);
-        }
-      } else {
-        // Auto-assign default "General" category if no category provided
-        finalCategoryId = await getDefaultCategoryId(queryRunner);
-      }
-
-      // Process game zip file first to validate it
-      logger.info('Processing game zip file...');
-      const processedZip = await zipService.processGameZip(gameFile.buffer);
-      
-      if (processedZip.error) {
-        throw new ApiError(400, processedZip.error);
-      }
-
-      // Generate unique game folder name
-      const gameFolderId = uuidv4();
-
-      // Upload thumbnail to storage
-      logger.info('Uploading thumbnail file to storage...');
-      const thumbnailUploadResult = await storageService.uploadFile(
-        thumbnailFile.buffer,
-        thumbnailFile.originalname.replace(/\.[^.]+$/, '.webp'),
-        'image/webp',
-        'thumbnails'
-      );
-
-      // Upload game folder to storage
-      logger.info('Uploading game folder to storage...');
-      const gamePath = `games/${gameFolderId}`;
-      await storageService.uploadDirectory(processedZip.extractedPath, gamePath);
-
-      // Create file records in the database using transaction
-      logger.info('Creating file records in the database...');
-      const thumbnailFileRecord = fileRepository.create({
-        s3Key: thumbnailUploadResult.key,
-        type: 'thumbnail'
-      });
-
-      if (!processedZip.indexPath) {
-        throw new ApiError(400, 'No index.html found in the zip file');
-      }
-
-      const indexPath = processedZip.indexPath.replace(/\\/g, '/');
-      const gameFileRecord = fileRepository.create({
-        s3Key: `${gamePath}/${indexPath}`,
-        type: 'game_file'
-      });
-
-      await queryRunner.manager.save([thumbnailFileRecord, gameFileRecord]);
-
-      // Assign position for the new game
-      logger.info('Assigning position for new game...');
-      const assignedPosition = await assignPositionForNewGame(position ? parseInt(position) : undefined, queryRunner);
-
-      // Create new game with file IDs and position using transaction
-      logger.info('Creating game record...');
-      const game = gameRepository.create({
-        title,
-        description,
-        thumbnailFileId: thumbnailFileRecord.id,
-        gameFileId: gameFileRecord.id,
-        categoryId: finalCategoryId,
-        status,
-        config,
-        position: assignedPosition,
-        createdById: req.user?.userId
-      });
-
-      await queryRunner.manager.save(game);
-
-      // Create initial position history record
-      logger.info('Creating initial position history record...');
-      await createOrUpdatePositionHistoryRecord(game.id, assignedPosition, queryRunner);
-
-      // Commit transaction
-      await queryRunner.commitTransaction();
-
-      // Fetch the game with relations to return
-      const savedGame = await gameRepository.findOne({
-        where: { id: game.id },
-        relations: ['category', 'thumbnailFile', 'gameFile', 'createdBy']
-      });
-
-      if (!savedGame) {
-        return next(ApiError.notFound(`Game with id ${game.id} not found`));
-      }
-
-      // Transform game file and thumbnail URLs to direct storage URLs
-      if (savedGame.gameFile) {
-        const s3Key = savedGame.gameFile.s3Key;
-        savedGame.gameFile.s3Key = storageService.getPublicUrl(s3Key);
-      }
-      if (savedGame.thumbnailFile) {
-        const s3Key = savedGame.thumbnailFile.s3Key;
-        savedGame.thumbnailFile.s3Key = storageService.getPublicUrl(s3Key);
-      }
-
-      res.status(201).json({
-        success: true,
-        data: savedGame,
-      });
-    } catch (error) {
-      // Rollback transaction on error
-      await queryRunner.rollbackTransaction();
-      throw error;
+      await storageService.deleteFile(thumbnailFileKey);
+      await storageService.deleteFile(gameFileKey);
+    } catch (cleanupError) {
+      logger.warn('Failed to clean up temporary files:', cleanupError);
     }
+
+    // Commit transaction
+    await queryRunner.commitTransaction();
+
+    // Fetch the game with relations to return
+    const savedGame = await gameRepository.findOne({
+      where: { id: game.id },
+      relations: ['category', 'thumbnailFile', 'gameFile', 'createdBy']
+    });
+
+    if (!savedGame) {
+      return next(ApiError.notFound(`Game with id ${game.id} not found`));
+    }
+
+    // Transform game file and thumbnail URLs to direct storage URLs
+    if (savedGame.gameFile) {
+      const s3Key = savedGame.gameFile.s3Key;
+      savedGame.gameFile.s3Key = storageService.getPublicUrl(s3Key);
+    }
+    if (savedGame.thumbnailFile) {
+      const s3Key = savedGame.thumbnailFile.s3Key;
+      savedGame.thumbnailFile.s3Key = storageService.getPublicUrl(s3Key);
+    }
+
+    res.status(201).json({
+      success: true,
+      data: savedGame,
+    });
   } catch (error) {
     next(error);
   } finally {
@@ -1229,6 +1217,90 @@ export const getGameByPosition = async (
       data: game
     });
   } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @swagger
+ * /games/presigned-url:
+ *   post:
+ *     summary: Generate presigned URL for direct file upload
+ *     description: Generate a presigned URL for uploading files directly to R2 storage. Accessible by admins.
+ *     tags: [Games]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - filename
+ *               - fileType
+ *             properties:
+ *               filename:
+ *                 type: string
+ *                 description: Name of the file to upload
+ *               contentType:
+ *                 type: string
+ *                 description: MIME type of the file
+ *               fileType:
+ *                 type: string
+ *                 enum: [thumbnail, game]
+ *                 description: Type of file being uploaded
+ *     responses:
+ *       200:
+ *         description: Presigned URL generated successfully
+ *       400:
+ *         description: Bad request
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Internal server error
+ */
+export const generatePresignedUrl = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { filename, contentType, fileType } = req.body;
+    
+    if (!filename || !fileType) {
+      return next(ApiError.badRequest('Filename and fileType are required'));
+    }
+    
+    // Validate fileType
+    if (!['thumbnail', 'game'].includes(fileType)) {
+      return next(ApiError.badRequest('FileType must be either "thumbnail" or "game"'));
+    }
+    
+    // Generate unique path
+    const timestamp = Date.now();
+    const gameId = uuidv4();
+    const folder = fileType === 'thumbnail' ? 'temp-thumbnails' : 'temp-games';
+    const key = `${folder}/${gameId}-${timestamp}/${filename}`;
+    
+    logger.info(`Generating presigned URL for: ${key}`);
+    
+    // Generate presigned URL using storage service
+    const presignedUrl = await storageService.generatePresignedUrl(key, contentType);
+    const publicUrl = storageService.getPublicUrl(key);
+    
+    res.status(200).json({
+      success: true,
+      data: {
+        uploadUrl: presignedUrl,
+        publicUrl,
+        key
+      }
+    });
+  } catch (error) {
+    logger.error('Error generating presigned URL:', error);
     next(error);
   }
 };

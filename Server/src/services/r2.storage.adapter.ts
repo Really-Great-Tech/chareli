@@ -2,8 +2,10 @@ import {
   S3Client,
   PutObjectCommand,
   DeleteObjectCommand,
+  GetObjectCommand,
   S3ClientConfig,
 } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -49,6 +51,28 @@ export class R2StorageAdapter implements IStorageService {
   getPublicUrl(key: string): string {
     // This simply prepends the base public URL of our Worker to the storage key.
     return `${this.publicUrl}/${key}`;
+  }
+
+  /**
+   * @inheritdoc
+   */
+  async generatePresignedUrl(key: string, contentType: string): Promise<string> {
+    try {
+      const command = new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        ContentType: contentType || 'application/octet-stream',
+      });
+
+      const url = await getSignedUrl(this.s3Client, command, { expiresIn: 3600 });
+      logger.info(`Generated presigned URL for key: ${key}`);
+      return url;
+    } catch (error) {
+      logger.error('Error generating presigned URL:', { error, key });
+      throw new Error(
+        `Failed to generate presigned URL: ${(error as Error).message}`
+      );
+    }
   }
 
   /**
@@ -136,6 +160,33 @@ export class R2StorageAdapter implements IStorageService {
       });
       throw new Error(
         `Failed to upload directory to R2: ${(error as Error).message}`
+      );
+    }
+  }
+
+  /**
+   * @inheritdoc
+   */
+  async downloadFile(key: string): Promise<Buffer> {
+    try {
+      const command = new GetObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+      });
+
+      const response = await this.s3Client.send(command);
+      
+      if (!response.Body) {
+        throw new Error('No file content received');
+      }
+
+      const buffer = Buffer.from(await response.Body.transformToByteArray());
+      logger.info(`Successfully downloaded file from R2 with key: ${key}`);
+      return buffer;
+    } catch (error) {
+      logger.error('Error downloading file from R2:', { error, key });
+      throw new Error(
+        `Failed to download file from R2: ${(error as Error).message}`
       );
     }
   }

@@ -226,61 +226,67 @@ export function CreateGameSheet({
         >
           {({ isSubmitting, isValid, dirty }) => (
             <Form className="grid grid-cols-1 gap-6 pl-4 pr-4">
-              {/* Thumbnail Upload and Order Number */}
-              <div className="grid grid-cols-2 gap-4">
-                {/* Thumbnail Upload */}
-                <div>
-                  <Label className="text-base mb-2 block">
-                    Add Thumbnail icon
-                  </Label>
-                  <UppyUpload
-                    fileType="thumbnail"
-                    accept={['image/*']}
-                    onFileUploaded={handleThumbnailUploaded}
-                    onFileReplaced={handleThumbnailReplaced}
-                    onUploadStart={handleThumbnailUploadStart}
-                    onUploadError={handleThumbnailUploadError}
-                  />
-                  {uploadedFiles.thumbnail && (
-                    <div className="mt-2 text-sm text-green-600 dark:text-green-400">
-                      ✅ {uploadedFiles.thumbnail.name} uploaded
+              {/* Thumbnail Upload - Full Width */}
+              <div>
+                <Label className="text-base mb-3 block dark:text-white">
+                  Game Thumbnail
+                </Label>
+                <UppyUpload
+                  fileType="thumbnail"
+                  accept={['image/*']}
+                  onFileUploaded={handleThumbnailUploaded}
+                  onFileReplaced={handleThumbnailReplaced}
+                  onUploadStart={handleThumbnailUploadStart}
+                  onUploadError={handleThumbnailUploadError}
+                />
+                {uploadedFiles.thumbnail && (
+                  <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
+                    <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400 font-worksans">
+                      <span className="font-medium">{uploadedFiles.thumbnail.name}</span>
+                      <span className="text-xs bg-green-100 dark:bg-green-800 px-2 py-1 rounded-full">Uploaded</span>
                     </div>
-                  )}
-                  {isUploading.thumbnail && (
-                    <div className="mt-2 text-sm text-blue-600 dark:text-blue-400">
-                      📤 Uploading thumbnail...
+                  </div>
+                )}
+                {isUploading.thumbnail && (
+                  <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
+                    <div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-400 font-worksans">
+                      <div className="animate-spin w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+                      <span>Uploading thumbnail...</span>
                     </div>
-                  )}
-                  <ErrorMessage
-                    name="thumbnailFile"
-                    component="div"
-                    className="text-red-500  mt-1 font-worksans text-sm tracking-wider"
-                  />
-                </div>
+                  </div>
+                )}
+                <ErrorMessage
+                  name="thumbnailFile"
+                  component="div"
+                  className="text-red-500 mt-2 font-worksans text-sm tracking-wider"
+                />
+              </div>
 
-                {/* Order Number */}
-                <div>
-                  <Label
-                    htmlFor="position"
-                    className="text-base mb-2 block dark:text-white"
-                  >
-                    Order Number
-                  </Label>
-                  <Field
-                    as={Input}
-                    type="number"
-                    id="position"
-                    name="position"
-                    min="1"
-                    className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white bg-[#F1F5F9] dark:bg-[#121C2D] px-3 text-gray-700 focus:border-[#D946EF] focus:outline-none font-worksans tracking-wider text-sm"
-                    placeholder="e.g., #234"
-                  />
-                  <ErrorMessage
-                    name="position"
-                    component="div"
-                    className="text-red-500  mt-1 font-worksans text-sm tracking-wider"
-                  />
-                </div>
+              {/* Order Number - Separate Row */}
+              <div>
+                <Label
+                  htmlFor="position"
+                  className="text-base mb-2 block dark:text-white"
+                >
+                  Order Number (Optional)
+                </Label>
+                <Field
+                  as={Input}
+                  type="number"
+                  id="position"
+                  name="position"
+                  min="1"
+                  className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white bg-[#F1F5F9] dark:bg-[#121C2D] px-3 text-gray-700 focus:border-[#D946EF] focus:outline-none font-worksans tracking-wider text-sm"
+                  placeholder="e.g., 1, 2, 3..."
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-worksans">
+                  Position in the games list (leave empty for auto-assignment)
+                </p>
+                <ErrorMessage
+                  name="position"
+                  component="div"
+                  className="text-red-500 mt-1 font-worksans text-sm tracking-wider"
+                />
               </div>
 
               {/* Title Input */}
@@ -339,13 +345,19 @@ export function CreateGameSheet({
                   onUploadError={handleGameUploadError}
                 />
                 {uploadedFiles.game && (
-                  <div className="mt-2 text-sm text-green-600 dark:text-green-400">
-                    ✅ {uploadedFiles.game.name} uploaded
+                  <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
+                    <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400 font-worksans">
+                      <span className="font-medium">{uploadedFiles.game.name}</span>
+                      <span className="text-xs bg-green-100 dark:bg-green-800 px-2 py-1 rounded-full">Uploaded</span>
+                    </div>
                   </div>
                 )}
                 {isUploading.game && (
-                  <div className="mt-2 text-sm text-blue-600 dark:text-blue-400">
-                    📤 Uploading game file...
+                  <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
+                    <div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-400 font-worksans">
+                      <div className="animate-spin w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+                      <span>Uploading game file...</span>
+                    </div>
                   </div>
                 )}
                 <ErrorMessage

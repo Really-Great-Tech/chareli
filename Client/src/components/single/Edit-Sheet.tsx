@@ -454,11 +454,7 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
                     variant="default"
                     className="bg-[#D946EF] hover:bg-accent dark:text-white cursor-pointer"
                     onClick={(e) => {
-                      console.log('🔘 Update button clicked!');
-                      console.log('Button disabled?', isSubmitting || isUploading.thumbnail || isUploading.game);
-                      console.log('isSubmitting:', isSubmitting);
-                      console.log('isUploading.thumbnail:', isUploading.thumbnail);
-                      console.log('isUploading.game:', isUploading.game);
+                      console.log('🔘 Update button clicked!', e);
                       // Don't prevent default - let form handle submission
                     }}
                   >

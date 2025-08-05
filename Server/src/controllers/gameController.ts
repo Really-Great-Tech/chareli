@@ -16,6 +16,8 @@ import logger from '../utils/logger';
 import { v4 as uuidv4 } from 'uuid';
 import jwt from 'jsonwebtoken';
 import config from '../config/config';
+import path from 'path';
+import { moveFileToPermanentStorage } from '../utils/fileUtils';
 // import { processImage } from '../services/file.service';
 
 const gameRepository = AppDataSource.getRepository(Game);
@@ -724,20 +726,14 @@ export const createGame = async (
     logger.info('Uploading extracted game files to permanent storage...');
     await storageService.uploadDirectory(processedZip.extractedPath, gamePath);
 
-    // Move thumbnail to permanent storage and create file record
+    // Move thumbnail to permanent storage using utility function
     logger.info('Moving thumbnail to permanent storage...');
-    const thumbnailBuffer = await storageService.downloadFile(thumbnailFileKey);
-    const thumbnailUploadResult = await storageService.uploadFile(
-      thumbnailBuffer,
-      thumbnailFileKey.split('/').pop() || 'thumbnail.jpg', // Get filename from key
-      'image/jpeg', // Default to jpeg, could be improved to detect actual type
-      'thumbnails'
-    );
+    const permanentThumbnailKey = await moveFileToPermanentStorage(thumbnailFileKey, 'thumbnails');
     
     // Create file records in the database using transaction
     logger.info('Creating file records in the database...');
     const thumbnailFileRecord = fileRepository.create({
-      s3Key: thumbnailUploadResult.key,
+      s3Key: permanentThumbnailKey,
       type: 'thumbnail'
     });
 
@@ -942,21 +938,13 @@ export const updateGame = async (
     if (thumbnailFileKey) {
       logger.info(`Updating thumbnail from temporary storage: ${thumbnailFileKey}`);
       
-      // Download from temporary storage
-      const thumbnailBuffer = await storageService.downloadFile(thumbnailFileKey);
-      
-      // Upload to permanent storage
-      const thumbnailUploadResult = await storageService.uploadFile(
-        thumbnailBuffer,
-        thumbnailFileKey.split('/').pop() || 'thumbnail.jpg',
-        'image/jpeg', // Default to jpeg, could be improved to detect actual type
-        'thumbnails'
-      );
+      // Move thumbnail to permanent storage using utility function
+      const permanentThumbnailKey = await moveFileToPermanentStorage(thumbnailFileKey, 'thumbnails');
       
       // Create file record
       logger.info('Creating new thumbnail file record...');
       const thumbnailFileRecord = fileRepository.create({
-        s3Key: thumbnailUploadResult.key,
+        s3Key: permanentThumbnailKey,
         type: 'thumbnail'
       });
       
@@ -964,13 +952,6 @@ export const updateGame = async (
       
       // Update game with new file ID
       game.thumbnailFileId = thumbnailFileRecord.id;
-      
-      // Clean up temporary file
-      try {
-        await storageService.deleteFile(thumbnailFileKey);
-      } catch (cleanupError) {
-        logger.warn('Failed to clean up temporary thumbnail file:', cleanupError);
-      }
     }
     // Handle thumbnail file upload - Old multer approach (for backward compatibility)
     else if (files?.thumbnailFile && files.thumbnailFile[0]) {

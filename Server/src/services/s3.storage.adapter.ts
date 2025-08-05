@@ -168,4 +168,46 @@ export class S3StorageAdapter implements IStorageService {
       return false;
     }
   }
+
+  async moveFile(sourceKey: string, destinationKey: string): Promise<string> {
+    try {
+      // First, get the source object to preserve metadata including content type
+      const getCommand = new GetObjectCommand({
+        Bucket: this.bucket,
+        Key: sourceKey,
+      });
+
+      const sourceObject = await this.s3Client.send(getCommand);
+      
+      if (!sourceObject.Body) {
+        throw new Error('Source file has no content');
+      }
+
+      // Get the content type from the source object
+      const contentType = sourceObject.ContentType || 'application/octet-stream';
+      
+      // Copy to destination with preserved content type
+      const buffer = Buffer.from(await sourceObject.Body.transformToByteArray());
+      
+      const putCommand = new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: destinationKey,
+        Body: buffer,
+        ContentType: contentType,
+      });
+
+      await this.s3Client.send(putCommand);
+      
+      // Delete the source file
+      await this.deleteFile(sourceKey);
+      
+      logger.info(`Successfully moved file from ${sourceKey} to ${destinationKey} with content type: ${contentType}`);
+      return destinationKey;
+    } catch (error) {
+      logger.error('Error moving file in S3:', { error, sourceKey, destinationKey });
+      throw new Error(
+        `Failed to move file in S3: ${(error as Error).message}`
+      );
+    }
+  }
 }

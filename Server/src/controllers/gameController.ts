@@ -659,9 +659,13 @@ export const createGame = async (
       status = GameStatus.ACTIVE,
       config = 0,
       position,
-      thumbnailFileKey,
-      gameFileKey
+      thumbnailFileKey: rawThumbnailFileKey,
+      gameFileKey: rawGameFileKey
     } = req.body;
+    
+    // Decode HTML entities in file keys
+    const thumbnailFileKey = rawThumbnailFileKey?.replace(/&#x2F;/g, '/');
+    const gameFileKey = rawGameFileKey?.replace(/&#x2F;/g, '/');
     
     if (!title) {
       return next(ApiError.badRequest('Game title is required'));
@@ -700,8 +704,12 @@ export const createGame = async (
     }
 
     // Download and process the uploaded ZIP file from storage
-    logger.info('Downloading and processing game ZIP file from storage...');
+    logger.info(`Downloading and processing game ZIP file from storage...`);
+    logger.info(`Attempting to download file with key: ${gameFileKey}`);
+    logger.info(`Thumbnail file key: ${thumbnailFileKey}`);
+    
     const zipBuffer = await storageService.downloadFile(gameFileKey);
+    logger.info(`Successfully downloaded ZIP file, size: ${zipBuffer.length} bytes`);
     const processedZip = await zipService.processGameZip(zipBuffer);
     
     if (processedZip.error) {
@@ -796,6 +804,8 @@ export const createGame = async (
       data: savedGame,
     });
   } catch (error) {
+    // Rollback transaction on error
+    await queryRunner.rollbackTransaction();
     next(error);
   } finally {
     // Release query runner

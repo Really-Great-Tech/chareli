@@ -72,8 +72,10 @@ interface Config {
   r2: {
     accountId: string;
     accessKeyId: string;
+    bucket: string;
     secretAccessKey: string;
     publicUrl: string;
+    workerJwtSecret: string;
   };
   twilio: {
     accountSid: string;
@@ -169,8 +171,10 @@ const config: Config = {
   r2: {
     accountId: getEnv('CLOUDFLARE_ACCOUNT_ID'),
     accessKeyId: getEnv('R2_ACCESS_KEY_ID'),
+    bucket: getEnv('R2_BUCKET_NAME'),
     secretAccessKey: getEnv('R2_SECRET_ACCESS_KEY'),
     publicUrl: getEnv('R2_PUBLIC_URL'),
+    workerJwtSecret: getEnv('WORKER_JWT_SECRET', 'your-worker-jwt-secret'),
   },
   twilio: {
     accountSid: process.env.TWILIO_ACCOUNT_SID || '',

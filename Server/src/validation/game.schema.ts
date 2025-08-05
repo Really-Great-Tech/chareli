@@ -9,9 +9,13 @@ export const createGameSchema = yup.object({
   description: yup.string().trim().nullable(),
   thumbnailFileId: yup.string().uuid('Invalid thumbnail file ID'),
   gameFileId: yup.string().uuid('Invalid game file ID'),
+  // Support for new presigned URL approach
+  thumbnailFileKey: yup.string(),
+  gameFileKey: yup.string(),
   categoryId: yup.string().uuid('Invalid category ID'),
   status: yup.string().oneOf(Object.values(GameStatus), 'Invalid game status'),
-  config: yup.number().integer('Config must be an integer').default(0)
+  config: yup.number().integer('Config must be an integer').default(0),
+  position: yup.number().integer('Position must be an integer').min(1, 'Position must be at least 1')
 });
 
 /**
@@ -22,9 +26,13 @@ export const updateGameSchema = yup.object({
   description: yup.string().trim().nullable(),
   thumbnailFileId: yup.string().uuid('Invalid thumbnail file ID'),
   gameFileId: yup.string().uuid('Invalid game file ID'),
+  // Support for new presigned URL approach
+  thumbnailFileKey: yup.string(),
+  gameFileKey: yup.string(),
   categoryId: yup.string().uuid('Invalid category ID'),
   status: yup.string().oneOf(Object.values(GameStatus), 'Invalid game status'),
-  config: yup.number().integer('Config must be an integer')
+  config: yup.number().integer('Config must be an integer'),
+  position: yup.number().integer('Position must be an integer').min(1, 'Position must be at least 1')
 }).test(
   'at-least-one-field',
   'At least one field must be provided',

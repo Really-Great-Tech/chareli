@@ -2,8 +2,10 @@ import {
   S3Client,
   PutObjectCommand,
   DeleteObjectCommand,
+  GetObjectCommand,
   S3ClientConfig,
 } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
@@ -49,6 +51,28 @@ export class S3StorageAdapter implements IStorageService {
     // For AWS S3, we construct the standard S3 object URL.
     // If you were using CloudFront in front of S3, this is where you'd construct the CloudFront URL.
     return `https://${this.bucket}.s3.${this.region}.amazonaws.com/${key}`;
+  }
+
+  /**
+   * @inheritdoc
+   */
+  async generatePresignedUrl(key: string, contentType: string): Promise<string> {
+    try {
+      const command = new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        ContentType: contentType || 'application/octet-stream',
+      });
+
+      const url = await getSignedUrl(this.s3Client, command, { expiresIn: 3600 });
+      logger.info(`Generated presigned URL for key: ${key}`);
+      return url;
+    } catch (error) {
+      logger.error('Error generating presigned URL:', { error, key });
+      throw new Error(
+        `Failed to generate presigned URL: ${(error as Error).message}`
+      );
+    }
   }
 
   /**
@@ -110,6 +134,30 @@ export class S3StorageAdapter implements IStorageService {
     }
   }
 
+  async downloadFile(key: string): Promise<Buffer> {
+    try {
+      const command = new GetObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+      });
+
+      const response = await this.s3Client.send(command);
+      
+      if (!response.Body) {
+        throw new Error('No file content received');
+      }
+
+      const buffer = Buffer.from(await response.Body.transformToByteArray());
+      logger.info(`Successfully downloaded file from S3 with key: ${key}`);
+      return buffer;
+    } catch (error) {
+      logger.error('Error downloading file from S3:', { error, key });
+      throw new Error(
+        `Failed to download file from S3: ${(error as Error).message}`
+      );
+    }
+  }
+
   async deleteFile(key: string): Promise<boolean> {
     const command = new DeleteObjectCommand({ Bucket: this.bucket, Key: key });
     try {
@@ -118,6 +166,48 @@ export class S3StorageAdapter implements IStorageService {
     } catch (error) {
       logger.error('Error deleting file from S3:', { error, key });
       return false;
+    }
+  }
+
+  async moveFile(sourceKey: string, destinationKey: string): Promise<string> {
+    try {
+      // First, get the source object to preserve metadata including content type
+      const getCommand = new GetObjectCommand({
+        Bucket: this.bucket,
+        Key: sourceKey,
+      });
+
+      const sourceObject = await this.s3Client.send(getCommand);
+      
+      if (!sourceObject.Body) {
+        throw new Error('Source file has no content');
+      }
+
+      // Get the content type from the source object
+      const contentType = sourceObject.ContentType || 'application/octet-stream';
+      
+      // Copy to destination with preserved content type
+      const buffer = Buffer.from(await sourceObject.Body.transformToByteArray());
+      
+      const putCommand = new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: destinationKey,
+        Body: buffer,
+        ContentType: contentType,
+      });
+
+      await this.s3Client.send(putCommand);
+      
+      // Delete the source file
+      await this.deleteFile(sourceKey);
+      
+      logger.info(`Successfully moved file from ${sourceKey} to ${destinationKey} with content type: ${contentType}`);
+      return destinationKey;
+    } catch (error) {
+      logger.error('Error moving file in S3:', { error, sourceKey, destinationKey });
+      throw new Error(
+        `Failed to move file in S3: ${(error as Error).message}`
+      );
     }
   }
 }

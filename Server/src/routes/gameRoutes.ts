@@ -7,7 +7,8 @@ import {
   updateGame,
   deleteGame,
   uploadGameFiles,
-  uploadGameFilesForUpdate
+  uploadGameFilesForUpdate,
+  generatePresignedUrl
 } from '../controllers/gameController';
 import { authenticate, isAdmin, optionalAuthenticate } from '../middlewares/authMiddleware';
 import { validateBody, validateParams, validateQuery } from '../middlewares/validationMiddleware';
@@ -28,6 +29,7 @@ router.get('/:id', optionalAuthenticate, validateParams(gameIdParamSchema), getG
 router.use(authenticate);
 router.use(isAdmin);
 
+router.post('/presigned-url', generatePresignedUrl);
 router.post('/', uploadGameFiles, createGame);
 router.put('/:id', validateParams(gameIdParamSchema), uploadGameFilesForUpdate, updateGame);
 router.delete('/:id', validateParams(gameIdParamSchema), deleteGame);

@@ -2,8 +2,10 @@ import {
   S3Client,
   PutObjectCommand,
   DeleteObjectCommand,
+  GetObjectCommand,
   S3ClientConfig,
 } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
@@ -49,6 +51,28 @@ export class S3StorageAdapter implements IStorageService {
     // For AWS S3, we construct the standard S3 object URL.
     // If you were using CloudFront in front of S3, this is where you'd construct the CloudFront URL.
     return `https://${this.bucket}.s3.${this.region}.amazonaws.com/${key}`;
+  }
+
+  /**
+   * @inheritdoc
+   */
+  async generatePresignedUrl(key: string, contentType: string): Promise<string> {
+    try {
+      const command = new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        ContentType: contentType || 'application/octet-stream',
+      });
+
+      const url = await getSignedUrl(this.s3Client, command, { expiresIn: 3600 });
+      logger.info(`Generated presigned URL for key: ${key}`);
+      return url;
+    } catch (error) {
+      logger.error('Error generating presigned URL:', { error, key });
+      throw new Error(
+        `Failed to generate presigned URL: ${(error as Error).message}`
+      );
+    }
   }
 
   /**
@@ -107,6 +131,30 @@ export class S3StorageAdapter implements IStorageService {
         });
         await this.s3Client.send(command);
       }
+    }
+  }
+
+  async downloadFile(key: string): Promise<Buffer> {
+    try {
+      const command = new GetObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+      });
+
+      const response = await this.s3Client.send(command);
+      
+      if (!response.Body) {
+        throw new Error('No file content received');
+      }
+
+      const buffer = Buffer.from(await response.Body.transformToByteArray());
+      logger.info(`Successfully downloaded file from S3 with key: ${key}`);
+      return buffer;
+    } catch (error) {
+      logger.error('Error downloading file from S3:', { error, key });
+      throw new Error(
+        `Failed to download file from S3: ${(error as Error).message}`
+      );
     }
   }
 

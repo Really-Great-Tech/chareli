@@ -26,6 +26,27 @@ export class LocalStorageAdapter implements IStorageService {
     return `${this.publicUrl}/uploads/${key}`;
   }
 
+  async generatePresignedUrl(key: string, contentType: string): Promise<string> {
+    // For local storage, we don't need presigned URLs since files are uploaded directly
+    // We'll just return a mock URL that won't be used in practice
+    logger.warn('generatePresignedUrl called on LocalStorageAdapter - this should not be used in production');
+    return `${this.publicUrl}/api/local-upload/${key}`;
+  }
+
+  async downloadFile(key: string): Promise<Buffer> {
+    const fullPath = path.join(UPLOAD_DIR, key);
+    try {
+      const buffer = await fs.readFile(fullPath);
+      logger.info(`Successfully downloaded local file: ${fullPath}`);
+      return buffer;
+    } catch (error) {
+      logger.error('Error downloading local file:', { error, path: fullPath });
+      throw new Error(
+        `Failed to download local file: ${(error as Error).message}`
+      );
+    }
+  }
+
   async uploadFile(
     file: Buffer,
     originalname: string,

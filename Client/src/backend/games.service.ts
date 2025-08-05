@@ -34,10 +34,10 @@ export const useGameById = (id: string) => {
 export const useCreateGame = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: FormData) => 
+    mutationFn: (data: any) => 
       backendService.post(BackendRoute.GAMES, data, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': 'application/json',
         },
       }),
     onSuccess: () => {

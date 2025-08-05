@@ -9,7 +9,10 @@ import { SearchableSelect } from "../ui/searchable-select";
 // import uploadImg from "../../assets/fetch-upload.svg";
 import { useCreateGame } from "../../backend/games.service";
 import { useCategories } from "../../backend/category.service";
+import { backendService } from "../../backend/api.service";
 import { toast } from "sonner";
+import { useQueryClient } from '@tanstack/react-query';
+import { BackendRoute } from "../../backend/constants";
 import GameCreationProgress from "./GameCreationProgress";
 import UppyUpload from "./UppyUpload";
 import {
@@ -152,6 +155,7 @@ export function CreateGameSheet({
   const [currentStep, setCurrentStep] = useState("");
   const createGame = useCreateGame();
   const { data: categories } = useCategories();
+  const queryClient = useQueryClient(); // Add query client for manual cache invalidation
   const handleSubmit = async (
     values: FormValues,
     { setSubmitting, resetForm }: any
@@ -189,7 +193,60 @@ export function CreateGameSheet({
       setProgress(0);
       setCurrentStep("");
       onOpenChange?.(false);
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Error creating game:", error);
+      
+      // Check if this is a network error but the game might have been created successfully
+      if (error?.code === 'ERR_NETWORK' || error?.message === 'Network Error') {
+        setCurrentStep("Verifying game creation...");
+        setProgress(90);
+        
+        // Wait a moment for the server to complete processing
+        await new Promise((resolve) => setTimeout(resolve, 10000));
+        
+        try {
+          // Check if the game was actually created by searching for it
+          // We'll search for games with the same title created in the last few minutes
+          const { data: recentGames } = await backendService.get('/api/games', {
+            params: { 
+              limit: 10,
+              search: values.title 
+            },
+            suppressErrorToast: true
+          });
+          
+          // Look for a game with the exact title created recently (within the last 5 minutes)
+          const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+          const possibleGame = recentGames?.data?.find((game: any) => 
+            game.title === values.title && 
+            new Date(game.createdAt) > fiveMinutesAgo
+          );
+          
+          if (possibleGame) {
+            setProgress(100);
+            setCurrentStep("Game created successfully!");
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            
+            // Manually invalidate React Query cache to trigger UI updates
+            queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES] });
+            queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS] });
+            queryClient.invalidateQueries({ queryKey: [BackendRoute.CATEGORIES] });
+            
+            toast.success("Game created successfully! (Upload completed despite network error)");
+            resetForm();
+            setUploadedFiles({ thumbnail: null, game: null });
+            setShowProgress(false);
+            setProgress(0);
+            setCurrentStep("");
+            onOpenChange?.(false);
+            return;
+          }
+        } catch (verificationError) {
+          console.error("Failed to verify game creation:", verificationError);
+        }
+      }
+      
+      // If we get here, the game creation actually failed
       setShowProgress(false);
       setProgress(0);
       setCurrentStep("");

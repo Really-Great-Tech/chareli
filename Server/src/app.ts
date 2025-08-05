@@ -43,6 +43,16 @@ app.use((req, res, next) => {
 app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 
+// Set longer timeout for game creation requests
+app.use('/api/games', (req, res, next) => {
+  // Set timeout to 25 minutes for game creation and updates
+  if (req.method === 'POST' || req.method === 'PUT') {
+    req.setTimeout(25 * 60 * 1000); // 25 minutes in milliseconds
+    res.setTimeout(25 * 60 * 1000); // 25 minutes in milliseconds
+  }
+  next();
+});
+
 // Input sanitization middleware
 app.use(sanitizeInput);
 

@@ -105,4 +105,25 @@ export class LocalStorageAdapter implements IStorageService {
       return false;
     }
   }
+
+  async moveFile(sourceKey: string, destinationKey: string): Promise<string> {
+    const sourcePath = path.join(UPLOAD_DIR, sourceKey);
+    const destinationPath = path.join(UPLOAD_DIR, destinationKey);
+    
+    try {
+      // Ensure destination directory exists
+      await fs.mkdir(path.dirname(destinationPath), { recursive: true });
+      
+      // Move the file
+      await fs.rename(sourcePath, destinationPath);
+      
+      logger.info(`Successfully moved local file from ${sourcePath} to ${destinationPath}`);
+      return destinationKey;
+    } catch (error) {
+      logger.error('Error moving local file:', { error, sourceKey, destinationKey });
+      throw new Error(
+        `Failed to move local file: ${(error as Error).message}`
+      );
+    }
+  }
 }

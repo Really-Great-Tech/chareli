@@ -173,7 +173,7 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
         <Dashboard
           uppy={uppy}
           width="100%"
-          height={fileType === 'thumbnail' ? 160 : 140}
+          height={fileType === 'thumbnail' ? 220 : 200}
           proudlyDisplayPoweredByUppy={false}
           note={fileType === 'thumbnail' 
             ? 'Drag & drop your game thumbnail or click to browse' 
@@ -216,6 +216,7 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
           .uppy-upload-container .uppy-Dashboard-inner {
             background-color: transparent !important;
             padding: 20px !important;
+            min-height: 180px !important;
           }
           
           .uppy-upload-container .uppy-Dashboard-AddFiles {
@@ -337,6 +338,87 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
           
           .uppy-upload-container .uppy-Dashboard-Item--success {
             animation: uploadSuccess 0.6s ease !important;
+          }
+          
+          /* File preview styling */
+          .uppy-upload-container .uppy-Dashboard-Item-preview {
+            width: 80px !important;
+            height: 80px !important;
+            border-radius: 6px !important;
+            overflow: hidden !important;
+            flex-shrink: 0 !important;
+          }
+          
+          .uppy-upload-container .uppy-Dashboard-Item-previewImg {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            border-radius: 6px !important;
+          }
+          
+          .uppy-upload-container .uppy-Dashboard-Item-fileInfo {
+            flex: 1 !important;
+            padding-left: 12px !important;
+            min-width: 0 !important;
+          }
+          
+          .uppy-upload-container .uppy-Dashboard-Item-name {
+            font-size: 14px !important;
+            font-weight: 600 !important;
+            color: #374151 !important;
+            margin-bottom: 4px !important;
+            word-break: break-word !important;
+          }
+          
+          .uppy-upload-container .uppy-Dashboard-Item-status {
+            font-size: 12px !important;
+            color: #6B7280 !important;
+          }
+          
+          .dark .uppy-upload-container .uppy-Dashboard-Item-name {
+            color: #F9FAFB !important;
+          }
+          
+          .dark .uppy-upload-container .uppy-Dashboard-Item-status {
+            color: #D1D5DB !important;
+          }
+          
+          /* Ensure files list has proper spacing */
+          .uppy-upload-container .uppy-Dashboard-files {
+            margin-top: 16px !important;
+            max-height: 200px !important;
+            overflow-y: auto !important;
+          }
+          
+          /* Custom scrollbar for files list */
+          .uppy-upload-container .uppy-Dashboard-files::-webkit-scrollbar {
+            width: 6px !important;
+          }
+          
+          .uppy-upload-container .uppy-Dashboard-files::-webkit-scrollbar-track {
+            background: #F3F4F6 !important;
+            border-radius: 3px !important;
+          }
+          
+          .uppy-upload-container .uppy-Dashboard-files::-webkit-scrollbar-thumb {
+            background: #D1D5DB !important;
+            border-radius: 3px !important;
+          }
+          
+          .uppy-upload-container .uppy-Dashboard-files::-webkit-scrollbar-thumb:hover {
+            background: #9CA3AF !important;
+          }
+          
+          .dark .uppy-upload-container .uppy-Dashboard-files::-webkit-scrollbar-track {
+            background: #374151 !important;
+          }
+          
+          .dark .uppy-upload-container .uppy-Dashboard-files::-webkit-scrollbar-thumb {
+            background: #6B7280 !important;
+          }
+          
+          .dark .uppy-upload-container .uppy-Dashboard-files::-webkit-scrollbar-thumb:hover {
+            background: #9CA3AF !important;
           }
         `
       }} />

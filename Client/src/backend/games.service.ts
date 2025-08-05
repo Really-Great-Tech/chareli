@@ -40,6 +40,7 @@ export const useCreateGame = () => {
         headers: {
           'Content-Type': 'application/json',
         },
+        timeout: 1200000, // 20 minutes timeout for game creation/upload
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES] });

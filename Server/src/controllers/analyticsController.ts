@@ -4,6 +4,7 @@ import { Analytics } from '../entities/Analytics';
 import { ApiError } from '../middlewares/errorHandler';
 import { Between, FindOptionsWhere } from 'typeorm';
 import redis from '../config/redisClient';
+import CacheService from '../services/cache.service';
 
 const analyticsRepository = AppDataSource.getRepository(Analytics);
 
@@ -88,12 +89,8 @@ export const createAnalytics = async (
     
     await analyticsRepository.save(analytics);
     
-    // Invalidate all analytics cache (simple approach)
-    const keys = await redis.keys('analytics:all:*');
-    if (keys.length > 0) await redis.del(keys);
-
-    // Invalidate user stats cache for this user
-    await redis.del(`users:stats:${userId}`);
+    // Invalidate analytics caches using centralized service
+    await CacheService.invalidateAnalyticsCaches(userId, gameId);
 
     res.status(201).json({
       success: true,
@@ -388,10 +385,8 @@ export const updateAnalytics = async (
         // Delete the analytics record if it's a game session with duration < 30 seconds
         await analyticsRepository.remove(analytics);
         
-        // Invalidate cache for this analytics and all lists
-        await redis.del(`analytics:id:${id}`);
-        const keys = await redis.keys('analytics:all:*');
-        if (keys.length > 0) await redis.del(keys);
+    // Invalidate analytics caches using centralized service
+    await CacheService.invalidateAnalyticsCaches(analytics.userId, analytics.gameId || undefined);
 
         res.status(200).json({
           success: true,
@@ -404,10 +399,8 @@ export const updateAnalytics = async (
     
     await analyticsRepository.save(analytics);
     
-    // Invalidate cache for this analytics and all lists
-    await redis.del(`analytics:id:${id}`);
-    const keys = await redis.keys('analytics:all:*');
-    if (keys.length > 0) await redis.del(keys);
+    // Invalidate analytics caches using centralized service
+    await CacheService.invalidateAnalyticsCaches(analytics.userId, analytics.gameId || undefined);
     res.status(200).json({
       success: true,
       data: analytics
@@ -499,10 +492,8 @@ export const updateAnalyticsEndTime = async (
         // Delete the analytics record if it's a game session with duration < 30 seconds
         await analyticsRepository.remove(analytics);
         
-        // Invalidate cache for this analytics and all lists
-        await redis.del(`analytics:id:${id}`);
-        const keys = await redis.keys('analytics:all:*');
-        if (keys.length > 0) await redis.del(keys);
+        // Invalidate analytics caches using centralized service
+        await CacheService.invalidateAnalyticsCaches(analytics.userId, analytics.gameId || undefined);
 
         res.status(200).json({
           success: true,
@@ -515,10 +506,8 @@ export const updateAnalyticsEndTime = async (
     
     await analyticsRepository.save(analytics);
     
-    // Invalidate cache for this analytics and all lists
-    await redis.del(`analytics:id:${id}`);
-    const keys = await redis.keys('analytics:all:*');
-    if (keys.length > 0) await redis.del(keys);
+    // Invalidate analytics caches using centralized service
+    await CacheService.invalidateAnalyticsCaches(analytics.userId, analytics.gameId || undefined);
     res.status(200).json({
       success: true,
       data: analytics
@@ -546,10 +535,8 @@ export const deleteAnalytics = async (
     
     await analyticsRepository.remove(analytics);
     
-    // Invalidate cache for this analytics and all lists
-    await redis.del(`analytics:id:${id}`);
-    const keys = await redis.keys('analytics:all:*');
-    if (keys.length > 0) await redis.del(keys);
+    // Invalidate analytics caches using centralized service
+    await CacheService.invalidateAnalyticsCaches(analytics.userId, analytics.gameId || undefined);
     res.status(200).json({
       success: true,
       message: 'Analytics entry deleted successfully'

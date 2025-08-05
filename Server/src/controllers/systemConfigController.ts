@@ -6,6 +6,7 @@ import { ApiError } from '../middlewares/errorHandler';
 import { storageService } from '../services/storage.service';
 import multer from 'multer';
 import redis from '../config/redisClient';
+import CacheService from '../services/cache.service';
 
 const systemConfigRepository = AppDataSource.getRepository(SystemConfig);
 const fileRepository = AppDataSource.getRepository(File);
@@ -402,9 +403,8 @@ export const createSystemConfig = async (
     await queryRunner.manager.save(config);
     await queryRunner.commitTransaction();
 
-    // Invalidate system configs cache
-    const keys = await redis.keys('system-configs:*');
-    if (keys.length > 0) await redis.del(keys);
+    // Invalidate system configs cache using centralized service
+    await CacheService.invalidateSystemConfigCaches(key);
 
     // Fetch the saved config with file data if applicable
     const savedConfig = await systemConfigRepository.findOne({
@@ -512,9 +512,8 @@ export const updateSystemConfig = async (
     
     await systemConfigRepository.save(config);
     
-    // Invalidate system configs cache
-    const keys = await redis.keys('system-configs:*');
-    if (keys.length > 0) await redis.del(keys);
+    // Invalidate system configs cache using centralized service
+    await CacheService.invalidateSystemConfigCaches(key);
     
     // Handle file-based configs for response
     if (key === 'terms' && config.value?.fileId) {
@@ -592,9 +591,8 @@ export const deleteSystemConfig = async (
     
     await systemConfigRepository.remove(config);
     
-    // Invalidate system configs cache
-    const keys = await redis.keys('system-configs:*');
-    if (keys.length > 0) await redis.del(keys);
+    // Invalidate system configs cache using centralized service
+    await CacheService.invalidateSystemConfigCaches();
     
     res.status(200).json({
       success: true,

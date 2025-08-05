@@ -15,6 +15,7 @@ import multer from 'multer';
 import logger from '../utils/logger';
 import { v4 as uuidv4 } from 'uuid';
 import redis from '../config/redisClient';
+import CacheService from '../services/cache.service';
 // import { processImage } from '../services/file.service';
 
 const gameRepository = AppDataSource.getRepository(Game);
@@ -808,9 +809,8 @@ export const createGame = async (
       // Commit transaction
       await queryRunner.commitTransaction();
 
-      // Invalidate games cache
-      const keys = await redis.keys('games:all:*');
-      if (keys.length > 0) await redis.del(keys);
+      // Invalidate games cache using centralized service
+      await CacheService.invalidateGameCaches(game.id);
 
       // Fetch the game with relations to return
       const savedGame = await gameRepository.findOne({
@@ -1086,10 +1086,8 @@ export const updateGame = async (
     // Commit transaction
     await queryRunner.commitTransaction();
     
-    // Invalidate games cache
-    await redis.del(`games:id:${id}`);
-    const keys = await redis.keys('games:all:*');
-    if (keys.length > 0) await redis.del(keys);
+    // Invalidate games cache using centralized service
+    await CacheService.invalidateGameCaches(id);
     
     // Fetch the updated game with relations to return
       const updatedGame = await gameRepository.findOne({
@@ -1191,10 +1189,8 @@ export const deleteGame = async (
     
     await gameRepository.remove(game);
     
-    // Invalidate games cache
-    await redis.del(`games:id:${id}`);
-    const keys = await redis.keys('games:all:*');
-    if (keys.length > 0) await redis.del(keys);
+    // Comprehensive cache invalidation for game deletion
+    await CacheService.invalidateGameDeletionCaches(id);
     
     res.status(200).json({
       success: true,

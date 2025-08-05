@@ -5,6 +5,7 @@ import { ApiError } from '../middlewares/errorHandler';
 import { File } from '../entities/Files';
 import { storageService } from '../services/storage.service';
 import redis from '../config/redisClient';
+import CacheService from '../services/cache.service';
 
 // Extend File type to include url
 type FileWithUrl = File & { url?: string };
@@ -349,9 +350,8 @@ export const createCategory = async (
     
     await categoryRepository.save(category);
     
-    // Invalidate categories cache
-    const keys = await redis.keys('categories:*');
-    if (keys.length > 0) await redis.del(keys);
+    // Invalidate category caches using centralized service
+    await CacheService.invalidateCategoryCaches();
     
     res.status(201).json({
       success: true,
@@ -441,9 +441,8 @@ export const updateCategory = async (
     
     await categoryRepository.save(category);
     
-    // Invalidate categories cache
-    const keys = await redis.keys('categories:*');
-    if (keys.length > 0) await redis.del(keys);
+    // Comprehensive cache invalidation for category changes
+    await CacheService.invalidateCategoryChangeCaches(id);
     
     res.status(200).json({
       success: true,
@@ -514,9 +513,8 @@ export const deleteCategory = async (
     
     await categoryRepository.remove(category);
     
-    // Invalidate categories cache
-    const keys = await redis.keys('categories:*');
-    if (keys.length > 0) await redis.del(keys);
+    // Comprehensive cache invalidation for category deletion
+    await CacheService.invalidateCategoryChangeCaches(id);
     
     res.status(200).json({
       success: true,

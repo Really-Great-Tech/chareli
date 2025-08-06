@@ -224,10 +224,10 @@ export function SignUpModal({
               validationSchema={getValidationSchema(config)}
               onSubmit={handleSignUp}
               validateOnMount={false}
-              validateOnChange={false}
-              validateOnBlur={false}
+              validateOnChange={true}
+              validateOnBlur={true}
             >
-              {({ isSubmitting }) => (
+              {({ isSubmitting, isValid }) => (
                 <Form className="space-y-1 flex flex-col h-full">
                   <div className="pb-2">
                     {/* Authentication Fields */}
@@ -428,6 +428,9 @@ export function SignUpModal({
                         component="div"
                         className="text-red-500 mt-1 font-dmmono text-sm tracking-wider"
                       />
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-dmmono">
+                        Password must be at least 6 characters with uppercase, letters and numbers
+                      </p>
                     </div>
                     <div className="relative mt-4">
                       <Label
@@ -467,6 +470,9 @@ export function SignUpModal({
                         component="div"
                         className="text-red-500  mt-1 font-dmmono text-sm tracking-wider"
                       />
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-dmmono">
+                        Must match the password above
+                      </p>
                     </div>
                     <div className="my-5 flex flex-col gap-3">
                       <div className="flex items-center space-x-2">
@@ -477,7 +483,7 @@ export function SignUpModal({
                               checked={field.value}
                               onCheckedChange={(checked) => {
                                 form.setFieldValue("ageConfirm", checked);
-                                form.setFieldTouched("ageConfirm", true);
+                                form.setFieldTouched("ageConfirm", true, false);
                               }}
                               className="border-2 border-gray-400 data-[state=checked]:bg-[#C026D3] data-[state=checked]:border-[#C026D3]"
                             />
@@ -503,7 +509,7 @@ export function SignUpModal({
                               checked={field.value}
                               onCheckedChange={(checked) => {
                                 form.setFieldValue("terms", checked);
-                                form.setFieldTouched("terms", true);
+                                form.setFieldTouched("terms", true, false);
                               }}
                               className="border-2 border-gray-400 data-[state=checked]:bg-[#C026D3] data-[state=checked]:border-[#C026D3]"
                             />
@@ -526,7 +532,7 @@ export function SignUpModal({
 
                   <Button
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || !isValid}
                     className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-dmmono cursor-pointer"
                   >
                     {isSubmitting ? "Submitting..." : "Submit"}

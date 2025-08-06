@@ -4,6 +4,7 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import type { FieldProps, FormikHelpers } from "formik";
 import type { LoginCredentials } from "../../backend/types";
 import * as Yup from "yup";
+import { passwordSchema } from "../../validation/password";
 import { useAuth } from "../../context/AuthContext";
 import { toast } from "sonner";
 import { ForgotPasswordModal } from "./ForgotPasswordModal";
@@ -61,12 +62,12 @@ const emailValidationSchema = Yup.object({
   email: Yup.string()
     .email("Invalid email address")
     .required("Email is required"),
-  password: Yup.string().required("Password is required"),
+  password: passwordSchema,
 });
 
 const phoneValidationSchema = Yup.object({
   phoneNumber: Yup.string().required("Phone number is required"),
-  password: Yup.string().required("Password is required"),
+  password: passwordSchema,
 });
 
 const getInitialValues = (
@@ -246,8 +247,10 @@ export function LoginModal({
             }
             onSubmit={handleLogin}
             enableReinitialize
+            validateOnChange={true}
+            validateOnBlur={true}
           >
-            {({ isSubmitting }) => (
+            {({ isSubmitting, isValid }) => (
               <Form className="space-y-4">
                 <div className="space-y-1">
                   <Label
@@ -368,6 +371,9 @@ export function LoginModal({
                     component="div"
                     className="text-red-500  mt-1 font-dmmono text-sm tracking-wider"
                   />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-dmmono">
+                    Password must be at least 6 characters with uppercase, letters and numbers
+                  </p>
                 </div>
                 {loginError && (
                   <div className="text-red-500 font-dmmono text-sm tracking-wider text-center">
@@ -388,7 +394,7 @@ export function LoginModal({
                 </div>
                 <Button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !isValid}
                   className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-dmmono cursor-pointer"
                 >
                   Login

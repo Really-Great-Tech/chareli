@@ -17,7 +17,6 @@ import GameCreationProgress from "./GameCreationProgress";
 import UppyUpload from "./UppyUpload";
 import {
   Sheet,
-  SheetClose,
   SheetContent,
   SheetHeader,
   SheetTitle,
@@ -80,6 +79,7 @@ export function CreateGameSheet({
   onOpenChange?: (open: boolean) => void;
 }) {
   const formikRef = useRef<any>(null);
+  const [isOpen, setIsOpen] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<{
     thumbnail: UploadedFile | null;
     game: UploadedFile | null;
@@ -192,6 +192,7 @@ export function CreateGameSheet({
       setShowProgress(false);
       setProgress(0);
       setCurrentStep("");
+      setIsOpen(false);
       onOpenChange?.(false);
     } catch (error: any) {
       console.error("Error creating game:", error);
@@ -238,6 +239,7 @@ export function CreateGameSheet({
             setShowProgress(false);
             setProgress(0);
             setCurrentStep("");
+            setIsOpen(false);
             onOpenChange?.(false);
             return;
           }
@@ -259,15 +261,20 @@ export function CreateGameSheet({
 
   return (
     <Sheet
+      open={isOpen}
       onOpenChange={(open) => {
+        setIsOpen(open);
         if (!open && formikRef.current) {
           formikRef.current.resetForm();
           setUploadedFiles({ thumbnail: null, game: null });
+          setShowProgress(false);
+          setProgress(0);
+          setCurrentStep("");
         }
         onOpenChange?.(open);
       }}
     >
-      <SheetTrigger asChild>{children}</SheetTrigger>
+      <SheetTrigger asChild onClick={() => setIsOpen(true)}>{children}</SheetTrigger>
       <SheetContent className="font-dmmono dark:bg-[#0F1621] max-w-xl w-full overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="text-xl font-medium tracking-wider mt-6 mb-2">
@@ -479,18 +486,20 @@ export function CreateGameSheet({
               </div>
 
               <div className="flex gap-3 justify-end px-2 mt-4">
-                <SheetClose asChild>
-                  <Button
-                    type="button"
-                    className="w-24 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-[#E2E8F0] dark:text-gray-300 dark:bg-[#1E293B] dark:border-[#334155] dark:hover:bg-[#334155] cursor-pointer"
-                    onClick={() => {
-                      formikRef.current?.resetForm();
-                      setUploadedFiles({ thumbnail: null, game: null });
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                </SheetClose>
+                <Button
+                  type="button"
+                  className="w-24 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-[#E2E8F0] dark:text-gray-300 dark:bg-[#1E293B] dark:border-[#334155] dark:hover:bg-[#334155] cursor-pointer"
+                  onClick={() => {
+                    formikRef.current?.resetForm();
+                    setUploadedFiles({ thumbnail: null, game: null });
+                    setShowProgress(false);
+                    setProgress(0);
+                    setCurrentStep("");
+                    setIsOpen(false);
+                  }}
+                >
+                  Cancel
+                </Button>
                 <Button
                   type="submit"
                   disabled={

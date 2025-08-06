@@ -21,6 +21,7 @@ import "react-phone-input-2/lib/style.css";
 import "../../styles/phone-input.css";
 import { useNavigate } from "react-router-dom";
 import { isValidRole } from "../../utils/main";
+import { useUserCountry } from "../../hooks/useUserCountry";
 
 interface LoginDialogProps {
   open: boolean;
@@ -99,6 +100,7 @@ export function LoginModal({
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const { countryCode } = useUserCountry();
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
   // Clear error message when switching tabs
@@ -270,7 +272,7 @@ export function LoginModal({
                       <Field name="phoneNumber">
                         {({ field, form }: FieldProps) => (
                           <PhoneInput
-                            country={"us"}
+                            country={countryCode}
                             value={field.value}
                             onChange={(value) =>
                               form.setFieldValue("phoneNumber", `+${value}`)

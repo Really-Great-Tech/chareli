@@ -31,6 +31,7 @@ import { TbUser } from "react-icons/tb";
 import { AiOutlineMail } from "react-icons/ai";
 import { useNavigate } from "react-router-dom";
 import { getVisitorSessionId } from "../../utils/sessionUtils";
+import { useUserCountry } from "../../hooks/useUserCountry";
 
 const getAuthFields = (config?: { value?: { settings: any } }) => {
   // Default state when no config or invalid config
@@ -150,6 +151,7 @@ export function SignUpModal({
   const [showPassword, setShowPassword] = useState(false);
   const { data: config } = useSystemConfigByKey("authentication_settings");
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const { countryCode, isLoading: _isCountryLoading } = useUserCountry();
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
   const toggleConfirmPasswordVisibility = () =>
@@ -276,7 +278,7 @@ export function SignUpModal({
                                 {({ field, form }: FieldProps) => (
                                   <div className="w-full mt-2">
                                     <PhoneInput
-                                      country="us"
+                                      country={countryCode}
                                       value={field.value}
                                       onChange={(value) =>
                                         form.setFieldValue(

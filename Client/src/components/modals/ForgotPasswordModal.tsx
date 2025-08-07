@@ -24,6 +24,7 @@ import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import "../../styles/phone-input.css";
 import { ResetPasswordOTPModal } from "./ResetPasswordOTPModal";
+import { useUserCountry } from "../../hooks/useUserCountry";
 
 interface ForgotPasswordModalProps {
   open: boolean;
@@ -68,6 +69,7 @@ export function ForgotPasswordModal({
   const formikRef = useRef<FormikProps<FormValues>>(null);
   const forgotPassword = useForgotPassword();
   const forgotPasswordPhone = useForgotPasswordPhone();
+  const { countryCode } = useUserCountry()
 
   const handleSubmit = async (
     values: FormValues,
@@ -270,7 +272,7 @@ export function ForgotPasswordModal({
                           <Field name="phoneNumber">
                             {({ field, form }: FieldProps) => (
                               <PhoneInput
-                                country={"us"}
+                                country={countryCode}
                                 value={field.value}
                                 onChange={(value) =>
                                   form.setFieldValue("phoneNumber", `+${value}`)

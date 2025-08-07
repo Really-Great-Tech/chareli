@@ -55,7 +55,7 @@ const Navbar: React.FC = () => {
         onClick={() => navigate('/')}
         className="text-3xl font-extrabold text-[#D946EF] dark:text-[#D946EF] cursor-pointer font-ponggame tracking-wider"
       >
-        CHARELI
+        ARCADES BOX
       </div>
 
       {/* Desktop Navigation */}

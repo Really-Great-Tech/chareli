@@ -4,11 +4,11 @@ export const welcomeEmailTemplate = (name: string) => {
   const content = `
     <div style="text-align: center;">
       <div style="margin-bottom: 32px;">
-        <img src="https://raw.githubusercontent.com/your-org/chareli/main/assets/welcome.png" alt="Welcome" style="max-width: 200px; margin-bottom: 24px;">
+        <img src="https://raw.githubusercontent.com/your-org/Arcades Box/main/assets/welcome.png" alt="Welcome" style="max-width: 200px; margin-bottom: 24px;">
       </div>
 
       <h2 style="color: #4F46E5; font-size: 24px; margin-bottom: 24px;">
-        Welcome to Chareli, ${name}!
+        Welcome to Arcades Box, ${name}!
       </h2>
       
       <p style="color: #374151; font-size: 16px; line-height: 24px; margin-bottom: 24px;">
@@ -31,5 +31,5 @@ export const welcomeEmailTemplate = (name: string) => {
     </div>
   `;
 
-  return baseTemplate(content, 'Welcome to Chareli');
+  return baseTemplate(content, 'Welcome to Arcades Box');
 };

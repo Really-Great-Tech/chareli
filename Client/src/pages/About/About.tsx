@@ -8,12 +8,12 @@ const About: React.FC = () => {
             About us
           </h1>
           <p className="mt-3 md:mt-4 text-gray-300 dark:text-gray-300 text-center font-worksans text-sm sm:text-base md:text-lg tracking-wider leading-relaxed">
-            Chareli is a web-based platform designed for users to discover and
+            Arcades Box is a web-based platform designed for users to discover and
             play simple HTML5 games, including card games, solitaire, and puzzle
             games. Our platform embeds each game with an intuitive interface
             that allows users to browse available games and play them instantly
             in their browser without any downloads. With a fully responsive
-            design, Chareli ensures a seamless gaming experience across
+            design, Arcades Box ensures a seamless gaming experience across
             desktops, tablets, and mobile devices.
           </p>
         </section>
@@ -23,7 +23,7 @@ const About: React.FC = () => {
             Our Mission
           </h1>
           <p className="mt-3 md:mt-4 text-gray-300 dark:text-gray-300 text-center font-worksans text-sm sm:text-base md:text-lg tracking-wider leading-relaxed">
-            At Chareli, we believe gaming should be accessible, fun, and
+            At Arcades Box, we believe gaming should be accessible, fun, and
             hassle-free. Our platform brings the joy of HTML5 games directly to
             your browser, no downloads required. Founded in 2025, our team of
             passionate gamers and developers work together to curate the best

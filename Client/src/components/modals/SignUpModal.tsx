@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useCreateUser } from "../../backend/user.service";
 import { useTrackSignupClick } from "../../backend/signup.analytics.service";
 import { useSystemConfigByKey } from "../../backend/configuration.service";
-import { toast } from "sonner";
+// import { toast } from "sonner";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import type { FormikHelpers, FieldProps } from "formik";
 import * as Yup from "yup";
@@ -32,6 +32,7 @@ import { AiOutlineMail } from "react-icons/ai";
 import { useNavigate } from "react-router-dom";
 import { getVisitorSessionId } from "../../utils/sessionUtils";
 import { useUserCountry } from "../../hooks/useUserCountry";
+import { WelcomeModal } from "./WelcomeModal";
 
 const getAuthFields = (config?: { value?: { settings: any } }) => {
   // Default state when no config or invalid config
@@ -149,6 +150,7 @@ export function SignUpModal({
   openLoginModal,
 }: SignUpDialogProps) {
   const [showPassword, setShowPassword] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const { data: config } = useSystemConfigByKey("authentication_settings");
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { countryCode, isLoading: _isCountryLoading } = useUserCountry();
@@ -184,13 +186,18 @@ export function SignUpModal({
       // Close signup modal
       onOpenChange(false);
 
-      toast.success("Account created successfully! Please login to continue.");
-      openLoginModal();
+      // Show welcome modal instead of immediately opening login
+      setShowWelcomeModal(true);
     } catch (error: any) {
       actions.setStatus({ error: "Failed to create account" });
     } finally {
       actions.setSubmitting(false);
     }
+  };
+
+  const handleWelcomeContinue = () => {
+    setShowWelcomeModal(false);
+    openLoginModal();
   };
 
   const navigate = useNavigate();
@@ -205,7 +212,13 @@ export function SignUpModal({
   // };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <>
+      <WelcomeModal
+        open={showWelcomeModal}
+        onOpenChange={setShowWelcomeModal}
+        onContinue={handleWelcomeContinue}
+      />
+      <Dialog open={open} onOpenChange={onOpenChange}>
       <CustomDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221]">
         {/* Custom Close Button */}
         <button
@@ -572,5 +585,6 @@ export function SignUpModal({
         </DialogHeader>
       </CustomDialogContent>
     </Dialog>
+    </>
   );
 }

@@ -70,7 +70,7 @@ export const accountDeletionEmailTemplate = (userName: string, isDeactivation: b
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">Chareli</div>
+            <div class="logo">Arcades Box</div>
         </div>
         
         <h1 class="title">${isDeactivation ? 'Account Deactivation Confirmation' : 'Account Deletion Notification'}</h1>
@@ -79,8 +79,8 @@ export const accountDeletionEmailTemplate = (userName: string, isDeactivation: b
             <p>Hello ${userName},</p>
             
             ${isDeactivation 
-                ? `<p>We're writing to confirm that your Chareli account has been <span class="warning">deactivated</span> as requested.</p>`
-                : `<p>We're writing to inform you that your Chareli account has been <span class="warning">permanently deleted</span> by an administrator.</p>`
+                ? `<p>We're writing to confirm that your Arcades Box account has been <span class="warning">deactivated</span> as requested.</p>`
+                : `<p>We're writing to inform you that your Arcades Box account has been <span class="warning">permanently deleted</span> by an administrator.</p>`
             }
             
             <div class="highlight">
@@ -89,7 +89,7 @@ export const accountDeletionEmailTemplate = (userName: string, isDeactivation: b
                     <li><strong>Account Access:</strong> You can no longer log into your account</li>
                     <li><strong>Account Status:</strong> Your account has been ${isDeactivation ? 'deactivated' : 'deleted and marked as inactive'}</li>
                     <li><strong>Game Progress:</strong> Your game progress and achievements are no longer accessible</li>
-                    <li><strong>Platform Access:</strong> You will not be able to access any Chareli services</li>
+                    <li><strong>Platform Access:</strong> You will not be able to access any Arcades Box services</li>
                 </ul>
             </div>
             
@@ -129,12 +129,12 @@ export const accountDeletionEmailTemplate = (userName: string, isDeactivation: b
                 </ul>
             </div>
             
-            <p>Thank you for being part of the Chareli community.</p>
+            <p>Thank you for being part of the Arcades Box community.</p>
         </div>
         
         <div class="footer">
-            <p>This is an automated notification from Chareli.</p>
-            <p>© ${new Date().getFullYear()} Chareli. All rights reserved.</p>
+            <p>This is an automated notification from Arcades Box.</p>
+            <p>© ${new Date().getFullYear()} Arcades Box. All rights reserved.</p>
         </div>
     </div>
 </body>

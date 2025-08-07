@@ -42,7 +42,7 @@ export const roleChangedEmailTemplate = (oldRole: string, newRole: string) => {
       </div>
       
       <p style="color: #374151; font-size: 16px; line-height: 24px; margin-bottom: 24px;">
-        Your account privileges have been updated in the Chareli system.
+        Your account privileges have been updated in the Arcades Box system.
       </p>
 
       <div style="background: #F3F4F6; border-radius: 12px; padding: 24px; margin: 32px 0;">

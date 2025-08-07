@@ -48,7 +48,7 @@ const AdminNavbar: React.FC = () => {
         onClick={() => navigate('/')}
         className="text-2xl font-extrabold text-[#D946EF] dark:text-[#E879F9] font-ponggame cursor-pointer tracking-wider"
       >
-        CHARELI
+        ARCADES BOX
       </div>
 
       {/* right side */}

@@ -88,7 +88,19 @@ export const useDeleteUser = () => {
       return backendService.delete(url);
     },
     onSuccess: () => {
+      // Invalidate all user-related queries to refresh data across the app
       queryClient.invalidateQueries({ queryKey: [BackendRoute.USER] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.AUTH_ME] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ANALYTICS] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.USER_STATS] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_DASHBOARD] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_USERS_ANALYTICS] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_USER_ACTIVITY] });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_USER_ANALYTICS], exact: false });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAME_ANALYTICS], exact: false });
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS_POPULARITY] });
+      queryClient.invalidateQueries({ queryKey: ["allTeamMembers"] });
     },
   });
 };
@@ -105,4 +117,47 @@ export const useChangePassword = () => {
       return response;
     }
   });
+};
+
+/**
+ * Hook to send heartbeat to maintain online status
+ * @returns Mutation function to send heartbeat
+ */
+export const useSendHeartbeat = () => {
+  return useMutation({
+    mutationFn: async () => {
+      const response = await backendService.post(BackendRoute.USER_HEARTBEAT);
+      return response;
+    }
+  });
+};
+
+/**
+ * Hook to get current user's online status
+ * @returns Query result with online status data
+ */
+export const useOnlineStatus = () => {
+  return useQuery({
+    queryKey: [BackendRoute.USER_ONLINE_STATUS],
+    queryFn: async () => {
+      const response = await backendService.get(BackendRoute.USER_ONLINE_STATUS);
+      return response.data;
+    },
+    refetchOnWindowFocus: false,
+    refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
+  });
+};
+
+/**
+ * Function to send heartbeat (non-hook version for use in intervals)
+ * @returns Promise with response
+ */
+export const sendHeartbeat = async () => {
+  try {
+    const response = await backendService.post(BackendRoute.USER_HEARTBEAT);
+    return response;
+  } catch (error) {
+    console.error('Failed to send heartbeat:', error);
+    throw error;
+  }
 };

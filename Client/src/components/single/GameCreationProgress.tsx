@@ -23,33 +23,33 @@ const GameCreationProgress = ({
 
   return (
     <>
-      {/* Backdrop overlay to prevent interactions */}
-      <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40" />
+      {/* Full screen backdrop overlay to cover everything */}
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999]" />
       
       {/* Progress bar */}
-      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-96">
-        <div className="bg-gray-700/95 backdrop-blur-sm rounded-lg px-4 py-3 shadow-lg border border-gray-600/50">
-          <div className="flex items-center justify-between text-white">
+      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[10000] w-96">
+        <div className="bg-white dark:bg-gray-800 rounded-lg px-6 py-4 shadow-2xl border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between text-gray-900 dark:text-white">
             {/* Progress percentage */}
-            <div className="text-[#D946EF] font-bold text-lg">
+            <div className="text-[#D946EF] font-bold text-xl">
               {Math.round(displayProgress)}%
             </div>
             
             {/* Current step */}
-            <div className="text-white text-sm font-medium flex-1 mx-4">
+            <div className="text-gray-900 dark:text-white text-sm font-medium flex-1 mx-4 text-center">
               {currentStep}
             </div>
             
-            {/* Time indicator (placeholder) */}
-            <div className="text-gray-400 text-sm">
-              {isComplete ? 'Done!' : '10s left'}
+            {/* Status indicator */}
+            <div className="text-gray-500 dark:text-gray-400 text-sm">
+              {isComplete ? '✓ Done!' : '⏳'}
             </div>
           </div>
           
           {/* Progress bar */}
-          <div className="mt-2 w-full bg-gray-600 rounded-full h-1">
+          <div className="mt-3 w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
             <div 
-              className="bg-gradient-to-r from-[#D946EF] to-[#c026d3] h-1 rounded-full transition-all duration-500 ease-out"
+              className="bg-gradient-to-r from-[#D946EF] to-[#c026d3] h-2 rounded-full transition-all duration-500 ease-out"
               style={{ width: `${displayProgress}%` }}
             ></div>
           </div>

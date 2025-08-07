@@ -5,7 +5,9 @@ import {
   createUser,
   updateUser,
   deleteUser,
-  getCurrentUserStats
+  getCurrentUserStats,
+  sendHeartbeat,
+  getOnlineStatus
 } from '../controllers/userController';
 import { authenticate, isAdmin, isOwnerOrAdmin, optionalAuthenticate } from '../middlewares/authMiddleware';
 import { validateBody, validateParams, validateQuery } from '../middlewares/validationMiddleware';
@@ -19,13 +21,17 @@ import {
 
 const router = Router();
 
-router.use(apiLimiter);
+// router.use(apiLimiter);
 
-router.post('/', createUserLimiter, validateBody(createUserSchema), createUser);
+router.post('/', validateBody(createUserSchema), createUser);
 router.get('/me/stats', optionalAuthenticate, getCurrentUserStats);
 
 // All user routes require authentication
 router.use(authenticate);
+
+// Heartbeat routes for online status
+router.post('/heartbeat', sendHeartbeat);
+router.get('/online-status', getOnlineStatus);
 
 // Admin routes
 router.get('/', isAdmin, validateQuery(userQuerySchema), getAllUsers);
@@ -33,6 +39,6 @@ router.get('/', isAdmin, validateQuery(userQuerySchema), getAllUsers);
 // Routes that require either admin access or ownership of the resource
 router.get('/:id', isOwnerOrAdmin, validateParams(userIdParamSchema), getUserById);
 router.put('/:id', isOwnerOrAdmin, validateParams(userIdParamSchema), validateBody(updateUserSchema), updateUser);
-router.delete('/:id', isAdmin, validateParams(userIdParamSchema), deleteUser); // Only admins can delete users
+router.delete('/:id', isOwnerOrAdmin, validateParams(userIdParamSchema), deleteUser); // Users can delete their own accounts, admins can delete any account
 
 export default router;

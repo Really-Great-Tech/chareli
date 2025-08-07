@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import { authService, TokenPayload } from '../services/auth.service';
 import { ApiError } from './errorHandler';
 import { RoleType } from '../entities/Role';
+import { AppDataSource } from '../config/database';
+import { User } from '../entities/User';
 
 /**
  * Middleware to optionally verify JWT token and attach user to request
@@ -42,7 +44,7 @@ declare global {
 /**
  * Middleware to verify JWT token and attach user to request
  */
-export const authenticate = (req: Request, res: Response, next: NextFunction) => {
+export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Get token from Authorization header
     const authHeader = req.headers.authorization;
@@ -60,6 +62,17 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
     
     // Attach user to request
     req.user = decoded;
+    
+    // Update user's lastSeen timestamp (fire and forget - don't wait for it)
+    if (decoded.userId) {
+      const userRepository = AppDataSource.getRepository(User);
+      userRepository.update(
+        { id: decoded.userId, isDeleted: false }, 
+        { lastSeen: new Date() }
+      ).catch(error => {
+        console.error('Failed to update lastSeen:', error);
+      });
+    }
     
     next();
   } catch (error) {
@@ -107,7 +120,7 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
     return next(ApiError.unauthorized('Authentication required'));
   }
 
-  if (req.user.role !== RoleType.ADMIN && req.user.role !== RoleType.SUPERADMIN) {
+  if (req.user.role !== RoleType.ADMIN && req.user.role !== RoleType.SUPERADMIN && req.user.role !== RoleType.VIEWER) {
     return next(ApiError.forbidden('Admin access required'));
   }
 
@@ -128,6 +141,46 @@ export const isEditor = (req: Request, res: Response, next: NextFunction) => {
     req.user.role !== RoleType.SUPERADMIN
   ) {
     return next(ApiError.forbidden('Editor access required'));
+  }
+
+  next();
+};
+
+/**
+ * Middleware to check if user has admin panel access (viewer, editor, admin, or superadmin)
+ */
+export const hasAdminPanelAccess = (req: Request, res: Response, next: NextFunction) => {
+  if (!req.user) {
+    return next(ApiError.unauthorized('Authentication required'));
+  }
+
+  if (
+    req.user.role !== RoleType.VIEWER &&
+    req.user.role !== RoleType.EDITOR && 
+    req.user.role !== RoleType.ADMIN && 
+    req.user.role !== RoleType.SUPERADMIN
+  ) {
+    return next(ApiError.forbidden('Admin panel access required'));
+  }
+
+  next();
+};
+
+/**
+ * Middleware to check if user can perform write operations (editor, admin, or superadmin)
+ * Viewers can only read, not write
+ */
+export const canWrite = (req: Request, res: Response, next: NextFunction) => {
+  if (!req.user) {
+    return next(ApiError.unauthorized('Authentication required'));
+  }
+
+  if (
+    req.user.role !== RoleType.EDITOR && 
+    req.user.role !== RoleType.ADMIN && 
+    req.user.role !== RoleType.SUPERADMIN
+  ) {
+    return next(ApiError.forbidden('Write access required. Viewers can only read data.'));
   }
 
   next();

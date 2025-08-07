@@ -3,8 +3,11 @@ import { User } from '../entities/User';
 import { Role, RoleType } from '../entities/Role';
 import { Invitation } from '../entities/Invitation';
 import { Otp, OtpType } from '../entities/Otp';
+import { SystemConfig } from '../entities/SystemConfig';
+import { SignupAnalytics } from '../entities/SignupAnalytics';
 import config from '../config/config';
 import logger from '../utils/logger';
+import { getFrontendUrl } from '../utils/main';
 import { otpService } from './otp.service';
 import { emailService } from './email.service';
 import * as bcrypt from 'bcrypt';
@@ -16,6 +19,8 @@ import { MoreThan } from 'typeorm';
 const userRepository = AppDataSource.getRepository(User);
 const roleRepository = AppDataSource.getRepository(Role);
 const invitationRepository = AppDataSource.getRepository(Invitation);
+const systemConfigRepository = AppDataSource.getRepository(SystemConfig);
+const signupAnalyticsRepository = AppDataSource.getRepository(SignupAnalytics);
 
 export interface TokenPayload {
   userId: string;
@@ -46,9 +51,27 @@ export class AuthService {
     phoneNumber: string,
     isAdult: boolean = false,
     hasAcceptedTerms: boolean = false,
-    country?: string
+    country?: string,
+    registrationIpAddress?: string,
+    lastKnownDeviceType?: string
   ): Promise<User> {
-    // Check if user already exists
+    // Check if user already exists by email or phone number (including deleted users)
+    const existingUser = await userRepository.findOne({
+      where: [{ email }, { phoneNumber }],
+      select: ['id', 'email', 'phoneNumber', 'isDeleted'],
+    });
+
+    if (existingUser) {
+      if (existingUser.email == email) {
+        console.log('Email already exists:', existingUser.email);
+        throw new Error('Email is already registered');
+      }
+      if (existingUser.phoneNumber == phoneNumber) {
+        throw new Error('Phone number is already registered');
+      }
+    }
+
+
     // Get the player role
     const playerRole = await roleRepository.findOne({
       where: { name: RoleType.PLAYER }
@@ -74,7 +97,9 @@ export class AuthService {
       isActive: true,
       isAdult,
       hasAcceptedTerms,
-      country
+      country,
+      registrationIpAddress,
+      lastKnownDeviceType
     });
 
     await userRepository.save(user);
@@ -93,7 +118,9 @@ export class AuthService {
     phoneNumber: string,
     isAdult: boolean = false,
     hasAcceptedTerms: boolean = false,
-    country?: string
+    country?: string,
+    registrationIpAddress?: string,
+    lastKnownDeviceType?: string
   ): Promise<User> {
     // Find the invitation
     const invitation = await invitationRepository.findOne({
@@ -113,6 +140,49 @@ export class AuthService {
       throw new Error('Invitation has expired');
     }
 
+    // Check if there's a soft-deleted user with this email
+    const softDeletedUser = await userRepository.findOne({
+      where: { email: invitation.email, isDeleted: true }
+    });
+
+    if (softDeletedUser) {
+      // Restore the soft-deleted user instead of creating a new one
+      const hashedPassword = await this.hashPassword(password);
+      
+      softDeletedUser.firstName = firstName as any;
+      softDeletedUser.lastName = lastName as any;
+      softDeletedUser.password = hashedPassword;
+      softDeletedUser.phoneNumber = phoneNumber as any;
+      softDeletedUser.role = invitation.role;
+      softDeletedUser.roleId = invitation.roleId;
+      softDeletedUser.isVerified = false;
+      softDeletedUser.isActive = true;
+      softDeletedUser.isAdult = isAdult;
+      softDeletedUser.hasAcceptedTerms = hasAcceptedTerms;
+      softDeletedUser.country = country as any;
+      
+      // Restore the account
+      softDeletedUser.isDeleted = false;
+      softDeletedUser.deletedAt = null as any;
+
+      await userRepository.save(softDeletedUser);
+
+      // Mark invitation as accepted
+      invitation.isAccepted = true;
+      await invitationRepository.save(invitation);
+
+      return softDeletedUser;
+    }
+
+    // Check if phone number already exists (for active users)
+    const existingUser = await userRepository.findOne({
+      where: { phoneNumber, isDeleted: false },
+    });
+
+    if (existingUser) {
+      throw new Error('Phone number is already registered');
+    }
+
     // Hash the password
     const hashedPassword = await this.hashPassword(password);
 
@@ -129,7 +199,9 @@ export class AuthService {
       isActive: true,
       isAdult,
       hasAcceptedTerms,
-      country
+      country,
+      registrationIpAddress,
+      lastKnownDeviceType
     });
 
     await userRepository.save(user);
@@ -141,14 +213,14 @@ export class AuthService {
     return user;
   }
 
-  
+
   async login(identifier: string, password: string): Promise<User> {
     // Detect if it's email or phone based on format
     const isEmail = identifier.includes('@');
-    
+
     const user = await userRepository.findOne({
-      where: isEmail ? { email: identifier } : { phoneNumber: identifier },
-      select: ['id', 'email', 'password', 'firstName', 'lastName', 'phoneNumber', 'isActive', 'isVerified', 'roleId'],
+      where: isEmail ? { email: identifier, isDeleted: false } : { phoneNumber: identifier, isDeleted: false },
+      select: ['id', 'email', 'password', 'firstName', 'lastName', 'phoneNumber', 'isActive', 'isVerified', 'hasCompletedFirstLogin', 'roleId', 'country'],
       relations: ['role']
     });
 
@@ -174,71 +246,64 @@ export class AuthService {
     return user;
   }
 
-  async sendOtp(user: User, type: OtpType = OtpType.SMS): Promise<OtpResult> {
-    let actualType = type;
-    let fallbackUsed = false;
 
-    // Determine the best available method based on user's contact info
-    if (type === OtpType.SMS && !user.phoneNumber) {
-      if (user.email) {
-        actualType = OtpType.EMAIL;
-        fallbackUsed = true;
-        logger.info(`User ${user.id} has no phone number, falling back to email OTP`);
+  async determineOtpDeliveryMethod(user: User): Promise<OtpType> {
+    try {
+      const authConfig = await systemConfigRepository.findOne({
+        where: { key: 'authentication_settings' }
+      });
+
+      if (!authConfig?.value?.settings) {
+        logger.info('No authentication settings found, using default OTP behavior');
+        return OtpType.NONE;
+      }
+
+      const { email, sms, both } = authConfig.value.settings;
+
+      if (both?.enabled) {
+        const otpDeliveryMethod = both.otpDeliveryMethod || 'none';
+        
+        switch (otpDeliveryMethod) {
+          case 'email':
+            return OtpType.EMAIL;
+          case 'sms':
+            return OtpType.SMS;
+          case 'none':
+            return OtpType.NONE;
+          default:
+            return OtpType.NONE;
+        }
+      } else if (email?.enabled) {
+        return OtpType.EMAIL;
+      } else if (sms?.enabled) {
+        return OtpType.SMS;
       } else {
-        throw new Error('User does not have a phone number or email address for OTP');
+        return OtpType.NONE;
       }
+    } catch (error) {
+      logger.error('Error determining OTP delivery method:', error);
+      return OtpType.NONE
     }
-
-    if (type === OtpType.EMAIL && !user.email) {
-      if (user.phoneNumber) {
-        actualType = OtpType.SMS;
-        fallbackUsed = true;
-        logger.info(`User ${user.id} has no email address, falling back to SMS OTP`);
-      } else {
-        throw new Error('User does not have an email address or phone number for OTP');
-      }
-    }
-
-    if (type === OtpType.BOTH) {
-      // For BOTH type, send to whatever is available
-      if (!user.phoneNumber && !user.email) {
-        throw new Error('User does not have a phone number or email address for OTP');
-      }
-      if (!user.phoneNumber) {
-        actualType = OtpType.EMAIL;
-        fallbackUsed = true;
-        logger.info(`User ${user.id} has no phone number, sending email OTP only`);
-      } else if (!user.email) {
-        actualType = OtpType.SMS;
-        fallbackUsed = true;
-        logger.info(`User ${user.id} has no email address, sending SMS OTP only`);
-      }
-    }
-
-    const otp = await otpService.generateOtp(user.id, actualType);
-    const success = await otpService.sendOtp(user.id, otp, actualType);
-    
-    let message = '';
-    if (fallbackUsed) {
-      if (actualType === OtpType.EMAIL) {
-        message = `OTP sent to your email address (${user.email})`;
-      } else if (actualType === OtpType.SMS) {
-        message = `OTP sent to your phone number (${user.phoneNumber})`;
-      }
-    } else {
-      if (actualType === OtpType.EMAIL) {
-        message = `OTP sent to your email address (${user.email}).`;
-      } else if (actualType === OtpType.SMS) {
-        message = `OTP sent to your phone number (${user.phoneNumber}).`;
-      } else if (actualType === OtpType.BOTH) {
-        message = `OTP sent to both your email (${user.email}) and phone (${user.phoneNumber}).`;
-      }
-    }
-
-    return { success, actualType, message };
   }
 
   
+
+
+  async sendOtp(user: User, type: OtpType): Promise<OtpResult> {
+    const otp = await otpService.generateOtp(user.id, type);
+    const success = await otpService.sendOtp(user.id, otp, type);
+
+    let message = '';
+    if (type === OtpType.EMAIL) {
+      message = `OTP sent to your email address (${user.email}).`;
+    } else if (type === OtpType.SMS) {
+      message = `OTP sent to your phone number (${user.phoneNumber}).`;
+    }
+
+    return { success, actualType: type, message };
+  }
+
+
   async verifyOtp(userId: string, otp: string): Promise<AuthTokens> {
     const isValid = await otpService.verifyOtp(userId, otp);
     if (!isValid) {
@@ -263,7 +328,7 @@ export class AuthService {
     return this.generateTokens(user);
   }
 
- 
+
   generateTokens(user: User): AuthTokens {
     const payload: TokenPayload = {
       userId: user.id,
@@ -272,19 +337,19 @@ export class AuthService {
     };
 
     const accessToken = jwt.sign(
-      payload, 
+      payload,
       config.jwt.secret
     );
 
     const refreshToken = jwt.sign(
-      payload, 
+      payload,
       config.jwt.refreshSecret
     );
 
     return { accessToken, refreshToken };
   }
 
- 
+
   async refreshToken(refreshToken: string): Promise<AuthTokens> {
     try {
       // Verify refresh token
@@ -292,7 +357,7 @@ export class AuthService {
 
       // Find the user
       const user = await userRepository.findOne({
-        where: { id: decoded.userId },
+        where: { id: decoded.userId, isDeleted: false },
         relations: ['role']
       });
 
@@ -313,23 +378,32 @@ export class AuthService {
     roleName: RoleType,
     invitedById: string
   ): Promise<Invitation> {
-    // Check if user already has this role
-    const existingUser = await userRepository.findOne({ 
-      where: { email },
+    // Check if active user already has this role
+    const existingActiveUser = await userRepository.findOne({
+      where: { email, isDeleted: false },
       relations: ['role']
     });
-    
-    if (existingUser && existingUser.role.name === roleName) {
+
+    if (existingActiveUser && existingActiveUser.role.name === roleName) {
       throw new Error('User already has this role');
     }
 
+    // Check if there's a soft-deleted user with this email
+    const softDeletedUser = await userRepository.findOne({
+      where: { email, isDeleted: true },
+      relations: ['role']
+    });
+
+    // If soft-deleted user exists, we'll allow the invitation (for restoration)
+    // No need to throw an error - the invitation will restore their account
+
     // Check for pending invitation
-    const existingInvitation = await invitationRepository.findOne({ 
-      where: { 
+    const existingInvitation = await invitationRepository.findOne({
+      where: {
         email,
         isAccepted: false,
         expiresAt: MoreThan(new Date())
-      } 
+      }
     });
     if (existingInvitation) {
       throw new Error('Active invitation for this email already exists');
@@ -340,7 +414,7 @@ export class AuthService {
       email,
       isAccepted: true
     });
-    
+
     // Delete expired invitations
     await invitationRepository.createQueryBuilder()
       .delete()
@@ -354,7 +428,7 @@ export class AuthService {
       throw new Error(`Role ${roleName} not found`);
     }
 
-    const inviter = await userRepository.findOne({ where: { id: invitedById } });
+    const inviter = await userRepository.findOne({ where: { id: invitedById, isDeleted: false } });
     if (!inviter) {
       throw new Error('Inviter not found');
     }
@@ -378,8 +452,7 @@ export class AuthService {
     await invitationRepository.save(invitation);
 
     // Generate invitation link - point to frontend route
-    const frontendUrl = 'https://dev.chareli.reallygreattech.com';
-    // const frontendUrl = config.env === 'development' ? 'http://localhost:5173' : '';
+    const frontendUrl = getFrontendUrl();
     const invitationLink = `${frontendUrl}/register-invitation/${token}`;
 
     // Send invitation email
@@ -388,7 +461,7 @@ export class AuthService {
     return invitation;
   }
 
- 
+
   /**
    * Change a user's role directly
    */
@@ -399,7 +472,7 @@ export class AuthService {
   ): Promise<User> {
     // Find the user
     const user = await userRepository.findOne({
-      where: { id: userId },
+      where: { id: userId, isDeleted: false },
       relations: ['role']
     });
 
@@ -419,13 +492,13 @@ export class AuthService {
     }
 
     // Find the person making the change
-    const changer = await userRepository.findOne({ where: { id: changedById } });
+    const changer = await userRepository.findOne({ where: { id: changedById, isDeleted: false } });
     if (!changer) {
       throw new Error('User making the change not found');
     }
 
     const oldRoleName = user.role.name;
-    
+
     // Update user's role
     user.role = newRole;
     user.roleId = newRole.id;
@@ -439,35 +512,34 @@ export class AuthService {
 
   async requestPasswordReset(email: string): Promise<boolean> {
     // Find the user
-    const user = await userRepository.findOne({ where: { email } });
-    
+    const user = await userRepository.findOne({ where: { email, isDeleted: false } });
+
     // Even if user is not found, return true to prevent email enumeration attacks
     if (!user) {
       logger.info(`Password reset requested for non-existent email: ${email}`);
       return true;
     }
 
-  
+
     const resetToken = crypto.randomBytes(32).toString('hex');
     const hashedToken = crypto
       .createHash('sha256')
       .update(resetToken)
       .digest('hex');
-    
+
     // Set token expiry (1 hour)
     const resetTokenExpiry = new Date();
     resetTokenExpiry.setHours(resetTokenExpiry.getHours() + 1);
-    
+
     // Save the token to the user
     user.resetToken = hashedToken;
     user.resetTokenExpiry = resetTokenExpiry;
     await userRepository.save(user);
-    
+
     // Generate reset link - point to frontend route instead of API endpoint
-    // const frontendUrl = config.env === 'development' ? 'http://localhost:5173' : '';
-    const frontendUrl = 'https://dev.chareli.reallygreattech.com';
+    const frontendUrl = getFrontendUrl();
     const resetLink = `${frontendUrl}/reset-password/${resetToken}`;
-    
+
     try {
       // Send reset email
       await emailService.sendPasswordResetEmail(email, resetLink);
@@ -478,14 +550,14 @@ export class AuthService {
     }
   }
 
-  
+
   async verifyResetToken(token: string): Promise<User> {
     // Hash the token to compare with the stored hash
     const hashedToken = crypto
       .createHash('sha256')
       .update(token)
       .digest('hex');
-    
+
     // Find user with this token and valid expiry
     const user = await userRepository.findOne({
       where: {
@@ -493,11 +565,11 @@ export class AuthService {
         resetTokenExpiry: MoreThan(new Date())
       }
     });
-    
+
     if (!user) {
       throw new Error('Invalid or expired reset token');
     }
-    
+
     return user;
   }
 
@@ -507,21 +579,21 @@ export class AuthService {
   async resetPassword(token: string, newPassword: string): Promise<boolean> {
     // Verify the token first
     const user = await this.verifyResetToken(token);
-    
+
     // Hash the new password
     const hashedPassword = await this.hashPassword(newPassword);
-    
+
     // Update the user's password and clear the reset token
     user.resetToken = '';
     user.resetTokenExpiry = new Date(0); // Set to epoch time
     user.password = hashedPassword;
-    
+
     await userRepository.save(user);
-    
+
     return true;
   }
 
-  
+
   async initializeSuperadmin(): Promise<void> {
     try {
       let superadminRole = await roleRepository.findOne({
@@ -533,6 +605,7 @@ export class AuthService {
         return;
       }
 
+      // Check if superadmin already exists by role
       const existingSuperadmin = await userRepository.findOne({
         where: { role: { name: RoleType.SUPERADMIN } },
         relations: ['role']
@@ -540,6 +613,16 @@ export class AuthService {
 
       if (existingSuperadmin) {
         logger.info('Superadmin account already exists');
+        return;
+      }
+
+      // Also check if the email is already taken (including soft-deleted users)
+      const existingUserWithEmail = await userRepository.findOne({
+        where: { email: config.superadmin.email }
+      });
+
+      if (existingUserWithEmail) {
+        logger.info(`User with superadmin email (${config.superadmin.email}) already exists. Skipping superadmin initialization.`);
         return;
       }
 
@@ -555,17 +638,29 @@ export class AuthService {
         isVerified: true,
         isActive: true,
         isAdult: true,
-        hasAcceptedTerms: true
+        hasAcceptedTerms: true,
+        hasCompletedFirstLogin: true,
       });
 
       await userRepository.save(superadmin);
       logger.info(`Superadmin account created with email: ${config.superadmin.email}`);
+
+      // Create signup analytics entry for the new superadmin
+      const signupAnalytics = signupAnalyticsRepository.create({
+        ipAddress: '127.0.0.1',
+        deviceType: 'server',
+        type: 'signup-modal'
+      });
+
+      await signupAnalyticsRepository.save(signupAnalytics);
+      logger.info('Created signup analytics entry for new superadmin');
     } catch (error) {
       logger.error('Failed to initialize superadmin account:', error);
+      // Don't throw the error to prevent app startup failure
     }
   }
 
- 
+
   private async hashPassword(password: string): Promise<string> {
     const saltRounds = 10;
     return bcrypt.hash(password, saltRounds);

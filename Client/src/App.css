@@ -3,26 +3,6 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@theme {
-  --font-pong: 'Pong-Game';
-  --font-face-src: url('./fonts/Pong-Game.ttf');
-  --font-face-font-weight: normal;
-  --font-face-font-style: normal;
-}
-
-/* @theme {
-  --font-boogaloo: 'Boogaloo';
-  --font-face-src: url('./fonts/Boogaloo-Regular.ttf');
-  --font-face-font-weight: normal;
-  --font-face-font-style: normal;
-}  */
-
-@theme {
-  --font-pincuk: 'Pincuk';
-  --font-face-src: url('./fonts/Pincuk.ttf');
-  --font-face-font-weight: normal;
-  --font-face-font-style: normal;
-}
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);

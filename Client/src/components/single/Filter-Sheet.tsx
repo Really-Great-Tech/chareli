@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Button } from "../ui/button"
-import { Label } from "../ui/label"
+import { Button } from "../ui/button";
+import { Label } from "../ui/label";
 import {
   Sheet,
   SheetClose,
@@ -8,16 +8,10 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "../ui/sheet"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select"
-import { useCategories } from "../../backend/category.service"
-import type { GameStatus } from "../../backend/types"
+} from "../ui/sheet";
+import { SearchableSelect } from "../ui/searchable-select";
+import { useCategories } from "../../backend/category.service";
+import type { GameStatus } from "../../backend/types";
 
 interface FilterSheetProps {
   children: React.ReactNode;
@@ -31,81 +25,88 @@ export function FilterSheet({ children, onFilter, onReset }: FilterSheetProps) {
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   return (
     <Sheet>
-      <SheetTrigger asChild>
-        {children}
-      </SheetTrigger>
-      <SheetContent className="font-boogaloo dark:bg-[#0F1621]">
+      <SheetTrigger asChild>{children}</SheetTrigger>
+      <SheetContent className="font-dmmono dark:bg-[#0F1621]">
         <SheetHeader>
-          <SheetTitle className="text-xl font-normal tracking-wider mt-6">Filter</SheetTitle>
-         <div className="border border-b-gray-200"></div>
+          <SheetTitle className="text-lg font-normal tracking-wider mt-6">
+            Filter
+          </SheetTitle>
+          <div className="border border-b-gray-200"></div>
         </SheetHeader>
-        <form 
+        <form
           className="grid gap-4 p-4"
           onSubmit={(e) => {
             e.preventDefault();
             onFilter({
-              categoryId: selectedCategory === "all" ? undefined : selectedCategory,
-              status: selectedStatus === "all" ? undefined : selectedStatus as GameStatus
+              categoryId:
+                selectedCategory === "all" ? undefined : selectedCategory,
+              status:
+                selectedStatus === "all"
+                  ? undefined
+                  : (selectedStatus as GameStatus),
             });
           }}
         >
           {/* category */}
           <div className="items-center gap-4">
             <div className="flex flex-col space-y-2">
-              <Label htmlFor="category" className="text-right text-lg">
+              <Label htmlFor="category" className="text-right text-base">
                 Select Category
               </Label>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-pincuk text-xl tracking-wider w-full">
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent className="dark:bg-[#121C2D]">
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {categories?.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={selectedCategory}
+                onValueChange={setSelectedCategory}
+                options={[
+                  { value: "all", label: "All Categories" },
+                  ...(categories?.map((category) => ({
+                    value: category.id,
+                    label: category.name
+                  })) || [])
+                ]}
+                placeholder="Select category"
+                searchPlaceholder="Search categories..."
+                emptyText="No categories found"
+              />
             </div>
           </div>
           {/* status */}
           <div className="items-center gap-4">
             <div className="flex flex-col space-y-2">
-              <Label htmlFor="status" className="text-right text-lg">
+              <Label htmlFor="status" className="text-right text-base">
                 Select Game Status
               </Label>
-              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                <SelectTrigger className="h-14 bg-[#F1F5F9] border border-[#CBD5E0] font-pincuk text-xl tracking-wider w-full">
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent className="dark:bg-[#121C2D]">
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="disabled">Disabled</SelectItem>
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={selectedStatus}
+                onValueChange={setSelectedStatus}
+                options={[
+                  { value: "all", label: "All Status" },
+                  { value: "active", label: "Active" },
+                  { value: "disabled", label: "Disabled" }
+                ]}
+                placeholder="Select status"
+                searchPlaceholder="Search status..."
+                emptyText="No status found"
+              />
             </div>
           </div>
-          <div className="flex gap-3 justify-end px-2"> 
+          <div className="flex gap-3 justify-end px-2">
             <SheetClose asChild>
-              <Button 
-                type="button" 
+              <Button
+                type="button"
                 onClick={() => {
                   setSelectedCategory("all");
                   setSelectedStatus("all");
                   onReset();
                 }}
-                className="w-20 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-accent"
+                className="w-20 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-[#E2E8F0] dark:text-gray-300 dark:bg-[#1E293B] dark:border-[#334155] dark:hover:bg-[#334155] cursor-pointer"
               >
                 Reset
               </Button>
             </SheetClose>
             <SheetClose asChild>
-              <Button 
-                type="submit" 
-                className="w-20 h-12 bg-[#D946EF] dark:text-white hover:text-[#D946EF] hover:bg-[#F3E8FF]"
+              <Button
+                type="submit"
+                className="w-20 h-12 bg-[#D946EF] text-white hover:bg-[#C026D3] dark:text-white dark:hover:bg-[#C026D3] cursor-pointer"
               >
                 Filter
               </Button>
@@ -114,5 +115,5 @@ export function FilterSheet({ children, onFilter, onReset }: FilterSheetProps) {
         </form>
       </SheetContent>
     </Sheet>
-  )
+  );
 }

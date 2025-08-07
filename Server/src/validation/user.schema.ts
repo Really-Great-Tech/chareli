@@ -6,49 +6,61 @@ import { RoleType } from '../entities/Role';
  * Frontend handles field requirements based on auth config
  */
 export const createUserSchema = yup.object({
-  email: yup.string().email('Invalid email format').optional(),
+  email: yup.string().email("Invalid email format").optional(),
   phoneNumber: yup.string().optional(),
   firstName: yup.string().optional(),
   lastName: yup.string().optional(),
-  password: yup.string()
-    .min(8, 'Password must be at least 8 characters')
-    .matches(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .matches(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .matches(/[0-9]/, 'Password must contain at least one number')
-    .matches(/[^A-Za-z0-9]/, 'Password must contain at least one special character')
-    .required('Password is required'),
-  fileId: yup.string().uuid('Invalid file ID').optional(),
+  password: yup
+    .string()
+    .min(6, "Password must be at least 6 characters")
+    .matches(
+      /^(?=.*[a-zA-Z])(?=.*\d).+$/,
+      "Password is too weak (consider adding letters and numbers)"
+    )
+    .matches(
+      /^(?=.*[A-Z])/,
+      "Password must contain at least one uppercase letter"
+    )
+    .required("Password is required"),
+  fileId: yup.string().uuid("Invalid file ID").optional(),
   isAdult: yup.boolean().default(false),
-  hasAcceptedTerms: yup.boolean().default(false)
+  hasAcceptedTerms: yup.boolean().default(false),
 });
 
 /**
  * Update user schema validation
  */
-export const updateUserSchema = yup.object({
-  firstName: yup.string().trim(),
-  lastName: yup.string().trim(),
-  email: yup.string().email('Invalid email format'),
-  password: yup.string()
-    .min(8, 'Password must be at least 8 characters')
-    .matches(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .matches(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .matches(/[0-9]/, 'Password must contain at least one number')
-    .matches(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
-  phoneNumber: yup.string(),
-  roleId: yup.string().uuid('Invalid role ID'),
-  isActive: yup.boolean(),
-  fileId: yup.string().uuid('Invalid file ID'),
-  isAdult: yup.boolean(),
-  hasAcceptedTerms: yup.boolean(),
-  lastLoggedIn: yup.date()
-}).test(
-  'at-least-one-field',
-  'At least one field must be provided',
-  (value) => {
-    return Object.keys(value).length > 0;
-  }
-);
+export const updateUserSchema = yup
+  .object({
+    firstName: yup.string().trim(),
+    lastName: yup.string().trim(),
+    email: yup.string().email("Invalid email format"),
+    password: yup
+      .string()
+      .min(6, "Password must be at least 6 characters")
+      .matches(
+        /^(?=.*[a-zA-Z])(?=.*\d).+$/,
+        "Password is too weak (consider adding letters and numbers)"
+      )
+      .matches(
+        /^(?=.*[A-Z])/,
+        "Password must contain at least one uppercase letter"
+      ),
+    phoneNumber: yup.string(),
+    roleId: yup.string().uuid("Invalid role ID"),
+    isActive: yup.boolean(),
+    fileId: yup.string().uuid("Invalid file ID"),
+    isAdult: yup.boolean(),
+    hasAcceptedTerms: yup.boolean(),
+    lastLoggedIn: yup.date(),
+  })
+  .test(
+    "at-least-one-field",
+    "At least one field must be provided",
+    (value) => {
+      return Object.keys(value).length > 0;
+    }
+  );
 
 /**
  * User ID param schema validation

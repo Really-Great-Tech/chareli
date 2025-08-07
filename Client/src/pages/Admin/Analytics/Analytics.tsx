@@ -1,99 +1,119 @@
 import { DonutChart } from "../../../components/charts/donutChart";
 import { Card } from "../../../components/ui/card";
-import usersLine from "../../../assets/users-line.svg"
+import usersLine from "../../../assets/users-line.svg";
 import HorizontalBarChart from "../../../components/charts/barChart";
-import click from '../../../assets/click.svg'
+import click from "../../../assets/click.svg";
 import UserActivityLog from "./UserActivityLog";
 import GameActivity from "./GameActivity";
-import UserAgeBarChart from "../../../components/charts/barChart II";
-import { useDashboardAnalytics } from "../../../backend/analytics.service";
+import type { DashboardTimeRange } from "../../../backend/analytics.service";
+import { DashboardTimeFilter } from "../../../components/single/DashboardTimeFilter";
+import { useState } from "react";
 
 export default function Analytics() {
-  const { data: dashboardData } = useDashboardAnalytics();
-  
-  console.log('Dashboard Data:', dashboardData);
-  const adultsCount = dashboardData?.adultsCount ?? 0;
-  const minorsCount = dashboardData?.minorsCount ?? 0;
-  const totalRegistered = adultsCount + minorsCount;
-  console.log('Age Counts:', { adultsCount, minorsCount, totalRegistered });
+  // State for bar chart filter
+  const [barChartTimeRange, setBarChartTimeRange] = useState<DashboardTimeRange>({ period: 'last30days' });
+
+  // Commented out for the disabled user age chart
+  // const { data: dashboardData } = useDashboardAnalytics();
+  // const adultsCount = dashboardData?.adultsCount ?? 0;
+  // const minorsCount = dashboardData?.minorsCount ?? 0;
+  // const totalRegistered = adultsCount + minorsCount;
   return (
-    <div>
-      {/* donut chart */}
-       <div className="col-span-1 md:col-span-2 lg:col-span-4">
-        <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
-          <div className="justify-between items-center flex p-3">
-            <p className="text-3xl">Registration insights</p>
-          </div>
-          {/* inner card */}
-          <Card className="bg-[#F8FAFC] dark:bg-[#0F1221] shadow-none border-none mx-3 p-4">
-            <div className="flex flex-col space-y-8">
-
-              <div className="">
-              <div className="justify-start flex items-center gap-4">
-              <img src={usersLine} alt="users" className="w-10 h-10 dark:text-white" />
-              <p className="text-lg text-[#64748A] dark:text-white">Total number of registered users</p>
-              </div>
-
-              <DonutChart />
-              </div>
-            </div>
-          </Card>
-        </Card>
-      </div>
-      {/* bar chart */}
-       <div className="col-span-1 md:col-span-2 lg:col-span-4 mt-4">
-        <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
-          <div className="justify-between items-center flex p-3">
-            <p className="text-3xl">Click insights</p>
-          </div>
-          {/* inner card */}
-          <Card className="bg-[#F8FAFC] dark:bg-[#0F1221] shadow-none border-none mx-3 p-4">
-            <div className="flex flex-col space-y-8">
-
-              <div className="">
-              <div className="justify-start flex items-center gap-4">
-              <img src={click} alt="users" className="w-10 h-10 dark:text-white" />
-              <p className="text-lg text-[#64748A] dark:text-white">Total clicks on Sign-up form</p>
-              </div>
-
-              <HorizontalBarChart/>
-              </div>
-            </div>
-          </Card>
-        </Card>
-      </div>
-
+    <div className="space-y-6">
       {/* bar chart for user age */}
-      <div className="col-span-1 md:col-span-2 lg:col-span-4 mt-4">
+      {/* <div className="w-full">
         <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
           <div className="justify-between items-center flex p-3">
-            <p className="text-3xl">User Age</p>
+            <p className="text-base sm:text-xl lg:text-2xl">User Age</p>
           </div>
-          {/* inner card */}
           <Card className="bg-[#F8FAFC] dark:bg-[#0F1221] shadow-none border-none mx-3 p-4">
             <div className="flex flex-col space-y-8">
-
               <div className="">
-              <div className="justify-start flex items-center gap-4">
-              <div className="flex gap-4 items-center"> 
-              <p className="font-bold text-3xl">{totalRegistered}</p>
-              <p className="text-lg text-[#64748A] dark:text-white">Total registered users</p>
-              </div>
-              </div>
+                <div className="justify-start flex items-center gap-4">
+                  <div className="flex gap-4 items-center">
+                    <p className="font-bold text-xl sm:text-2xl lg:text-3xl">
+                      {totalRegistered}
+                    </p>
+                    <p className="text-sm sm:text-base lg:text-lg text-[#64748A] dark:text-white">
+                      Total registered users
+                    </p>
+                  </div>
+                </div>
 
-              <UserAgeBarChart 
-                adultsCount={adultsCount}
-                minorsCount={minorsCount}
-              />
+                <UserAgeBarChart
+                  adultsCount={adultsCount}
+                  minorsCount={minorsCount}
+                />
               </div>
             </div>
           </Card>
         </Card>
-      </div>
-
+      </div> */}
 
       <UserActivityLog />
       <GameActivity />
+
+      {/* donut chart */}
+      <div className="w-full">
+        <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
+          <div className="justify-between items-center flex p-3">
+            <p className="text-lg sm:text-xl lg:text-2xl">
+              Registration insights
+            </p>
+          </div>
+          {/* inner card */}
+          <Card className="bg-[#F8FAFC] dark:bg-[#0F1221] shadow-none border-none mx-3 p-4">
+            <div className="flex flex-col space-y-8">
+              <div className="">
+                <div className="justify-start flex items-center gap-4 font-worksans">
+                  <img
+                    src={usersLine}
+                    alt="users"
+                    className="w-10 h-10 dark:text-white"
+                  />
+                  <p className="text-sm sm:text-base lg:text-lg text-[#64748A] dark:text-white">
+                    Total number of registered users
+                  </p>
+                </div>
+
+                <DonutChart />
+              </div>
+            </div>
+          </Card>
+        </Card>
+      </div>
+
+      {/* bar chart - insights */}
+      <div className="w-full">
+        <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
+          <div className="justify-between items-center flex p-3">
+            <p className="text-base sm:text-xl lg:text-2xl">Click insights</p>
+            <DashboardTimeFilter
+              value={barChartTimeRange}
+              onChange={setBarChartTimeRange}
+            />
+          </div>
+          {/* inner card */}
+          <Card className="bg-[#F8FAFC] dark:bg-[#0F1221] shadow-none border-none mx-3 p-4">
+            <div className="flex flex-col space-y-8">
+              <div className="">
+                <div className="justify-start flex items-center gap-4">
+                  <img
+                    src={click}
+                    alt="users"
+                    className="w-10 h-10 dark:text-white"
+                  />
+                  <p className="text-sm sm:text-base lg:text-lg text-[#64748A] dark:text-white">
+                    Total clicks on Sign-up button
+                  </p>
+                </div>
+
+                <HorizontalBarChart timeRange={barChartTimeRange} />
+              </div>
+            </div>
+          </Card>
+        </Card>
+      </div>
     </div>
-  )
+  );
 }

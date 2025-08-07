@@ -346,6 +346,24 @@ export const updateAnalytics = async (
       analytics.sessionCount = sessionCount;
     }
     
+    // Calculate duration before saving
+    if (analytics.startTime && analytics.endTime) {
+      const duration = Math.floor((analytics.endTime.getTime() - analytics.startTime.getTime()) / 1000);
+      
+      // For game sessions, only save if duration >= 30 seconds
+      if (analytics.gameId && duration < 30) {
+        // Delete the analytics record if it's a game session with duration < 30 seconds
+        await analyticsRepository.remove(analytics);
+        
+        res.status(200).json({
+          success: true,
+          message: 'Analytics entry removed due to insufficient duration (< 30 seconds)',
+          data: null
+        });
+        return;
+      }
+    }
+    
     await analyticsRepository.save(analytics);
     
     res.status(200).json({
@@ -429,6 +447,25 @@ export const updateAnalyticsEndTime = async (
     }
     
     analytics.endTime = new Date(endTime);
+    
+    // Calculate duration before saving
+    if (analytics.startTime && analytics.endTime) {
+      const duration = Math.floor((analytics.endTime.getTime() - analytics.startTime.getTime()) / 1000);
+      
+      // For game sessions, only save if duration >= 30 seconds
+      if (analytics.gameId && duration < 30) {
+        // Delete the analytics record if it's a game session with duration < 30 seconds
+        await analyticsRepository.remove(analytics);
+        
+        res.status(200).json({
+          success: true,
+          message: 'Analytics entry removed due to insufficient duration (< 30 seconds)',
+          data: null
+        });
+        return;
+      }
+    }
+    
     await analyticsRepository.save(analytics);
     
     res.status(200).json({

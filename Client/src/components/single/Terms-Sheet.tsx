@@ -1,18 +1,21 @@
-import { Button } from '../ui/button';
-import { Label } from '../ui/label';
-import uploadImg from '../../assets/fetch-upload.svg';
+import { Button } from "../ui/button";
+import { Label } from "../ui/label";
+import uploadImg from "../../assets/fetch-upload.svg";
 import {
   Sheet,
   SheetClose,
   SheetContent,
   SheetHeader,
   SheetTitle,
-} from '../ui/sheet';
-import { useCreateSystemConfig } from '../../backend/configuration.service';
-import { toast } from 'sonner';
-import { useQueryClient } from '@tanstack/react-query';
-import { BackendRoute } from '../../backend/constants';
-import { useState } from 'react';
+} from "../ui/sheet";
+import {
+  useCreateSystemConfig,
+  useSystemConfigByKey,
+} from "../../backend/configuration.service";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+import { BackendRoute } from "../../backend/constants";
+import { useState } from "react";
 
 interface TermsSheetProps {
   open: boolean;
@@ -23,18 +26,25 @@ export function TermsSheet({ open, onOpenChange }: TermsSheetProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const queryClient = useQueryClient();
   const createConfig = useCreateSystemConfig();
+  const { data: termsConfig } = useSystemConfigByKey("terms");
+
+  const hasExistingTerms = !!termsConfig;
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       // Check file type
-      if (!file.type.match('application/pdf|application/msword|application/vnd.openxmlformats-officedocument.wordprocessingml.document')) {
-        toast.error('Please upload a PDF or Word document');
+      if (
+        !file.type.match(
+          "application/pdf|application/msword|application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        )
+      ) {
+        toast.error("Please upload a PDF or Word document");
         return;
       }
       // Check file size (5MB limit)
       if (file.size > 5 * 1024 * 1024) {
-        toast.error('File size should not exceed 5MB');
+        toast.error("File size should not exceed 5MB");
         return;
       }
       setSelectedFile(file);
@@ -44,45 +54,95 @@ export function TermsSheet({ open, onOpenChange }: TermsSheetProps) {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!selectedFile) {
-      toast.error('Please select a file');
+      toast.error("Please select a file");
       return;
     }
 
     try {
       const formData = new FormData();
-      formData.append('file', selectedFile);
-      formData.append('key', 'terms');
-      formData.append('description', 'Terms of use document');
+      formData.append("file", selectedFile);
+      formData.append("key", "terms");
+      formData.append("description", "Terms of use document");
 
       await createConfig.mutateAsync(formData);
-      queryClient.invalidateQueries({ queryKey: [BackendRoute.SYSTEM_CONFIG, 'terms'] });
-      toast.success('Terms file uploaded successfully');
+      queryClient.invalidateQueries({
+        queryKey: [BackendRoute.SYSTEM_CONFIG, "terms"],
+      });
+      toast.success("Terms file uploaded successfully");
       onOpenChange(false);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      toast.error('Failed to upload terms file');
+      toast.error("Failed to upload terms file");
     }
   };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="font-boogaloo dark:bg-[#0F1621] max-w-xl w-full">
+      <SheetContent className="font-dmmono dark:bg-[#0F1621] max-w-xl w-full">
         <SheetHeader>
-          <SheetTitle className="text-2xl font-bold tracking-wider mt-6">
+          <SheetTitle className="text-lg font-bold tracking-wider mt-6">
             Terms of Use
           </SheetTitle>
           <div className="border border-b-gray-200 mb-2"></div>
         </SheetHeader>
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-6 pl-4 pr-4">
-          {/* Thumbnail Upload */}
+        {/* Current Terms Display */}
+        {hasExistingTerms && (
+          <div className="mx-4 mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <h3 className="text-base font-semibold text-blue-800 dark:text-blue-200 mb-2">
+              📄 Current Terms Document
+            </h3>
+            <div className="space-y-2">
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                <span className="font-medium">Uploaded:</span>{" "}
+                {termsConfig?.value?.uploadedAt
+                  ? new Date(termsConfig.value.uploadedAt).toLocaleDateString()
+                  : "Unknown"}
+              </p>
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                <span className="font-medium">Type:</span>{" "}
+                {termsConfig?.value?.file?.type || "terms"}
+              </p>
+              {termsConfig?.value?.file?.s3Key && (
+                <a
+                  href={termsConfig.value.file.s3Key}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 underline"
+                >
+                  📥 View Current Terms Document
+                </a>
+              )}
+            </div>
+            <div className="mt-3 p-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded">
+              <p className="text-xs text-yellow-800 dark:text-yellow-200">
+                ⚠️ Uploading a new file will replace the current terms document
+              </p>
+            </div>
+          </div>
+        )}
+
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-1 gap-6 pl-4 pr-4"
+        >
+          {/* File Upload */}
           <div>
             <Label className="text-lg mb-2 block">Upload file</Label>
             <div className="flex items-center">
               <label className="w-40 h-38 flex flex-col items-center justify-center border border-[#CBD5E0] rounded-lg cursor-pointer hover:border-[#D946EF] transition">
-                <img src={uploadImg} alt="upload" className="dark:text-white" />
-                <input 
-                  type="file" 
-                  accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
-                  className="hidden" 
+                {selectedFile?.name ? (
+                  <img src="/doc.png" alt="document icon" className="w-20" />
+                ) : (
+                  <img
+                    src={uploadImg}
+                    alt="upload"
+                    className="dark:invert dark:brightness-0 dark:contrast-100"
+                  />
+                )}
+                <input
+                  type="file"
+                  accept=".doc,.docx"
+                  className="hidden"
                   onChange={handleFileChange}
                 />
                 {selectedFile && (
@@ -92,24 +152,29 @@ export function TermsSheet({ open, onOpenChange }: TermsSheetProps) {
                 )}
               </label>
             </div>
+            <p className="mt-4 text-red-400">only doc/docx* files</p>
           </div>
         </form>
         <div className="flex gap-3 justify-end px-2 mt-4">
           <SheetClose asChild>
             <Button
               type="button"
-              className="w-20 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-accent shadow-none"
+              className="w-20 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-[#E2E8F0] dark:text-gray-300 dark:bg-[#1E293B] dark:border-[#334155] dark:hover:bg-[#334155] shadow-none cursor-pointer"
             >
               Cancel
             </Button>
           </SheetClose>
           <Button
             type="submit"
-            className="w-20 h-12 bg-[#D946EF] dark:text-white hover:text-[#D946EF] hover:bg-[#F3E8FF] shadow-none"
+            className="w-fit h-12 bg-[#D946EF] text-white hover:bg-[#C026D3] dark:text-white dark:hover:bg-[#C026D3] shadow-none cursor-pointer px-4"
             onClick={handleSubmit}
             disabled={!selectedFile || createConfig.isPending}
           >
-            {createConfig.isPending ? 'Uploading...' : 'Add'}
+            {createConfig.isPending
+              ? "Uploading..."
+              : hasExistingTerms
+              ? "Replace Terms"
+              : "Add Terms"}
           </Button>
         </div>
       </SheetContent>

@@ -1,23 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppDataSource } from '../config/database';
 import { SignupAnalytics } from '../entities/SignupAnalytics';
-import { Between } from 'typeorm';
-import NodeCache from 'node-cache';
-
-// Initialize cache with 24h TTL
-const ipCache = new NodeCache({ stdTTL: 86400 });
+import { getCountryFromIP, extractClientIP, getIPCacheStats } from '../utils/ipUtils';
 
 const signupAnalyticsRepository = AppDataSource.getRepository(SignupAnalytics);
 
-/**
- * Simple device type detection from user agent
- * @param userAgent The user agent string
- * @returns Device type: 'mobile', 'tablet', or 'desktop'
- */
 function detectDeviceType(userAgent: string): string {
   const ua = userAgent.toLowerCase();
   
-  // Check for tablets first (some tablets also identify as mobile)
   if (
     ua.includes('ipad') || 
     ua.includes('tablet') || 
@@ -26,7 +16,6 @@ function detectDeviceType(userAgent: string): string {
     return 'tablet';
   }
   
-  // Check for mobile devices
   if (
     ua.includes('mobi') || 
     ua.includes('android') ||
@@ -38,57 +27,10 @@ function detectDeviceType(userAgent: string): string {
     return 'mobile';
   }
   
-  // Default to desktop
   return 'desktop';
 }
 
 
-function isPrivateIP(ip: string): boolean {
-  return ip === '127.0.0.1' || 
-         ip === '::1' || 
-         ip === 'localhost' || 
-         ip.startsWith('192.168.') || 
-         ip.startsWith('10.') || 
-         ip.startsWith('172.16.');
-}
-
-export async function getCountryFromIP(ipAddress: string): Promise<string | null> {
-  try {
-    // Check cache first
-    const cached = ipCache.get<string>(ipAddress);
-    if (cached) {
-      console.log('IP cache hit:', ipAddress);
-      return cached;
-    }
-
-    // Handle private/local IPs
-    if (isPrivateIP(ipAddress)) {
-      return 'Local';
-    }
-
-    console.log('Fetching country for IP:', ipAddress);
-    const response = await fetch(`https://ipapi.co/${ipAddress}/json/`);
-    const data = await response.json() as {
-      error?: string;
-      country_name?: string;
-    };
-
-    if (data.error) {
-      console.error('IP API error:', data.error);
-      return null;
-    }
-
-    // Cache successful results
-    if (data.country_name) {
-      ipCache.set(ipAddress, data.country_name);
-    }
-
-    return data.country_name || null;
-  } catch (error) {
-    console.error('Error getting country from IP:', error);
-    return null;
-  }
-}
 
 /**
  * Test endpoint to verify IP country detection
@@ -101,13 +43,14 @@ export const testIPCountry = async (
   try {
     const { ip } = req.params;
     const country = await getCountryFromIP(ip);
+    const cacheStats = getIPCacheStats();
     
     res.status(200).json({
       success: true,
       data: {
         ip,
         country,
-        cached: ipCache.has(ip)
+        cached: cacheStats.keys > 0 // Simple check if cache has entries
       }
     });
   } catch (error) {
@@ -162,11 +105,7 @@ export const trackSignupClick = async (
 
     // Extract real IP address (behind proxy/CDN safe)
     const forwarded = req.headers['x-forwarded-for'];
-    const ipAddress = Array.isArray(forwarded)
-      ? forwarded[0]
-      : (forwarded || req.socket.remoteAddress || req.ip || '');
-
-    console.log('Detected IP address:', ipAddress); 
+    const ipAddress = extractClientIP(forwarded, req.socket.remoteAddress || req.ip || '');
 
     const userAgent = req.headers['user-agent'] || '';
     const deviceType = detectDeviceType(userAgent);
@@ -206,6 +145,31 @@ export const trackSignupClick = async (
  *           type: integer
  *           minimum: 1
  *         description: Number of days to include (default 30)
+ *       - in: query
+ *         name: period
+ *         schema:
+ *           type: string
+ *           enum: [last24hours, last7days, last30days, custom]
+ *         description: Time period filter
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date for custom period
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End date for custom period
+ *       - in: query
+ *         name: country
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *         description: Filter by countries
  *     responses:
  *       200:
  *         description: Analytics data retrieved successfully
@@ -215,69 +179,169 @@ export const trackSignupClick = async (
  *         description: Forbidden
  */
 export const getSignupAnalyticsData = async (
-  req: Request, 
-  res: Response, 
+  req: Request,
+  res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    // Get date range from query params or default to last 30 days
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - (req.query.days ? parseInt(req.query.days as string) : 30));
-    
-    // Total clicks
-    const totalClicks = await signupAnalyticsRepository.count();
-    
-    // Clicks in the selected period
-    const periodClicks = await signupAnalyticsRepository.count({
-      where: {
-        createdAt: Between(startDate, endDate)
+    const { period, startDate: queryStartDate, endDate: queryEndDate, country, days } = req.query;
+
+    // Handle country filter
+    const countries = Array.isArray(country) ? country as string[] : country ? [country as string] : [];
+
+    // Calculate date range based on period or days parameter
+    let startDate: Date;
+    let endDate: Date = new Date();
+
+    if (period) {
+      // Use period-based filtering (same as dashboard analytics)
+      switch (period) {
+        case 'last24hours':
+          startDate = new Date(endDate.getTime() - 24 * 60 * 60 * 1000);
+          break;
+        case 'last7days':
+          startDate = new Date(endDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+          break;
+        case 'last30days':
+          startDate = new Date(endDate.getTime() - 30 * 24 * 60 * 60 * 1000);
+          break;
+        case 'custom':
+          if (queryStartDate && queryEndDate) {
+            startDate = new Date(queryStartDate as string);
+            endDate = new Date(queryEndDate as string);
+          } else {
+            // Fallback to 30 days if custom dates not provided
+            startDate = new Date(endDate.getTime() - 30 * 24 * 60 * 60 * 1000);
+          }
+          break;
+        default:
+          startDate = new Date(endDate.getTime() - 30 * 24 * 60 * 60 * 1000);
       }
-    });
-    
-    // Unique sessions
-    const uniqueSessions = await signupAnalyticsRepository
+    } else {
+      // Fallback to days parameter for backward compatibility
+      const daysCount = days ? parseInt(days as string) : 30;
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() - daysCount);
+    }
+
+    // Total clicks in the selected period (excluding signup-modal to avoid double counting)
+    let totalClicksQuery = signupAnalyticsRepository
+      .createQueryBuilder('analytics')
+      .select('COUNT(*)', 'count')
+      .where('analytics.createdAt BETWEEN :startDate AND :endDate', { startDate, endDate })
+      .andWhere('analytics.type != :excludeType', { excludeType: 'signup-modal' });
+
+    // Add country filter for total clicks if provided
+    if (countries.length > 0) {
+      totalClicksQuery = totalClicksQuery.andWhere('analytics.country IN (:...countries)', { countries });
+    }
+
+    const totalClicks = await totalClicksQuery
+      .getRawOne()
+      .then(result => parseInt(result?.count || '0'));
+
+    // Clicks in the selected period (excluding signup-modal to avoid double counting)
+    let periodClicksQuery = signupAnalyticsRepository
+      .createQueryBuilder('analytics')
+      .select('COUNT(*)', 'count')
+      .where('analytics.createdAt BETWEEN :startDate AND :endDate', { startDate, endDate })
+      .andWhere('analytics.type != :excludeType', { excludeType: 'signup-modal' });
+
+    // Add country filter for period clicks if provided
+    if (countries.length > 0) {
+      periodClicksQuery = periodClicksQuery.andWhere('analytics.country IN (:...countries)', { countries });
+    }
+
+    const periodClicks = await periodClicksQuery
+      .getRawOne()
+      .then(result => parseInt(result?.count || '0'));
+
+    // Unique sessions (excluding signup-modal to avoid double counting)
+    let uniqueSessionsQuery = signupAnalyticsRepository
       .createQueryBuilder('analytics')
       .select('COUNT(DISTINCT analytics.sessionId)', 'count')
       .where('analytics.sessionId IS NOT NULL')
-      .getRawOne();
-    
-    // Clicks by country
-    const clicksByCountry = await signupAnalyticsRepository
+      .andWhere('analytics.type != :excludeType', { excludeType: 'signup-modal' })
+      .andWhere('analytics.createdAt BETWEEN :startDate AND :endDate', { startDate, endDate });
+
+    // Add country filter for unique sessions if provided
+    if (countries.length > 0) {
+      uniqueSessionsQuery = uniqueSessionsQuery.andWhere('analytics.country IN (:...countries)', { countries });
+    }
+
+    const uniqueSessions = await uniqueSessionsQuery.getRawOne();
+
+    // Clicks by country (excluding signup-modal to avoid double counting)
+    let clicksByCountryQuery = signupAnalyticsRepository
       .createQueryBuilder('analytics')
       .select('analytics.country', 'country')
       .addSelect('COUNT(*)', 'count')
       .where('analytics.country IS NOT NULL')
+      .andWhere('analytics.type != :excludeType', { excludeType: 'signup-modal' })
+      .andWhere('analytics.createdAt BETWEEN :startDate AND :endDate', { startDate, endDate });
+
+    // Add country filter for clicks by country if provided
+    if (countries.length > 0) {
+      clicksByCountryQuery = clicksByCountryQuery.andWhere('analytics.country IN (:...countries)', { countries });
+    }
+
+    const clicksByCountry = await clicksByCountryQuery
       .groupBy('analytics.country')
       .orderBy('count', 'DESC')
       .limit(10)
       .getRawMany();
-    
-    // Clicks by device type
-    const clicksByDevice = await signupAnalyticsRepository
+
+    // Clicks by device type (excluding signup-modal to avoid double counting)
+    let clicksByDeviceQuery = signupAnalyticsRepository
       .createQueryBuilder('analytics')
       .select('analytics.deviceType', 'deviceType')
       .addSelect('COUNT(*)', 'count')
       .where('analytics.deviceType IS NOT NULL')
+      .andWhere('analytics.type != :excludeType', { excludeType: 'signup-modal' })
+      .andWhere('analytics.createdAt BETWEEN :startDate AND :endDate', { startDate, endDate });
+
+    // Add country filter for clicks by device if provided
+    if (countries.length > 0) {
+      clicksByDeviceQuery = clicksByDeviceQuery.andWhere('analytics.country IN (:...countries)', { countries });
+    }
+
+    const clicksByDevice = await clicksByDeviceQuery
       .groupBy('analytics.deviceType')
       .orderBy('count', 'DESC')
       .getRawMany();
-    
-    // Clicks by day
-    const clicksByDay = await signupAnalyticsRepository
+
+    // Clicks by day (excluding signup-modal to avoid double counting)
+    let clicksByDayQuery = signupAnalyticsRepository
       .createQueryBuilder('analytics')
       .select('DATE(analytics.createdAt)', 'date')
       .addSelect('COUNT(*)', 'count')
       .where('analytics.createdAt BETWEEN :startDate AND :endDate', { startDate, endDate })
+      .andWhere('analytics.type != :excludeType', { excludeType: 'signup-modal' });
+
+    // Add country filter for clicks by day if provided
+    if (countries.length > 0) {
+      clicksByDayQuery = clicksByDayQuery.andWhere('analytics.country IN (:...countries)', { countries });
+    }
+
+    const clicksByDay = await clicksByDayQuery
       .groupBy('DATE(analytics.createdAt)')
       .orderBy('date', 'ASC')
       .getRawMany();
-    
-    // Clicks by type
-    const clicksByType = await signupAnalyticsRepository
+
+    // Clicks by type (excluding signup-modal to avoid double counting)
+    let clicksByTypeQuery = signupAnalyticsRepository
       .createQueryBuilder('analytics')
       .select('analytics.type', 'type')
       .addSelect('COUNT(*)', 'count')
+      .where('analytics.type != :excludeType', { excludeType: 'signup-modal' })
+      .andWhere('analytics.createdAt BETWEEN :startDate AND :endDate', { startDate, endDate });
+
+    // Add country filter for clicks by type if provided
+    if (countries.length > 0) {
+      clicksByTypeQuery = clicksByTypeQuery.andWhere('analytics.country IN (:...countries)', { countries });
+    }
+
+    const clicksByType = await clicksByTypeQuery
       .groupBy('analytics.type')
       .orderBy('count', 'DESC')
       .getRawMany();

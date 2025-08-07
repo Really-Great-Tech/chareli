@@ -1,60 +1,74 @@
-import { useState, useRef } from 'react';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
-import * as Yup from 'yup';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import uploadImg from '../../assets/fetch-upload.svg';
-import { useCreateGame } from '../../backend/games.service';
-import { useCategories } from '../../backend/category.service';
-import { toast } from 'sonner';
-import GameCreationProgress from './GameCreationProgress';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useState, useRef } from "react";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { SearchableSelect } from "../ui/searchable-select";
+// import uploadImg from "../../assets/fetch-upload.svg";
+import { useCreateGame } from "../../backend/games.service";
+import { useCategories } from "../../backend/category.service";
+import { backendService } from "../../backend/api.service";
+import { toast } from "sonner";
+import { useQueryClient } from '@tanstack/react-query';
+import { BackendRoute } from "../../backend/constants";
+import GameCreationProgress from "./GameCreationProgress";
+import UppyUpload from "./UppyUpload";
 import {
   Sheet,
-  SheetClose,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from '../ui/sheet';
+} from "../ui/sheet";
+
+interface UploadedFile {
+  name: string;
+  publicUrl: string;
+  key: string;
+}
 
 interface FormValues {
   title: string;
   description: string;
   config: number;
   categoryId: string;
-  thumbnailFile?: File;
-  gameFile?: File;
+  position?: number;
+  thumbnailFile?: UploadedFile;
+  gameFile?: UploadedFile;
 }
 
 // Validation schema
 const validationSchema = Yup.object({
-  title: Yup.string().required('Title is required').trim(),
-  description: Yup.string().required('Description is required').trim(),
+  title: Yup.string().required("Title is required").trim(),
+  description: Yup.string().required("Description is required").trim(),
   config: Yup.number()
-    .required('Config is required')
-    .min(0, 'Config must be a positive number'),
-  categoryId: Yup.string().required('Category is required'),
-  thumbnailFile: Yup.mixed<File>()
-    .required('Thumbnail image is required')
-    .test('fileType', 'Only image files are allowed', (value) => {
-      if (!value) return false;
-      return value instanceof File && value.type.startsWith('image/');
+    .required("Config is required")
+    .min(0, "Config must be a positive number"),
+  categoryId: Yup.string(),
+  thumbnailFile: Yup.object()
+    .required("Thumbnail image is required")
+    .shape({
+      name: Yup.string().required(),
+      publicUrl: Yup.string().required(),
+      key: Yup.string().required(),
     }),
-  gameFile: Yup.mixed<File>()
-    .required('Game file is required')
-    .test('fileType', 'Only ZIP files are allowed', (value) => {
-      if (!value) return false;
-      return value instanceof File && value.name.toLowerCase().endsWith('.zip');
+  gameFile: Yup.object()
+    .required("Game file is required")
+    .shape({
+      name: Yup.string().required(),
+      publicUrl: Yup.string().required(),
+      key: Yup.string().required(),
     }),
 });
 
 // Initial values
 const initialValues: FormValues = {
-  title: '',
-  description: '',
-  config: 0,
-  categoryId: '',
+  title: "",
+  description: "",
+  config: 1,
+  categoryId: "",
 };
 
 export function CreateGameSheet({
@@ -65,13 +79,83 @@ export function CreateGameSheet({
   onOpenChange?: (open: boolean) => void;
 }) {
   const formikRef = useRef<any>(null);
-  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
-  const [gameFileName, setGameFileName] = useState<string | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<{
+    thumbnail: UploadedFile | null;
+    game: UploadedFile | null;
+  }>({
+    thumbnail: null,
+    game: null,
+  });
+  const [isUploading, setIsUploading] = useState({
+    thumbnail: false,
+    game: false,
+  });
+
+  // Stable callback functions to prevent re-renders
+  const handleThumbnailUploaded = React.useCallback((file: UploadedFile) => {
+    console.log('📸 Thumbnail uploaded:', file);
+    setUploadedFiles(prev => ({ ...prev, thumbnail: file }));
+    setIsUploading(prev => ({ ...prev, thumbnail: false }));
+    if (formikRef.current) {
+      formikRef.current.setFieldValue("thumbnailFile", file);
+    }
+  }, []);
+
+  const handleGameUploaded = React.useCallback((file: UploadedFile) => {
+    console.log('🎮 Game uploaded:', file);
+    setUploadedFiles(prev => ({ ...prev, game: file }));
+    setIsUploading(prev => ({ ...prev, game: false }));
+    if (formikRef.current) {
+      formikRef.current.setFieldValue("gameFile", file);
+    }
+  }, []);
+
+  const handleThumbnailReplaced = React.useCallback(() => {
+    console.log('🗑️ Thumbnail replaced');
+    setUploadedFiles(prev => ({ ...prev, thumbnail: null }));
+    setIsUploading(prev => ({ ...prev, thumbnail: false }));
+    if (formikRef.current) {
+      formikRef.current.setFieldValue("thumbnailFile", undefined);
+    }
+  }, []);
+
+  const handleGameReplaced = React.useCallback(() => {
+    console.log('🗑️ Game replaced');
+    setUploadedFiles(prev => ({ ...prev, game: null }));
+    setIsUploading(prev => ({ ...prev, game: false }));
+    if (formikRef.current) {
+      formikRef.current.setFieldValue("gameFile", undefined);
+    }
+  }, []);
+
+  const handleThumbnailUploadStart = React.useCallback(() => {
+    console.log('🚀 Thumbnail upload started');
+    setIsUploading(prev => ({ ...prev, thumbnail: true }));
+  }, []);
+
+  const handleGameUploadStart = React.useCallback(() => {
+    console.log('🚀 Game upload started');
+    setIsUploading(prev => ({ ...prev, game: true }));
+  }, []);
+
+  const handleThumbnailUploadError = React.useCallback((error: string) => {
+    console.error('❌ Thumbnail upload error:', error);
+    setIsUploading(prev => ({ ...prev, thumbnail: false }));
+    toast.error(`Thumbnail upload failed: ${error}`);
+  }, []);
+
+  const handleGameUploadError = React.useCallback((error: string) => {
+    console.error('❌ Game upload error:', error);
+    setIsUploading(prev => ({ ...prev, game: false }));
+    toast.error(`Game upload failed: ${error}`);
+  }, []);
   const [showProgress, setShowProgress] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [currentStep, setCurrentStep] = useState('');
+  const [currentStep, setCurrentStep] = useState("");
   const createGame = useCreateGame();
   const { data: categories } = useCategories();
+  const queryClient = useQueryClient(); // Add query client for manual cache invalidation
   const handleSubmit = async (
     values: FormValues,
     { setSubmitting, resetForm }: any
@@ -80,70 +164,120 @@ export function CreateGameSheet({
       // Show progress bar
       setShowProgress(true);
       setProgress(0);
-      setCurrentStep('Preparing files...');
+      setCurrentStep("Processing game...");
 
-      const formData = new FormData();
-      formData.append('title', values.title);
-      formData.append('description', values.description);
-      formData.append('config', String(values.config));
-      formData.append('categoryId', values.categoryId);
-
-      if (values.thumbnailFile) {
-        formData.append('thumbnailFile', values.thumbnailFile);
-      }
-      if (values.gameFile) {
-        formData.append('gameFile', values.gameFile);
-      }
-
-      // Simulate progress steps
-      setProgress(20);
-      setCurrentStep('Uploading thumbnail...');
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Send file keys instead of files
+      const gameData = {
+        title: values.title,
+        description: values.description,
+        config: values.config,
+        categoryId: values.categoryId,
+        position: values.position,
+        thumbnailFileKey: values.thumbnailFile?.key,
+        gameFileKey: values.gameFile?.key,
+      };
 
       setProgress(50);
-      setCurrentStep('Uploading game file...');
-      await new Promise(resolve => setTimeout(resolve, 500));
+      setCurrentStep("Creating game...");
 
-      setProgress(80);
-      setCurrentStep('Processing...');
-      
-      await createGame.mutateAsync(formData);
-      
+      await createGame.mutateAsync(gameData);
+
       setProgress(100);
-      setCurrentStep('Complete!');
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      setCurrentStep("Complete!");
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      toast.success('Game created successfully!');
+      toast.success("Game created successfully!");
       resetForm();
-      setThumbnailPreview(null);
-      setGameFileName(null);
+      setUploadedFiles({ thumbnail: null, game: null });
       setShowProgress(false);
       setProgress(0);
-      setCurrentStep('');
+      setCurrentStep("");
+      setIsOpen(false);
       onOpenChange?.(false);
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Error creating game:", error);
+      
+      // Check if this is a network error but the game might have been created successfully
+      if (error?.code === 'ERR_NETWORK' || error?.message === 'Network Error') {
+        setCurrentStep("Verifying game creation...");
+        setProgress(90);
+        
+        // Wait a moment for the server to complete processing
+        await new Promise((resolve) => setTimeout(resolve, 10000));
+        
+        try {
+          // Check if the game was actually created by searching for it
+          // We'll search for games with the same title created in the last few minutes
+          const { data: recentGames } = await backendService.get('/api/games', {
+            params: { 
+              limit: 10,
+              search: values.title 
+            },
+            suppressErrorToast: true
+          });
+          
+          // Look for a game with the exact title created recently (within the last 5 minutes)
+          const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+          const possibleGame = recentGames?.data?.find((game: any) => 
+            game.title === values.title && 
+            new Date(game.createdAt) > fiveMinutesAgo
+          );
+          
+          if (possibleGame) {
+            setProgress(100);
+            setCurrentStep("Game created successfully!");
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            
+            // Manually invalidate React Query cache to trigger UI updates
+            queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES] });
+            queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS] });
+            queryClient.invalidateQueries({ queryKey: [BackendRoute.CATEGORIES] });
+            
+            toast.success("Game created successfully! (Upload completed despite network error)");
+            resetForm();
+            setUploadedFiles({ thumbnail: null, game: null });
+            setShowProgress(false);
+            setProgress(0);
+            setCurrentStep("");
+            setIsOpen(false);
+            onOpenChange?.(false);
+            return;
+          }
+        } catch (verificationError) {
+          console.error("Failed to verify game creation:", verificationError);
+        }
+      }
+      
+      // If we get here, the game creation actually failed
       setShowProgress(false);
       setProgress(0);
-      setCurrentStep('');
-      toast.error('Failed to create game');
+      setCurrentStep("");
+      toast.error("Failed to create game");
+      console.error("Error creating game:", error);
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <Sheet onOpenChange={(open) => {
-      if (!open && formikRef.current) {
-        formikRef.current.resetForm();
-        setThumbnailPreview(null);
-        setGameFileName(null);
-      }
-      onOpenChange?.(open);
-    }}>
-      <SheetTrigger asChild>{children}</SheetTrigger>
-      <SheetContent className="font-boogaloo dark:bg-[#0F1621] max-w-xl w-full overflow-y-auto">
+    <Sheet
+      open={isOpen}
+      onOpenChange={(open) => {
+        setIsOpen(open);
+        if (!open && formikRef.current) {
+          formikRef.current.resetForm();
+          setUploadedFiles({ thumbnail: null, game: null });
+          setShowProgress(false);
+          setProgress(0);
+          setCurrentStep("");
+        }
+        onOpenChange?.(open);
+      }}
+    >
+      <SheetTrigger asChild onClick={() => setIsOpen(true)}>{children}</SheetTrigger>
+      <SheetContent className="font-dmmono dark:bg-[#0F1621] max-w-xl w-full overflow-y-auto">
         <SheetHeader>
-          <SheetTitle className="text-2xl font-bold tracking-wider mt-6 mb-2">
+          <SheetTitle className="text-xl font-medium tracking-wider mt-6 mb-2">
             Create New Game
           </SheetTitle>
           <div className="border border-b-gray-200 mb-2"></div>
@@ -154,48 +288,68 @@ export function CreateGameSheet({
           onSubmit={handleSubmit}
           innerRef={formikRef}
         >
-          {({ setFieldValue, isSubmitting, isValid, dirty }) => (
+          {({ isSubmitting, isValid, dirty }) => (
             <Form className="grid grid-cols-1 gap-6 pl-4 pr-4">
-              {/* Thumbnail Upload */}
+              {/* Thumbnail Upload - Full Width */}
               <div>
-                <Label className="text-lg mb-2 block">Add Thumbnail icon</Label>
-                <div className="flex items-center gap-4">
-                  <label className="w-40 h-38 flex flex-col items-center justify-center border border-[#CBD5E0] rounded-lg cursor-pointer hover:border-[#D946EF] transition">
-                    {thumbnailPreview ? (
-                      <img
-                        src={thumbnailPreview}
-                        alt="thumbnail preview"
-                        className="w-full h-full object-cover rounded-lg"
-                      />
-                    ) : (
-                      <img
-                        src={uploadImg}
-                        alt="upload"
-                        className="dark:text-white"
-                      />
-                    )}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          setFieldValue('thumbnailFile', file);
-                          const reader = new FileReader();
-                          reader.onloadend = () => {
-                            setThumbnailPreview(reader.result as string);
-                          };
-                          reader.readAsDataURL(file);
-                        }
-                      }}
-                    />
-                  </label>
-                </div>
+                <Label className="text-base mb-3 block dark:text-white">
+                  Game Thumbnail
+                </Label>
+                <UppyUpload
+                  fileType="thumbnail"
+                  accept={['image/*']}
+                  onFileUploaded={handleThumbnailUploaded}
+                  onFileReplaced={handleThumbnailReplaced}
+                  onUploadStart={handleThumbnailUploadStart}
+                  onUploadError={handleThumbnailUploadError}
+                />
+                {uploadedFiles.thumbnail && (
+                  <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
+                    <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400 font-worksans">
+                      <span className="font-medium">{uploadedFiles.thumbnail.name}</span>
+                      <span className="text-xs bg-green-100 dark:bg-green-800 px-2 py-1 rounded-full">Uploaded</span>
+                    </div>
+                  </div>
+                )}
+                {isUploading.thumbnail && (
+                  <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
+                    <div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-400 font-worksans">
+                      <div className="animate-spin w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+                      <span>Uploading thumbnail...</span>
+                    </div>
+                  </div>
+                )}
                 <ErrorMessage
                   name="thumbnailFile"
                   component="div"
-                  className="text-red-500  mt-1 font-pincuk text-xl tracking-wider"
+                  className="text-red-500 mt-2 font-worksans text-sm tracking-wider"
+                />
+              </div>
+
+              {/* Order Number - Separate Row */}
+              <div>
+                <Label
+                  htmlFor="position"
+                  className="text-base mb-2 block dark:text-white"
+                >
+                  Order Number (Optional)
+                </Label>
+                <Field
+                  as={Input}
+                  type="number"
+                  id="position"
+                  name="position"
+                  min="1"
+                  className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white bg-[#F1F5F9] dark:bg-[#121C2D] px-3 text-gray-700 focus:border-[#D946EF] focus:outline-none font-worksans tracking-wider text-sm"
+                  placeholder="e.g., 1, 2, 3..."
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-worksans">
+                  Position in the games list (leave empty for auto-assignment)
+                </p>
+                <ErrorMessage
+                  name="position"
+                  component="div"
+                  className="text-red-500 mt-1 font-worksans text-sm tracking-wider"
                 />
               </div>
 
@@ -203,7 +357,7 @@ export function CreateGameSheet({
               <div>
                 <Label
                   htmlFor="title"
-                  className="text-lg mb-2 block dark:text-white"
+                  className="text-base mb-2 block dark:text-white"
                 >
                   Title
                 </Label>
@@ -211,13 +365,13 @@ export function CreateGameSheet({
                   as={Input}
                   id="title"
                   name="title"
-                  className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white bg-[#F1F5F9] dark:bg-[#121C2D] px-3 text-gray-700 focus:border-[#D946EF] focus:outline-none font-pincuk tracking-wider text-sm"
+                  className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white bg-[#F1F5F9] dark:bg-[#121C2D] px-3 text-gray-700 focus:border-[#D946EF] focus:outline-none font-worksans tracking-wider text-sm"
                   placeholder="Enter game title"
                 />
                 <ErrorMessage
                   name="title"
                   component="div"
-                  className="text-red-500  mt-1 font-pincuk text-xl tracking-wider"
+                  className="text-red-500  mt-1 font-worksans text-sm tracking-wider"
                 />
               </div>
 
@@ -225,7 +379,7 @@ export function CreateGameSheet({
               <div>
                 <Label
                   htmlFor="description"
-                  className="text-lg mb-2 block dark:text-white"
+                  className="text-base mb-2 block dark:text-white"
                 >
                   Short Description
                 </Label>
@@ -233,73 +387,77 @@ export function CreateGameSheet({
                   as="textarea"
                   id="description"
                   name="description"
-                  className="w-full min-h-[80px] rounded-md border border-[#CBD5E0] dark:text-white dark:bg-[#121C2D] bg-[#F1F5F9] px-3 py-2 font-pincuk text-xl tracking-wider  text-gray-700 focus:border-[#D946EF] focus:outline-none resize-none"
+                  className="w-full min-h-[80px] rounded-md border border-[#CBD5E0] dark:text-white dark:bg-[#121C2D] bg-[#F1F5F9] px-3 py-2 font-worksans text-sm tracking-wider  text-gray-700 focus:border-[#D946EF] focus:outline-none resize-none"
                   placeholder="Description"
                 />
                 <ErrorMessage
                   name="description"
                   component="div"
-                  className="text-red-500  mt-1 font-pincuk text-xl tracking-wider"
+                  className="text-red-500  mt-1 font-worksans text-sm tracking-wider"
                 />
               </div>
 
               {/* Game Upload */}
               <div>
-                <Label className="text-lg mb-2 block">Game Upload .zip</Label>
-                <div className="flex items-center gap-4">
-                  <label className="w-40 h-38 flex flex-col items-center justify-center border border-[#CBD5E0] rounded-lg cursor-pointer hover:border-[#D946EF] transition">
-                    <img src={uploadImg} alt="upload" />
-                    <input
-                      type="file"
-                      accept=".zip"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          setFieldValue('gameFile', file);
-                          setGameFileName(file.name);
-                        }
-                      }}
-                    />
-                  </label>
-                  {gameFileName && (
-                    <span className=" font-pincuk text-xl tracking-wider text-gray-600 dark:text-gray-300">
-                      {gameFileName}
-                    </span>
-                  )}
-                </div>
+                <Label className="text-base mb-2 block">Game Upload .zip</Label>
+                <UppyUpload
+                  fileType="game"
+                  accept={['.zip']}
+                  onFileUploaded={handleGameUploaded}
+                  onFileReplaced={handleGameReplaced}
+                  onUploadStart={handleGameUploadStart}
+                  onUploadError={handleGameUploadError}
+                />
+                {uploadedFiles.game && (
+                  <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
+                    <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400 font-worksans">
+                      <span className="font-medium">{uploadedFiles.game.name}</span>
+                      <span className="text-xs bg-green-100 dark:bg-green-800 px-2 py-1 rounded-full">Uploaded</span>
+                    </div>
+                  </div>
+                )}
+                {isUploading.game && (
+                  <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
+                    <div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-400 font-worksans">
+                      <div className="animate-spin w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+                      <span>Uploading game file...</span>
+                    </div>
+                  </div>
+                )}
                 <ErrorMessage
                   name="gameFile"
                   component="div"
-                  className="text-red-500  mt-1 font-pincuk text-xl tracking-wider"
+                  className="text-red-500  mt-1 font-worksans text-sm tracking-wider"
                 />
               </div>
 
               {/* Category Dropdown */}
               <div>
-                <Label
-                  htmlFor="categoryId"
-                  className="text-lg mb-2 block dark:text-white"
-                >
+                <Label className="text-base mb-2 block dark:text-white">
                   Game Category
                 </Label>
-                <Field
-                  as="select"
-                  id="categoryId"
-                  name="categoryId"
-                  className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white dark:bg-[#121C2D] bg-[#F1F5F9] px-3 font-pincuk text-xl tracking-wider  text-gray-700 focus:border-[#D946EF] focus:outline-none"
-                >
-                  <option value="">Select category</option>
-                  {categories?.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
+                <Field name="categoryId">
+                  {({ field, form }: any) => (
+                    <SearchableSelect
+                      value={field.value}
+                      onValueChange={(value: string) => form.setFieldValue("categoryId", value)}
+                      options={categories?.map((category) => ({
+                        value: category.id,
+                        label: category.name
+                      })) || []}
+                      placeholder="Select category (optional)"
+                      searchPlaceholder="Search categories..."
+                      emptyText="No categories found"
+                    />
+                  )}
                 </Field>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-worksans">
+                  Leave empty to auto-assign to default category
+                </p>
                 <ErrorMessage
                   name="categoryId"
                   component="div"
-                  className="text-red-500  mt-1 font-pincuk text-xl tracking-wider"
+                  className="text-red-500 mt-1 font-worksans text-sm tracking-wider"
                 />
               </div>
 
@@ -307,55 +465,64 @@ export function CreateGameSheet({
               <div>
                 <Label
                   htmlFor="config"
-                  className="text-lg mb-2 block dark:text-white"
+                  className="text-base mb-2 block dark:text-white"
                 >
-                  Game Config
+                  Free Game Time (mins)
                 </Label>
                 <Field
                   as={Input}
                   type="number"
                   id="config"
                   name="config"
-                  min="0"
-                  className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white dark:bg-[#121C2D] bg-[#F1F5F9] px-3 font-pincuk text-xl tracking-wider  text-gray-700 focus:border-[#D946EF] focus:outline-none"
-                  placeholder="Enter config number"
+                  min="1"
+                  className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white dark:bg-[#121C2D] bg-[#F1F5F9] px-3 font-worksans text-sm tracking-wider  text-gray-700 focus:border-[#D946EF] focus:outline-none"
+                  placeholder="Enter config number eg. (1)"
                 />
                 <ErrorMessage
                   name="config"
                   component="div"
-                  className="text-red-500  mt-1 font-pincuk text-xl tracking-wider"
+                  className="text-red-500  mt-1 font-worksans text-sm tracking-wider"
                 />
               </div>
 
               <div className="flex gap-3 justify-end px-2 mt-4">
-                <SheetClose asChild>
-                  <Button
-                    type="button"
-                    className="w-24 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-accent"
-                    onClick={() => {
-                      formikRef.current?.resetForm();
-                      setThumbnailPreview(null);
-                      setGameFileName(null);
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                </SheetClose>
+                <Button
+                  type="button"
+                  className="w-24 h-12 text-[#334154] bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-[#E2E8F0] dark:text-gray-300 dark:bg-[#1E293B] dark:border-[#334155] dark:hover:bg-[#334155] cursor-pointer"
+                  onClick={() => {
+                    formikRef.current?.resetForm();
+                    setUploadedFiles({ thumbnail: null, game: null });
+                    setShowProgress(false);
+                    setProgress(0);
+                    setCurrentStep("");
+                    setIsOpen(false);
+                  }}
+                >
+                  Cancel
+                </Button>
                 <Button
                   type="submit"
-                  disabled={isSubmitting || !isValid || !dirty}
-                  className="w-24 h-12 bg-[#D946EF] dark:text-white hover:text-[#D946EF] hover:bg-[#F3E8FF]"
+                  disabled={
+                    isSubmitting || 
+                    !isValid || 
+                    !dirty || 
+                    !uploadedFiles.thumbnail || 
+                    !uploadedFiles.game ||
+                    isUploading.thumbnail ||
+                    isUploading.game
+                  }
+                  className="w-24 h-12 bg-[#D946EF] text-white hover:bg-[#C026D3] dark:text-white dark:hover:bg-[#C026D3] cursor-pointer"
                 >
-                  {isSubmitting ? 'Creating...' : 'Create'}
+                  {isSubmitting ? "Creating..." : "Create"}
                 </Button>
               </div>
             </Form>
           )}
         </Formik>
-        
+
         {/* Progress Bar */}
         {showProgress && (
-          <GameCreationProgress 
+          <GameCreationProgress
             progress={progress}
             currentStep={currentStep}
             isComplete={progress === 100}

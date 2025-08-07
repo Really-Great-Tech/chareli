@@ -1,0 +1,213 @@
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+  GetObjectCommand,
+  S3ClientConfig,
+} from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { promises as fs } from 'fs';
+import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
+import mime from 'mime-types';
+
+import { IStorageService, UploadResult } from './storage.interface';
+import config from '../config/config';
+import logger from '../utils/logger';
+
+/**
+ * An adapter for the IStorageService interface that connects to AWS S3.
+ */
+export class S3StorageAdapter implements IStorageService {
+  private s3Client: S3Client;
+  private bucket: string;
+  private region: string;
+
+  constructor() {
+    // This is the AWS S3-specific configuration
+    const s3ClientConfig: S3ClientConfig = {
+      region: config.s3.region,
+    };
+
+    // Only add credentials if they are present (for local dev with IAM user)
+    // In production on ECS, this will use the Task Role automatically.
+    if (config.s3.accessKeyId && config.s3.secretAccessKey) {
+      s3ClientConfig.credentials = {
+        accessKeyId: config.s3.accessKeyId,
+        secretAccessKey: config.s3.secretAccessKey,
+      };
+    }
+
+    logger.info(`Initializing storage adapter for AWS S3`);
+    this.s3Client = new S3Client(s3ClientConfig);
+    this.bucket = config.s3.bucket;
+    this.region = config.s3.region;
+  }
+
+  /**
+   * @inheritdoc
+   */
+  getPublicUrl(key: string): string {
+    // For AWS S3, we construct the standard S3 object URL.
+    // If you were using CloudFront in front of S3, this is where you'd construct the CloudFront URL.
+    return `https://${this.bucket}.s3.${this.region}.amazonaws.com/${key}`;
+  }
+
+  /**
+   * @inheritdoc
+   */
+  async generatePresignedUrl(key: string, contentType: string): Promise<string> {
+    try {
+      const command = new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        ContentType: contentType || 'application/octet-stream',
+      });
+
+      const url = await getSignedUrl(this.s3Client, command, { expiresIn: 3600 });
+      logger.info(`Generated presigned URL for key: ${key}`);
+      return url;
+    } catch (error) {
+      logger.error('Error generating presigned URL:', { error, key });
+      throw new Error(
+        `Failed to generate presigned URL: ${(error as Error).message}`
+      );
+    }
+  }
+
+  /**
+   * The implementation for the following methods is identical to the R2 adapter
+   * because they both use the same underlying AWS SDK commands.
+   */
+
+  async uploadFile(
+    file: Buffer,
+    originalname: string,
+    contentType: string,
+    folder: string = 'files'
+  ): Promise<UploadResult> {
+    const fileId = uuidv4();
+    const extension = path.extname(originalname);
+    const filename = path
+      .basename(originalname, extension)
+      .replace(/\s+/g, '-')
+      .toLowerCase();
+    const key = `${folder}/${fileId}-${filename}${extension}`;
+
+    const command = new PutObjectCommand({
+      Bucket: this.bucket,
+      Key: key,
+      Body: file,
+      ContentType: contentType,
+    });
+
+    await this.s3Client.send(command);
+    logger.info(`Successfully uploaded file to S3 with key: ${key}`);
+
+    return {
+      key,
+      publicUrl: this.getPublicUrl(key),
+    };
+  }
+
+  async uploadDirectory(localPath: string, remotePath: string): Promise<void> {
+    const files = await fs.readdir(localPath, { withFileTypes: true });
+    for (const file of files) {
+      const fullLocalPath = path.join(localPath, file.name);
+      const fullRemotePath = path
+        .join(remotePath, file.name)
+        .replace(/\\/g, '/');
+      if (file.isDirectory()) {
+        await this.uploadDirectory(fullLocalPath, fullRemotePath);
+      } else {
+        const fileContent = await fs.readFile(fullLocalPath);
+        const contentType =
+          mime.lookup(fullLocalPath) || 'application/octet-stream';
+        const command = new PutObjectCommand({
+          Bucket: this.bucket,
+          Key: fullRemotePath,
+          Body: fileContent,
+          ContentType: contentType,
+        });
+        await this.s3Client.send(command);
+      }
+    }
+  }
+
+  async downloadFile(key: string): Promise<Buffer> {
+    try {
+      const command = new GetObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+      });
+
+      const response = await this.s3Client.send(command);
+      
+      if (!response.Body) {
+        throw new Error('No file content received');
+      }
+
+      const buffer = Buffer.from(await response.Body.transformToByteArray());
+      logger.info(`Successfully downloaded file from S3 with key: ${key}`);
+      return buffer;
+    } catch (error) {
+      logger.error('Error downloading file from S3:', { error, key });
+      throw new Error(
+        `Failed to download file from S3: ${(error as Error).message}`
+      );
+    }
+  }
+
+  async deleteFile(key: string): Promise<boolean> {
+    const command = new DeleteObjectCommand({ Bucket: this.bucket, Key: key });
+    try {
+      await this.s3Client.send(command);
+      return true;
+    } catch (error) {
+      logger.error('Error deleting file from S3:', { error, key });
+      return false;
+    }
+  }
+
+  async moveFile(sourceKey: string, destinationKey: string): Promise<string> {
+    try {
+      // First, get the source object to preserve metadata including content type
+      const getCommand = new GetObjectCommand({
+        Bucket: this.bucket,
+        Key: sourceKey,
+      });
+
+      const sourceObject = await this.s3Client.send(getCommand);
+      
+      if (!sourceObject.Body) {
+        throw new Error('Source file has no content');
+      }
+
+      // Get the content type from the source object
+      const contentType = sourceObject.ContentType || 'application/octet-stream';
+      
+      // Copy to destination with preserved content type
+      const buffer = Buffer.from(await sourceObject.Body.transformToByteArray());
+      
+      const putCommand = new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: destinationKey,
+        Body: buffer,
+        ContentType: contentType,
+      });
+
+      await this.s3Client.send(putCommand);
+      
+      // Delete the source file
+      await this.deleteFile(sourceKey);
+      
+      logger.info(`Successfully moved file from ${sourceKey} to ${destinationKey} with content type: ${contentType}`);
+      return destinationKey;
+    } catch (error) {
+      logger.error('Error moving file in S3:', { error, sourceKey, destinationKey });
+      throw new Error(
+        `Failed to move file in S3: ${(error as Error).message}`
+      );
+    }
+  }
+}

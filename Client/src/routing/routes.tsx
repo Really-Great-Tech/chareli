@@ -4,7 +4,7 @@ import Home from '../pages/Home/Home';
 import About from '../pages/About/About';
 import { RegisterInvitationPage } from '../pages/RegisterInvitation';
 import MainLayout from '../layout/MainLayout';
-import GamePlay from '../pages/GamePlay/GamePlay';
+// import GamePlay from '../pages/GamePlay/GamePlay';
 import Categories from '../pages/Categories/Categories';
 import { ResetPasswordPage } from '../pages/ResetPassword/ResetPasswordPage';
 import { ProtectedRoute } from './ProtectedRoute';
@@ -23,59 +23,63 @@ import Settings from '../pages/Admin/Settings';
 import ViewProfile from '../pages/Admin/ViewProfile';
 import Terms from '../pages/TermsOfService/Terms';
 import Privacy from '../pages/PrivacyPolicy/Privacy';
+import GamePlayTest from '../pages/GamePlay/GamePlayTest';
 
 
 export const AppRoutes = () => {
   return (
     <Routes>
-
       <Route path="/">
         <Route element={<MainLayout />}>
-
           <Route index element={<Home />} />
           <Route path="about" element={<About />} />
           <Route path="categories" element={<Categories />} />
-          <Route path="gameplay/:gameId" element={<GamePlay />} />
+          {/* <Route path="gameplay/:gameId" element={<GamePlay />} /> */}
+          <Route path="gameplay/:gameId" element={<GamePlayTest />} />
           <Route path="terms" element={<Terms />} />
           <Route path="privacy" element={<Privacy />} />
-
 
           <Route path="*" element={<ErrorPage />} />
         </Route>
       </Route>
 
-        <Route path="reset-password">
-          <Route path=":token" element={<ResetPasswordPage />} />
-          <Route path="phone/:userId" element={<ResetPasswordPage />} />
+      <Route path="reset-password">
+        <Route path=":token" element={<ResetPasswordPage />} />
+        <Route path="phone/:userId" element={<ResetPasswordPage />} />
+      </Route>
+      <Route
+        path="register-invitation/:token"
+        element={<RegisterInvitationPage />}
+      />
+
+      <Route path="admin/" element={<ProtectedRoute requireAdmin={true} />}>
+        <Route element={<AdminLayout />}>
+          <Route index element={<AdminHome />} />
+          {/* <Route path="about" element={<AdminAbout />} />*/}
+          <Route path="game-management" element={<GameManagement />} />
+          <Route path="categories" element={<GameCategories />} />
+          <Route path="categories/:categoryId" element={<CategoryDetail />} />
+          <Route path="management" element={<UserManagement />} />
+          <Route path="management/:userId" element={<UserManagementView />} />
+          <Route path="team" element={<TeamManagement />} />
+          <Route path="analytics" element={<Analytics />} />
+          <Route path="view-game/:gameId" element={<ViewGame />} />
+          <Route path="view-profile" element={<ViewProfile />} />
         </Route>
-        <Route path="register-invitation/:token" element={<RegisterInvitationPage />} />
+      </Route>
 
-        <Route path="admin/" element={<ProtectedRoute requireAdmin={true} />}>
-          <Route element={<AdminLayout />}>
-            <Route index element={<AdminHome />} />
-            {/* <Route path="about" element={<AdminAbout />} />*/}
-            <Route path="game-management" element={<GameManagement />} />
-            <Route path="categories" element={<GameCategories />} />
-            <Route path="categories/:categoryId" element={<CategoryDetail />} />
-            <Route path="management" element={<UserManagement />} />
-            <Route path="management/:userId" element={<UserManagementView />} />
-            <Route path="team" element={<TeamManagement />} />
-            <Route path="analytics" element={<Analytics />} />
-            <Route path="view-game/:gameId" element={<ViewGame />} />
-            <Route path="view-profile" element={<ViewProfile />} />
-          </Route>
+      {/* Config routes - require config access (excludes viewers) */}
+      <Route
+        path="admin/"
+        element={<ProtectedRoute requireAdmin={true} requireConfig={true} />}
+      >
+        <Route element={<AdminLayout />}>
+          <Route path="config" element={<Configuration />} />
+          <Route path="settings" element={<Settings />} />
         </Route>
+      </Route>
 
-        {/* Config routes - require config access (excludes viewers) */}
-        <Route path="admin/" element={<ProtectedRoute requireAdmin={true} requireConfig={true} />}>
-          <Route element={<AdminLayout />}>
-            <Route path="config" element={<Configuration />} />
-            <Route path="settings" element={<Settings />} />
-          </Route>
-        </Route>
-
-            <Route path="*" element={<ErrorPage />} />
-
+      <Route path="*" element={<ErrorPage />} />
     </Routes>
   );
 };

@@ -18,6 +18,7 @@ import {
   gameIdParamSchema,
   gameQuerySchema
 } from '../validation';
+import gameTokenTest from '../middlewares/gameTokenTest';
 
 const router = Router();
 
@@ -25,6 +26,14 @@ const router = Router();
 router.get('/', optionalAuthenticate, validateQuery(gameQuerySchema), getAllGames);
 router.get('/position/:position', optionalAuthenticate, getGameByPosition);
 router.get('/:id', optionalAuthenticate, validateParams(gameIdParamSchema), getGameById);
+
+router.get(
+  "/test/:id",
+  optionalAuthenticate,
+  validateParams(gameIdParamSchema),
+  gameTokenTest,
+  getGameById
+);
 
 router.use(authenticate);
 router.use(isAdmin);

@@ -11,9 +11,9 @@ const options: swaggerJsdoc.Options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Chareli API Documentation',
+      title: 'Arcades Box API Documentation',
       version,
-      description: 'API documentation for the Chareli application',
+      description: 'API documentation for the Arcades Box application',
       license: {
         name: 'MIT',
         url: 'https://opensource.org/licenses/MIT',

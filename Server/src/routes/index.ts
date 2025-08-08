@@ -9,8 +9,9 @@ import systemConfigRoutes from './systemConfigRoutes';
 import signupAnalyticsRoutes from './signupAnalyticsRoutes';
 import analyticsRoutes from './analyticsRoutes';
 import adminRoutes from './adminRoutes';
-import r2TestRoutes from './r2TestRoutes';
 import { ApiError } from '../middlewares/errorHandler';
+import redis from '../config/redisClient';
+import logger from '../utils/logger';
 
 const router = Router();
 
@@ -32,6 +33,73 @@ router.get('/health', (_req, res) => {
   });
 });
 
+/**
+ * @swagger
+ * /health/redis:
+ *   get:
+ *     summary: Redis health check
+ *     description: Check Redis connectivity and performance
+ *     tags: [Health]
+ *     responses:
+ *       200:
+ *         description: Redis is healthy
+ *       503:
+ *         description: Redis is unavailable
+ */
+router.get('/health/redis', async (_req, res) => {
+  const startTime = Date.now();
+  
+  try {
+    // Test basic connectivity
+    const pingResponse = await redis.ping();
+    
+    // Test set/get operations
+    const testKey = `health_check_${Date.now()}`;
+    const testValue = 'test_value';
+    
+    await redis.set(testKey, testValue, 'EX', 10); // Expire in 10 seconds
+    const getValue = await redis.get(testKey);
+    await redis.del(testKey); // Clean up
+    
+    const responseTime = Date.now() - startTime;
+    
+    if (pingResponse === 'PONG' && getValue === testValue) {
+      res.status(200).json({
+        status: 'healthy',
+        message: 'Redis is working properly',
+        timestamp: new Date().toISOString(),
+        details: {
+          ping: pingResponse,
+          setGet: 'success',
+          responseTime: `${responseTime}ms`,
+          host: process.env.REDIS_HOST || '127.0.0.1',
+          port: process.env.REDIS_PORT || '6379'
+        }
+      });
+    } else {
+      throw new Error('Redis operations failed');
+    }
+  } catch (error) {
+    const responseTime = Date.now() - startTime;
+    logger.error('Redis health check failed', { 
+      error: (error as Error).message,
+      responseTime: `${responseTime}ms`
+    });
+    
+    res.status(503).json({
+      status: 'unhealthy',
+      message: 'Redis connection failed',
+      timestamp: new Date().toISOString(),
+      details: {
+        error: (error as Error).message,
+        responseTime: `${responseTime}ms`,
+        host: process.env.REDIS_HOST || '127.0.0.1',
+        port: process.env.REDIS_PORT || '6379'
+      }
+    });
+  }
+});
+
 // API routes
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
@@ -43,7 +111,6 @@ router.use('/system-configs', systemConfigRoutes);
 router.use('/signup-analytics', signupAnalyticsRoutes);
 router.use('/analytics', analyticsRoutes);
 router.use('/admin', adminRoutes);
-router.use('/r2-test', r2TestRoutes);
 
 // Handle 404 errors for routes that don't exist
 router.all('/:path', (req, _res, next) => {

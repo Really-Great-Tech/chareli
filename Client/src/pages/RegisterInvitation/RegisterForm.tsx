@@ -11,6 +11,7 @@ import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import '../../styles/phone-input.css';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { useUserCountry } from '../../hooks/useUserCountry';
 
 interface RegisterFormProps {
   email: string;
@@ -39,6 +40,7 @@ const formatPhoneNumber = (value?: string) => (value ? `+${value}` : value);
 
 export function RegisterForm({ email, token, onSuccess }: RegisterFormProps) {
   const { mutate: register, isPending } = useRegisterFromInvitation();
+  const { countryCode } = useUserCountry()
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -125,7 +127,7 @@ export function RegisterForm({ email, token, onSuccess }: RegisterFormProps) {
               {({ field, form }: FieldProps) => (
                 <div className="w-full mt-1">
                   <PhoneInput
-                    country="us"
+                    country={countryCode}
                     value={field.value}
                     onChange={(value) => form.setFieldValue('phoneNumber', formatPhoneNumber(value))}
                   inputStyle={{

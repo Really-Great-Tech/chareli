@@ -5,6 +5,7 @@ import { File } from '../entities/Files';
 import { ApiError } from '../middlewares/errorHandler';
 import { storageService } from '../services/storage.service';
 import multer from 'multer';
+import redis from '../config/redisClient';
 
 const systemConfigRepository = AppDataSource.getRepository(SystemConfig);
 const fileRepository = AppDataSource.getRepository(File);
@@ -59,6 +60,16 @@ export const getAllSystemConfigs = async (
 ): Promise<void> => {
   try {
     const { search } = req.query;
+    const cacheKey = `system-configs:all:${JSON.stringify(req.query)}`;
+
+    // Try to get cached data
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      console.log('[Redis] Cache HIT for getAllSystemConfigs:', cacheKey);
+      res.status(200).json(JSON.parse(cached));
+      return;
+    }
+    console.log('[Redis] Cache MISS for getAllSystemConfigs:', cacheKey);
     
     const queryBuilder = systemConfigRepository.createQueryBuilder('config');
     
@@ -94,11 +105,16 @@ export const getAllSystemConfigs = async (
       }
     }
     
-    res.status(200).json({
+    const response = {
       success: true,
       count: configs.length,
       data: configs,
-    });
+    };
+
+    // Cache the result for 30 minutes (system configs rarely change)
+    await redis.set(cacheKey, JSON.stringify(response), 'EX', 1800);
+    
+    res.status(200).json(response);
   } catch (error) {
     next(error);
   }
@@ -133,6 +149,16 @@ export const getSystemConfigByKey = async (
 ): Promise<void> => {
   try {
     const { key } = req.params;
+    const cacheKey = `system-configs:key:${key}`;
+
+    // Try to get cached data
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      console.log('[Redis] Cache HIT for getSystemConfigByKey:', cacheKey);
+      res.status(200).json(JSON.parse(cached));
+      return;
+    }
+    console.log('[Redis] Cache MISS for getSystemConfigByKey:', cacheKey);
     
     const config = await systemConfigRepository.findOne({
       where: { key }
@@ -164,10 +190,15 @@ export const getSystemConfigByKey = async (
       }
     }
     
-    res.status(200).json({
+    const response = {
       success: true,
       data: config,
-    });
+    };
+
+    // Cache the result for 30 minutes
+    await redis.set(cacheKey, JSON.stringify(response), 'EX', 1800);
+    
+    res.status(200).json(response);
   } catch (error) {
     console.error(`Error in getSystemConfigByKey:`, error);
     next(error);
@@ -193,6 +224,17 @@ export const getFormattedSystemConfigs = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    const cacheKey = 'system-configs:formatted';
+
+    // Try to get cached data
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      console.log('[Redis] Cache HIT for getFormattedSystemConfigs:', cacheKey);
+      res.status(200).json(JSON.parse(cached));
+      return;
+    }
+    console.log('[Redis] Cache MISS for getFormattedSystemConfigs:', cacheKey);
+    
     const configs = await systemConfigRepository.find();
     
     const formattedConfigs = configs.reduce<Record<string, any>>((acc, config) => {
@@ -223,10 +265,15 @@ export const getFormattedSystemConfigs = async (
       }
     }
     
-    res.status(200).json({
+    const response = {
       success: true,
       data: formattedConfigs,
-    });
+    };
+
+    // Cache the result for 30 minutes
+    await redis.set(cacheKey, JSON.stringify(response), 'EX', 1800);
+    
+    res.status(200).json(response);
   } catch (error) {
     next(error);
   }
@@ -355,6 +402,10 @@ export const createSystemConfig = async (
     await queryRunner.manager.save(config);
     await queryRunner.commitTransaction();
 
+    // Invalidate system configs cache
+    const keys = await redis.keys('system-configs:*');
+    if (keys.length > 0) await redis.del(keys);
+
     // Fetch the saved config with file data if applicable
     const savedConfig = await systemConfigRepository.findOne({
       where: { key: config.key }
@@ -461,6 +512,10 @@ export const updateSystemConfig = async (
     
     await systemConfigRepository.save(config);
     
+    // Invalidate system configs cache
+    const keys = await redis.keys('system-configs:*');
+    if (keys.length > 0) await redis.del(keys);
+    
     // Handle file-based configs for response
     if (key === 'terms' && config.value?.fileId) {
       const file = await fileRepository.findOne({
@@ -536,6 +591,10 @@ export const deleteSystemConfig = async (
     }
     
     await systemConfigRepository.remove(config);
+    
+    // Invalidate system configs cache
+    const keys = await redis.keys('system-configs:*');
+    if (keys.length > 0) await redis.del(keys);
     
     res.status(200).json({
       success: true,

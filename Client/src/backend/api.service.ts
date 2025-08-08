@@ -1,7 +1,7 @@
-import axios from "axios";
-import type { AxiosRequestConfig, AxiosError } from "axios";
-import { BackendRoute } from "./constants";
-import { toast } from "sonner";
+import axios from 'axios';
+import type { AxiosRequestConfig, AxiosError } from 'axios';
+import { BackendRoute } from './constants';
+import { toast } from 'sonner';
 
 // Extend AxiosRequestConfig to include suppressErrorToast
 interface CustomAxiosRequestConfig extends AxiosRequestConfig {
@@ -9,16 +9,17 @@ interface CustomAxiosRequestConfig extends AxiosRequestConfig {
 }
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? "http://localhost:5000",
+  baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:5000',
   headers: {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   },
+  timeout: 1200000
 });
 
 // Add request interceptor for authentication
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -64,7 +65,7 @@ api.interceptors.response.use(
         } else if (error.message) {
           toast.error(`Error: ${error.message}`);
         } else {
-          toast.error("An error occurred. Please try again.");
+          toast.error('An error occurred. Please try again.');
         }
       }
       return Promise.reject(error);
@@ -88,18 +89,18 @@ api.interceptors.response.use(
     isRefreshing = true;
 
     try {
-      const refreshToken = localStorage.getItem("refreshToken");
+      const refreshToken = localStorage.getItem('refreshToken');
 
       // If no refresh token, clear auth and redirect
       if (!refreshToken) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("refreshToken");
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
 
         if (
-          window.location.pathname !== "/" &&
-          !window.location.pathname.includes("/login")
+          window.location.pathname !== '/' &&
+          !window.location.pathname.includes('/login')
         ) {
-          window.location.href = "/";
+          window.location.href = '/';
         }
 
         return Promise.reject(error);
@@ -109,17 +110,17 @@ api.interceptors.response.use(
       const response = await axios.post(
         `${api.defaults.baseURL}${BackendRoute.AUTH_REFRESH_TOKEN}`,
         { refreshToken },
-        { headers: { "Content-Type": "application/json" } }
+        { headers: { 'Content-Type': 'application/json' } }
       );
 
       const { accessToken, refreshToken: newRefreshToken } = response.data;
 
       // Store the new tokens
-      localStorage.setItem("token", accessToken);
-      localStorage.setItem("refreshToken", newRefreshToken);
+      localStorage.setItem('token', accessToken);
+      localStorage.setItem('refreshToken', newRefreshToken);
 
       // Update the authorization header
-      api.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+      api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
       originalRequest.headers.Authorization = `Bearer ${accessToken}`;
 
       // Process the queue with the new token
@@ -129,21 +130,21 @@ api.interceptors.response.use(
       return api(originalRequest);
     } catch (refreshError) {
       // If refresh fails, clear auth and redirect
-      localStorage.removeItem("token");
-      localStorage.removeItem("refreshToken");
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
 
       // Show error toast
-      toast.error("Your session has expired. Please log in again.");
+      toast.error('Your session has expired. Please log in again.');
 
       // Process the queue with the error
       processQueue(refreshError as AxiosError);
 
       // Redirect if not already on home or login page
       if (
-        window.location.pathname !== "/" &&
-        !window.location.pathname.includes("/login")
+        window.location.pathname !== '/' &&
+        !window.location.pathname.includes('/login')
       ) {
-        window.location.href = "/";
+        window.location.href = '/';
       }
 
       return Promise.reject(refreshError);
@@ -164,7 +165,6 @@ export const backendService = {
     api.put(url, data, config),
   patch: (url: string, data?: unknown, config?: CustomAxiosRequestConfig) =>
     api.patch(url, data, config),
-  delete: (url: string, config?: CustomAxiosRequestConfig) =>
-    api.delete(url, config),
+  delete: (url: string, config?: CustomAxiosRequestConfig) => api.delete(url, config),
   getFile: (id: string) => api.get(`/files/${id}`),
 };

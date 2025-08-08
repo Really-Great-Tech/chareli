@@ -1,95 +1,88 @@
-import "reflect-metadata";
-import express, { Express } from "express";
-import cors from "cors";
-import helmet from "helmet";
-import swaggerUi from "swagger-ui-express";
-import routes from "./routes";
-import { errorHandler } from "./middlewares/errorHandler";
-import { requestLogger } from "./middlewares/requestLogger";
-import { sanitizeInput } from "./middlewares/sanitizationMiddleware";
-import {
-  sentryRequestHandler,
-  sentryTracingHandler,
-  sentryErrorHandler,
-} from "./config/sentry";
-import logger from "./utils/logger";
-import { specs } from "./config/swagger";
-import config from "./config/config";
-// import { cloudFrontService } from './services/cloudfront.service';
+import 'reflect-metadata';
+import express, { Express } from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import swaggerUi from 'swagger-ui-express';
+import routes from './routes';
+import { errorHandler } from './middlewares/errorHandler';
+import { requestLogger } from './middlewares/requestLogger';
+import { sanitizeInput } from './middlewares/sanitizationMiddleware';
+import logger from './utils/logger';
+import fs from 'fs';
+import path from 'path';
+import { specs } from './config/swagger';
+import config from './config/config';
+
+let swaggerDocument;
+try {
+  // Try to read swagger.json file first
+  swaggerDocument = JSON.parse(
+    fs.readFileSync(path.join(__dirname, 'swagger.json'), 'utf-8')
+  );
+} catch (error) {
+  // If file doesn't exist, fall back to specs from config
+  swaggerDocument = specs;
+}
 
 const app: Express = express();
-
-// Request logging middleware
 app.use(requestLogger);
-
-// Initialize Sentry request handler (only in production)
-app.use(sentryRequestHandler());
-
-// Security middleware
-app.use(helmet()); // Adds various HTTP headers for security
+app.use(helmet());
 app.use(
   cors({
     origin:
-      process.env.NODE_ENV === "production"
-        ? ["https://yourfrontenddomain.com"] // Restrict in production
-        : "*", // Allow all in development
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+      process.env.NODE_ENV === 'production' ? [config.app.clientUrl] : '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
-    maxAge: 86400, // 24 hours
+    maxAge: 86400,
   })
 );
 
-// Content Security Policy
-app.use((req, res, next) => {
-  res.setHeader(
-    "Content-Security-Policy",
-    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:;"
-  );
-  next();
-});
-
-// Body parsing middleware
-app.use(express.json()); // Parse JSON bodies
-app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
-
-// Input sanitization middleware
-app.use(sanitizeInput);
-
-// Initialize Sentry tracing (only in production)
-app.use(sentryTracingHandler());
-
-// Swagger documentation
 app.use(
-  "/api-docs",
-  swaggerUi.serve,
-  swaggerUi.setup(specs, {
-    explorer: true,
-    customCss: ".swagger-ui .topbar { display: none }",
-    swaggerOptions: {
-      docExpansion: "none",
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+        'script-src': ["'self'", "'unsafe-inline'"], // unsafe-inline is needed by swagger-ui
+        'style-src': ["'self'", "'unsafe-inline'", 'fonts.googleapis.com'],
+        'font-src': ["'self'", 'fonts.gstatic.com'],
+      },
     },
   })
 );
 
-// test/cloudfront.test.ts
 
-// async function testSignedUrl() {
-//    const s3Key = 'games/200274ce-df18-4160-96c1-09efe2e71cd8/glass-city/index.html';
+app.use(express.json()); 
+app.use(express.urlencoded({ extended: true })); 
 
-//   const signedUrl = cloudFrontService.transformS3KeyToCloudFront(s3Key);
+// Set longer timeout for game creation requests
+app.use('/api/games', (req, res, next) => {
+  // Set timeout to 25 minutes for game creation and updates
+  if (req.method === 'POST' || req.method === 'PUT') {
+    req.setTimeout(25 * 60 * 1000); // 25 minutes in milliseconds
+    res.setTimeout(25 * 60 * 1000); // 25 minutes in milliseconds
+  }
+  next();
+});
 
-//   console.log('Generated Signed URL:');
-//   console.log(signedUrl);
-// }
+// Input sanitization middleware
+app.use(sanitizeInput);
 
-// testSignedUrl();
+// Swagger documentation
+app.use(
+  '/api-docs',
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerDocument, {
+    explorer: true,
+    customCss: '.swagger-ui .topbar { display: none }',
+    swaggerOptions: {
+      docExpansion: 'none',
+    },
+  })
+);
 
 // API Routes
-app.use("/api", routes);
-
-// Sentry error handler must be before other error middleware (only in production)
-app.use(sentryErrorHandler());
+app.use('/api', routes);
 
 // Error handling middleware
 app.use(errorHandler);

@@ -30,19 +30,28 @@ class SESProvider implements EmailProvider {
   private sesClient: SESClient;
 
   constructor() {
-    this.sesClient = new SESClient({
-      region: config.s3.region,
-      credentials: {
-        accessKeyId: config.s3.accessKeyId,
-        secretAccessKey: config.s3.secretAccessKey,
-      }
-    });
+    const sesConfig: any = {
+      region: config.ses.region,
+    };
+
+    if (config.ses.accessKeyId && config.ses.secretAccessKey) {
+      sesConfig.credentials = {
+        accessKeyId: config.ses.accessKeyId,
+        secretAccessKey: config.ses.secretAccessKey,
+      };
+      logger.info('SES configured with explicit credentials');
+    } else {
+      logger.info('SES configured to use IAM role credentials');
+    }
+
+    this.sesClient = new SESClient(sesConfig);
   }
 
   async sendEmail(to: string, subject: string, html: string): Promise<boolean> {
     try {
       const emailsToSkip = ["admin@example.com"];
 
+      // In development mode, just log the email instead of sending
       if (emailsToSkip.includes(to)) {
         logger.info(`DEVELOPMENT MODE -- Skipping for this email ${to}: Email would be sent to ${to}`);
         return true;
@@ -104,7 +113,7 @@ class GmailProvider implements EmailProvider {
       }
 
       const mailOptions = {
-        from: `"Chareli Team" <${config.email.user}>`,
+        from: `"Arcades Box Team" <${config.email.user}>`,
         to: to,
         subject: subject,
         html: html
@@ -132,7 +141,7 @@ export class EmailService implements EmailServiceInterface {
    */
   async sendInvitationEmail(email: string, invitationLink: string, role: string): Promise<boolean> {
     const html = invitationEmailTemplate(invitationLink, role, config.otp.invitationExpiryDays);
-    return this.sendEmail(email, 'Invitation to join Chareli', html);
+    return this.sendEmail(email, 'Invitation to join Arcades Box', html);
   }
 
   /**
@@ -140,7 +149,7 @@ export class EmailService implements EmailServiceInterface {
    */
   async sendWelcomeEmail(email: string, name: string): Promise<boolean> {
     const html = welcomeEmailTemplate(name);
-    return this.sendEmail(email, 'Welcome to Chareli', html);
+    return this.sendEmail(email, 'Welcome to Arcades Box', html);
   }
 
   /**
@@ -148,7 +157,7 @@ export class EmailService implements EmailServiceInterface {
    */
   async sendPasswordResetEmail(email: string, resetLink: string): Promise<boolean> {
     const html = resetPasswordEmailTemplate(resetLink);
-    return this.sendEmail(email, 'Reset your Chareli password', html);
+    return this.sendEmail(email, 'Reset your Arcades Box password', html);
   }
 
   /**
@@ -181,8 +190,8 @@ export class EmailService implements EmailServiceInterface {
   async sendAccountDeletionEmail(email: string, userName: string, isDeactivation: boolean = false): Promise<boolean> {
     const html = accountDeletionEmailTemplate(userName, isDeactivation);
     const subject = isDeactivation 
-      ? 'Your Chareli Account Has Been Deactivated' 
-      : 'Your Chareli Account Has Been Deleted';
+      ? 'Your Arcades Box Account Has Been Deactivated' 
+      : 'Your Arcades Box Account Has Been Deleted';
     return this.sendEmail(email, subject, html);
   }
 

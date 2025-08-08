@@ -4,6 +4,7 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import type { FieldProps, FormikHelpers } from "formik";
 import type { LoginCredentials } from "../../backend/types";
 import * as Yup from "yup";
+import { passwordSchema } from "../../validation/password";
 import { useAuth } from "../../context/AuthContext";
 import { toast } from "sonner";
 import { ForgotPasswordModal } from "./ForgotPasswordModal";
@@ -20,6 +21,7 @@ import "react-phone-input-2/lib/style.css";
 import "../../styles/phone-input.css";
 import { useNavigate } from "react-router-dom";
 import { isValidRole } from "../../utils/main";
+import { useUserCountry } from "../../hooks/useUserCountry";
 
 interface LoginDialogProps {
   open: boolean;
@@ -61,12 +63,12 @@ const emailValidationSchema = Yup.object({
   email: Yup.string()
     .email("Invalid email address")
     .required("Email is required"),
-  password: Yup.string().required("Password is required"),
+  password: passwordSchema,
 });
 
 const phoneValidationSchema = Yup.object({
   phoneNumber: Yup.string().required("Phone number is required"),
-  password: Yup.string().required("Password is required"),
+  password: passwordSchema,
 });
 
 const getInitialValues = (
@@ -94,10 +96,11 @@ export function LoginModal({
   const [loginError, setLoginError] = useState("");
   const [isForgotPasswordModalOpen, setIsForgotPasswordModalOpen] =
     useState(false);
-  const [activeTab, setActiveTab] = useState<"email" | "phone">("email");
+  const [activeTab, setActiveTab] = useState<"email" | "phone">("phone");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const { countryCode } = useUserCountry();
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
   // Clear error message when switching tabs
@@ -110,6 +113,9 @@ export function LoginModal({
     if (!open) {
       setLoginError("");
       setShowPassword(false); // Reset password visibility when modal closes
+    } else {
+      // Reset to phone tab when modal opens
+      setActiveTab("phone");
     }
   }, [open]);
 
@@ -243,8 +249,10 @@ export function LoginModal({
             }
             onSubmit={handleLogin}
             enableReinitialize
+            validateOnChange={true}
+            validateOnBlur={true}
           >
-            {({ isSubmitting }) => (
+            {({ isSubmitting, isValid }) => (
               <Form className="space-y-4">
                 <div className="space-y-1">
                   <Label
@@ -264,7 +272,7 @@ export function LoginModal({
                       <Field name="phoneNumber">
                         {({ field, form }: FieldProps) => (
                           <PhoneInput
-                            country={"us"}
+                            country={countryCode}
                             value={field.value}
                             onChange={(value) =>
                               form.setFieldValue("phoneNumber", `+${value}`)
@@ -365,6 +373,9 @@ export function LoginModal({
                     component="div"
                     className="text-red-500  mt-1 font-dmmono text-sm tracking-wider"
                   />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-dmmono">
+                    Password must be at least 6 characters with uppercase, letters and numbers
+                  </p>
                 </div>
                 {loginError && (
                   <div className="text-red-500 font-dmmono text-sm tracking-wider text-center">
@@ -385,7 +396,7 @@ export function LoginModal({
                 </div>
                 <Button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !isValid}
                   className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-dmmono cursor-pointer"
                 >
                   Login

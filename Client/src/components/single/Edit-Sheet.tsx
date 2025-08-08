@@ -179,6 +179,7 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       toast.success("Game updated successfully!");
+      setUploadedFiles({ thumbnail: null, game: null });
       setShowProgress(false);
       setProgress(0);
       setCurrentStep("");
@@ -216,7 +217,22 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet 
+      open={open} 
+      onOpenChange={(isOpen) => {
+        if (!isOpen) {
+          // Reset all states when sheet closes
+          setUploadedFiles({ thumbnail: null, game: null });
+          setShowProgress(false);
+          setProgress(0);
+          setCurrentStep("");
+          if (formikRef.current) {
+            formikRef.current.resetForm();
+          }
+        }
+        onOpenChange(isOpen);
+      }}
+    >
       <SheetContent
         side="right"
         className="max-w-xl w-full overflow-y-auto p-6 font-dmmono dark:bg-[#0F1621]"

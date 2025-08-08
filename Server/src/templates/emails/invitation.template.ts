@@ -4,7 +4,7 @@ export const invitationEmailTemplate = (invitationLink: string, role: string, ex
   const content = `
     <div style="text-align: center;">
       <p style="color: #374151; font-size: 18px; line-height: 28px; margin-bottom: 24px;">
-        You have been invited to join Chareli as a <strong style="color: #4F46E5;">${role}</strong>
+        You have been invited to join Arcades Box as a <strong style="color: #4F46E5;">${role}</strong>
       </p>
       
       <p style="color: #6B7280; font-size: 16px; line-height: 24px; margin-bottom: 32px;">
@@ -31,5 +31,5 @@ export const invitationEmailTemplate = (invitationLink: string, role: string, ex
     </div>
   `;
 
-  return baseTemplate(content, 'Welcome to Chareli');
+  return baseTemplate(content, 'Welcome to Arcades Box');
 };

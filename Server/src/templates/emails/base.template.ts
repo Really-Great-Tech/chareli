@@ -37,7 +37,7 @@ export const baseTemplate = (content: string, headerText: string) => `
     <!-- Footer -->
     <tr>
       <td style="padding: 40px 20px; text-align: center;">
-        <p style="color: #6B7280; font-size: 14px; margin: 0;">© ${new Date().getFullYear()} Chareli. All rights reserved.</p>
+        <p style="color: #6B7280; font-size: 14px; margin: 0;">© ${new Date().getFullYear()} Arcades Box. All rights reserved.</p>
       </td>
     </tr>
   </table>

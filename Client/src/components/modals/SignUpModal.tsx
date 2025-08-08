@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useCreateUser } from "../../backend/user.service";
 import { useTrackSignupClick } from "../../backend/signup.analytics.service";
 import { useSystemConfigByKey } from "../../backend/configuration.service";
-import { toast } from "sonner";
+// import { toast } from "sonner";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import type { FormikHelpers, FieldProps } from "formik";
 import * as Yup from "yup";
@@ -31,6 +31,8 @@ import { TbUser } from "react-icons/tb";
 import { AiOutlineMail } from "react-icons/ai";
 import { useNavigate } from "react-router-dom";
 import { getVisitorSessionId } from "../../utils/sessionUtils";
+import { useUserCountry } from "../../hooks/useUserCountry";
+import { WelcomeModal } from "./WelcomeModal";
 
 const getAuthFields = (config?: { value?: { settings: any } }) => {
   // Default state when no config or invalid config
@@ -148,8 +150,10 @@ export function SignUpModal({
   openLoginModal,
 }: SignUpDialogProps) {
   const [showPassword, setShowPassword] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const { data: config } = useSystemConfigByKey("authentication_settings");
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const { countryCode, isLoading: _isCountryLoading } = useUserCountry();
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
   const toggleConfirmPasswordVisibility = () =>
@@ -182,13 +186,18 @@ export function SignUpModal({
       // Close signup modal
       onOpenChange(false);
 
-      toast.success("Account created successfully! Please login to continue.");
-      openLoginModal();
+      // Show welcome modal instead of immediately opening login
+      setShowWelcomeModal(true);
     } catch (error: any) {
       actions.setStatus({ error: "Failed to create account" });
     } finally {
       actions.setSubmitting(false);
     }
+  };
+
+  const handleWelcomeContinue = () => {
+    setShowWelcomeModal(false);
+    openLoginModal();
   };
 
   const navigate = useNavigate();
@@ -203,7 +212,13 @@ export function SignUpModal({
   // };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <>
+      <WelcomeModal
+        open={showWelcomeModal}
+        onOpenChange={setShowWelcomeModal}
+        onContinue={handleWelcomeContinue}
+      />
+      <Dialog open={open} onOpenChange={onOpenChange}>
       <CustomDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221]">
         {/* Custom Close Button */}
         <button
@@ -224,10 +239,10 @@ export function SignUpModal({
               validationSchema={getValidationSchema(config)}
               onSubmit={handleSignUp}
               validateOnMount={false}
-              validateOnChange={false}
-              validateOnBlur={false}
+              validateOnChange={true}
+              validateOnBlur={true}
             >
-              {({ isSubmitting }) => (
+              {({ isSubmitting, isValid }) => (
                 <Form className="space-y-1 flex flex-col h-full">
                   <div className="pb-2">
                     {/* Authentication Fields */}
@@ -276,7 +291,7 @@ export function SignUpModal({
                                 {({ field, form }: FieldProps) => (
                                   <div className="w-full mt-2">
                                     <PhoneInput
-                                      country="us"
+                                      country={countryCode}
                                       value={field.value}
                                       onChange={(value) =>
                                         form.setFieldValue(
@@ -428,6 +443,9 @@ export function SignUpModal({
                         component="div"
                         className="text-red-500 mt-1 font-dmmono text-sm tracking-wider"
                       />
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-dmmono">
+                        Password must be at least 6 characters with uppercase, letters and numbers
+                      </p>
                     </div>
                     <div className="relative mt-4">
                       <Label
@@ -467,6 +485,9 @@ export function SignUpModal({
                         component="div"
                         className="text-red-500  mt-1 font-dmmono text-sm tracking-wider"
                       />
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-dmmono">
+                        Must match the password above
+                      </p>
                     </div>
                     <div className="my-5 flex flex-col gap-3">
                       <div className="flex items-center space-x-2">
@@ -477,7 +498,7 @@ export function SignUpModal({
                               checked={field.value}
                               onCheckedChange={(checked) => {
                                 form.setFieldValue("ageConfirm", checked);
-                                form.setFieldTouched("ageConfirm", true);
+                                form.setFieldTouched("ageConfirm", true, false);
                               }}
                               className="border-2 border-gray-400 data-[state=checked]:bg-[#C026D3] data-[state=checked]:border-[#C026D3]"
                             />
@@ -503,7 +524,7 @@ export function SignUpModal({
                               checked={field.value}
                               onCheckedChange={(checked) => {
                                 form.setFieldValue("terms", checked);
-                                form.setFieldTouched("terms", true);
+                                form.setFieldTouched("terms", true, false);
                               }}
                               className="border-2 border-gray-400 data-[state=checked]:bg-[#C026D3] data-[state=checked]:border-[#C026D3]"
                             />
@@ -526,7 +547,7 @@ export function SignUpModal({
 
                   <Button
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || !isValid}
                     className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-dmmono cursor-pointer"
                   >
                     {isSubmitting ? "Submitting..." : "Submit"}
@@ -564,5 +585,6 @@ export function SignUpModal({
         </DialogHeader>
       </CustomDialogContent>
     </Dialog>
+    </>
   );
 }

@@ -13,7 +13,7 @@
     "experimentalDecorators": true,
     "sourceMap": true,
     "declaration": false,
-    "removeComments": true,
+    "removeComments": false,
     "noImplicitAny": true,
     "strictNullChecks": true,
     "strictFunctionTypes": true,

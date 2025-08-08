@@ -1,9 +1,9 @@
 {
-  "taskDefinitionArn": "arn:aws:ecs:eu-central-1:330858616968:task-definition/chareli-task-test-v1:10",
+  "taskDefinitionArn": "arn:aws:ecs:eu-central-1:330858616968:task-definition/chareli-task-development-v2:55",
   "containerDefinitions": [
     {
-      "name": "chareli-ecs-backend-test-server-v1",
-      "image": "330858616968.dkr.ecr.eu-central-1.amazonaws.com/chareli-server-test-v1:latest",
+      "name": "chareli-ecs-backend-development-server-v2",
+      "image": "330858616968.dkr.ecr.eu-central-1.amazonaws.com/chareli-server-development-v2:latest",
       "cpu": 0,
       "portMappings": [
         {
@@ -16,7 +16,7 @@
       "environment": [
         {
           "name": "REDIS_HOST",
-          "value": "chareli-test-v1.qor6oe.ng.0001.euc1.cache.amazonaws.com"
+          "value": "chareli-development-v2.qor6oe.ng.0001.euc1.cache.amazonaws.com"
         },
         {
           "name": "AWS_REGION",
@@ -24,19 +24,19 @@
         },
         {
           "name": "AWS_SECRET_NAME",
-          "value": "chareli/test/v1/application-secrets"
+          "value": "chareli/development/v2/application-secrets"
         },
         {
           "name": "CLIENT_URL",
-          "value": "https://test.chareli.reallygreattech.com"
+          "value": "https://dev.chareli.reallygreattech.com"
         },
         {
           "name": "R2_BUCKET_NAME",
-          "value": "chareli-games-cdn-test-v1"
+          "value": "chareli-games-cdn-development-v2"
         },
         {
           "name": "AWS_S3_BUCKET",
-          "value": "chareli-games-cdn-test-v1"
+          "value": "chareli-games-cdn-development-v2"
         },
         {
           "name": "REDIS_PORT",
@@ -52,69 +52,73 @@
       "secrets": [
         {
           "name": "DB_HOST",
-          "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/test/v1/application-secrets-ApDihG:DB_HOST::"
+          "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/development/v2/application-secrets-BA3Wtq:DB_HOST::"
         },
         {
           "name": "DB_PORT",
-          "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/test/v1/application-secrets-ApDihG:DB_PORT::"
+          "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/development/v2/application-secrets-BA3Wtq:DB_PORT::"
         },
         {
           "name": "DB_USERNAME",
-          "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/test/v1/application-secrets-ApDihG:DB_USERNAME::"
+          "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/development/v2/application-secrets-BA3Wtq:DB_USERNAME::"
         },
         {
           "name": "DB_PASSWORD",
-          "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/test/v1/application-secrets-ApDihG:DB_PASSWORD::"
+          "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/development/v2/application-secrets-BA3Wtq:DB_PASSWORD::"
         },
         {
           "name": "DB_DATABASE",
-          "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/test/v1/application-secrets-ApDihG:DB_DATABASE::"
+          "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/development/v2/application-secrets-BA3Wtq:DB_DATABASE::"
         },
         {
           "name": "JWT_SECRET",
-          "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/test/v1/application-secrets-ApDihG:JWT_SECRET::"
+          "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/development/v2/application-secrets-BA3Wtq:JWT_SECRET::"
         },
         {
           "name": "JWT_REFRESH_SECRET",
-          "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/test/v1/application-secrets-ApDihG:JWT_REFRESH_SECRET::"
+          "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/development/v2/application-secrets-BA3Wtq:JWT_REFRESH_SECRET::"
         },
         {
           "name": "SUPERADMIN_PASSWORD",
-          "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/test/v1/application-secrets-ApDihG:SUPERADMIN_PASSWORD::"
+          "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/development/v2/application-secrets-BA3Wtq:SUPERADMIN_PASSWORD::"
         },
         {
           "name": "EMAIL_PASSWORD",
-          "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/test/v1/application-secrets-ApDihG:EMAIL_PASSWORD::"
+          "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/development/v2/application-secrets-BA3Wtq:EMAIL_PASSWORD::"
         },
         {
           "name": "TWILIO_AUTH_TOKEN",
-          "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/test/v1/application-secrets-ApDihG:TWILIO_AUTH_TOKEN::"
+          "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/development/v2/application-secrets-BA3Wtq:TWILIO_AUTH_TOKEN::"
         },
         {
           "name": "R2_ACCESS_KEY_ID",
-          "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/test/v1/application-secrets-ApDihG:R2_ACCESS_KEY_ID::"
+          "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/development/v2/application-secrets-BA3Wtq:R2_ACCESS_KEY_ID::"
         },
         {
           "name": "R2_SECRET_ACCESS_KEY",
-          "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/test/v1/application-secrets-ApDihG:R2_SECRET_ACCESS_KEY::"
+          "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/development/v2/application-secrets-BA3Wtq:R2_SECRET_ACCESS_KEY::"
         },
         {
           "name": "CLOUDFLARE_ACCOUNT_ID",
-          "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/test/v1/application-secrets-ApDihG:CLOUDFLARE_ACCOUNT_ID::"
+          "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/development/v2/application-secrets-BA3Wtq:CLOUDFLARE_ACCOUNT_ID::"
         },
         {
           "name": "R2_PUBLIC_URL",
-          "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/test/v1/application-secrets-ApDihG:R2_PUBLIC_URL::"
+          "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/development/v2/application-secrets-BA3Wtq:R2_PUBLIC_URL::"
         },
         {
           "name": "STORAGE_PROVIDER",
-          "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/test/v1/application-secrets-ApDihG:STORAGE_PROVIDER::"
+          "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/development/v2/application-secrets-BA3Wtq:STORAGE_PROVIDER::"
+        },
+        {
+          "name": "WORKER_JWT_SECRET",
+          "valueFrom": "arn:aws:secretsmanager:eu-central-1:330858616968:secret:chareli/development/v2/application-secrets-BA3Wtq:WORKER_JWT_SECRET::"
         }
       ],
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "/ecs/chareli-test-v1",
+          "awslogs-group": "/ecs/chareli-development-v2",
           "awslogs-region": "eu-central-1",
           "awslogs-stream-prefix": "ecs"
         }
@@ -122,9 +126,9 @@
       "systemControls": []
     }
   ],
-  "family": "chareli-task-test-v1",
-  "taskRoleArn": "arn:aws:iam::330858616968:role/chareli-ecs-task-role-test-v1",
-  "executionRoleArn": "arn:aws:iam::330858616968:role/chareli-ecs-task-execution-test-v1",
+  "family": "chareli-task-development-v2",
+  "taskRoleArn": "arn:aws:iam::330858616968:role/chareli-ecs-task-role-development-v2",
+  "executionRoleArn": "arn:aws:iam::330858616968:role/chareli-ecs-task-execution-development-v2",
   "networkMode": "awsvpc",
   "revision": 10,
   "volumes": [],

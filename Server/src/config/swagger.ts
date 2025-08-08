@@ -1,5 +1,11 @@
 import swaggerJsdoc from 'swagger-jsdoc';
 import { version } from '../../package.json';
+import { isPrimitive } from '@sentry/core';
+
+const isProduction = process.env.NODE_ENV === 'production';
+const fileExtension = isProduction ? '.js' : '.ts';
+
+const basePath = isProduction ? './dist' : './src';
 
 const options: swaggerJsdoc.Options = {
   definition: {
@@ -180,7 +186,11 @@ const options: swaggerJsdoc.Options = {
     },
     // Individual routes that require authentication will specify their own security requirements
   },
-  apis: ['./src/routes/*.ts', './src/controllers/*.ts'],
+  // apis: ['./src/routes/*.ts', './src/controllers/*.ts'],
+  apis: [
+    `${basePath}/routes/*${fileExtension}`,
+    `${basePath}/controllers/*${fileExtension}`,
+  ],
 };
 
 export const specs = swaggerJsdoc(options);

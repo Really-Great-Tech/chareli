@@ -1,9 +1,9 @@
-name: Deploy to New Staging Environment (Chareli)
+name: Deploy to Dev Environment (Chareli - New Architecture)
 
 on:
   push:
     branches:
-      - stage/new-infra
+      - development
 
 permissions:
   packages: write
@@ -13,15 +13,13 @@ permissions:
 env:
   AWS_REGION: eu-central-1
   ECR_REGISTRY: 330858616968.dkr.ecr.eu-central-1.amazonaws.com
-  ECR_REPO_SERVER: chareli-server-test-v1
-  ECS_SERVICE: chareli-service-test-v1
-  ECS_CLUSTER: chareli-ecs-cluster-test-v1
+  ECR_REPO_SERVER: chareli-server-development-v2
+  ECS_SERVICE: chareli-service-development-v2
+  ECS_CLUSTER: chareli-ecs-cluster-development-v2
   ECS_TASK_DEFINITION: ./task-def.json
-  CONTAINER_NAME: chareli-ecs-backend-test-server-v1
-  IMAGE_TAG_SERVER_COMMIT: server-test-${{ github.sha }}
+  CONTAINER_NAME: chareli-ecs-backend-development-server-v2
+  IMAGE_TAG_SERVER_COMMIT: server-development-${{ github.sha }}
   IMAGE_TAG_SERVER_FIXED: latest
-
-  TEST_DISCORD_WEBHOOK: https://discordapp.com/api/webhooks/1383471955394433126/NP0eSZWI3usTVMdbnFbxDlc6sOEcmihbT3ioBs5ehLcy-PRyNZhcL8qw8MfjyNHI7Bbx
 
 jobs:
   build-and-test:
@@ -82,8 +80,8 @@ jobs:
       - name: Build Frontend
         working-directory: ./Client
         env:
-          VITE_API_URL: 'https://api.test.chareli.reallygreattech.com'
-          VITE_GAMES_CDN_URL: 'https://pub-871fbb69b7da45eeab2a35865a22a0c7.r2.dev'
+          VITE_API_URL: 'https://api.dev.chareli.reallygreattech.com'
+          VITE_GAMES_CDN_URL: 'https://chareli-games-gatekeeper-v2.netalie.workers.dev'
         run: npm run build
 
       - name: Archive Frontend Build
@@ -96,7 +94,7 @@ jobs:
     name: Deploy Backend to ECS
     needs: build-and-test
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/stage/new-infra'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/development'
 
     steps:
       - name: Checkout Code
@@ -105,7 +103,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::330858616968:role/chareli-test-v1-github-oidc-role
+          role-to-assume: arn:aws:iam::330858616968:role/chareli-development-v2-github-oidc-role
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Set up Docker BuildX
@@ -141,13 +139,13 @@ jobs:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
           service: ${{ env.ECS_SERVICE }}
           cluster: ${{ env.ECS_CLUSTER }}
-          # wait-for-service-stability: true
+          wait-for-service-stability: true
 
   deploy-frontend:
     name: Deploy Frontend to Cloudflare Pages
     needs: build-and-test
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/stage/new-infra'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/development'
 
     steps:
       - name: Download Frontend Build Artifact
@@ -161,7 +159,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy ./frontend-build-output/ --project-name=chareli-test
+          command: pages deploy ./frontend-build-output/ --project-name=chareli-dev
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
   notify-discord:
@@ -171,7 +169,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/stage/new-infra' }}
+    if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/development' }}
 
     steps:
       - name: Generate Build Status
@@ -206,14 +204,14 @@ jobs:
         if: always()
         uses: appleboy/discord-action@v1.2.0
         with:
-          webhook_url: ${{ env.TEST_DISCORD_WEBHOOK }}
-          username: Chareli Staging Pipeline Bot
+          webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          username: Chareli Dev Pipeline Bot
           message: |
-            🚀 **Chareli test Deployment Summary**
+            🚀 **Chareli Dev Deployment Summary**
             🔀 Branch: `${{ github.ref_name }}`
-            📄 Commit: `${{ github.sha }}` by `${{ github.actor }}`
+            📄 Commit: `${{ github.event.head_commit.message }}` by `${{ github.actor }}`
             🏗️ Event: `${{ github.event_name }}`
             🧪 **Build & Test:** ${{ steps.build-status.outputs.build_msg }}
             🖥️ **Backend (ECS):** ${{ steps.backend-status.outputs.backend_msg }}
-            🌐 **Frontend (S3/CloudFront):** ${{ steps.frontend-status.outputs.frontend_msg }}
+            🌐 **Frontend (Cloudflare Pages):** ${{ steps.frontend-status.outputs.frontend_msg }}
             🔗 [View Run on GitHub](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})

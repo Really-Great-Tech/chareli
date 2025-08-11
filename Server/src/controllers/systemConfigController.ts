@@ -26,6 +26,7 @@ const upload = multer({
 
 // Middleware to handle file uploads
 export const uploadTermsFile = upload.single('file');
+export const uploadPrivacyFile = upload.single('file');
 
 /**
  * @swagger
@@ -73,7 +74,7 @@ export const getAllSystemConfigs = async (
     
     // Process file-based configs
     for (const config of configs) {
-      if (config.key === 'terms' && config.value?.fileId) {
+      if ((config.key === 'terms' || config.key === 'privacy') && config.value?.fileId) {
         const file = await fileRepository.findOne({
           where: { id: config.value.fileId }
         });
@@ -143,8 +144,8 @@ export const getSystemConfigByKey = async (
       return;
     }
     
-    // Handle file-based configs (like 'terms')
-    if (key === 'terms' && config.value?.fileId) {
+    // Handle file-based configs (like 'terms' and 'privacy')
+    if ((key === 'terms' || key === 'privacy') && config.value?.fileId) {
       const file = await fileRepository.findOne({
         where: { id: config.value.fileId }
       });
@@ -202,7 +203,7 @@ export const getFormattedSystemConfigs = async (
     
     // Process file-based configs for formatted response
     for (const config of configs) {
-      if (config.key === 'terms' && config.value?.fileId) {
+      if ((config.key === 'terms' || config.key === 'privacy') && config.value?.fileId) {
         const file = await fileRepository.findOne({
           where: { id: config.value.fileId }
         });
@@ -285,8 +286,8 @@ export const createSystemConfig = async (
     const { key, description } = req.body;
     const file = req.file;
 
-    if (key === 'terms' && !file) {
-      return next(ApiError.badRequest('File is required for terms configuration'));
+    if ((key === 'terms' || key === 'privacy') && !file) {
+      return next(ApiError.badRequest(`File is required for ${key} configuration`));
     }
 
     // Check if config with the same key already exists
@@ -296,19 +297,19 @@ export const createSystemConfig = async (
 
     let isNewConfig = false;
 
-    if (key === 'terms' && file) {
+    if ((key === 'terms' || key === 'privacy') && file) {
       // Upload file to storage
       const uploadResult = await storageService.uploadFile(
         file.buffer,
         file.originalname,
         file.mimetype,
-        'terms'
+        key
       );
 
       // Create file record
       const fileRecord = await queryRunner.manager.create(File, {
         s3Key: uploadResult.key,
-        type: 'terms'
+        type: key
       });
       await queryRunner.manager.save(fileRecord);
 
@@ -360,7 +361,7 @@ export const createSystemConfig = async (
       where: { key: config.key }
     });
 
-    if (savedConfig && key === 'terms' && savedConfig.value?.fileId) {
+    if (savedConfig && (key === 'terms' || key === 'privacy') && savedConfig.value?.fileId) {
       const file = await fileRepository.findOne({
         where: { id: savedConfig.value.fileId }
       });
@@ -462,7 +463,7 @@ export const updateSystemConfig = async (
     await systemConfigRepository.save(config);
     
     // Handle file-based configs for response
-    if (key === 'terms' && config.value?.fileId) {
+    if ((key === 'terms' || key === 'privacy') && config.value?.fileId) {
       const file = await fileRepository.findOne({
         where: { id: config.value.fileId }
       });

@@ -6,10 +6,12 @@ import { IoDocumentTextOutline } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import ChangePasswordSheet from "../../components/single/ChangePassword-Sheet";
 import { TermsSheet } from "../../components/single/Terms-Sheet";
+import { PrivacySheet } from "../../components/single/Privacy-Sheet";
 
 const Settings: React.FC = () => {
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
   const navigate = useNavigate();
 
   const settings = [
@@ -38,6 +40,15 @@ const Settings: React.FC = () => {
       action: "Upload",
       onClick: () => {
         setShowTerms(true);
+      },
+    },
+    {
+      icon: <IoDocumentTextOutline size={16} />,
+      title: "Privacy Policy",
+      description: "Upload",
+      action: "Upload",
+      onClick: () => {
+        setShowPrivacy(true);
       },
     },
   ];
@@ -74,6 +85,7 @@ const Settings: React.FC = () => {
         onOpenChange={setShowChangePassword}
       />
       <TermsSheet open={showTerms} onOpenChange={setShowTerms} />
+      <PrivacySheet open={showPrivacy} onOpenChange={setShowPrivacy} />
     </div>
   );
 };

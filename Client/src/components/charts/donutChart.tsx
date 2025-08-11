@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Pie, PieChart, Sector, Tooltip } from "recharts";
 import { useDashboardAnalytics } from "../../backend/analytics.service";
+import type { DashboardTimeRange } from "../../backend/analytics.service";
 
 const renderActiveShape = (props: {
   cx: any;
@@ -71,10 +72,16 @@ const CustomTooltip = ({
   return null;
 };
 
-export function DonutChart() {
+interface DonutChartProps {
+  timeRange?: DashboardTimeRange;
+}
+
+export function DonutChart({ timeRange }: DonutChartProps) {
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const { data: analytics, isLoading } = useDashboardAnalytics();
+  // Use the timeRange filter for dashboard analytics
+  const filters = timeRange ? { timeRange } : undefined;
+  const { data: analytics, isLoading } = useDashboardAnalytics(filters);
 
   const data = [
     {
@@ -146,7 +153,7 @@ export function DonutChart() {
       {/* Legend section */}
       <div className="mt-4 lg:mt-12 flex flex-col space-y-4 font-dmmono w-full lg:w-auto">
         <div className="text-base lg:text-lg font-worksans text-gray-600 font-medium dark:text-white text-center lg:text-left">
-          Total number of registered users = {total}
+          Total number of verifed users = {total}
         </div>
 
         <div className="space-y-3">

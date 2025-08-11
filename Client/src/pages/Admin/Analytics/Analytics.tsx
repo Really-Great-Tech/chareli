@@ -12,6 +12,8 @@ import { useState } from "react";
 export default function Analytics() {
   // State for bar chart filter
   const [barChartTimeRange, setBarChartTimeRange] = useState<DashboardTimeRange>({ period: 'last30days' });
+  // State for registration insights filter
+  const [registrationTimeRange, setRegistrationTimeRange] = useState<DashboardTimeRange>({ period: 'last30days' });
 
   // Commented out for the disabled user age chart
   // const { data: dashboardData } = useDashboardAnalytics();
@@ -60,6 +62,10 @@ export default function Analytics() {
             <p className="text-lg sm:text-xl lg:text-2xl">
               Registration insights
             </p>
+            <DashboardTimeFilter
+              value={registrationTimeRange}
+              onChange={setRegistrationTimeRange}
+            />
           </div>
           {/* inner card */}
           <Card className="bg-[#F8FAFC] dark:bg-[#0F1221] shadow-none border-none mx-3 p-4">
@@ -72,11 +78,11 @@ export default function Analytics() {
                     className="w-10 h-10 dark:text-white"
                   />
                   <p className="text-sm sm:text-base lg:text-lg text-[#64748A] dark:text-white">
-                    Total number of registered users
+                    Total number of verifed users
                   </p>
                 </div>
 
-                <DonutChart />
+                <DonutChart timeRange={registrationTimeRange} />
               </div>
             </div>
           </Card>

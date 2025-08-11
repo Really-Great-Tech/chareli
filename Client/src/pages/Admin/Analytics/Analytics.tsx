@@ -8,6 +8,7 @@ import GameActivity from "./GameActivity";
 import type { DashboardTimeRange } from "../../../backend/analytics.service";
 import { DashboardTimeFilter } from "../../../components/single/DashboardTimeFilter";
 import { useState } from "react";
+import { useSignupAnalyticsData } from "../../../backend/signup.analytics.service";
 
 export default function Analytics() {
   // State for bar chart filter
@@ -15,6 +16,11 @@ export default function Analytics() {
   // State for registration insights filter
   const [registrationTimeRange, setRegistrationTimeRange] = useState<DashboardTimeRange>({ period: 'last30days' });
 
+  console.log("barchartTimeRange:", barChartTimeRange);
+
+  const { data: analyticsData } = useSignupAnalyticsData();
+
+  console.log("analyticData:", analyticsData);
   // Commented out for the disabled user age chart
   // const { data: dashboardData } = useDashboardAnalytics();
   // const adultsCount = dashboardData?.adultsCount ?? 0;
@@ -110,7 +116,8 @@ export default function Analytics() {
                     className="w-10 h-10 dark:text-white"
                   />
                   <p className="text-sm sm:text-base lg:text-lg text-[#64748A] dark:text-white">
-                    Total clicks on Sign-up button
+                    Total clicks on Sign-up button (
+                    {analyticsData?.totalClicks || 0})
                   </p>
                 </div>
 

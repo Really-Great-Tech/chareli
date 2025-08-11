@@ -206,10 +206,10 @@ export function SignUpModal({
     navigate("/terms");
   };
 
-  // const handlePrivacy = () => {
-  //   onOpenChange(false);
-  //   navigate("/privacy");
-  // };
+  const handlePrivacy = () => {
+    onOpenChange(false);
+    navigate("/privacy");
+  };
 
   return (
     <>
@@ -567,19 +567,20 @@ export function SignUpModal({
               </button>
             </p>
             {/* terms and privacy */}
-            <div className="font-worksans flex space-2 text-sm justify-center">
+            <div className="font-worksans flex items-center space-x-2 text-sm justify-center">
               <button
-                className="text-[#C026D3] text-center cursor-buttonointer tracking-wider mr-4 hover:underline"
+                className="text-[#C026D3] text-center cursor-pointer tracking-wider hover:underline"
                 onClick={handleTerms}
               >
                 Terms of Service
               </button>
-              {/* <p
-              className="text-gray-400 text-center cursor-pointer tracking-wider mr-4 underline"
-              onClick={handlePrivacy}
-            >
-              Privacy Policy
-            </p> */}
+              <span className="text-gray-400 dark:text-gray-500">/</span>
+              <button
+                className="text-[#C026D3] text-center cursor-pointer tracking-wider hover:underline"
+                onClick={handlePrivacy}
+              >
+                Privacy Policy
+              </button>
             </div>
           </div>
         </DialogHeader>

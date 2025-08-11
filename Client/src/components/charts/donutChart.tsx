@@ -153,7 +153,7 @@ export function DonutChart({ timeRange }: DonutChartProps) {
       {/* Legend section */}
       <div className="mt-4 lg:mt-12 flex flex-col space-y-4 font-dmmono w-full lg:w-auto">
         <div className="text-base lg:text-lg font-worksans text-gray-600 font-medium dark:text-white text-center lg:text-left">
-          Total number of registered users = {total}
+          Total number of verified users = {total}
         </div>
 
         <div className="space-y-3">

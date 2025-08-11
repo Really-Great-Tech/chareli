@@ -85,7 +85,7 @@ export default function Analytics() {
                     className="w-10 h-10 dark:text-white"
                   />
                   <p className="text-sm sm:text-base lg:text-lg text-[#64748A] dark:text-white">
-                    Total number of registered users
+                    Total number of verified users
                   </p>
                 </div>
 

@@ -211,16 +211,25 @@ export const getDashboardAnalytics = async (
       : 0;
 
     // Count active and inactive users based on business logic
+    // Apply time period filtering to active/inactive user counts for registration insights
+    // This ensures that the DonutChart shows users who REGISTERED in the selected time period
+    // and their current active/inactive status, not just total counts across all time
     let activeUsersWhere: any = { 
       isActive: true, 
       isDeleted: false,
-      lastLoggedIn: Not(IsNull()) // Only count users who have actually logged in
+      lastLoggedIn: Not(IsNull()), // Only count users who have actually logged in
+      createdAt: Between(twentyFourHoursAgo, now) // Filter by registration time period
     };
-    let systemInactiveWhere: any = { isActive: false, isDeleted: false };
+    let systemInactiveWhere: any = { 
+      isActive: false, 
+      isDeleted: false,
+      createdAt: Between(twentyFourHoursAgo, now) // Filter by registration time period
+    };
     let neverLoggedInWhere: any = { 
       isActive: true, 
       isDeleted: false,
-      lastLoggedIn: IsNull()
+      lastLoggedIn: IsNull(),
+      createdAt: Between(twentyFourHoursAgo, now) // Filter by registration time period
     };
 
     // Add country filter if provided
@@ -230,7 +239,7 @@ export const getDashboardAnalytics = async (
       neverLoggedInWhere.country = In(countries);
     }
 
-    // Active users: users who have logged in at least once and are still active
+    // Active users: users who registered in the selected period, have logged in at least once and are still active
     const activeUsers = await userRepository.count({ where: activeUsersWhere });
     
     const [systemInactiveUsers, neverLoggedInUsers] = await Promise.all([

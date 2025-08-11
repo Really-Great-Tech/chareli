@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Pie, PieChart, Sector, Tooltip } from "recharts";
 import { useDashboardAnalytics } from "../../backend/analytics.service";
+import type { DashboardTimeRange } from "../../backend/analytics.service";
 
 const renderActiveShape = (props: {
   cx: any;
@@ -71,10 +72,16 @@ const CustomTooltip = ({
   return null;
 };
 
-export function DonutChart() {
+interface DonutChartProps {
+  timeRange?: DashboardTimeRange;
+}
+
+export function DonutChart({ timeRange }: DonutChartProps) {
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const { data: analytics, isLoading } = useDashboardAnalytics();
+  // Use the timeRange filter for dashboard analytics
+  const filters = timeRange ? { timeRange } : undefined;
+  const { data: analytics, isLoading } = useDashboardAnalytics(filters);
 
   const data = [
     {

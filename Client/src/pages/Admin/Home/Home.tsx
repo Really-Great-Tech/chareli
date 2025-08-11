@@ -25,7 +25,7 @@ export default function Home() {
   const [countryFilter, setCountryFilter] = useState<string[]>([]);
   // Separate state for insights filter
   const [insightsTimeRange, setInsightsTimeRange] =
-    useState<DashboardTimeRange>({ period: "last24hours" });
+    useState<DashboardTimeRange>({ period: "last30days" });
 
   const { data: analyticsData } = useSignupAnalyticsData();
   return (

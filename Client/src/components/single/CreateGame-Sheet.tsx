@@ -11,7 +11,7 @@ import { useCreateGame } from "../../backend/games.service";
 import { useCategories } from "../../backend/category.service";
 import { backendService } from "../../backend/api.service";
 import { toast } from "sonner";
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from "@tanstack/react-query";
 import { BackendRoute } from "../../backend/constants";
 import GameCreationProgress from "./GameCreationProgress";
 import UppyUpload from "./UppyUpload";
@@ -42,25 +42,21 @@ interface FormValues {
 // Validation schema
 const validationSchema = Yup.object({
   title: Yup.string().required("Title is required").trim(),
-  description: Yup.string().required("Description is required").trim(),
+  description: Yup.string().trim().optional(),
   config: Yup.number()
     .required("Config is required")
     .min(0, "Config must be a positive number"),
   categoryId: Yup.string(),
-  thumbnailFile: Yup.object()
-    .required("Thumbnail image is required")
-    .shape({
-      name: Yup.string().required(),
-      publicUrl: Yup.string().required(),
-      key: Yup.string().required(),
-    }),
-  gameFile: Yup.object()
-    .required("Game file is required")
-    .shape({
-      name: Yup.string().required(),
-      publicUrl: Yup.string().required(),
-      key: Yup.string().required(),
-    }),
+  thumbnailFile: Yup.object().required("Thumbnail image is required").shape({
+    name: Yup.string().required(),
+    publicUrl: Yup.string().required(),
+    key: Yup.string().required(),
+  }),
+  gameFile: Yup.object().required("Game file is required").shape({
+    name: Yup.string().required(),
+    publicUrl: Yup.string().required(),
+    key: Yup.string().required(),
+  }),
 });
 
 // Initial values
@@ -94,60 +90,60 @@ export function CreateGameSheet({
 
   // Stable callback functions to prevent re-renders
   const handleThumbnailUploaded = React.useCallback((file: UploadedFile) => {
-    console.log('📸 Thumbnail uploaded:', file);
-    setUploadedFiles(prev => ({ ...prev, thumbnail: file }));
-    setIsUploading(prev => ({ ...prev, thumbnail: false }));
+    console.log("📸 Thumbnail uploaded:", file);
+    setUploadedFiles((prev) => ({ ...prev, thumbnail: file }));
+    setIsUploading((prev) => ({ ...prev, thumbnail: false }));
     if (formikRef.current) {
       formikRef.current.setFieldValue("thumbnailFile", file);
     }
   }, []);
 
   const handleGameUploaded = React.useCallback((file: UploadedFile) => {
-    console.log('🎮 Game uploaded:', file);
-    setUploadedFiles(prev => ({ ...prev, game: file }));
-    setIsUploading(prev => ({ ...prev, game: false }));
+    console.log("🎮 Game uploaded:", file);
+    setUploadedFiles((prev) => ({ ...prev, game: file }));
+    setIsUploading((prev) => ({ ...prev, game: false }));
     if (formikRef.current) {
       formikRef.current.setFieldValue("gameFile", file);
     }
   }, []);
 
   const handleThumbnailReplaced = React.useCallback(() => {
-    console.log('🗑️ Thumbnail replaced');
-    setUploadedFiles(prev => ({ ...prev, thumbnail: null }));
-    setIsUploading(prev => ({ ...prev, thumbnail: false }));
+    console.log("🗑️ Thumbnail replaced");
+    setUploadedFiles((prev) => ({ ...prev, thumbnail: null }));
+    setIsUploading((prev) => ({ ...prev, thumbnail: false }));
     if (formikRef.current) {
       formikRef.current.setFieldValue("thumbnailFile", undefined);
     }
   }, []);
 
   const handleGameReplaced = React.useCallback(() => {
-    console.log('🗑️ Game replaced');
-    setUploadedFiles(prev => ({ ...prev, game: null }));
-    setIsUploading(prev => ({ ...prev, game: false }));
+    console.log("🗑️ Game replaced");
+    setUploadedFiles((prev) => ({ ...prev, game: null }));
+    setIsUploading((prev) => ({ ...prev, game: false }));
     if (formikRef.current) {
       formikRef.current.setFieldValue("gameFile", undefined);
     }
   }, []);
 
   const handleThumbnailUploadStart = React.useCallback(() => {
-    console.log('🚀 Thumbnail upload started');
-    setIsUploading(prev => ({ ...prev, thumbnail: true }));
+    console.log("🚀 Thumbnail upload started");
+    setIsUploading((prev) => ({ ...prev, thumbnail: true }));
   }, []);
 
   const handleGameUploadStart = React.useCallback(() => {
-    console.log('🚀 Game upload started');
-    setIsUploading(prev => ({ ...prev, game: true }));
+    console.log("🚀 Game upload started");
+    setIsUploading((prev) => ({ ...prev, game: true }));
   }, []);
 
   const handleThumbnailUploadError = React.useCallback((error: string) => {
-    console.error('❌ Thumbnail upload error:', error);
-    setIsUploading(prev => ({ ...prev, thumbnail: false }));
+    console.error("❌ Thumbnail upload error:", error);
+    setIsUploading((prev) => ({ ...prev, thumbnail: false }));
     toast.error(`Thumbnail upload failed: ${error}`);
   }, []);
 
   const handleGameUploadError = React.useCallback((error: string) => {
-    console.error('❌ Game upload error:', error);
-    setIsUploading(prev => ({ ...prev, game: false }));
+    console.error("❌ Game upload error:", error);
+    setIsUploading((prev) => ({ ...prev, game: false }));
     toast.error(`Game upload failed: ${error}`);
   }, []);
   const [showProgress, setShowProgress] = useState(false);
@@ -196,44 +192,51 @@ export function CreateGameSheet({
       onOpenChange?.(false);
     } catch (error: any) {
       console.error("Error creating game:", error);
-      
+
       // Check if this is a network error but the game might have been created successfully
-      if (error?.code === 'ERR_NETWORK' || error?.message === 'Network Error') {
+      if (error?.code === "ERR_NETWORK" || error?.message === "Network Error") {
         setCurrentStep("Verifying game creation...");
         setProgress(90);
-        
+
         // Wait a moment for the server to complete processing
         await new Promise((resolve) => setTimeout(resolve, 10000));
-        
+
         try {
           // Check if the game was actually created by searching for it
           // We'll search for games with the same title created in the last few minutes
-          const { data: recentGames } = await backendService.get('/api/games', {
-            params: { 
+          const { data: recentGames } = await backendService.get("/api/games", {
+            params: {
               limit: 10,
-              search: values.title 
+              search: values.title,
             },
-            suppressErrorToast: true
+            suppressErrorToast: true,
           });
-          
+
           // Look for a game with the exact title created recently (within the last 5 minutes)
           const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-          const possibleGame = recentGames?.data?.find((game: any) => 
-            game.title === values.title && 
-            new Date(game.createdAt) > fiveMinutesAgo
+          const possibleGame = recentGames?.data?.find(
+            (game: any) =>
+              game.title === values.title &&
+              new Date(game.createdAt) > fiveMinutesAgo
           );
-          
+
           if (possibleGame) {
             setProgress(100);
             setCurrentStep("Game created successfully!");
             await new Promise((resolve) => setTimeout(resolve, 1000));
-            
+
             // Manually invalidate React Query cache to trigger UI updates
             queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES] });
-            queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS] });
-            queryClient.invalidateQueries({ queryKey: [BackendRoute.CATEGORIES] });
-            
-            toast.success("Game created successfully! (Upload completed despite network error)");
+            queryClient.invalidateQueries({
+              queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS],
+            });
+            queryClient.invalidateQueries({
+              queryKey: [BackendRoute.CATEGORIES],
+            });
+
+            toast.success(
+              "Game created successfully! (Upload completed despite network error)"
+            );
             resetForm();
             setUploadedFiles({ thumbnail: null, game: null });
             setShowProgress(false);
@@ -247,7 +250,7 @@ export function CreateGameSheet({
           console.error("Failed to verify game creation:", verificationError);
         }
       }
-      
+
       // If we get here, the game creation actually failed
       setShowProgress(false);
       setProgress(0);
@@ -274,7 +277,9 @@ export function CreateGameSheet({
         onOpenChange?.(open);
       }}
     >
-      <SheetTrigger asChild onClick={() => setIsOpen(true)}>{children}</SheetTrigger>
+      <SheetTrigger asChild onClick={() => setIsOpen(true)}>
+        {children}
+      </SheetTrigger>
       <SheetContent className="font-dmmono dark:bg-[#0F1621] max-w-xl w-full overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="text-xl font-medium tracking-wider mt-6 mb-2">
@@ -297,7 +302,7 @@ export function CreateGameSheet({
                 </Label>
                 <UppyUpload
                   fileType="thumbnail"
-                  accept={['image/*']}
+                  accept={["image/*"]}
                   onFileUploaded={handleThumbnailUploaded}
                   onFileReplaced={handleThumbnailReplaced}
                   onUploadStart={handleThumbnailUploadStart}
@@ -306,8 +311,12 @@ export function CreateGameSheet({
                 {uploadedFiles.thumbnail && (
                   <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
                     <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400 font-worksans">
-                      <span className="font-medium">{uploadedFiles.thumbnail.name}</span>
-                      <span className="text-xs bg-green-100 dark:bg-green-800 px-2 py-1 rounded-full">Uploaded</span>
+                      <span className="font-medium">
+                        {uploadedFiles.thumbnail.name}
+                      </span>
+                      <span className="text-xs bg-green-100 dark:bg-green-800 px-2 py-1 rounded-full">
+                        Uploaded
+                      </span>
                     </div>
                   </div>
                 )}
@@ -402,7 +411,7 @@ export function CreateGameSheet({
                 <Label className="text-base mb-2 block">Game Upload .zip</Label>
                 <UppyUpload
                   fileType="game"
-                  accept={['.zip']}
+                  accept={[".zip"]}
                   onFileUploaded={handleGameUploaded}
                   onFileReplaced={handleGameReplaced}
                   onUploadStart={handleGameUploadStart}
@@ -411,8 +420,12 @@ export function CreateGameSheet({
                 {uploadedFiles.game && (
                   <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
                     <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400 font-worksans">
-                      <span className="font-medium">{uploadedFiles.game.name}</span>
-                      <span className="text-xs bg-green-100 dark:bg-green-800 px-2 py-1 rounded-full">Uploaded</span>
+                      <span className="font-medium">
+                        {uploadedFiles.game.name}
+                      </span>
+                      <span className="text-xs bg-green-100 dark:bg-green-800 px-2 py-1 rounded-full">
+                        Uploaded
+                      </span>
                     </div>
                   </div>
                 )}
@@ -440,11 +453,15 @@ export function CreateGameSheet({
                   {({ field, form }: any) => (
                     <SearchableSelect
                       value={field.value}
-                      onValueChange={(value: string) => form.setFieldValue("categoryId", value)}
-                      options={categories?.map((category) => ({
-                        value: category.id,
-                        label: category.name
-                      })) || []}
+                      onValueChange={(value: string) =>
+                        form.setFieldValue("categoryId", value)
+                      }
+                      options={
+                        categories?.map((category) => ({
+                          value: category.id,
+                          label: category.name,
+                        })) || []
+                      }
                       placeholder="Select category (optional)"
                       searchPlaceholder="Search categories..."
                       emptyText="No categories found"
@@ -503,10 +520,10 @@ export function CreateGameSheet({
                 <Button
                   type="submit"
                   disabled={
-                    isSubmitting || 
-                    !isValid || 
-                    !dirty || 
-                    !uploadedFiles.thumbnail || 
+                    isSubmitting ||
+                    !isValid ||
+                    !dirty ||
+                    !uploadedFiles.thumbnail ||
                     !uploadedFiles.game ||
                     isUploading.thumbnail ||
                     isUploading.game

@@ -390,7 +390,7 @@ export function CreateGameSheet({
                   htmlFor="description"
                   className="text-base mb-2 block dark:text-white"
                 >
-                  Short Description
+                  Short Description (Optional)
                 </Label>
                 <Field
                   as="textarea"

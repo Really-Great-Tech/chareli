@@ -340,7 +340,7 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
               {/* Description */}
               <div>
                 <Label htmlFor="description" className="text-base mb-2 block dark:text-white">
-                  Short Description
+                  Short Description (Optional)
                 </Label>
                 <Field
                   as="textarea"

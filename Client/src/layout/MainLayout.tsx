@@ -10,6 +10,10 @@ const MainLayout: React.FC = () => {
     navigation("/terms");
   };
 
+  const handlePrivacyPage = () => {
+    navigation("/privacy");
+  };
+
   const isGamePlay = location.pathname.includes("/gameplay/");
   return (
     <div className="min-h-screen bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900 transition-colors duration-300 flex flex-col">
@@ -33,8 +37,10 @@ const MainLayout: React.FC = () => {
               >
                 Terms of Service
               </span>
-              . Arcades Box{" "}
-              <span /*className="text-[#C026D3] underline cursor-pointer hover:text-[#db2ee8] transition-colors"*/
+              . The Arcades Box{" "}
+              <span
+                className="text-[#C026D3] underline cursor-pointer hover:text-[#db2ee8] transition-colors"
+                onClick={handlePrivacyPage}
               >
                 Privacy Policy
               </span>{" "}

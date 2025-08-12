@@ -15,6 +15,7 @@ import { emailService } from "../services/email.service";
 import { anonymizationService } from "../services/anonymization.service";
 import redis from "../config/redisClient";
 import { cacheService } from "../services/cache.service";
+import logger from "../utils/logger";
 
 const userRepository = AppDataSource.getRepository(User);
 const roleRepository = AppDataSource.getRepository(Role);
@@ -336,6 +337,8 @@ export const createUser = async (
         req.socket.remoteAddress || req.ip || ""
       );
 
+      logger.info('[IP_TRACKING] IP extracted', { email, ipAddress, isEmpty: ipAddress === '' });
+
       // Get country from IP
       country = await getCountryFromIP(ipAddress);
 
@@ -343,7 +346,7 @@ export const createUser = async (
       const userAgent = req.headers['user-agent'] || '';
       deviceType = detectDeviceType(userAgent);
     } catch (error) {
-      console.error('Failed to extract IP/country information:', error);
+      logger.error('[IP_TRACKING] IP extraction failed', { email, error: error instanceof Error ? error.message : String(error) });
       // Continue with user creation even if IP extraction fails
     }
 
@@ -396,7 +399,7 @@ export const createUser = async (
       isAdult: isAdult || false,
       hasAcceptedTerms,
       country: country || undefined,
-      registrationIpAddress: ipAddress || undefined,
+      registrationIpAddress: ipAddress,
       lastKnownDeviceType: deviceType,
     });
 

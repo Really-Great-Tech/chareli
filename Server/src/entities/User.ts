@@ -32,7 +32,6 @@ export class User {
   country: string;
 
   @Column({ nullable: true })
-  @Index()
   registrationIpAddress: string;
 
   @Column({ nullable: true })

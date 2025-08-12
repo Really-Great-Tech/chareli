@@ -98,7 +98,7 @@ export class AuthService {
       isAdult,
       hasAcceptedTerms,
       country,
-      registrationIpAddress,
+      registrationIpAddress: registrationIpAddress,
       lastKnownDeviceType
     });
 

@@ -1,20 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import { useTheme } from '../../context/ThemeContext';
-import { Button } from '../ui/button';
-import { usePermissions } from '../../hooks/usePermissions';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
+import { Button } from "../ui/button";
+import { usePermissions } from "../../hooks/usePermissions";
+import ArcadeIcon from "../../assets/ArcadeIcon.png";
 
 import { IoMdSettings } from "react-icons/io";
 // import { IoIosSearch } from "react-icons/io";
 // import { CommandInput } from '../ui/command';
 import { IoExitOutline } from "react-icons/io5";
 
-
-
-import sun from '../../assets/sun.svg';
-import moon from '../../assets/moon.svg';
-
+import sun from "../../assets/sun.svg";
+import moon from "../../assets/moon.svg";
 
 const AdminNavbar: React.FC = () => {
   const { logout } = useAuth();
@@ -43,16 +41,19 @@ const AdminNavbar: React.FC = () => {
   }, [showSearch]);
 
   return (
-    <header className="flex justify-between p-4 items-center bg-white dark:bg-[#0f1221] transition-colors duration-300">
+    <header className="flex justify-between px-4 py-2 items-center bg-white dark:bg-[#0f1221] transition-colors duration-300">
       <div
-        onClick={() => navigate('/')}
-        className="text-2xl font-extrabold text-[#D946EF] dark:text-[#E879F9] font-ponggame cursor-pointer tracking-wider"
+        onClick={() => navigate("/")}
+        className="cursor-pointer flex flex-col justify-center items-center w-20"
       >
-        ARCADES BOX
+        <img src={ArcadeIcon} alt="logo" className="" />
+        <p className="w-20  text-center text-xs dark:text-white text-black">
+          ARCADES BOX
+        </p>
       </div>
 
       {/* right side */}
-      <div className='flex gap-4 items-center'>
+      <div className="flex gap-4 items-center">
         <div className="font-extrabold text-[#D946EF] dark:text-[#E879F9] flex items-center gap-4">
           {/* {!showSearch ? (
             <button
@@ -88,20 +89,23 @@ const AdminNavbar: React.FC = () => {
             </div>
           )} */}
           {permissions.canAccessConfig && (
-            <IoMdSettings className='w-6 h-6 cursor-pointer' onClick={() => navigate('/admin/settings')} />
+            <IoMdSettings
+              className="w-6 h-6 cursor-pointer"
+              onClick={() => navigate("/admin/settings")}
+            />
           )}
         </div>
         <div className="space-x-4 flex items-center cursor-pointer">
           <img
             onClick={toggleDarkMode}
             src={isDarkMode ? moon : sun}
-          alt={isDarkMode ? 'light mode' : 'dark mode'}
-          className="w-6 h-6 cursor"
+            alt={isDarkMode ? "light mode" : "dark mode"}
+            className="w-6 h-6 cursor"
           />
           <Button
             onClick={() => {
               logout();
-              navigate('/');
+              navigate("/");
             }}
             className="bg-transparent flex items-center gap-2 text-red-500 hover:bg-red-500 hover:text-white cursor-pointer"
           >

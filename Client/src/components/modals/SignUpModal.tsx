@@ -219,373 +219,380 @@ export function SignUpModal({
         onContinue={handleWelcomeContinue}
       />
       <Dialog open={open} onOpenChange={onOpenChange}>
-      <CustomDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221]">
-        {/* Custom Close Button */}
-        <button
-          className="absolute -top-2 -right-2 sm:-top-4 sm:-right-4 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#C026D3] flex items-center justify-center shadow-lg hover:bg-[#a21caf] transition-colors"
-          onClick={() => onOpenChange(false)}
-          aria-label="Close"
-          style={{ border: "none" }}
-        >
-          <span className="text-white text-2xl font-bold">×</span>
-        </button>
-        <DialogHeader className="max-h-[70vh] overflow-y-auto custom-scrollbar">
-          <DialogTitle className="text-2xl font-bold text-[#E328AF] text-center font-dmmono">
-            Sign Up
-          </DialogTitle>
-          <DialogDescription className="text-center">
-            <Formik
-              initialValues={getInitialValues(config)}
-              validationSchema={getValidationSchema(config)}
-              onSubmit={handleSignUp}
-              validateOnMount={false}
-              validateOnChange={true}
-              validateOnBlur={true}
-            >
-              {({ isSubmitting, isValid }) => (
-                <Form className="space-y-1 flex flex-col h-full">
-                  <div className="pb-2">
-                    {/* Authentication Fields */}
-                    {(() => {
-                      const fields = getAuthFields(config);
-                      return (
-                        <>
-                          {(fields.showAll || fields.showEmail) && (
-                            <div className="relative">
-                              <Label
-                                htmlFor="email"
-                                className="font-dmmono text-base text-black dark:text-white"
-                              >
-                                E-Mail
-                              </Label>
+        <CustomDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221]">
+          {/* Custom Close Button */}
+          <button
+            className="absolute -top-2 -right-2 sm:-top-4 sm:-right-4 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#C026D3] flex items-center justify-center shadow-lg hover:bg-[#a21caf] transition-colors"
+            onClick={() => onOpenChange(false)}
+            aria-label="Close"
+            style={{ border: "none" }}
+          >
+            <span className="text-white text-2xl font-bold">×</span>
+          </button>
+          <DialogHeader className="max-h-[70vh] overflow-y-auto custom-scrollbar">
+            <DialogTitle className="text-2xl font-bold text-[#E328AF] text-center font-dmmono">
+              Sign Up
+            </DialogTitle>
+            <DialogDescription className="text-center">
+              <Formik
+                initialValues={getInitialValues(config)}
+                validationSchema={getValidationSchema(config)}
+                onSubmit={handleSignUp}
+                validateOnMount={false}
+                validateOnChange={true}
+                validateOnBlur={true}
+              >
+                {({ isSubmitting, isValid }) => (
+                  <Form className="space-y-1 flex flex-col h-full">
+                    <div className="pb-2">
+                      {/* Authentication Fields */}
+                      {(() => {
+                        const fields = getAuthFields(config);
+                        return (
+                          <>
+                            {(fields.showAll || fields.showEmail) && (
                               <div className="relative">
-                                <AiOutlineMail
-                                  size={15}
-                                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                                />
-                                <Field
-                                  as={Input}
-                                  id="email"
+                                <Label
+                                  htmlFor="email"
+                                  className="font-dmmono text-base text-black dark:text-white"
+                                >
+                                  E-Mail
+                                </Label>
+                                <div className="relative">
+                                  <AiOutlineMail
+                                    size={15}
+                                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                                  />
+                                  <Field
+                                    as={Input}
+                                    id="email"
+                                    name="email"
+                                    placeholder="Enter Email"
+                                    className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-dmmono tracking-wider text-[11px] font-normal h-[48px]"
+                                  />
+                                </div>
+                                <ErrorMessage
                                   name="email"
-                                  placeholder="Enter Email"
-                                  className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-dmmono tracking-wider text-[11px] font-normal h-[48px]"
+                                  component="div"
+                                  className="text-red-500  mt-1 font-dmmono text-sm tracking-wider"
                                 />
                               </div>
-                              <ErrorMessage
-                                name="email"
-                                component="div"
-                                className="text-red-500  mt-1 font-dmmono text-sm tracking-wider"
-                              />
-                            </div>
-                          )}
+                            )}
 
-                          {(fields.showAll || fields.showPhone) && (
-                            <div className="relative pt-3">
-                              <Label
-                                htmlFor="phoneNumber"
-                                className="font-dmmono text-base text-black dark:text-white"
-                              >
-                                Phone Number
-                              </Label>
-                              <Field name="phoneNumber">
-                                {({ field, form }: FieldProps) => (
-                                  <div className="w-full mt-2">
-                                    <PhoneInput
-                                      country={countryCode}
-                                      value={field.value}
-                                      onChange={(value) =>
-                                        form.setFieldValue(
-                                          "phoneNumber",
-                                          formatPhoneNumber(value)
-                                        )
-                                      }
-                                      inputStyle={{
-                                        width: "100%",
-                                        height: "48px",
-                                        backgroundColor: "#E2E8F0",
-                                        border: "0",
-                                        borderRadius: "0.375rem",
-                                        fontFamily: "Dm Mono, cursive",
-                                        fontSize: "11px",
-                                      }}
-                                      containerClass="dark:bg-[#191c2b]"
-                                      buttonStyle={{
-                                        backgroundColor: "#E2E8F0",
-                                        border: "0",
-                                        borderRadius: "0.375rem 0 0 0.375rem",
-                                      }}
-                                      dropdownStyle={{
-                                        backgroundColor: "#E2E8F0",
-                                        color: "#000",
-                                        zIndex: 50,
-                                      }}
-                                      searchStyle={{
-                                        backgroundColor: "##E2E8F0",
-                                        color: "#000",
-                                      }}
-                                      enableAreaCodeStretch
-                                      autoFormat
-                                      enableSearch
-                                      disableSearchIcon
-                                      autocompleteSearch
-                                      countryCodeEditable={false}
+                            {(fields.showAll || fields.showPhone) && (
+                              <div className="relative pt-3">
+                                <Label
+                                  htmlFor="phoneNumber"
+                                  className="font-dmmono text-base text-black dark:text-white"
+                                >
+                                  Phone Number
+                                </Label>
+                                <Field name="phoneNumber">
+                                  {({ field, form }: FieldProps) => (
+                                    <div className="w-full mt-2">
+                                      <PhoneInput
+                                        country={countryCode}
+                                        value={field.value}
+                                        onChange={(value) =>
+                                          form.setFieldValue(
+                                            "phoneNumber",
+                                            formatPhoneNumber(value)
+                                          )
+                                        }
+                                        inputStyle={{
+                                          width: "100%",
+                                          height: "48px",
+                                          backgroundColor: "#E2E8F0",
+                                          border: "0",
+                                          borderRadius: "0.375rem",
+                                          fontFamily: "Dm Mono, cursive",
+                                          fontSize: "11px",
+                                        }}
+                                        containerClass="dark:bg-[#191c2b]"
+                                        buttonStyle={{
+                                          backgroundColor: "#E2E8F0",
+                                          border: "0",
+                                          borderRadius: "0.375rem 0 0 0.375rem",
+                                        }}
+                                        dropdownStyle={{
+                                          backgroundColor: "#E2E8F0",
+                                          color: "#000",
+                                          zIndex: 50,
+                                        }}
+                                        searchStyle={{
+                                          backgroundColor: "##E2E8F0",
+                                          color: "#000",
+                                        }}
+                                        enableAreaCodeStretch
+                                        autoFormat
+                                        enableSearch
+                                        disableSearchIcon
+                                        autocompleteSearch
+                                        countryCodeEditable={false}
+                                      />
+                                    </div>
+                                  )}
+                                </Field>
+                                <ErrorMessage
+                                  name="phoneNumber"
+                                  component="div"
+                                  className="text-red-500  mt-1 font-dmmono text-sm tracking-wider"
+                                />
+                              </div>
+                            )}
+
+                            {/* Name Fields */}
+                            {(fields.firstName || fields.lastName) && (
+                              <div className="flex space-x-4 mt-3">
+                                {fields.firstName && (
+                                  <div className="flex-1 relative">
+                                    <Label
+                                      htmlFor="firstName"
+                                      className="font-dmmono text-base text-black dark:text-white"
+                                    >
+                                      First Name
+                                    </Label>
+                                    <div className="relative">
+                                      <TbUser
+                                        size={15}
+                                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                                      />
+                                      <Field
+                                        as={Input}
+                                        id="firstName"
+                                        name="firstName"
+                                        placeholder="Enter First Name"
+                                        className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-dmmono text-lg tracking-wider text-[11px] font-normal h-[48px]"
+                                      />
+                                    </div>
+                                    <ErrorMessage
+                                      name="firstName"
+                                      component="div"
+                                      className="text-red-500  mt-1 font-dmmono text-sm tracking-wider"
                                     />
                                   </div>
                                 )}
-                              </Field>
-                              <ErrorMessage
-                                name="phoneNumber"
-                                component="div"
-                                className="text-red-500  mt-1 font-dmmono text-sm tracking-wider"
-                              />
-                            </div>
-                          )}
-
-                          {/* Name Fields */}
-                          {(fields.firstName || fields.lastName) && (
-                            <div className="flex space-x-4 mt-3">
-                              {fields.firstName && (
-                                <div className="flex-1 relative">
-                                  <Label
-                                    htmlFor="firstName"
-                                    className="font-dmmono text-base text-black dark:text-white"
-                                  >
-                                    First Name
-                                  </Label>
-                                  <div className="relative">
-                                    <TbUser
-                                      size={15}
-                                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                                    />
-                                    <Field
-                                      as={Input}
-                                      id="firstName"
-                                      name="firstName"
-                                      placeholder="Enter First Name"
-                                      className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-dmmono text-lg tracking-wider text-[11px] font-normal h-[48px]"
-                                    />
-                                  </div>
-                                  <ErrorMessage
-                                    name="firstName"
-                                    component="div"
-                                    className="text-red-500  mt-1 font-dmmono text-sm tracking-wider"
-                                  />
-                                </div>
-                              )}
-                              {fields.lastName && (
-                                <div className="flex-1 relative">
-                                  <Label
-                                    htmlFor="lastName"
-                                    className="font-dmmono text-base text-black dark:text-white"
-                                  >
-                                    Last Name
-                                  </Label>
-                                  <div className="relative">
-                                    <TbUser
-                                      size={15}
-                                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                                    />
-                                    <Field
-                                      as={Input}
-                                      id="lastName"
+                                {fields.lastName && (
+                                  <div className="flex-1 relative">
+                                    <Label
+                                      htmlFor="lastName"
+                                      className="font-dmmono text-base text-black dark:text-white"
+                                    >
+                                      Last Name
+                                    </Label>
+                                    <div className="relative">
+                                      <TbUser
+                                        size={15}
+                                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                                      />
+                                      <Field
+                                        as={Input}
+                                        id="lastName"
+                                        name="lastName"
+                                        placeholder="Enter Last Name"
+                                        className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-dmmono text-lg tracking-wider text-[11px] font-normal h-[48px]"
+                                      />
+                                    </div>
+                                    <ErrorMessage
                                       name="lastName"
-                                      placeholder="Enter Last Name"
-                                      className="mt-1 bg-[#E2E8F0] border-0 pl-10 font-dmmono text-lg tracking-wider text-[11px] font-normal h-[48px]"
+                                      component="div"
+                                      className="text-red-500  mt-1 font-dmmono text-sm tracking-wider"
                                     />
                                   </div>
-                                  <ErrorMessage
-                                    name="lastName"
-                                    component="div"
-                                    className="text-red-500  mt-1 font-dmmono text-sm tracking-wider"
-                                  />
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </>
-                      );
-                    })()}
+                                )}
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
 
-                    {/* Password Fields */}
-                    <div className="relative mt-4">
-                      <Label
-                        htmlFor="password"
-                        className="font-dmmono text-base text-black dark:text-white"
-                      >
-                        Password
-                      </Label>
-                      <div className="relative">
-                        <button
-                          type="button"
-                          onClick={togglePasswordVisibility}
-                          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                          aria-label={
-                            showPassword ? "Hide password" : "Show password"
-                          }
+                      {/* Password Fields */}
+                      <div className="relative mt-4">
+                        <Label
+                          htmlFor="password"
+                          className="font-dmmono text-base text-black dark:text-white"
                         >
-                          {showPassword ? (
-                            <FaEyeSlash size={15} />
-                          ) : (
-                            <FaEye size={15} />
-                          )}
-                        </button>
-                        <Field
-                          as={Input}
-                          id="password"
+                          Password
+                        </Label>
+                        <div className="relative">
+                          <button
+                            type="button"
+                            onClick={togglePasswordVisibility}
+                            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                            aria-label={
+                              showPassword ? "Hide password" : "Show password"
+                            }
+                          >
+                            {showPassword ? (
+                              <FaEyeSlash size={15} />
+                            ) : (
+                              <FaEye size={15} />
+                            )}
+                          </button>
+                          <Field
+                            as={Input}
+                            id="password"
+                            name="password"
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Enter Password"
+                            className="mt-1 bg-[#E2E8F0] border-0 pl-10 pr-10 font-dmmono text-lg tracking-wider text-[11px] font-normal h-[48px]"
+                          />
+                        </div>
+                        <ErrorMessage
                           name="password"
-                          type={showPassword ? "text" : "password"}
-                          placeholder="Enter Password"
-                          className="mt-1 bg-[#E2E8F0] border-0 pl-10 pr-10 font-dmmono text-lg tracking-wider text-[11px] font-normal h-[48px]"
+                          component="div"
+                          className="text-red-500 mt-1 font-dmmono text-sm tracking-wider"
                         />
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-dmmono">
+                          Password must be at least 6 characters with uppercase,
+                          letters and numbers
+                        </p>
                       </div>
-                      <ErrorMessage
-                        name="password"
-                        component="div"
-                        className="text-red-500 mt-1 font-dmmono text-sm tracking-wider"
-                      />
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-dmmono">
-                        Password must be at least 6 characters with uppercase, letters and numbers
-                      </p>
-                    </div>
-                    <div className="relative mt-4">
-                      <Label
-                        htmlFor="confirmPassword"
-                        className="font-dmmono text-base text-black dark:text-white"
-                      >
-                        Confirm Password
-                      </Label>
-                      <div className="relative">
-                        <button
-                          type="button"
-                          onClick={toggleConfirmPasswordVisibility}
-                          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                          aria-label={
-                            showConfirmPassword
-                              ? "Hide password"
-                              : "Show password"
-                          }
+                      <div className="relative mt-4">
+                        <Label
+                          htmlFor="confirmPassword"
+                          className="font-dmmono text-base text-black dark:text-white"
                         >
-                          {showConfirmPassword ? (
-                            <FaEyeSlash size={15} />
-                          ) : (
-                            <FaEye size={15} />
-                          )}
-                        </button>
-                        <Field
-                          as={Input}
-                          id="confirmPassword"
+                          Confirm Password
+                        </Label>
+                        <div className="relative">
+                          <button
+                            type="button"
+                            onClick={toggleConfirmPasswordVisibility}
+                            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                            aria-label={
+                              showConfirmPassword
+                                ? "Hide password"
+                                : "Show password"
+                            }
+                          >
+                            {showConfirmPassword ? (
+                              <FaEyeSlash size={15} />
+                            ) : (
+                              <FaEye size={15} />
+                            )}
+                          </button>
+                          <Field
+                            as={Input}
+                            id="confirmPassword"
+                            name="confirmPassword"
+                            type={showConfirmPassword ? "text" : "password"}
+                            placeholder="Confirm Password"
+                            className="mt-1 bg-[#E2E8F0] border-0 pl-10 pr-10 font-dmmono text-lg tracking-wider text-[11px] font-normal h-[48px]"
+                          />
+                        </div>
+                        <ErrorMessage
                           name="confirmPassword"
-                          type={showConfirmPassword ? "text" : "password"}
-                          placeholder="Confirm Password"
-                          className="mt-1 bg-[#E2E8F0] border-0 pl-10 pr-10 font-dmmono text-lg tracking-wider text-[11px] font-normal h-[48px]"
+                          component="div"
+                          className="text-red-500  mt-1 font-dmmono text-sm tracking-wider"
+                        />
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-dmmono">
+                          Must match the password above
+                        </p>
+                      </div>
+                      <div className="my-5 flex flex-col gap-3">
+                        <div className="flex items-center space-x-2">
+                          <Field name="ageConfirm">
+                            {({ field, form }: FieldProps) => (
+                              <Checkbox
+                                id="ageConfirm"
+                                checked={field.value}
+                                onCheckedChange={(checked) => {
+                                  form.setFieldValue("ageConfirm", checked);
+                                  form.setFieldTouched(
+                                    "ageConfirm",
+                                    true,
+                                    false
+                                  );
+                                }}
+                                className="border-2 border-gray-400 data-[state=checked]:bg-[#C026D3] data-[state=checked]:border-[#C026D3]"
+                              />
+                            )}
+                          </Field>
+                          <Label
+                            htmlFor="ageConfirm"
+                            className="font-dmmono text-black dark:text-white cursor-pointer"
+                          >
+                            Confirm age 18+
+                          </Label>
+                        </div>
+                        <ErrorMessage
+                          name="ageConfirm"
+                          component="div"
+                          className="text-red-500  font-dmmono text-sm tracking-wider"
+                        />
+                        <div className="flex items-start space-x-2">
+                          <Field name="terms">
+                            {({ field, form }: FieldProps) => (
+                              <Checkbox
+                                id="terms"
+                                checked={field.value}
+                                onCheckedChange={(checked) => {
+                                  form.setFieldValue("terms", checked);
+                                  form.setFieldTouched("terms", true, false);
+                                }}
+                                className="border-2 border-gray-400 data-[state=checked]:bg-[#C026D3] data-[state=checked]:border-[#C026D3]"
+                              />
+                            )}
+                          </Field>
+                          <Label
+                            htmlFor="terms"
+                            className="font-dmmono text-black dark:text-white cursor-pointer leading-6 text-xs text-start"
+                          >
+                            I agree to the Terms & Conditions and Privacy
+                            Policy, which may include the collection, use, and
+                            sharing of my data with third parties as described.
+                          </Label>
+                        </div>
+                        <ErrorMessage
+                          name="terms"
+                          component="div"
+                          className="text-red-500  font-dmmono text-sm tracking-wider"
                         />
                       </div>
-                      <ErrorMessage
-                        name="confirmPassword"
-                        component="div"
-                        className="text-red-500  mt-1 font-dmmono text-sm tracking-wider"
-                      />
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-dmmono">
-                        Must match the password above
-                      </p>
                     </div>
-                    <div className="my-5 flex flex-col gap-3">
-                      <div className="flex items-center space-x-2">
-                        <Field name="ageConfirm">
-                          {({ field, form }: FieldProps) => (
-                            <Checkbox
-                              id="ageConfirm"
-                              checked={field.value}
-                              onCheckedChange={(checked) => {
-                                form.setFieldValue("ageConfirm", checked);
-                                form.setFieldTouched("ageConfirm", true, false);
-                              }}
-                              className="border-2 border-gray-400 data-[state=checked]:bg-[#C026D3] data-[state=checked]:border-[#C026D3]"
-                            />
-                          )}
-                        </Field>
-                        <Label
-                          htmlFor="ageConfirm"
-                          className="font-dmmono text-black dark:text-white cursor-pointer"
-                        >
-                          Confirm age 18+
-                        </Label>
-                      </div>
-                      <ErrorMessage
-                        name="ageConfirm"
-                        component="div"
-                        className="text-red-500  font-dmmono text-sm tracking-wider"
-                      />
-                      <div className="flex items-center space-x-2">
-                        <Field name="terms">
-                          {({ field, form }: FieldProps) => (
-                            <Checkbox
-                              id="terms"
-                              checked={field.value}
-                              onCheckedChange={(checked) => {
-                                form.setFieldValue("terms", checked);
-                                form.setFieldTouched("terms", true, false);
-                              }}
-                              className="border-2 border-gray-400 data-[state=checked]:bg-[#C026D3] data-[state=checked]:border-[#C026D3]"
-                            />
-                          )}
-                        </Field>
-                        <Label
-                          htmlFor="terms"
-                          className="font-dmmono text-black dark:text-white cursor-pointer"
-                        >
-                          Accept Terms of Use
-                        </Label>
-                      </div>
-                      <ErrorMessage
-                        name="terms"
-                        component="div"
-                        className="text-red-500  font-dmmono text-sm tracking-wider"
-                      />
-                    </div>
-                  </div>
 
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting || !isValid}
-                    className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-dmmono cursor-pointer"
-                  >
-                    {isSubmitting ? "Submitting..." : "Submit"}
-                  </Button>
-                </Form>
-              )}
-            </Formik>
-          </DialogDescription>
-          <div className="flex flex-col flex-1 bg-green-">
-            <p className=" text-center text-black dark:text-white font-dmmono text-sm tracking-wider">
-              Already have an account?{" "}
-              <button
-                className="underline text-[#C026D3] cursor-pointer font-dmmono text-sm"
-                onClick={openLoginModal}
-              >
-                Login
-              </button>
-            </p>
-            {/* terms and privacy */}
-            <div className="font-worksans flex items-center space-x-2 text-sm justify-center">
-              <button
-                className="text-[#C026D3] text-center cursor-pointer tracking-wider hover:underline"
-                onClick={handleTerms}
-              >
-                Terms of Service
-              </button>
-              <span className="text-gray-400 dark:text-gray-500">/</span>
-              <button
-                className="text-[#C026D3] text-center cursor-pointer tracking-wider hover:underline"
-                onClick={handlePrivacy}
-              >
-                Privacy Policy
-              </button>
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting || !isValid}
+                      className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-dmmono cursor-pointer"
+                    >
+                      {isSubmitting ? "Submitting..." : "Submit"}
+                    </Button>
+                  </Form>
+                )}
+              </Formik>
+            </DialogDescription>
+            <div className="flex flex-col flex-1 bg-green-">
+              <p className=" text-center text-black dark:text-white font-dmmono text-sm tracking-wider">
+                Already have an account?{" "}
+                <button
+                  className="underline text-[#C026D3] cursor-pointer font-dmmono text-sm"
+                  onClick={openLoginModal}
+                >
+                  Login
+                </button>
+              </p>
+              {/* terms and privacy */}
+              <div className="font-worksans flex items-center space-x-2 text-sm justify-center">
+                <button
+                  className="text-[#C026D3] text-center cursor-pointer tracking-wider hover:underline"
+                  onClick={handleTerms}
+                >
+                  Terms of Service
+                </button>
+                <span className="text-gray-400 dark:text-gray-500">/</span>
+                <button
+                  className="text-[#C026D3] text-center cursor-pointer tracking-wider hover:underline"
+                  onClick={handlePrivacy}
+                >
+                  Privacy Policy
+                </button>
+              </div>
             </div>
-          </div>
-        </DialogHeader>
-      </CustomDialogContent>
-    </Dialog>
+          </DialogHeader>
+        </CustomDialogContent>
+      </Dialog>
     </>
   );
 }

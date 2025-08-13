@@ -18,15 +18,6 @@ const TermsOfService: React.FC = () => {
     }
   }, [data]);
 
-  if (!data?.value?.file || !data?.value?.file?.s3Key) {
-    return (
-      <div className="">
-        {/* <p>No terms are available.</p> */}
-        <TermsError />
-      </div>
-    );
-  }
-
   // For Word documents, try Microsoft's Office Web Viewer with embed parameters
   const getViewableUrl = (url: string) => {
     if (url.endsWith(".doc") || url.endsWith(".docx")) {
@@ -58,6 +49,12 @@ const TermsOfService: React.FC = () => {
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
             <p>Failed to load terms and conditions: {error.toString()}</p>
+          </div>
+        )}
+
+        {!isLoading && !error && (!data?.value?.file || !data?.value?.file?.s3Key) && (
+          <div className="">
+            <TermsError />
           </div>
         )}
 
@@ -106,7 +103,7 @@ const TermsOfService: React.FC = () => {
           </div>
         )}
 
-        {!isLoading && !error && !fileUrl && (
+        {!isLoading && !error && !fileUrl && data && (
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center h-full flex items-center justify-center">
             <p className="text-gray-600 text-xl">
               No terms and conditions file has been uploaded yet.

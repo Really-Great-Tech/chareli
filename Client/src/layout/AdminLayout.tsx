@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Outlet } from "react-router-dom";
 import AdminNavbar from "../components/single/AdminNavbar";
 import { NavLink } from "react-router-dom";
@@ -61,6 +61,8 @@ const AdminLayout: React.FC = () => {
   const permissions = usePermissions();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [navbarHeight, setNavbarHeight] = useState(73);
+  const navbarRef = useRef<HTMLDivElement>(null);
 
   // Filter menu items based on permissions
   const menuItems = allMenuItems.filter(item => {
@@ -73,6 +75,31 @@ const AdminLayout: React.FC = () => {
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
   };
+
+  // Measure navbar height dynamically
+  useEffect(() => {
+    const measureNavbarHeight = () => {
+      if (navbarRef.current) {
+        const height = navbarRef.current.offsetHeight;
+        setNavbarHeight(height);
+      }
+    };
+
+    // Measure on mount and when window resizes
+    measureNavbarHeight();
+    window.addEventListener('resize', measureNavbarHeight);
+
+    // Use ResizeObserver to detect navbar height changes
+    const resizeObserver = new ResizeObserver(measureNavbarHeight);
+    if (navbarRef.current) {
+      resizeObserver.observe(navbarRef.current);
+    }
+
+    return () => {
+      window.removeEventListener('resize', measureNavbarHeight);
+      resizeObserver.disconnect();
+    };
+  }, []);
 
   // Check if screen is mobile and set initial sidebar state
   useEffect(() => {
@@ -99,17 +126,21 @@ const AdminLayout: React.FC = () => {
 
   return (
     <div className="admin-layout min-h-screen bg-white dark:bg-[#0f1221] text-gray-900 dark:text-white transition-colors duration-300">
-      <div className="fixed top-0 left-0 right-0 z-50">
+      <div ref={navbarRef} className="fixed top-0 left-0 right-0 z-50">
         <AdminNavbar />
       </div>
 
-      <div className="flex pt-[73px]">
+      <div className="flex" style={{ paddingTop: `${navbarHeight}px` }}>
         <div
-          className={`fixed h-[calc(100vh-73px)] z-30 transition-all duration-300 transform ${
+          className={`fixed z-20 transition-all duration-300 transform ${
             isSidebarCollapsed
               ? "-translate-x-full lg:translate-x-0 w-16"
               : "translate-x-0 w-60"
           }`}
+          style={{ 
+            height: `calc(100vh - ${navbarHeight}px)`,
+            top: `${navbarHeight}px`
+          }}
         >
           <aside className="h-full bg-white/95 dark:bg-[#0f1221]/95 backdrop-blur-sm transition-colors duration-300">
             <div className="flex flex-col h-full relative">
@@ -167,7 +198,8 @@ const AdminLayout: React.FC = () => {
         <main
           className={`flex-1 transition-all duration-300 ${
             isSidebarCollapsed ? "lg:ml-16" : "ml-0 lg:ml-60"
-          } bg-white dark:bg-[#0f1221] min-h-[calc(100vh-73px)] overflow-y-auto relative`}
+          } bg-white dark:bg-[#0f1221] overflow-y-auto relative`}
+          style={{ minHeight: `calc(100vh - ${navbarHeight}px)` }}
           onClick={() => {
             if (!isSidebarCollapsed && window.innerWidth < 1024) {
               setIsSidebarCollapsed(true);

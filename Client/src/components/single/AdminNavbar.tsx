@@ -44,10 +44,10 @@ const AdminNavbar: React.FC = () => {
     <header className="flex justify-between px-4 py-2 items-center bg-white dark:bg-[#0f1221] transition-colors duration-300">
       <div
         onClick={() => navigate("/")}
-        className="cursor-pointer flex flex-col justify-center items-center w-20"
+        className="cursor-pointer flex flex-col justify-center items-center mb-1"
       >
-        <img src={ArcadeIcon} alt="logo" className="" />
-        <p className="w-20  text-center text-xs dark:text-white text-black">
+        <img src={ArcadeIcon} alt="logo" className="w-20" />
+        <p className="text-xs sm:text-xs text-center text-[#111826] dark:text-white font-bold">
           ARCADES BOX
         </p>
       </div>

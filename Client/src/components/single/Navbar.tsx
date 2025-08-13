@@ -55,16 +55,16 @@ const Navbar: React.FC = () => {
     <header className="relative flex justify-between p-4 items-center bg-white dark:bg-[#0f1221] transition-colors duration-300">
       <div
         onClick={() => navigate("/")}
-        className="cursor-pointer flex flex-col justify-center items-center w-20"
+        className="cursor-pointer flex flex-col justify-center items-center mb-1"
       >
-        <img src={ArcadeIcon} alt="logo" className="" />
-        <p className="w-20  text-center text-xs dark:text-white text-black font-bold">
+        <img src={ArcadeIcon} alt="logo" className="w-20" />
+        <p className="text-xs sm:text-xs text-center text-[#111826] dark:text-white font-bold">
           ARCADES BOX
         </p>
       </div>
 
       {/* Desktop Navigation */}
-      <div className="hidden md:flex gap-8 text-lg font-bold text-[#111826] dark:text-[#94A3B7] items-center justify-center">
+      <div className="hidden md:flex gap-4 text-lg font-bold text-[#111826] dark:text-white items-center justify-center">
         <Link
           to="/about"
           className="hover:bg-[#D946EF] hover:text-white px-4 py-2 rounded-md"
@@ -102,14 +102,14 @@ const Navbar: React.FC = () => {
             <div className="space-y-2">
               <Link
                 to="/about"
-                className="block text-[#111826] dark:text-[#94A3B7] hover:bg-gradient-to-r hover:from-[#D946EF] hover:to-[#C026D3] hover:text-white px-4 py-3 rounded-xl text-lg font-semibold transition-all duration-300 transform hover:scale-[1.02]"
+                className="block text-[#111826] dark:text-white hover:bg-gradient-to-r hover:from-[#D946EF] hover:to-[#C026D3] hover:text-white px-4 py-3 rounded-xl text-md font-semibold transition-all duration-300 transform hover:scale-[1.02]"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 About Us
               </Link>
               <Link
                 to="/categories"
-                className="block text-[#111826] dark:text-[#94A3B7] hover:bg-gradient-to-r hover:from-[#D946EF] hover:to-[#C026D3] hover:text-white px-4 py-3 rounded-xl text-lg font-semibold transition-all duration-300 transform hover:scale-[1.02]"
+                className="block text-[#111826] dark:text-white hover:bg-gradient-to-r hover:from-[#D946EF] hover:to-[#C026D3] hover:text-white px-4 py-3 rounded-xl text-md font-semibold transition-all duration-300 transform hover:scale-[1.02]"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Categories
@@ -123,7 +123,7 @@ const Navbar: React.FC = () => {
                       navigate("/admin");
                       setIsMobileMenuOpen(false);
                     }}
-                    className="bg-gradient-to-r from-[#E328AF] to-[#C026D3] text-white hover:from-[#C026D3] hover:to-[#A21CAF] w-full py-3 rounded-xl font-semibold shadow-lg transform hover:scale-[1.02] transition-all duration-300"
+                    className="bg-gradient-to-r from-[#E328AF] text-md to-[#C026D3] text-white hover:from-[#C026D3] hover:to-[#A21CAF] w-full py-3 rounded-xl font-semibold shadow-lg transform hover:scale-[1.02] transition-all duration-300"
                   >
                     Admin Dashboard
                   </Button>
@@ -164,7 +164,7 @@ const Navbar: React.FC = () => {
                     navigate("/");
                     setIsMobileMenuOpen(false);
                   }}
-                  className="bg-transparent border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white w-full py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-[1.02]"
+                  className="bg-transparent border-2 border-red-500 text-red-500 text-md hover:bg-red-500 hover:text-white w-full py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-[1.02]"
                 >
                   Logout
                 </Button>

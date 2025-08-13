@@ -47,7 +47,7 @@ const AdminNavbar: React.FC = () => {
         className="cursor-pointer flex flex-col justify-center items-center w-20"
       >
         <img src={ArcadeIcon} alt="logo" className="" />
-        <p className="w-20  text-center text-xs dark:text-white text-black">
+        <p className="text-sm sm:text-lg text-center text-[#111826] dark:text-[#94A3B7] font-bold">
           ARCADES BOX
         </p>
       </div>

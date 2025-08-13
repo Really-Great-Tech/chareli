@@ -55,16 +55,16 @@ const Navbar: React.FC = () => {
     <header className="relative flex justify-between p-4 items-center bg-white dark:bg-[#0f1221] transition-colors duration-300">
       <div
         onClick={() => navigate("/")}
-        className="cursor-pointer flex flex-col justify-center items-center w-20"
+        className="cursor-pointer flex flex-col justify-center items-center"
       >
-        <img src={ArcadeIcon} alt="logo" className="" />
-        <p className="w-20  text-center text-xs dark:text-white text-black font-bold">
+        <img src={ArcadeIcon} alt="logo" className="w-30" />
+        <p className="text-sm sm:text-lg text-center text-[#111826] dark:text-[#94A3B7] font-bold">
           ARCADES BOX
         </p>
       </div>
 
       {/* Desktop Navigation */}
-      <div className="hidden md:flex gap-8 text-lg font-bold text-[#111826] dark:text-[#94A3B7] items-center justify-center">
+      <div className="hidden md:flex gap-4 text-lg font-bold text-[#111826] dark:text-[#94A3B7] items-center justify-center">
         <Link
           to="/about"
           className="hover:bg-[#D946EF] hover:text-white px-4 py-2 rounded-md"

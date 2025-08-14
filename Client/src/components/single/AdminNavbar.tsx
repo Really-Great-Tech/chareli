@@ -44,10 +44,10 @@ const AdminNavbar: React.FC = () => {
     <header className="flex justify-between px-4 py-2 items-center bg-white dark:bg-[#0f1221] transition-colors duration-300">
       <div
         onClick={() => navigate("/")}
-        className="cursor-pointer flex flex-col justify-center items-center mb-1"
+        className="cursor-pointer flex flex-col justify-center items-center"
       >
-        <img src={ArcadeIcon} alt="logo" className="w-20" />
-        <p className="text-xs sm:text-xs text-center text-[#111826] dark:text-white font-bold">
+        <img src={ArcadeIcon} alt="logo" className="w-14" />
+        <p className="text-[10px] sm:text-[10px] text-center text-[#111826] dark:text-white font-bold">
           ARCADES BOX
         </p>
       </div>
@@ -107,7 +107,7 @@ const AdminNavbar: React.FC = () => {
               logout();
               navigate("/");
             }}
-            className="bg-transparent flex items-center gap-2 text-red-500 hover:bg-red-500 hover:text-white cursor-pointer"
+            className="bg-transparent flex items-center gap-2 text-red-500 hover:bg-red-500 hover:text-white cursor-pointer text-[15px]"
           >
             <IoExitOutline className="w-5 h-5" />
             Logout

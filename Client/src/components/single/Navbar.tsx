@@ -9,7 +9,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { useTrackSignupClick } from "../../backend/signup.analytics.service";
 import { getVisitorSessionId } from "../../utils/sessionUtils";
 import { usePermissions } from "../../hooks/usePermissions";
-import ArcadeIcon from "../../assets/ArcadeIcon.png";
+import ArcadeIcon from "../../assets/logo_2.png";
 
 import sun from "../../assets/sun.svg";
 import moon from "../../assets/moon.svg";
@@ -55,16 +55,16 @@ const Navbar: React.FC = () => {
     <header className="relative flex justify-between p-4 items-center bg-white dark:bg-[#0f1221] transition-colors duration-300">
       <div
         onClick={() => navigate("/")}
-        className="cursor-pointer flex flex-col justify-center items-center mb-1"
+        className="cursor-pointer flex flex-col justify-center items-center"
       >
-        <img src={ArcadeIcon} alt="logo" className="w-20" />
-        <p className="text-xs sm:text-xs text-center text-[#111826] dark:text-white font-bold">
+        <img src={ArcadeIcon} alt="logo" className="w-14" />
+        <p className="text-[10px] sm:text-[10px] text-center text-[#111826] dark:text-white font-bold">
           ARCADES BOX
         </p>
       </div>
 
       {/* Desktop Navigation */}
-      <div className="hidden md:flex gap-4 text-lg font-bold text-[#111826] dark:text-white items-center justify-center">
+      <div className="hidden md:flex gap-4 text-[16px] font-bold text-[#111826] dark:text-white items-center justify-center">
         <Link
           to="/about"
           className="hover:bg-[#D946EF] hover:text-white px-4 py-2 rounded-md"
@@ -99,17 +99,17 @@ const Navbar: React.FC = () => {
           className="absolute top-full left-0 right-0 bg-white dark:bg-[#0f1221] shadow-lg md:hidden z-50 border-t border-gray-200 dark:border-gray-800"
         >
           <div className="flex flex-col p-6 gap-5">
-            <div className="space-y-2">
+            <div className="space-y-2 text-[15px]">
               <Link
                 to="/about"
-                className="block text-[#111826] dark:text-white hover:bg-gradient-to-r hover:from-[#D946EF] hover:to-[#C026D3] hover:text-white px-4 py-3 rounded-xl text-md font-semibold transition-all duration-300 transform hover:scale-[1.02]"
+                className="block text-[#111826] dark:text-white hover:bg-gradient-to-r hover:from-[#D946EF] hover:to-[#C026D3] hover:text-white px-4 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-[1.02]"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 About Us
               </Link>
               <Link
                 to="/categories"
-                className="block text-[#111826] dark:text-white hover:bg-gradient-to-r hover:from-[#D946EF] hover:to-[#C026D3] hover:text-white px-4 py-3 rounded-xl text-md font-semibold transition-all duration-300 transform hover:scale-[1.02]"
+                className="block text-[#111826] dark:text-white hover:bg-gradient-to-r hover:from-[#D946EF] hover:to-[#C026D3] hover:text-white px-4 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-[1.02]"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Categories
@@ -123,7 +123,7 @@ const Navbar: React.FC = () => {
                       navigate("/admin");
                       setIsMobileMenuOpen(false);
                     }}
-                    className="bg-gradient-to-r from-[#E328AF] text-md to-[#C026D3] text-white hover:from-[#C026D3] hover:to-[#A21CAF] w-full py-3 rounded-xl font-semibold shadow-lg transform hover:scale-[1.02] transition-all duration-300"
+                    className="bg-gradient-to-r from-[#E328AF] to-[#C026D3] text-white hover:from-[#C026D3] hover:to-[#A21CAF] w-full py-3 rounded-xl font-semibold shadow-lg transform hover:scale-[1.02] transition-all duration-300 text-[15px]"
                   >
                     Admin Dashboard
                   </Button>
@@ -164,7 +164,7 @@ const Navbar: React.FC = () => {
                     navigate("/");
                     setIsMobileMenuOpen(false);
                   }}
-                  className="bg-transparent border-2 border-red-500 text-red-500 text-md hover:bg-red-500 hover:text-white w-full py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-[1.02]"
+                  className="bg-transparent border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white w-full py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-[1.02] text-[15px]"
                 >
                   Logout
                 </Button>
@@ -176,7 +176,7 @@ const Navbar: React.FC = () => {
                     setIsLoginModalOpen(true);
                     setIsMobileMenuOpen(false);
                   }}
-                  className="bg-transparent border-2 border-[#111826] dark:border-gray-400 text-[#111826] dark:text-gray-300 hover:bg-[#111826] hover:text-white dark:hover:bg-gray-400 dark:hover:text-gray-900 w-full py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-[1.02]"
+                  className="bg-transparent border-2 text-[15px] border-[#111826] dark:border-gray-400 text-[#111826] dark:text-gray-300 hover:bg-[#111826] hover:text-white dark:hover:bg-gray-400 dark:hover:text-gray-900 w-full py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-[1.02]"
                 >
                   Log in
                 </Button>
@@ -189,7 +189,7 @@ const Navbar: React.FC = () => {
                     setIsSignUpModalOpen(true);
                     setIsMobileMenuOpen(false);
                   }}
-                  className="bg-gradient-to-r from-[#C026D3] to-[#D946EF] text-white hover:from-[#A21CAF] hover:to-[#C026D3] w-full py-3 rounded-xl font-semibold shadow-lg transition-all duration-300 transform hover:scale-[1.02]"
+                  className="bg-gradient-to-r from-[#C026D3] to-[#D946EF] text-white hover:from-[#A21CAF] hover:to-[#C026D3] w-full py-3 rounded-xl font-semibold shadow-lg transition-all duration-300 transform hover:scale-[1.02] text-[15px]"
                 >
                   Sign up
                 </Button>
@@ -250,7 +250,7 @@ const Navbar: React.FC = () => {
             {permissions.hasAdminAccess && (
               <Button
                 onClick={() => navigate("/admin")}
-                className="bg-[#E328AF] text-white hover:bg-[#C026D3] cursor-pointer"
+                className="bg-[#E328AF] text-white hover:bg-[#C026D3] cursor-pointer text-[15px]"
               >
                 Admin Dashboard
               </Button>
@@ -275,7 +275,7 @@ const Navbar: React.FC = () => {
                 logout();
                 navigate("/");
               }}
-              className="bg-transparent border border-red-500 text-red-500 hover:bg-red-500 hover:text-white cursor-pointer"
+              className="bg-transparent border border-red-500 text-red-500 hover:bg-red-500 hover:text-white cursor-pointer text-[15px]"
             >
               Logout
             </Button>
@@ -284,7 +284,7 @@ const Navbar: React.FC = () => {
           <>
             <Button
               onClick={() => setIsLoginModalOpen(true)}
-              className="bg-transparent border border-[#111826] dark:border-gray-500 text-[#111826] hover:text-[#111826] dark:text-gray-300 text-lg cursor-pointer hover:bg-accent"
+              className="bg-transparent border border-[#111826] dark:border-gray-500 text-[#111826] hover:text-[#111826] dark:text-gray-300 text-[15px] cursor-pointer hover:bg-accent"
             >
               Log in
             </Button>
@@ -296,7 +296,7 @@ const Navbar: React.FC = () => {
                 });
                 setIsSignUpModalOpen(true);
               }}
-              className="bg-transparent border border-[#C026D3] dark:border-purple-400 text-[#C026D3] dark:text-purple-300 text-lg hover:bg-accent hover:text-[#C026D3] cursor-pointer"
+              className="bg-transparent border border-[#C026D3] dark:border-purple-400 text-[#C026D3] dark:text-purple-300 text-[15px] hover:bg-accent hover:text-[#C026D3] cursor-pointer"
             >
               Sign up
             </Button>

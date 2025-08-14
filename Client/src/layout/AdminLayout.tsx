@@ -160,7 +160,7 @@ const AdminLayout: React.FC = () => {
                         }
                         onClick={() => {
                           if (isMobile) {
-                            setIsSidebarCollapsed(true);
+                            setIsSidebarCollapsed(true); 
                           }
                         }}
                       >

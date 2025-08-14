@@ -25,7 +25,7 @@ const MainLayout: React.FC = () => {
         <footer className="text-center text-white dark:white py-4 md:py-6 lg:py-8 bg-[#1E0420] dark:bg-[#1E0420] w-full">
           <div className="w-[90%] md:w-[85%] lg:w-[800px] mx-auto px-4 md:px-6">
             <p className="font-dmmono mb-3 text-[12px] sm:text-xs md:text-sm">
-              These games are brought to you by Arcades Box, a web-based gaming
+              These games are brought to you by Arcades Box, a web-based gaming 
               platform.
             </p>
 

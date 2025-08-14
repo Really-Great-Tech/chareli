@@ -64,7 +64,7 @@ const Navbar: React.FC = () => {
       </div>
 
       {/* Desktop Navigation */}
-      <div className="hidden md:flex gap-4 text-[15px] font-bold text-[#111826] dark:text-white items-center justify-center">
+      <div className="hidden md:flex gap-4 text-[16px] font-bold text-[#111826] dark:text-white items-center justify-center">
         <Link
           to="/about"
           className="hover:bg-[#D946EF] hover:text-white px-4 py-2 rounded-md"

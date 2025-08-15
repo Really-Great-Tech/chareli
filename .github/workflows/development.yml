@@ -80,7 +80,7 @@ jobs:
       - name: Build Frontend
         working-directory: ./Client
         env:
-          VITE_API_URL: 'https://api.dev.chareli.reallygreattech.com'
+          VITE_API_URL: 'https://api.dev.arcadesbox.reallygreattech.com'
           VITE_GAMES_CDN_URL: 'https://chareli-games-gatekeeper-v2.netalie.workers.dev'
         run: npm run build
 
@@ -215,3 +215,4 @@ jobs:
             🖥️ **Backend (ECS):** ${{ steps.backend-status.outputs.backend_msg }}
             🌐 **Frontend (Cloudflare Pages):** ${{ steps.frontend-status.outputs.frontend_msg }}
             🔗 [View Run on GitHub](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            🔗 [View site here](https://dev.arcadesbox.reallygreattech.com)

@@ -192,7 +192,7 @@ export function LoginModal({
       <CustomDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221] p-0">
         {/* Custom Close Button */}
         <button
-          className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#C026D3] flex items-center justify-center shadow-lg hover:bg-[#a21caf] transition-colors"
+          className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#DC8B18] flex items-center justify-center shadow-lg hover:bg-[#C17600] transition-colors"
           onClick={() => onOpenChange(false)}
           aria-label="Close"
           style={{ border: "none" }}
@@ -200,7 +200,7 @@ export function LoginModal({
           <span className="text-white text-2xl font-bold">×</span>
         </button>
         <DialogHeader className="mb-4">
-          <DialogTitle className="text-2xl font-bold text-[#E328AF] text-center font-dmmono py-4">
+          <DialogTitle className="text-2xl font-bold text-[#FFAA33] text-center font-dmmono py-4">
             Login
           </DialogTitle>
           <div className="flex font-dmmono text-lg tracking-wide">
@@ -208,7 +208,7 @@ export function LoginModal({
               <button
                 className={`flex-1 py-2 font-semibold ${
                   activeTab === "email"
-                    ? "text-[#E328AF] border-b-2 border-[#E328AF]"
+                    ? "text-[#DC8B18] border-b-2 border-[#DC8B18]"
                     : "text-gray-500"
                 }`}
                 onClick={() => {
@@ -221,7 +221,7 @@ export function LoginModal({
               <button
                 className={`flex-1 py-2 font-semibold ${
                   activeTab === "phone"
-                    ? "text-[#E328AF] border-b-2 border-[#E328AF]"
+                    ? "text-[#DC8B18] border-b-2 border-[#DC8B18]"
                     : "text-gray-500"
                 }`}
                 onClick={() => {
@@ -384,7 +384,7 @@ export function LoginModal({
                 )}
                 <div className="text-right">
                   <span
-                    className="text-[#C026D3] cursor-pointer font-dmmono text-md hover:underline"
+                    className="text-[#DC8B18] cursor-pointer font-dmmono text-md hover:underline"
                     onClick={() => {
                       onOpenChange(false);
                       setIsForgotPasswordModalOpen(true);
@@ -397,7 +397,7 @@ export function LoginModal({
                 <Button
                   type="submit"
                   disabled={isSubmitting || !isValid}
-                  className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-dmmono cursor-pointer"
+                  className="w-full bg-[#DC8B18] hover:bg-[#C17600] text-white font-dmmono cursor-pointer"
                 >
                   Login
                 </Button>
@@ -405,7 +405,7 @@ export function LoginModal({
                   <p className=" text-center text-black dark:text-white font-dmmono text-md tracking-wider">
                     Don't have an account?{" "}
                     <span
-                      className="text-[#C026D3] cursor-pointer hover:underline text-lg font-dmmono"
+                      className="text-[#DC8B18] cursor-pointer hover:underline text-lg font-dmmono"
                       onClick={openSignUpModal}
                     >
                       Sign Up

@@ -142,7 +142,7 @@ export function CreateCategory({ open, onOpenChange }: CreateCategoryProps) {
                   type="submit"
                   disabled={isSubmitting || !isValid || !dirty}
                   variant="default"
-                  className="bg-[#D946EF] text-white hover:bg-[#C026D3] dark:text-white dark:hover:bg-[#C026D3] cursor-pointer"
+                  className="bg-[#DC8B18] text-white hover:bg-[#C17600] dark:text-white dark:hover:bg-[#DC8B18] cursor-pointer"
                 >
                   {isSubmitting ? "Creating..." : "Create"}
                 </Button>

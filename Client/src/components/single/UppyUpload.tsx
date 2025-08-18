@@ -184,7 +184,7 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
         />
         
         {/* Gradient overlay for better visual appeal */}
-        <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-purple-50/30 to-blue-50/30 dark:from-purple-900/10 dark:to-blue-900/10 rounded-lg"></div>
+        <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-orange-50/30 to-amber-50/30 dark:from-orange-900/10 dark:to-amber-900/10 rounded-lg"></div>
       </div>
       
       <style dangerouslySetInnerHTML={{
@@ -200,17 +200,17 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
           }
           
           .uppy-upload-container .uppy-Dashboard:hover {
-            border-color: #D946EF !important;
-            background: linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%) !important;
+            border-color: #C17600 !important;
+            background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%) !important;
             transform: translateY(-1px) !important;
-            box-shadow: 0 8px 25px rgba(217, 70, 239, 0.15) !important;
+            box-shadow: 0 8px 25px rgba(193, 118, 0, 0.15) !important;
           }
           
           .uppy-upload-container .uppy-Dashboard.uppy-Dashboard--isDraggingOver {
-            border-color: #D946EF !important;
-            background: linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%) !important;
+            border-color: #C17600 !important;
+            background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%) !important;
             transform: scale(1.02) !important;
-            box-shadow: 0 12px 35px rgba(217, 70, 239, 0.25) !important;
+            box-shadow: 0 12px 35px rgba(193, 118, 0, 0.25) !important;
           }
           
           .uppy-upload-container .uppy-Dashboard-inner {
@@ -239,11 +239,11 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
           }
           
           .uppy-upload-container .uppy-Dashboard-browse {
-            color: #D946EF !important;
+            color: #C17600 !important;
             font-weight: 600 !important;
             text-decoration: none !important;
             padding: 8px 16px !important;
-            background: rgba(217, 70, 239, 0.1) !important;
+            background: rgba(193, 118, 0, 0.1) !important;
             border-radius: 6px !important;
             transition: all 0.2s ease !important;
             display: inline-block !important;
@@ -251,9 +251,9 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
           
           .uppy-upload-container .uppy-Dashboard-browse:hover {
             color: #FFFFFF !important;
-            background: #D946EF !important;
+            background: #C17600 !important;
             transform: translateY(-1px) !important;
-            box-shadow: 0 4px 12px rgba(217, 70, 239, 0.3) !important;
+            box-shadow: 0 4px 12px rgba(193, 118, 0, 0.3) !important;
           }
           
           .uppy-upload-container .uppy-Dashboard-note {
@@ -270,13 +270,13 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
           }
           
           .dark .uppy-upload-container .uppy-Dashboard:hover {
-            border-color: #D946EF !important;
-            background: linear-gradient(135deg, #312E81 0%, #1E1B4B 100%) !important;
+            border-color: #C17600 !important;
+            background: linear-gradient(135deg, #92400E 0%, #78350F 100%) !important;
           }
           
           .dark .uppy-upload-container .uppy-Dashboard.uppy-Dashboard--isDraggingOver {
-            border-color: #D946EF !important;
-            background: linear-gradient(135deg, #312E81 0%, #1E1B4B 100%) !important;
+            border-color: #C17600 !important;
+            background: linear-gradient(135deg, #92400E 0%, #78350F 100%) !important;
           }
           
           .dark .uppy-upload-container .uppy-Dashboard-AddFiles-title {
@@ -292,7 +292,7 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
           }
           
           .dark .uppy-upload-container .uppy-Dashboard-browse {
-            background: rgba(217, 70, 239, 0.2) !important;
+            background: rgba(193, 118, 0, 0.2) !important;
           }
           
           /* Progress bar styling */
@@ -305,7 +305,7 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
           }
           
           .uppy-upload-container .uppy-ProgressBar-inner {
-            background: linear-gradient(90deg, #D946EF 0%, #C026D3 100%) !important;
+            background: linear-gradient(90deg, #C17600 0%, #DC8B18 100%) !important;
             border-radius: 8px !important;
             transition: width 0.3s ease !important;
           }

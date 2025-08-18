@@ -129,7 +129,7 @@ export function TermsSheet({ open, onOpenChange }: TermsSheetProps) {
           <div>
             <Label className="text-lg mb-2 block">Upload file</Label>
             <div className="flex items-center">
-              <label className="w-40 h-38 flex flex-col items-center justify-center border border-[#CBD5E0] rounded-lg cursor-pointer hover:border-[#D946EF] transition">
+              <label className="w-40 h-38 flex flex-col items-center justify-center border border-[#CBD5E0] rounded-lg cursor-pointer hover:border-[#C17600] transition">
                 {selectedFile?.name ? (
                   <img src="/doc.png" alt="document icon" className="w-20" />
                 ) : (
@@ -166,7 +166,7 @@ export function TermsSheet({ open, onOpenChange }: TermsSheetProps) {
           </SheetClose>
           <Button
             type="submit"
-            className="w-fit h-12 bg-[#D946EF] text-white hover:bg-[#C026D3] dark:text-white dark:hover:bg-[#C026D3] shadow-none cursor-pointer px-4"
+            className="w-fit h-12 bg-[#DC8B18] text-white hover:bg-[#C17600] dark:text-white dark:hover:bg-[#DC8B18] shadow-none cursor-pointer px-4"
             onClick={handleSubmit}
             disabled={!selectedFile || createConfig.isPending}
           >

@@ -154,7 +154,7 @@ export function ChangePasswordSheet({
                 </SheetClose>
                 <Button
                   type="submit"
-                  className="w-24 h-12 bg-[#D946EF] hover:bg-[#e782f7] text-white cursor-pointer"
+                  className="w-24 h-12 bg-[#DC8B18] hover:bg-[#C17600] text-white cursor-pointer"
                   disabled={isSubmitting || changePassword.isPending}
                 >
                   {isSubmitting || changePassword.isPending ? "..." : "Update"}

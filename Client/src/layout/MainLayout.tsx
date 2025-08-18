@@ -22,7 +22,7 @@ const MainLayout: React.FC = () => {
         <Outlet />
       </main>
       {!isGamePlay && (
-        <footer className="text-center text-white dark:white py-4 md:py-6 lg:py-8 bg-[#1E0420] dark:bg-[#1E0420] w-full">
+        <footer className="text-center text-white dark:white py-4 md:py-6 lg:py-8 bg-[#DC8B18] dark:bg-[#DC8B18] w-full">
           <div className="w-[90%] md:w-[85%] lg:w-[800px] mx-auto px-4 md:px-6">
             <p className="font-dmmono mb-3 text-[12px] sm:text-xs md:text-sm">
               These games are brought to you by Arcades Box, a web-based gaming 
@@ -32,14 +32,14 @@ const MainLayout: React.FC = () => {
             <p className="font-worksans text-[10px] sm:text-xs md:text-sm mt-3 leading-relaxed">
               By using this service, you agree to the Arcades Box{" "}
               <span
-                className="text-[#C026D3] underline cursor-pointer hover:text-[#db2ee8] transition-colors"
+                className="text-gray-900 underline cursor-pointer hover:text-gray-700 transition-colors font-semibold"
                 onClick={handleTermsPage}
               >
                 Terms of Service
               </span>
               . The Arcades Box{" "}
               <span
-                className="text-[#C026D3] underline cursor-pointer hover:text-[#db2ee8] transition-colors"
+                className="text-gray-900 underline cursor-pointer hover:text-gray-700 transition-colors font-semibold"
                 onClick={handlePrivacyPage}
               >
                 Privacy Policy

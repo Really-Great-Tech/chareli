@@ -57,8 +57,8 @@ const Navbar: React.FC = () => {
         onClick={() => navigate("/")}
         className="cursor-pointer flex flex-col justify-center items-center"
       >
-        <img src={ArcadeIcon} alt="logo" className="w-14" />
-        <p className="text-[10px] sm:text-[10px] text-center text-[#111826] dark:text-white font-bold">
+        <img src={ArcadeIcon} alt="logo" className="w-15" />
+        <p className="text-[15px] sm:text-[15px] text-center text-[#111826] dark:text-white font-bold">
           ARCADES BOX
         </p>
       </div>

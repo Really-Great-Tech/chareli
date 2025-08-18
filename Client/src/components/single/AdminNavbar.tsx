@@ -4,7 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { Button } from "../ui/button";
 import { usePermissions } from "../../hooks/usePermissions";
-import ArcadeIcon from "../../assets/ArcadeIcon.png";
+import ArcadeLogo from "../../assets/logoBox.svg"
 
 import { IoMdSettings } from "react-icons/io";
 // import { IoIosSearch } from "react-icons/io";
@@ -46,15 +46,12 @@ const AdminNavbar: React.FC = () => {
         onClick={() => navigate("/")}
         className="cursor-pointer flex flex-col justify-center items-center"
       >
-        <img src={ArcadeIcon} alt="logo" className="w-14" />
-        <p className="text-[10px] sm:text-[10px] text-center text-[#111826] dark:text-white font-bold">
-          ARCADES BOX
-        </p>
+        <img src={ArcadeLogo} alt="logo" />
       </div>
 
       {/* right side */}
       <div className="flex gap-4 items-center">
-        <div className="font-extrabold text-[#D946EF] dark:text-[#E879F9] flex items-center gap-4">
+        <div className="font-extrabold text-[#DC8B18] dark:text-[#DC8B18] flex items-center gap-4">
           {/* {!showSearch ? (
             <button
               aria-label="Open search"

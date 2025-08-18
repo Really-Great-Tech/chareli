@@ -137,9 +137,9 @@ const AdminLayout: React.FC = () => {
               ? "-translate-x-full lg:translate-x-0 w-16"
               : "translate-x-0 w-60"
           }`}
-          style={{ 
+          style={{
             height: `calc(100vh - ${navbarHeight}px)`,
-            top: `${navbarHeight}px`
+            top: `${navbarHeight}px`,
           }}
         >
           <aside className="h-full bg-white/95 dark:bg-[#0f1221]/95 backdrop-blur-sm transition-colors duration-300">
@@ -154,13 +154,13 @@ const AdminLayout: React.FC = () => {
                         className={({ isActive }) =>
                           `flex items-center p-2 rounded-lg transition-colors ${
                             isActive
-                              ? "bg-[#D946EF] text-white"
-                              : "hover:text-[#D946EF] hover:bg-[#F3E8FF] dark:text-white dark:hover:text-[#D946EF] text-[#121C2D]"
+                              ? "text-white bg-[#DC8B18]"
+                              : "hover:text-[#DC8B18] hover:bg-[#FFEFD9] dark:text-white dark:hover:text-[#C17600] text-[#121C2D]"
                           } ${isSidebarCollapsed ? "justify-center" : ""}`
                         }
                         onClick={() => {
                           if (isMobile) {
-                            setIsSidebarCollapsed(true); 
+                            setIsSidebarCollapsed(true);
                           }
                         }}
                       >
@@ -181,13 +181,19 @@ const AdminLayout: React.FC = () => {
                   onClick={toggleSidebar}
                   className={`absolute ${
                     isSidebarCollapsed ? "-right-12" : "-right-4"
-                  } bg-[#D946EF] dark:bg-[#D946EF] rounded-full p-1.5 text-white hover:bg-[#c026d3] dark:hover:bg-[#c026d3] shadow-lg transition-all duration-300`}
+                  } bg-[#DC8B18] rounded-full p-1.5 text-white hover:bg-[#DC8B18] shadow-lg transition-all duration-300`}
                   style={{ bottom: "20px" }}
                 >
                   {isSidebarCollapsed ? (
-                    <IoChevronForwardOutline size={18} className="cursor-pointer"/>
+                    <IoChevronForwardOutline
+                      size={18}
+                      className="cursor-pointer"
+                    />
                   ) : (
-                    <IoChevronBackOutline size={18} className="cursor-pointer"/>
+                    <IoChevronBackOutline
+                      size={18}
+                      className="cursor-pointer"
+                    />
                   )}
                 </button>
               </div>

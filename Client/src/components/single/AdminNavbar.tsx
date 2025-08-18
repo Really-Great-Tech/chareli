@@ -4,7 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { Button } from "../ui/button";
 import { usePermissions } from "../../hooks/usePermissions";
-import ArcadeIcon from "../../assets/ArcadeIcon.png";
+import Logo from "../../assets/logo.svg";
 
 import { IoMdSettings } from "react-icons/io";
 // import { IoIosSearch } from "react-icons/io";
@@ -41,19 +41,20 @@ const AdminNavbar: React.FC = () => {
   }, [showSearch]);
 
   return (
-    <header className="flex justify-between px-4 py-2 items-center bg-white dark:bg-[#0f1221] transition-colors duration-300">
+    <header className="relative flex justify-between items-center bg-white dark:bg-[#0f1221] transition-colors duration-300">
+      {/* Logo */}
       <div
         onClick={() => navigate("/")}
-        className="cursor-pointer flex flex-col justify-center items-center"
+        className="cursor-pointer flex justify-center items-center bg-gradient-to-t from-[#121C2D] to-[#475568] rounded-br-[40px] py-2 px-8 -mt-4 -ml-4"
       >
-        <img src={ArcadeIcon} alt="logo" className="w-14" />
-        <p className="text-[10px] sm:text-[10px] text-center text-[#111826] dark:text-white font-bold">
+        <img src={Logo} alt="logo" className="w-12 pt-4" />
+        <p className="text-[27.22px] sm:text-[15px] text-center text-white dark:text-white font-bold font-jersey pt-4">
           ARCADES BOX
         </p>
       </div>
 
       {/* right side */}
-      <div className="flex gap-4 items-center">
+      <div className="flex gap-4 items-center pt-4 pr-4">
         <div className="font-extrabold text-[#D946EF] dark:text-[#E879F9] flex items-center gap-4">
           {/* {!showSearch ? (
             <button

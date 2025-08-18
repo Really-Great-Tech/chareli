@@ -32,6 +32,7 @@ const Navbar: React.FC = () => {
   const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDesktopMenuOpen, setIsDesktopMenuOpen] = useState(false);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -44,6 +45,11 @@ const Navbar: React.FC = () => {
       ) {
         setIsMobileMenuOpen(false);
       }
+      
+      // Close desktop menu when clicking outside
+      if (!(event.target as Element).closest('.desktop-menu-container')) {
+        setIsDesktopMenuOpen(false);
+      }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
@@ -53,7 +59,7 @@ const Navbar: React.FC = () => {
   }, []);
 
   return (
-        <header className="relative flex justify-between items-center bg-white dark:bg-[#0f1221] transition-colors duration-300">
+    <header className="relative flex justify-between items-center bg-white dark:bg-[#0f1221] transition-colors duration-300">
       {/* Logo */}
       <div
         onClick={() => navigate("/")}
@@ -272,6 +278,37 @@ const Navbar: React.FC = () => {
               onClick={() => setIsProfileModalOpen(true)}
             />
 
+            {/* Desktop Menu Dropdown for Authenticated Users */}
+            <div className="relative desktop-menu-container">
+              <Button
+                onClick={() => setIsDesktopMenuOpen(!isDesktopMenuOpen)}
+                className="bg-[#334154] text-white hover:bg-[#475568]"
+              >
+                <Menu className="w-[21px] h-[21px]" />
+              </Button>
+              
+              {isDesktopMenuOpen && (
+                <div className="absolute top-full right-0 mt-2 bg-white dark:bg-[#0f1221] shadow-lg z-50 border border-gray-200 dark:border-gray-800 rounded-lg min-w-[200px]">
+                  <div className="flex flex-col p-4 gap-2">
+                    <Link
+                      to="/about"
+                      className="block text-[#111826] dark:text-white border-1 border-transparent hover:border-[#DC8B18] px-4 py-3 rounded-xl font-semibold transition-all duration-300"
+                      onClick={() => setIsDesktopMenuOpen(false)}
+                    >
+                      About Us
+                    </Link>
+                    <Link
+                      to="/categories"
+                      className="block text-[#111826] dark:text-white border-1 border-transparent hover:border-[#DC8B18] px-4 py-3 rounded-xl font-semibold transition-all duration-300"
+                      onClick={() => setIsDesktopMenuOpen(false)}
+                    >
+                      Categories
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <Button
               onClick={() => {
                 logout();
@@ -304,31 +341,31 @@ const Navbar: React.FC = () => {
             </Button>
 
             {/* Desktop Menu Dropdown */}
-            <div className="relative">
+            <div className="relative desktop-menu-container">
               <Button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                onClick={() => setIsDesktopMenuOpen(!isDesktopMenuOpen)}
                 className="bg-[#334154] text-white hover:bg-[#475568]"
               >
                 <Menu className="w-[21px] h-[21px]" />
               </Button>
-              
-              {isMobileMenuOpen && (
+
+              {isDesktopMenuOpen && (
                 <div className="absolute top-full right-0 mt-2 bg-white dark:bg-[#0f1221] shadow-lg z-50 border border-gray-200 dark:border-gray-800 rounded-lg min-w-[200px]">
                   <div className="flex flex-col p-4 gap-2">
-                                          <Link
-                        to="/about"
-                        className="block text-[#111826] dark:text-white border-1 border-transparent hover:border-[#DC8B18] px-4 py-3 rounded-xl font-semibold transition-all duration-300"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        About Us
-                      </Link>
-                      <Link
-                        to="/categories"
-                        className="block text-[#111826] dark:text-white border-1 border-transparent hover:border-[#DC8B18] px-4 py-3 rounded-xl font-semibold transition-all duration-300"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        Categories
-                      </Link>
+                    <Link
+                      to="/about"
+                      className="block text-[#111826] dark:text-white border-1 border-transparent hover:border-[#DC8B18] px-4 py-3 rounded-xl font-semibold transition-all duration-300"
+                      onClick={() => setIsDesktopMenuOpen(false)}
+                    >
+                      About Us
+                    </Link>
+                    <Link
+                      to="/categories"
+                      className="block text-[#111826] dark:text-white border-1 border-transparent hover:border-[#DC8B18] px-4 py-3 rounded-xl font-semibold transition-all duration-300"
+                      onClick={() => setIsDesktopMenuOpen(false)}
+                    >
+                      Categories
+                    </Link>
                   </div>
                 </div>
               )}

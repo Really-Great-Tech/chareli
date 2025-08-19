@@ -205,7 +205,7 @@ export default function GameActivity() {
                   className={`w-8 h-8 rounded-full transition-colors border border-[#DC8B18] ${
                     gamePage === 1
                       ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
-                      : "hover:bg-[#C17600] text-white dark:text-white"
+                      : "hover:bg-[#C17600] text-black dark:text-white"
                   }`}
                   onClick={() => setGamePage(Math.max(1, gamePage - 1))}
                   disabled={gamePage === 1}
@@ -226,43 +226,43 @@ export default function GameActivity() {
                     const pages = [];
                     const maxVisiblePages = 5;
                     
-                    if (totalGamePages <= maxVisiblePages) {
-                      // Show all pages if total is small
-                      for (let i = 1; i <= totalGamePages; i++) {
-                        pages.push(
-                          <button
-                            key={i}
-                            className={`w-8 h-8 rounded-full transition-colors ${
-                              gamePage === i
-                                ? "bg-[#DC8B18] text-white"
-                                : "hover:bg-[#C17600] text-white dark:text-white"
-                            }`}
-                            onClick={() => setGamePage(i)}
-                          >
-                            {i}
-                          </button>
-                        );
-                      }
+                                          if (totalGamePages <= maxVisiblePages) {
+                        // Show all pages if total is small
+                        for (let i = 1; i <= totalGamePages; i++) {
+                          pages.push(
+                            <button
+                              key={i}
+                              className={`w-8 h-8 rounded-full transition-colors ${
+                                gamePage === i
+                                  ? "bg-[#DC8B18] text-white"
+                                  : "hover:bg-[#C17600] text-black dark:text-white"
+                              }`}
+                              onClick={() => setGamePage(i)}
+                            >
+                              {i}
+                            </button>
+                          );
+                        }
                     } else {
                       // Smart truncation for many pages
                       const startPage = Math.max(1, gamePage - 2);
                       const endPage = Math.min(totalGamePages, gamePage + 2);
                       
-                      // First page
-                      if (startPage > 1) {
-                        pages.push(
-                          <button
-                            key={1}
-                            className={`w-8 h-8 rounded-full transition-colors ${
-                              gamePage === 1
-                                ? "bg-[#DC8B18] text-white"
-                                : "hover:bg-[#C17600] text-white dark:text-white"
-                            }`}
-                            onClick={() => setGamePage(1)}
-                          >
-                            1
-                          </button>
-                        );
+                                              // First page
+                        if (startPage > 1) {
+                          pages.push(
+                            <button
+                              key={1}
+                              className={`w-8 h-8 rounded-full transition-colors ${
+                                gamePage === 1
+                                  ? "bg-[#DC8B18] text-white"
+                                  : "hover:bg-[#C17600] text-black dark:text-white"
+                              }`}
+                              onClick={() => setGamePage(1)}
+                            >
+                              1
+                            </button>
+                          );
                         if (startPage > 2) {
                           pages.push(
                             <span key="start-ellipsis" className="px-2 text-gray-500">
@@ -272,22 +272,22 @@ export default function GameActivity() {
                         }
                       }
                       
-                      // Current range
-                      for (let i = startPage; i <= endPage; i++) {
-                        pages.push(
-                          <button
-                            key={i}
-                            className={`w-8 h-8 rounded-full transition-colors ${
-                              gamePage === i
-                                ? "bg-[#DC8B18] text-white"
-                                : "hover:bg-[#C17600] text-white dark:text-white"
-                            }`}
-                            onClick={() => setGamePage(i)}
-                          >
-                            {i}
-                          </button>
-                        );
-                      }
+                                              // Current range
+                        for (let i = startPage; i <= endPage; i++) {
+                          pages.push(
+                            <button
+                              key={i}
+                              className={`w-8 h-8 rounded-full transition-colors ${
+                                gamePage === i
+                                  ? "bg-[#DC8B18] text-white"
+                                  : "hover:bg-[#C17600] text-black dark:text-white"
+                              }`}
+                              onClick={() => setGamePage(i)}
+                            >
+                              {i}
+                            </button>
+                          );
+                        }
                       
                       // Last page
                       if (endPage < totalGamePages) {
@@ -298,19 +298,19 @@ export default function GameActivity() {
                             </span>
                           );
                         }
-                        pages.push(
-                          <button
-                            key={totalGamePages}
-                            className={`w-8 h-8 rounded-full transition-colors ${
-                              gamePage === totalGamePages
-                                ? "bg-[#DC8B18] text-white"
-                                : "hover:bg-[#C17600] text-white dark:text-white"
-                            }`}
-                            onClick={() => setGamePage(totalGamePages)}
-                          >
-                            {totalGamePages}
-                          </button>
-                        );
+                                                  pages.push(
+                            <button
+                              key={totalGamePages}
+                              className={`w-8 h-8 rounded-full transition-colors ${
+                                gamePage === totalGamePages
+                                  ? "bg-[#DC8B18] text-white"
+                                  : "hover:bg-[#C17600] text-black dark:text-white"
+                              }`}
+                              onClick={() => setGamePage(totalGamePages)}
+                            >
+                              {totalGamePages}
+                            </button>
+                          );
                       }
                     }
                     
@@ -323,7 +323,7 @@ export default function GameActivity() {
                   className={`w-8 h-8 rounded-full transition-colors border border-[#DC8B18] ${
                     gamePage === totalGamePages
                       ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
-                      : "hover:bg-[#C17600] text-white dark:text-white"
+                      : "hover:bg-[#C17600] text-black dark:text-white"
                   }`}
                   onClick={() => setGamePage(Math.min(totalGamePages, gamePage + 1))}
                   disabled={gamePage === totalGamePages}

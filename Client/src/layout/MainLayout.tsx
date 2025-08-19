@@ -31,19 +31,19 @@ const MainLayout: React.FC = () => {
 
             <p className="font-worksans text-[10px] sm:text-xs md:text-sm mt-3 leading-relaxed">
               By using this service, you agree to the Arcades Box{" "}
-              <span
-                className="text-white underline cursor-pointer hover:text-[#FEF3C7] transition-colors font-semibold"
-                onClick={handleTermsPage}
-              >
-                Terms of Service
-              </span>
-              . The Arcades Box{" "}
-              <span
-                className="text-white underline cursor-pointer hover:text-[#FEF3C7] transition-colors font-semibold"
-                onClick={handlePrivacyPage}
-              >
-                Privacy Policy
-              </span>{" "}
+                              <span
+                  className="text-black underline cursor-pointer hover:text-[#FEF3C7] transition-colors font-semibold"
+                  onClick={handleTermsPage}
+                >
+                  Terms of Service
+                </span>
+                . The Arcades Box{" "}
+                <span
+                  className="text-black underline cursor-pointer hover:text-[#FEF3C7] transition-colors font-semibold"
+                  onClick={handlePrivacyPage}
+                >
+                  Privacy Policy
+                </span>{" "}
               sets out how we handle your data.
             </p>
 

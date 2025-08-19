@@ -201,7 +201,7 @@ export default function Categories() {
                       ${
                         !selectedCategory && !selectedSecondary
                           ? "bg-[#DC8B18] text-white dark:text-white tracking-wider"
-                          : "bg-transparent text-[#121C2D] hover:bg-[#F3E8FF] hover:text-[#DC8B18] dark:text-white dark:hover:text-[#DC8B18] tracking-wider"
+                          : "bg-transparent text-[#121C2D] hover:bg-[#FEF3C7] hover:text-[#DC8B18] dark:text-white dark:hover:text-[#DC8B18] tracking-wider"
                       }
                     `}
                     onClick={() => {
@@ -224,7 +224,7 @@ export default function Categories() {
                           ${
                             selectedCategory === cat.id
                               ? "bg-[#DC8B18] text-white shadow dark:text-white tracking-wider"
-                              : "text-[#121C2D] hover:bg-[#F3E8FF] hover:text-[#DC8B18] dark:text-white tracking-wider dark:hover:text-[#DC8B18]"
+                              : "text-[#121C2D] hover:bg-[#FEF3C7] hover:text-[#DC8B18] dark:text-white tracking-wider dark:hover:text-[#DC8B18]"
                           }
                         `}
                         onClick={() => {
@@ -254,7 +254,7 @@ export default function Categories() {
                 {secondary.map((sec) => (
                   <li key={sec}>
                     <button
-                      className={`w-full text-left text-lg px-4 py-2 rounded-lg font-semibold text-[#121C2D] hover:bg-[#F3E8FF] hover:text-[#DC8B18] dark:text-white tracking-wider transition dark:hover:text-[#DC8B18] cursor-pointer ${
+                      className={`w-full text-left text-lg px-4 py-2 rounded-lg font-semibold text-[#121C2D] hover:bg-[#FEF3C7] hover:text-[#DC8B18] dark:text-white tracking-wider transition dark:hover:text-[#DC8B18] cursor-pointer ${
                         selectedSecondary === sec
                           ? "bg-[#DC8B18] text-white"
                           : ""
@@ -284,7 +284,7 @@ export default function Categories() {
         ) : (
           <div className="flex flex-col">
             {games.length === 0 ? (
-              <div className="text-center py-8 min-h-[60vh] flex flex-col items-center justify-center gap-4 text-[#C026D3] text-lg lg:text-lg">
+              <div className="text-center py-8 min-h-[60vh] flex flex-col items-center justify-center gap-4 text-[#DC8B18] text-lg lg:text-lg">
                 <img
                   src={emptyGameImg}
                   alt="No games"

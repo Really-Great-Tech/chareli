@@ -33,7 +33,6 @@ const Navbar: React.FC = () => {
   const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isDesktopMenuOpen, setIsDesktopMenuOpen] = useState(false);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -48,9 +47,7 @@ const Navbar: React.FC = () => {
       }
       
       // Close desktop menu when clicking outside
-      if (!(event.target as Element).closest('.desktop-menu-container')) {
-        setIsDesktopMenuOpen(false);
-      }
+      // Desktop menu functionality removed
     };
 
     document.addEventListener("mousedown", handleClickOutside);

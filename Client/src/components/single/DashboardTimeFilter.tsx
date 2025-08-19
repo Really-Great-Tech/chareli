@@ -84,7 +84,7 @@ export function DashboardTimeFilter({ value, onChange }: DashboardTimeFilterProp
               onClick={() => handlePeriodChange(option.value)}
               className={`cursor-pointer ${
                 value.period === option.value 
-                  ? 'bg-[#C17600] text-[#C17600] dark:bg-[#C17600]/20' 
+                  ? 'bg-[#C17600] text-white dark:bg-[#C17600]/20' 
                   : ''
               }`}
             >

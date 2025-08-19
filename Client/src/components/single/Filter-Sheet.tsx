@@ -106,7 +106,7 @@ export function FilterSheet({ children, onFilter, onReset }: FilterSheetProps) {
             <SheetClose asChild>
               <Button
                 type="submit"
-                className="w-20 h-12 bg-[#D946EF] text-white hover:bg-[#C026D3] dark:text-white dark:hover:bg-[#C026D3] cursor-pointer"
+                className="w-20 h-12 bg-[#DC8B18] text-white hover:bg-[#C17600] dark:text-white dark:hover:bg-[#DC8B18] cursor-pointer"
               >
                 Filter
               </Button>

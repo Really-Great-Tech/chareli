@@ -222,7 +222,7 @@ export function SignUpModal({
         <CustomDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221]">
           {/* Custom Close Button */}
           <button
-            className="absolute -top-2 -right-2 sm:-top-4 sm:-right-4 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#C026D3] flex items-center justify-center shadow-lg hover:bg-[#a21caf] transition-colors"
+            className="absolute -top-2 -right-2 sm:-top-4 sm:-right-4 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#DC8B18] flex items-center justify-center shadow-lg hover:bg-[#C17600] transition-colors"
             onClick={() => onOpenChange(false)}
             aria-label="Close"
             style={{ border: "none" }}
@@ -230,7 +230,7 @@ export function SignUpModal({
             <span className="text-white text-2xl font-bold">×</span>
           </button>
           <DialogHeader className="max-h-[70vh] overflow-y-auto custom-scrollbar">
-            <DialogTitle className="text-2xl font-bold text-[#E328AF] text-center font-dmmono">
+            <DialogTitle className="text-2xl font-bold text-[#FFAA33] text-center font-dmmono">
               Sign Up
             </DialogTitle>
             <DialogDescription className="text-center">
@@ -505,7 +505,7 @@ export function SignUpModal({
                                     false
                                   );
                                 }}
-                                className="border-2 border-gray-400 data-[state=checked]:bg-[#C026D3] data-[state=checked]:border-[#C026D3]"
+                                className="border-2 border-gray-400 data-[state=checked]:bg-[#DC8B18] data-[state=checked]:border-[#DC8B18]"
                               />
                             )}
                           </Field>
@@ -531,7 +531,7 @@ export function SignUpModal({
                                   form.setFieldValue("terms", checked);
                                   form.setFieldTouched("terms", true, false);
                                 }}
-                                className="border-2 border-gray-400 data-[state=checked]:bg-[#C026D3] data-[state=checked]:border-[#C026D3]"
+                                className="border-2 border-gray-400 data-[state=checked]:bg-[#DC8B18] data-[state=checked]:border-[#DC8B18]"
                               />
                             )}
                           </Field>
@@ -555,7 +555,7 @@ export function SignUpModal({
                     <Button
                       type="submit"
                       disabled={isSubmitting || !isValid}
-                      className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-dmmono cursor-pointer"
+                      className="w-full bg-[#DC8B18] hover:bg-[#C17600] text-white font-dmmono cursor-pointer"
                     >
                       {isSubmitting ? "Submitting..." : "Submit"}
                     </Button>
@@ -567,7 +567,7 @@ export function SignUpModal({
               <p className=" text-center text-black dark:text-white font-dmmono text-sm tracking-wider">
                 Already have an account?{" "}
                 <button
-                  className="underline text-[#C026D3] cursor-pointer font-dmmono text-sm"
+                  className="underline text-[#DC8B18] cursor-pointer font-dmmono text-sm"
                   onClick={openLoginModal}
                 >
                   Login
@@ -576,14 +576,14 @@ export function SignUpModal({
               {/* terms and privacy */}
               <div className="font-worksans flex items-center space-x-2 text-sm justify-center">
                 <button
-                  className="text-[#C026D3] text-center cursor-pointer tracking-wider hover:underline"
+                  className="text-[#DC8B18] text-center cursor-pointer tracking-wider hover:underline"
                   onClick={handleTerms}
                 >
                   Terms of Service
                 </button>
                 <span className="text-gray-400 dark:text-gray-500">/</span>
                 <button
-                  className="text-[#C026D3] text-center cursor-pointer tracking-wider hover:underline"
+                  className="text-[#DC8B18] text-center cursor-pointer tracking-wider hover:underline"
                   onClick={handlePrivacy}
                 >
                   Privacy Policy

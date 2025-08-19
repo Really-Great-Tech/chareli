@@ -16,7 +16,7 @@ export default function GameThumbnail({ src, alt }: GameThumbnailProps) {
         placeholder={fallbackImage}
         className="w-full h-full object-cover"
         loadingClassName="rounded-lg"
-        spinnerColor="#D946EF"
+        spinnerColor="#DC8B18"
         rootMargin="50px"
       />
     </div>

@@ -36,7 +36,7 @@ const SearchBarConfiguration = forwardRef<SearchBarConfigurationRef, SearchBarCo
 
     return (
       <div>
-        <h2 className="text-lg sm:text-xl font-worksans text-[#D946EF] mb-4">
+        <h2 className="text-lg sm:text-xl font-worksans text-[#DC8B18] mb-4">
             Search Bar Configuration
           </h2>
         <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg mb-6 relative">
@@ -50,7 +50,7 @@ const SearchBarConfiguration = forwardRef<SearchBarConfigurationRef, SearchBarCo
               checked={showSearchBar}
               onCheckedChange={handleToggleSearchBar}
               id="show-search-bar"
-              color="#D946EF"
+              color="#DC8B18"
               disabled={disabled || isLoadingConfig}
             />
             <Label 

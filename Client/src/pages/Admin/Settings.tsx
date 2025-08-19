@@ -55,7 +55,7 @@ const Settings: React.FC = () => {
 
   return (
     <div className="px-8">
-      <h1 className="text-3xl font-normal text-[#D946EF] mb-8 font-worksans">Settings</h1>
+      <h1 className="text-3xl font-normal text-[#DC8B18] mb-8 font-worksans">Settings</h1>
       <div className="flex flex-col gap-6">
         {settings.map((item, _idx) => (
           <div
@@ -64,7 +64,7 @@ const Settings: React.FC = () => {
             className="bg-[#F5F7FB] dark:bg-[#181B2A] rounded-2xl px-6 py-6 flex items-center justify-between hover:bg-gray-200 cursor-pointer"
           >
             <div className="flex items-center gap-4">
-              <div className="bg-[#F0ABFC] flex items-center justify-center rounded-full w-10 h-10 sm:w-12 sm:h-12 text-lg sm:text-2xl text-white min-w-[2.5rem] min-h-[2.5rem] sm:min-w-[3rem] sm:min-h-[3rem] flex-shrink-0">
+              <div className="bg-[#DC8B18] flex items-center justify-center rounded-full w-10 h-10 sm:w-12 sm:h-12 text-lg sm:text-2xl text-white min-w-[2.5rem] min-h-[2.5rem] sm:min-w-[3rem] sm:min-h-[3rem] flex-shrink-0">
                 {item.icon}
               </div>
               <div>

@@ -230,7 +230,7 @@ export default function GamePlay() {
               {/* Beautiful game platform overlay when time is up */}
               {isModalOpen && (
                 <div 
-                  className="absolute inset-0 z-50 bg-gradient-to-br from-purple-900 via-purple-800 to-purple-900"
+                  className="absolute inset-0 z-50 bg-gradient-to-br from-orange-900 via-orange-800 to-orange-900"
                   onMouseDown={(e) => e.preventDefault()}
                   onMouseUp={(e) => e.preventDefault()}
                   onMouseMove={(e) => e.preventDefault()}
@@ -250,7 +250,7 @@ export default function GamePlay() {
                 isGameLoading={isGameLoading}
               />
               {expanded && (
-                <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-6 py-2 bg-[#2d0036] border-t border-purple-400 z-50">
+                <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-6 py-2 bg-[#7C2D12] border-t border-orange-400 z-50">
                   <span className="text-white text-sm font-semibold">
                     {game.title}
                   </span>
@@ -266,22 +266,22 @@ export default function GamePlay() {
                     <div className="flex items-center space-x-3">
                       {/* Timer display for unauthenticated users in fullscreen */}
                       {!isAuthenticated && timeRemaining !== null && timeRemaining > 0 && (
-                        <div className="flex items-center space-x-2 bg-purple-600/20 px-3 py-1 rounded-full border border-purple-400/30">
-                          <span className="text-xs text-purple-300">⏱️</span>
+                        <div className="flex items-center space-x-2 bg-orange-600/20 px-3 py-1 rounded-full border border-orange-400/30">
+                          <span className="text-xs text-orange-300">⏱️</span>
                           <span className="text-white text-sm font-medium">
                             {Math.floor(timeRemaining / 60)}:{(timeRemaining % 60).toString().padStart(2, '0')}
                           </span>
                         </div>
                       )}
                       <button
-                        className="text-white hover:text-purple-400 transition-colors"
+                        className="text-white hover:text-orange-400 transition-colors"
                         onClick={() => setExpanded((e) => !e)}
                         title={expanded ? "Exit Fullscreen" : "Expand"}
                       >
                         <LuExpand className="w-5 h-5" />
                       </button>
                       <button
-                        className="text-white hover:text-purple-400 transition-colors"
+                        className="text-white hover:text-orange-400 transition-colors"
                         onClick={() => {
                           if (analyticsIdRef.current) {
                             updateEndTime();
@@ -298,7 +298,7 @@ export default function GamePlay() {
               )}
             </div>
             {!expanded && (
-              <div className="flex items-center justify-between px-6 py-2 bg-[#2d0036] border-t border-purple-400 rounded-b-2xl">
+              <div className="flex items-center justify-between px-6 py-2 bg-[#7C2D12] border-t border-orange-400 rounded-b-2xl">
                 <span className="text-white text-sm font-semibold">
                   {game.title}
                 </span>
@@ -314,22 +314,22 @@ export default function GamePlay() {
                   <div className="flex items-center space-x-3">
                     {/* Timer display for unauthenticated users */}
                     {!isAuthenticated && timeRemaining !== null && timeRemaining > 0 && (
-                      <div className="flex items-center space-x-2 bg-purple-600/20 px-3 py-1 rounded-full border border-purple-400/30">
-                        <span className="text-xs text-purple-300">⏱️</span>
+                      <div className="flex items-center space-x-2 bg-orange-600/20 px-3 py-1 rounded-full border border-orange-400/30">
+                        <span className="text-xs text-orange-300">⏱️</span>
                         <span className="text-white text-sm font-medium">
                           {Math.floor(timeRemaining / 60)}:{(timeRemaining % 60).toString().padStart(2, '0')}
                         </span>
                       </div>
                     )}
                     <button
-                      className="text-white hover:text-purple-400 transition-colors"
+                      className="text-white hover:text-orange-400 transition-colors"
                       onClick={() => setExpanded((e) => !e)}
                       title={expanded ? "Exit Fullscreen" : "Expand"}
                     >
                       <LuExpand className="w-5 h-5" />
                     </button>
                     <button
-                      className="text-white hover:text-purple-400 transition-colors cursor-pointer"
+                      className="text-white hover:text-orange-400 transition-colors cursor-pointer"
                       onClick={() => {
                         if (analyticsIdRef.current) {
                           updateEndTime();
@@ -356,7 +356,7 @@ export default function GamePlay() {
                 <div className="grid gap-[8px] w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 justify-items-center">
                   {game.similarGames.map((similarGame: SimilarGame) => (
                     <div key={similarGame.id} className="relative p-[10px] group cursor-pointer w-full max-w-[360px]">
-                      <div className="relative h-[290px] min-h-[290px] max-h-[290px] rounded-[18px] border-4 border-transparent group-hover:border-[#D946EF] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(217,70,239,0.3)] overflow-hidden"
+                      <div className="relative h-[290px] min-h-[290px] max-h-[290px] rounded-[18px] border-4 border-transparent group-hover:border-[#DC8B18] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(220,139,24,0.3)] overflow-hidden"
                            onClick={() => {
                              if (analyticsIdRef.current) {
                                updateEndTime();
@@ -368,7 +368,7 @@ export default function GamePlay() {
                           alt={similarGame.title}
                           className="w-full h-full object-cover"
                           loadingClassName="rounded-[14px]"
-                          spinnerColor="#D946EF"
+                          spinnerColor="#DC8B18"
                           rootMargin="50px"
                         />
                         {/* Game Info Overlay - Only visible on hover */}

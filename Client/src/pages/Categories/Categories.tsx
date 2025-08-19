@@ -105,8 +105,8 @@ export default function Categories() {
                     className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition
                       ${
                         !selectedCategory && !selectedSecondary
-                          ? "bg-[#D946EF] text-white"
-                          : "text-[#121C2D] hover:bg-[#F3E8FF] hover:text-[#D946EF] dark:text-white dark:hover:bg-gray-800"
+                          ? "bg-[#DC8B18] text-white"
+                          : "text-[#121C2D] hover:bg-[#F3E8FF] hover:text-[#C17600] dark:text-white dark:hover:bg-gray-800"
                       }
                     `}
                     onClick={() => {
@@ -135,8 +135,8 @@ export default function Categories() {
                         className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition
                           ${
                             selectedCategory === cat.id
-                              ? "bg-[#D946EF] text-white"
-                              : "text-[#121C2D] hover:bg-[#F3E8FF] hover:text-[#D946EF] dark:text-white dark:hover:bg-gray-800"
+                              ? "bg-[#DC8B18] text-white"
+                              : "text-[#121C2D] hover:bg-[#F3E8FF] hover:text-[#C17600] dark:text-white dark:hover:bg-gray-800"
                           }
                         `}
                         onClick={() => {
@@ -163,8 +163,8 @@ export default function Categories() {
                       className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition
                         ${
                           selectedSecondary === sec
-                            ? "bg-[#D946EF] text-white"
-                            : "text-[#121C2D] hover:bg-[#F3E8FF] hover:text-[#D946EF] dark:text-white dark:hover:bg-gray-800"
+                            ? "bg-[#DC8B18] text-white"
+                            : "text-[#121C2D] hover:bg-[#F3E8FF] hover:text-[#C17600] dark:text-white dark:hover:bg-gray-800"
                         }
                       `}
                       onClick={() => {
@@ -200,8 +200,8 @@ export default function Categories() {
                     className={`w-full flex items-center gap-2 px-4 py-2 text-lg rounded-lg font-bold tracking-widest cursor-pointer transition
                       ${
                         !selectedCategory && !selectedSecondary
-                          ? "bg-[#D946EF] text-white dark:text-white tracking-wider"
-                          : "bg-transparent text-[#121C2D] hover:bg-[#F3E8FF] hover:text-[#D946EF] dark:text-white dark:hover:text-[#D946EF] tracking-wider"
+                          ? "bg-[#DC8B18] text-white dark:text-white tracking-wider"
+                          : "bg-transparent text-[#121C2D] hover:bg-[#F3E8FF] hover:text-[#C17600] dark:text-white dark:hover:text-[#C17600] tracking-wider"
                       }
                     `}
                     onClick={() => {
@@ -209,7 +209,7 @@ export default function Categories() {
                       setSelectedSecondary(null);
                     }}
                   >
-                    All Games
+                    All Categories
                   </button>
                 </li>
                 {categories.map((cat) => {
@@ -223,8 +223,8 @@ export default function Categories() {
                         className={`w-full text-left text-lg px-4 py-2 rounded-lg font-semibold cursor-pointer transition relative group
                           ${
                             selectedCategory === cat.id
-                              ? "bg-[#D946EF] text-white shadow dark:text-white tracking-wider"
-                              : "text-[#121C2D] hover:bg-[#F3E8FF] hover:text-[#D946EF] dark:text-white tracking-wider dark:hover:text-[#D946EF]"
+                              ? "bg-[#DC8B18] text-white shadow dark:text-white tracking-wider"
+                              : "text-[#121C2D] hover:bg-[#F3E8FF] hover:text-[#C17600] dark:text-white tracking-wider dark:hover:text-[#C17600]"
                           }
                         `}
                         onClick={() => {
@@ -254,9 +254,9 @@ export default function Categories() {
                 {secondary.map((sec) => (
                   <li key={sec}>
                     <button
-                      className={`w-full text-left text-lg px-4 py-2 rounded-lg font-semibold text-[#121C2D] hover:bg-[#F3E8FF] hover:text-[#D946EF] dark:text-white tracking-wider transition dark:hover:text-[#D946EF] cursor-pointer ${
+                      className={`w-full text-left text-lg px-4 py-2 rounded-lg font-semibold text-[#121C2D] hover:bg-[#F3E8FF] hover:text-[#C17600] dark:text-white tracking-wider transition dark:hover:text-[#C17600] cursor-pointer ${
                         selectedSecondary === sec
-                          ? "bg-[#D946EF] text-white"
+                          ? "bg-[#DC8B18] text-white"
                           : ""
                       }`}
                       onClick={() => {
@@ -311,14 +311,14 @@ export default function Categories() {
                       style={{ gridRow: `span ${Math.round(rowSpan * 2)}` }}
                       onClick={() => handleGameClick(game.id)}
                     >
-                      <div className="relative h-full overflow-hidden rounded-[20px] transition-all duration-300 ease-in-out group-hover:shadow-[0_0px_20px_#D946EF,0_0px_10px_rgba(217,70,239,0.8)]">
+                      <div className="relative h-full overflow-hidden rounded-[20px] transition-all duration-300 ease-in-out group-hover:shadow-[0_0px_20px_#C17600,0_0px_10px_rgba(193,118,0,0.8)]">
                       <div className="w-full h-full rounded-[16px] overflow-hidden">
                         <LazyImage
                           src={game.thumbnailFile?.s3Key}
                           alt={game.title}
                           className="w-full h-full object-cover"
                           loadingClassName="rounded-[16px]"
-                          spinnerColor="#D946EF"
+                          spinnerColor="#DC8B18"
                           rootMargin="50px"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent group-hover:opacity-100 transition-opacity duration-300 lg:opacity-0 lg:group-hover:opacity-100 rounded-[16px]">

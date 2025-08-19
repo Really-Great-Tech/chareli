@@ -396,7 +396,7 @@ export function CreateGameSheet({
                   as="textarea"
                   id="description"
                   name="description"
-                  className="w-full min-h-[80px] rounded-md border border-[#CBD5E0] dark:text-white dark:bg-[#121C2D] bg-[#F1F5F9] px-3 py-2 font-worksans text-sm tracking-wider  text-gray-700 focus:border-[#DC8B18] focus:outline-none resize-none"
+                  className="w-full min-h-[80px] rounded-md border border-[#CBD5E0] dark:text-white dark:bg-[#121C2D] bg-[#F1F5F9] px-3 py-2 font-worksans text-sm tracking-wider  text-gray-700 focus:border-gray-500 focus:outline-none resize-none"
                   placeholder="Description"
                 />
                 <ErrorMessage

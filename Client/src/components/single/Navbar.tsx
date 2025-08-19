@@ -70,7 +70,7 @@ const Navbar: React.FC = () => {
       </div>
 
       {/* Desktop Navigation - Center */}
-      <div className="hidden md:flex gap-4 text-[16px] font-bold text-white items-center justify-center flex-1">
+      <div className="hidden md:flex gap-4 text-[16px] font-bold text-white items-center justify-center flex-1 pt-2">
         <Link
           to="/about"
           className="bg-[#DC8B18] text-white px-4 py-2 rounded-md transition-colors duration-300 hover:bg-[#C17600] flex items-center gap-2"
@@ -255,7 +255,7 @@ const Navbar: React.FC = () => {
       />
 
       {/* Desktop Actions */}
-      <div className="hidden md:flex space-x-4 items-center pt-4 pr-4">
+      <div className="hidden md:flex space-x-4 items-center pt-2 pr-4">
         <img
           onClick={toggleDarkMode}
           src={isDarkMode ? moon : sun}

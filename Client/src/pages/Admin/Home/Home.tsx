@@ -139,8 +139,8 @@ function SignupClickInsights({ timeRange }: { timeRange: DashboardTimeRange }) {
   const didntVerifyCount = Math.max(0, totalClicks - verifiedCount);
 
   const chartData = [
-    { name: "Didn't verify", value: didntVerifyCount, fill: "#C17600" },
-    { name: "Verified users", value: verifiedCount, fill: "#DC8B18" },
+    { name: "Didn't verify", value: didntVerifyCount, fill: "#DC8B18" },
+    { name: "Verified users", value: verifiedCount, fill: "#FEF3C7" },
   ];
 
   return <PieChart data={chartData} totalClicks={totalClicks} />;

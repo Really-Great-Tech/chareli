@@ -140,7 +140,7 @@ export function ResetPasswordForm({ email, token, onSuccess }: ResetPasswordForm
 
           <Button
             type="submit"
-            className="w-full bg-[#D946EF] dark:text-white hover:text-[#D946EF] hover:bg-[#F3E8FF]"
+            className="w-full bg-[#DC8B18] dark:text-white hover:text-[#DC8B18] hover:bg-[#FEF3C7]"
             disabled={isSubmitting || isPending}
           >
             {isSubmitting || isPending ? 'Resetting Password...' : 'Reset Password'}

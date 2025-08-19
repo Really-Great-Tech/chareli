@@ -91,7 +91,7 @@ const AdminNavbar: React.FC = () => {
           )} */}
           {permissions.canAccessConfig && (
             <IoMdSettings
-              className="w-6 h-6 cursor-pointer"
+              className="w-6 h-6 cursor-pointer text-[#DC8B18]"
               onClick={() => navigate("/admin/settings")}
             />
           )}

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/button";
-import { RiMenu3Line, RiCloseLine } from "react-icons/ri";
 import { StatsModal } from "../modals/StatsModal";
 import { ProfileModal } from "../modals/ProfileModal";
 import { useAuth } from "../../context/AuthContext";
@@ -14,11 +13,11 @@ import Logo from "../../assets/logo.svg";
 import sun from "../../assets/sun.svg";
 import moon from "../../assets/moon.svg";
 // import bolt from '../../assets/bolt.svg';
-import profileImg from "../../assets/profile.svg";
+
 
 import { SignUpModal } from "../modals/SignUpModal";
 import { LoginModal } from "../modals/LoginModal";
-import { Menu } from "lucide-react";
+import { Menu, CircleUserRound } from "lucide-react";
 
 const Navbar: React.FC = () => {
   const { isAuthenticated, logout } = useAuth();
@@ -87,37 +86,51 @@ const Navbar: React.FC = () => {
         </Link>
       </div> */}
 
-      {/* Mobile Menu Button */}
-      <button
-        ref={menuButtonRef}
-        className="md:hidden text-[#D946EF] p-2 pt-4"
-        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-      >
-        {isMobileMenuOpen ? (
-          <RiCloseLine size={24} />
-        ) : (
-          <RiMenu3Line size={24} />
-        )}
-      </button>
+      {/* Mobile Menu Button and Theme Toggle */}
+      <div className="md:hidden flex items-center space-x-2 mx-2">
+        {/* Mobile Theme Toggle */}
+        <button
+          onClick={toggleDarkMode}
+          className="text-white bg-[#DC8B18] py-2 px-2 rounded-3xl flex items-center justify-center"
+        >
+          <img
+            src={isDarkMode ? moon : sun}
+            alt={isDarkMode ? "light mode" : "dark mode"}
+            className="w-5 h-5"
+          />
+        </button>
+        
+        <button
+          ref={menuButtonRef}
+          className="text-white bg-[#DC8B18] py-2 px-3 pt-4 rounded-md flex items-center justify-center"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        >
+          {isMobileMenuOpen ? (
+            <Menu className="w-6 h-6" />
+          ) : (
+            <Menu className="w-6 h-6" />
+          )}
+        </button>
+      </div>
 
       {/* Mobile Navigation */}
       {isMobileMenuOpen && (
         <div
           ref={mobileMenuRef}
-          className="absolute top-full left-0 right-0 bg-white dark:bg-[#0f1221] shadow-lg md:hidden z-50 border-t border-gray-200 dark:border-gray-800"
+          className="absolute top-full right-0 mt-2 mx-2 bg-white dark:bg-[#0f1221] shadow-lg md:hidden z-50 border border-gray-200 dark:border-gray-800 rounded-lg min-w-[300px]"
         >
-          <div className="flex flex-col p-6 gap-5">
-            <div className="space-y-2 text-[15px]">
+          <div className="flex flex-col p-4 gap-2">
+            <div className=" text-[15px]">
               <Link
                 to="/about"
-                className="block text-[#111826] dark:text-white hover:bg-gradient-to-r hover:from-[#D946EF] hover:to-[#DC8B18] hover:text-white px-4 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-[1.02]"
+                className="block text-[#111826] dark:text-white px-4 py-3 rounded-xl font-semibold transition-all duration-300"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 About Us
               </Link>
               <Link
                 to="/categories"
-                className="block text-[#111826] dark:text-white hover:bg-gradient-to-r hover:from-[#D946EF] hover:to-[#DC8B18] hover:text-white px-4 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-[1.02]"
+                className="block text-[#111826] dark:text-white px-4 py-3 rounded-xl font-semibold transition-all duration-300"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Categories
@@ -131,13 +144,14 @@ const Navbar: React.FC = () => {
                       navigate("/admin");
                       setIsMobileMenuOpen(false);
                     }}
-                    className="bg-[#DC8B18] text-white hover:from-[#DC8B18] hover:to-[#A21CAF] w-full py-3 rounded-xl font-semibold shadow-lg transform hover:scale-[1.02] transition-all duration-300 text-[15px]"
+                    className="bg-[#DC8B18] text-white hover:from-[#DC8B18] hover:to-[#A21CAF] w-full py-3 rounded-lg font-semibold shadow-lg transform hover:scale-[1.02] transition-all duration-300 text-[15px]"
                   >
                     Admin Dashboard
                   </Button>
                 )}
-                <div className="grid grid-cols-2 gap-4">
-                  {/* <button
+                
+                {/* <div className="grid grid-cols-2 gap-4">
+                  <button
                     onClick={() => {
                       setIsStatsModalOpen(true);
                       setIsMobileMenuOpen(false);
@@ -150,22 +164,27 @@ const Navbar: React.FC = () => {
                       className="w-4 h-4 filter brightness-0 invert"
                     />
                     <span className="text-sm font-semibold">Stats</span>
-                  </button> */}
+                  </button>
                   <button
                     onClick={() => {
                       setIsProfileModalOpen(true);
                       setIsMobileMenuOpen(false);
                     }}
-                    className="flex items-center justify-center gap-2 bg-gradient-to-r from-[#64748B] to-[#475569] text-white px-4 py-4 rounded-xl hover:from-[#475569] hover:to-[#334155] transition-all duration-300 shadow-lg transform hover:scale-[1.05]"
+                    className="bg-[#DC8B18] text-white w-full py-3 rounded-lg font-semibold shadow-lg transform hover:scale-[1.02] transition-all duration-300 text-[15px]"
                   >
-                    <img
-                      src={profileImg}
-                      alt="profile image"
-                      className="w-4 h-4 filter brightness-0 invert"
-                    />
-                    <span className="text-sm font-semibold">Profile</span>
+                    Profile
                   </button>
-                </div>
+                </div> */}
+                
+                <button
+                  onClick={() => {
+                    setIsProfileModalOpen(true);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="bg-[#DC8B18] text-white w-full py-2 rounded-lg font-semibold shadow-lg transform hover:scale-[1.02] transition-all duration-300 text-[15px]"
+                >
+                  Profile
+                </button>
                 <Button
                   onClick={() => {
                     logout();
@@ -178,13 +197,13 @@ const Navbar: React.FC = () => {
                 </Button>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-2">
                 <Button
                   onClick={() => {
                     setIsLoginModalOpen(true);
                     setIsMobileMenuOpen(false);
                   }}
-                  className="bg-transparent border-2 text-[15px] border-[#111826] dark:border-gray-400 text-[#111826] dark:text-gray-300 hover:bg-[#111826] hover:text-white dark:hover:bg-gray-400 dark:hover:text-gray-900 w-full py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-[1.02]"
+                  className="bg-[#DC8B18] text-white text-[15px] w-full py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-[1.02]"
                 >
                   Log in
                 </Button>
@@ -197,23 +216,13 @@ const Navbar: React.FC = () => {
                     setIsSignUpModalOpen(true);
                     setIsMobileMenuOpen(false);
                   }}
-                  className="bg-gradient-to-r from-[#DC8B18] to-[#D946EF] text-white hover:from-[#A21CAF] hover:to-[#DC8B18] w-full py-3 rounded-xl font-semibold shadow-lg transition-all duration-300 transform hover:scale-[1.02] text-[15px]"
+                  className="bg-transparent border border-[#DC8B18] text-[#DC8B18] text-[15px] w-full py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-[1.02]"
                 >
                   Sign up
                 </Button>
               </div>
             )}
-            <div className="flex items-center justify-between pt-6 mt-2 border-t border-gray-200 dark:border-gray-700">
-              <span className="text-[#111826] dark:text-[#94A3B7] font-semibold">
-                Theme
-              </span>
-              <img
-                onClick={toggleDarkMode}
-                src={isDarkMode ? moon : sun}
-                alt={isDarkMode ? "light mode" : "dark mode"}
-                className="w-6 h-6 cursor-pointer"
-              />
-            </div>
+
           </div>
         </div>
       )}
@@ -271,10 +280,8 @@ const Navbar: React.FC = () => {
               onClick={() => setIsStatsModalOpen(true)}
             /> */}
 
-            <img
-              src={profileImg}
-              alt="profile image"
-              className="cursor-pointer text-[#DC8B18]"
+            <CircleUserRound
+              className="cursor-pointer text-[#DC8B18] w-6 h-6"
               onClick={() => setIsProfileModalOpen(true)}
             />
 

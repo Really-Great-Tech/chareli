@@ -44,7 +44,7 @@ export default function GameActivity() {
                   colSpan={5}
                   className="text-center py-6 bg-[#F8FAFC] dark:bg-[#0F1221]"
                 >
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D946EF] mx-auto"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#DC8B18] mx-auto"></div>
                 </TableCell>
               </TableRow>
             </TableBody>
@@ -202,10 +202,10 @@ export default function GameActivity() {
               <div className="flex items-center gap-1 order-1 sm:order-2">
                 {/* Previous button */}
                 <button
-                  className={`w-8 h-8 rounded-full transition-colors border border-[#D946EF] ${
+                  className={`w-8 h-8 rounded-full transition-colors border border-[#DC8B18] ${
                     gamePage === 1
                       ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
-                      : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                      : "hover:bg-[#C17600] text-white dark:text-white"
                   }`}
                   onClick={() => setGamePage(Math.max(1, gamePage - 1))}
                   disabled={gamePage === 1}
@@ -214,14 +214,14 @@ export default function GameActivity() {
                 </button>
 
                 {/* Mobile: Show only current page info */}
-                <div className="sm:hidden flex items-center gap-1 px-3 py-1 rounded-full border border-[#D946EF]">
+                <div className="sm:hidden flex items-center gap-1 px-3 py-1 rounded-full border border-[#DC8B18]">
                   <span className="text-sm text-black dark:text-white">
                     {gamePage} / {totalGamePages}
                   </span>
                 </div>
 
                 {/* Desktop: Show page numbers with smart truncation */}
-                <div className="hidden sm:flex items-center gap-1 rounded-full border border-[#D946EF] p-1">
+                <div className="hidden sm:flex items-center gap-1 rounded-full border border-[#DC8B18] p-1">
                   {(() => {
                     const pages = [];
                     const maxVisiblePages = 5;
@@ -234,8 +234,8 @@ export default function GameActivity() {
                             key={i}
                             className={`w-8 h-8 rounded-full transition-colors ${
                               gamePage === i
-                                ? "bg-[#D946EF] text-white"
-                                : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                                ? "bg-[#DC8B18] text-white"
+                                : "hover:bg-[#C17600] text-white dark:text-white"
                             }`}
                             onClick={() => setGamePage(i)}
                           >
@@ -255,8 +255,8 @@ export default function GameActivity() {
                             key={1}
                             className={`w-8 h-8 rounded-full transition-colors ${
                               gamePage === 1
-                                ? "bg-[#D946EF] text-white"
-                                : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                                ? "bg-[#DC8B18] text-white"
+                                : "hover:bg-[#C17600] text-white dark:text-white"
                             }`}
                             onClick={() => setGamePage(1)}
                           >
@@ -279,8 +279,8 @@ export default function GameActivity() {
                             key={i}
                             className={`w-8 h-8 rounded-full transition-colors ${
                               gamePage === i
-                                ? "bg-[#D946EF] text-white"
-                                : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                                ? "bg-[#DC8B18] text-white"
+                                : "hover:bg-[#C17600] text-white dark:text-white"
                             }`}
                             onClick={() => setGamePage(i)}
                           >
@@ -303,8 +303,8 @@ export default function GameActivity() {
                             key={totalGamePages}
                             className={`w-8 h-8 rounded-full transition-colors ${
                               gamePage === totalGamePages
-                                ? "bg-[#D946EF] text-white"
-                                : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                                ? "bg-[#DC8B18] text-white"
+                                : "hover:bg-[#C17600] text-white dark:text-white"
                             }`}
                             onClick={() => setGamePage(totalGamePages)}
                           >
@@ -320,10 +320,10 @@ export default function GameActivity() {
 
                 {/* Next button */}
                 <button
-                  className={`w-8 h-8 rounded-full transition-colors border border-[#D946EF] ${
+                  className={`w-8 h-8 rounded-full transition-colors border border-[#DC8B18] ${
                     gamePage === totalGamePages
                       ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
-                      : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                      : "hover:bg-[#C17600] text-white dark:text-white"
                   }`}
                   onClick={() => setGamePage(Math.min(totalGamePages, gamePage + 1))}
                   disabled={gamePage === totalGamePages}

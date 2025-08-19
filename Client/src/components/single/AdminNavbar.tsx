@@ -47,9 +47,9 @@ const AdminNavbar: React.FC = () => {
         onClick={() => navigate("/")}
         className="cursor-pointer flex justify-center items-center bg-gradient-to-t from-[#121C2D] to-[#475568] rounded-br-[40px] py-2 px-8 -mt-4 -ml-4"
       >
-        <img src={Logo} alt="logo" className="w-10 pt-4" />
+        <img src={Logo} alt="logo" className="w-12 pt-4" />
         <p className="text-[20.22px] text-center text-white dark:text-white font-bold font-jersey pt-4">
-          ARCADES BOX
+          Arcades Box
         </p>
       </div>
 

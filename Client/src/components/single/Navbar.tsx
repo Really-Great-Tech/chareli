@@ -9,6 +9,8 @@ import { useTrackSignupClick } from "../../backend/signup.analytics.service";
 import { getVisitorSessionId } from "../../utils/sessionUtils";
 import { usePermissions } from "../../hooks/usePermissions";
 import Logo from "../../assets/logo.svg";
+import aboutIcon from "../../assets/about.svg";
+import categoryIcon from "../../assets/category.svg";
 
 import sun from "../../assets/sun.svg";
 import moon from "../../assets/moon.svg";
@@ -64,27 +66,29 @@ const Navbar: React.FC = () => {
         onClick={() => navigate("/")}
         className="cursor-pointer flex justify-center items-center bg-gradient-to-t from-[#121C2D] to-[#475568] rounded-br-[40px] py-2 px-8 -mt-4 -ml-4"
       >
-        <img src={Logo} alt="logo" className="w-10 pt-4 " />
+        <img src={Logo} alt="logo" className="w-12 pt-4 " />
         <p className="text-[20.22px] text-center text-white dark:text-white font-bold font-jersey pt-4">
-          ARCADES BOX
+          Arcades Box
         </p>
       </div>
 
-      {/* Desktop Navigation */}
-      {/* <div className="hidden md:flex gap-4 text-[16px] font-bold text-[#111826] dark:text-white items-center justify-center">
+      {/* Desktop Navigation - Center */}
+      <div className="hidden md:flex gap-4 text-[16px] font-bold text-white items-center justify-center flex-1">
         <Link
           to="/about"
-          className="hover:bg-[#D946EF] hover:text-white px-4 py-2 rounded-md"
+          className="bg-[#DC8B18] text-white px-4 py-2 rounded-md transition-colors duration-300 hover:bg-[#C17600] flex items-center gap-2"
         >
+          <img src={aboutIcon} alt="About" className="w-5 h-5" />
           About Us
         </Link>
         <Link
           to="/categories"
-          className="hover:bg-[#D946EF] hover:text-white px-4 py-2 rounded-md"
+          className="bg-[#DC8B18] text-white px-4 py-2 rounded-md transition-colors duration-300 hover:bg-[#C17600] flex items-center gap-2"
         >
+          <img src={categoryIcon} alt="Category" className="w-5 h-5" />
           Categories
         </Link>
-      </div> */}
+      </div>
 
       {/* Mobile Menu Button and Theme Toggle */}
       <div className="md:hidden flex items-center space-x-2 mx-2">
@@ -285,46 +289,16 @@ const Navbar: React.FC = () => {
               onClick={() => setIsProfileModalOpen(true)}
             /> */}
 
-            {/* Desktop Menu Dropdown for Authenticated Users */}
-            <div className="relative desktop-menu-container">
-              <Button
-                onClick={() => setIsDesktopMenuOpen(!isDesktopMenuOpen)}
-                className="bg-[#334154] text-white hover:bg-[#475568]"
-              >
-                <Menu className="w-[21px] h-[21px]" />
-              </Button>
-              
-              {isDesktopMenuOpen && (
-                <div className="absolute top-full right-0 mt-2 bg-white dark:bg-[#0f1221] shadow-lg z-50 border border-gray-200 dark:border-gray-800 rounded-lg min-w-[200px]">
-                  <div className="flex flex-col p-4 gap-2">
-                    <Link
-                      to="/about"
-                      className="block text-[#111826] dark:text-white border-1 border-transparent hover:border-[#DC8B18] px-4 py-3 rounded-xl font-semibold transition-all duration-300"
-                      onClick={() => setIsDesktopMenuOpen(false)}
-                    >
-                      About Us
-                    </Link>
-                    <Link
-                      to="/categories"
-                      className="block text-[#111826] dark:text-white border-1 border-transparent hover:border-[#DC8B18] px-4 py-3 rounded-xl font-semibold transition-all duration-300"
-                      onClick={() => setIsDesktopMenuOpen(false)}
-                    >
-                      Categories
-                    </Link>
-                    <Button
-                      onClick={() => {
-                        logout();
-                        navigate("/");
-                        setIsDesktopMenuOpen(false);
-                      }}
-                      className="bg-transparent border border-red-500 text-red-500 hover:bg-red-500 hover:text-white cursor-pointer text-[15px] mt-2"
-                    >
-                      Logout
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
+            {/* Logout Button */}
+            <Button
+              onClick={() => {
+                logout();
+                navigate("/");
+              }}
+              className="bg-transparent border border-red-500 text-red-500 hover:bg-red-500 hover:text-white cursor-pointer text-[15px]"
+            >
+              Logout
+            </Button>
           </>
         ) : (
           <>
@@ -348,7 +322,7 @@ const Navbar: React.FC = () => {
             </Button>
 
             {/* Desktop Menu Dropdown */}
-            <div className="relative desktop-menu-container">
+            {/* <div className="relative desktop-menu-container">
               <Button
                 onClick={() => setIsDesktopMenuOpen(!isDesktopMenuOpen)}
                 className="bg-[#334154] text-white hover:bg-[#475568]"
@@ -359,24 +333,13 @@ const Navbar: React.FC = () => {
               {isDesktopMenuOpen && (
                 <div className="absolute top-full right-0 mt-2 bg-white dark:bg-[#0f1221] shadow-lg z-50 border border-gray-200 dark:border-gray-800 rounded-lg min-w-[200px]">
                   <div className="flex flex-col p-4 gap-2">
-                    <Link
-                      to="/about"
-                      className="block text-[#111826] dark:text-white border-1 border-transparent hover:border-[#DC8B18] px-4 py-3 rounded-xl font-semibold transition-all duration-300"
-                      onClick={() => setIsDesktopMenuOpen(false)}
-                    >
-                      About Us
-                    </Link>
-                    <Link
-                      to="/categories"
-                      className="block text-[#111826] dark:text-white border-1 border-transparent hover:border-[#DC8B18] px-4 py-3 rounded-xl font-semibold transition-all duration-300"
-                      onClick={() => setIsDesktopMenuOpen(false)}
-                    >
-                      Categories
-                    </Link>
+                    <span className="text-[#111826] dark:text-white px-4 py-2 text-sm text-center">
+                      Quick access menu
+                    </span>
                   </div>
                 </div>
               )}
-            </div>
+            </div> */}
 
           </>
         )}

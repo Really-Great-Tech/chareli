@@ -266,7 +266,7 @@ export default function UserActivityLog() {
                     className={`w-8 h-8 rounded-full transition-colors border border-[#DC8B18] ${
                       activityPage === 1
                         ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
-                        : "hover:bg-[#C17600] text-white dark:text-white"
+                        : "hover:bg-[#C17600] text-black dark:text-white"
                     }`}
                     onClick={() => setActivityPage(Math.max(1, activityPage - 1))}
                     disabled={activityPage === 1}
@@ -296,7 +296,7 @@ export default function UserActivityLog() {
                               className={`w-8 h-8 rounded-full transition-colors ${
                                 activityPage === i
                                   ? "bg-[#DC8B18] text-white"
-                                  : "hover:bg-[#C17600] text-white dark:text-white"
+                                  : "hover:bg-[#C17600] text-black dark:text-white"
                               }`}
                               onClick={() => setActivityPage(i)}
                             >
@@ -317,7 +317,7 @@ export default function UserActivityLog() {
                               className={`w-8 h-8 rounded-full transition-colors ${
                                 activityPage === 1
                                   ? "bg-[#DC8B18] text-white"
-                                  : "hover:bg-[#C17600] text-white dark:text-white"
+                                  : "hover:bg-[#C17600] text-black dark:text-white"
                               }`}
                               onClick={() => setActivityPage(1)}
                             >
@@ -341,7 +341,7 @@ export default function UserActivityLog() {
                               className={`w-8 h-8 rounded-full transition-colors ${
                                 activityPage === i
                                   ? "bg-[#DC8B18] text-white"
-                                  : "hover:bg-[#C17600] text-white dark:text-white"
+                                  : "hover:bg-[#C17600] text-black dark:text-white"
                               }`}
                               onClick={() => setActivityPage(i)}
                             >
@@ -365,7 +365,7 @@ export default function UserActivityLog() {
                               className={`w-8 h-8 rounded-full transition-colors ${
                                 activityPage === totalActivityPages
                                   ? "bg-[#DC8B18] text-white"
-                                  : "hover:bg-[#C17600] text-white dark:text-white"
+                                  : "hover:bg-[#C17600] text-black dark:text-white"
                               }`}
                               onClick={() => setActivityPage(totalActivityPages)}
                             >
@@ -384,7 +384,7 @@ export default function UserActivityLog() {
                     className={`w-8 h-8 rounded-full transition-colors border border-[#DC8B18] ${
                       activityPage === totalActivityPages
                         ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
-                        : "hover:bg-[#C17600] text-white dark:text-white"
+                        : "hover:bg-[#C17600] text-black dark:text-white"
                     }`}
                     onClick={() => setActivityPage(Math.min(totalActivityPages, activityPage + 1))}
                     disabled={activityPage === totalActivityPages}

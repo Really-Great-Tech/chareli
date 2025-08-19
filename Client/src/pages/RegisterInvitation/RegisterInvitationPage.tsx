@@ -40,7 +40,7 @@ export function RegisterInvitationPage() {
             </p>
             <Button
               onClick={() => navigate("/")}
-              className="bg-[#D946EF] dark:text-white hover:text-[#D946EF] hover:bg-[#F3E8FF]"
+              className="bg-[#DC8B18] dark:text-white hover:text-[#DC8B18] hover:bg-[#FEF3C7]"
             >
               Return to Home
             </Button>
@@ -71,7 +71,7 @@ export function RegisterInvitationPage() {
                 <div className="space-y-4">
                   <Button
                     onClick={() => setIsLoginModalOpen(true)}
-                    className="w-full bg-[#D946EF] dark:text-white hover:text-[#D946EF] hover:bg-[#F3E8FF]"
+                    className="w-full bg-[#DC8B18] dark:text-white hover:text-[#DC8B18] hover:bg-[#FEF3C7]"
                   >
                     Log In Now
                   </Button>

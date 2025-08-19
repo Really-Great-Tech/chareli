@@ -53,10 +53,10 @@ const MultiSelect = React.forwardRef<any, MultiSelectProps>(
           ...theme,
           colors: {
             ...theme.colors,
-            primary: '#D946EF',
-            primary75: '#D946EF',
-            primary50: '#F3E8FF',
-            primary25: '#F3E8FF',
+            primary: '#DC8B18',
+            primary75: '#DC8B18',
+            primary50: '#FFF7ED',
+            primary25: '#FFF7ED',
           },
         })}
         styles={{
@@ -70,7 +70,7 @@ const MultiSelect = React.forwardRef<any, MultiSelectProps>(
           }),
           multiValue: (provided) => ({
             ...provided,
-            backgroundColor: '#D946EF',
+            backgroundColor: '#DC8B18',
             borderRadius: '6px',
           }),
           multiValueLabel: (provided) => ({

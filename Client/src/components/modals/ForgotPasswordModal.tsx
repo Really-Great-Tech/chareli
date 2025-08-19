@@ -153,7 +153,7 @@ export function ForgotPasswordModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <CustomDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221]">
         <button
-          className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#C026D3] flex items-center justify-center shadow-lg hover:bg-[#a21caf] transition-colors"
+          className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#DC8B18] flex items-center justify-center shadow-lg hover:bg-[#C17600] transition-colors"
           onClick={() => onOpenChange(false)}
           aria-label="Close"
           style={{ border: "none" }}
@@ -161,7 +161,7 @@ export function ForgotPasswordModal({
           <span className="text-white text-2xl font-bold">×</span>
         </button>
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-[#E328AF] text-center font-dmmono">
+          <DialogTitle className="text-2xl font-bold text-[#FFAA33] text-center font-dmmono">
             {isSubmitted ? "Reset Instructions Sent" : "Forgot Password"}
           </DialogTitle>
           <div className="flex font-dmmono text-xl tracking-wide">
@@ -169,7 +169,7 @@ export function ForgotPasswordModal({
               <button
                 className={`flex-1 py-2 font-semibold ${
                   activeTab === "email"
-                    ? "text-[#E328AF] border-b-2 border-[#E328AF]"
+                    ? "text-[#DC8B18] border-b-2 border-[#DC8B18]"
                     : "text-gray-500"
                 }`}
                 onClick={() => {
@@ -184,7 +184,7 @@ export function ForgotPasswordModal({
               <button
                 className={`flex-1 py-2 font-semibold ${
                   activeTab === "phone"
-                    ? "text-[#E328AF] border-b-2 border-[#E328AF]"
+                    ? "text-[#DC8B18] border-b-2 border-[#DC8B18]"
                     : "text-gray-500"
                 }`}
                 onClick={() => {
@@ -211,7 +211,7 @@ export function ForgotPasswordModal({
                   <Button
                     type="button"
                     onClick={resetForm}
-                    className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-dmmono"
+                    className="w-full bg-[#DC8B18] hover:bg-[#C17600] text-white font-dmmono cursor-pointer"
                   >
                     Try Again
                   </Button>
@@ -320,7 +320,7 @@ export function ForgotPasswordModal({
                     <Button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-dmmono cursor-pointer"
+                      className="w-full bg-[#DC8B18] hover:bg-[#C17600] text-white font-dmmono cursor-pointer"
                     >
                       {isSubmitting ? "Sending..." : "Send Reset Instructions"}
                     </Button>

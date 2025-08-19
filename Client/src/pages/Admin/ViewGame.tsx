@@ -41,7 +41,7 @@ export default function ViewGame() {
   if (isLoading) {
     return (
       <div className="p-8 flex justify-center items-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D946EF]"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#DC8B18]"></div>
       </div>
     );
   }
@@ -66,7 +66,7 @@ export default function ViewGame() {
               placeholder={gameImg}
               className="w-full h-full object-cover"
               loadingClassName="rounded-full"
-              spinnerColor="#D946EF"
+              spinnerColor="#DC8B18"
               rootMargin="50px"
             />
           </div>
@@ -78,7 +78,7 @@ export default function ViewGame() {
               <span
                 className={`inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 rounded font-dmmono text-xs sm:text-sm tracking-wider ${
                   (game as any).game?.status === "active"
-                    ? "bg-[#D946EF]/20 dark:bg-[#E879F9] text-[#121C2D]"
+                    ? "bg-[#DC8B18]/20 dark:bg-[#FFAA33] text-[#121C2D]"
                     : "bg-[#CBD5E0] text-[#121C2D]"
                 }`}
               >
@@ -108,7 +108,7 @@ export default function ViewGame() {
                   Edit <CiEdit className="dark:text-white" />
                 </Button>
                 <Button
-                  className="flex items-center justify-center gap-2 w-full bg-[#D946EF] text-white tracking-wider hover:bg-[#c026d3] cursor-pointer"
+                  className="flex items-center justify-center gap-2 w-full bg-[#DC8B18] text-white tracking-wider hover:bg-[#C17600] cursor-pointer"
                   onClick={() => setShowDisableModal(true)}
                 >
                   {(game as any).game?.status === "active" ? "Disable" : "Enable"}{" "}
@@ -184,7 +184,7 @@ export default function ViewGame() {
           </div>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl p-4 flex gap-4">
-              <div className="bg-[#F0ABFC] rounded-full px-3 py-3 items-center">
+              <div className="bg-[#DC8B18] rounded-full px-3 py-3 items-center">
                 <FiClock className="w-8 h-8  text-white dark:text-[#OF1621]" />
               </div>
               <div className="flex flex-col justify-start">
@@ -197,7 +197,7 @@ export default function ViewGame() {
               </div>
             </div>
             <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl p-4 flex gap-4">
-              <div className="bg-[#F0ABFC] rounded-full px-3 py-3">
+              <div className="bg-[#DC8B18] rounded-full px-3 py-3">
                 <LuGamepad2 className="w-8 h-8 text-white dark:text-[#OF1621]" />
               </div>
               <div className="flex flex-col justify-start">
@@ -210,7 +210,7 @@ export default function ViewGame() {
               </div>
             </div>
             <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl p-4 flex-1 flex gap-4">
-              <div className="bg-[#F0ABFC] rounded-full px-3 py-3">
+              <div className="bg-[#DC8B18] rounded-full px-3 py-3">
                 <TbCalendarClock className="w-8 h-8 text-white dark:text-[#OF1621]" />
               </div>
               <div className="flex flex-col justify-start">

@@ -171,7 +171,7 @@ export function EditCategory({
                     type="submit"
                     disabled={isSubmitting}
                     variant="default"
-                    className="bg-[#D946EF] hover:bg-accent dark:text-white cursor-pointer"
+                    className="bg-[#DC8B18] hover:bg-accent dark:text-white cursor-pointer"
                   >
                     {isSubmitting ? "Updating..." : "Update"}
                   </Button>

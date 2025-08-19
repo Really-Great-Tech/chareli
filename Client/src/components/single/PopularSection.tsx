@@ -84,7 +84,7 @@ const PopularSection = ({
             </div>
           )}
           {!isLoading && !error && games.length === 0 && searchQuery && (
-            <div className="text-center py-8 min-h-[60vh] flex flex-col items-center justify-center gap-4 text-[#C026D3] text-4xl">
+            <div className="text-center py-8 min-h-[60vh] flex flex-col items-center justify-center gap-4 text-[#C17600] text-4xl">
               <img
                 src={emptyGameImg}
                 alt="No games"

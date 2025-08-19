@@ -381,7 +381,7 @@ const ActivityLogExportModal = ({
           header: {
             fontSize: 18,
             bold: true,
-            color: '#D946EF'
+            color: '#DC8B18'
           },
           subheader: {
             fontSize: 14,
@@ -425,7 +425,7 @@ const ActivityLogExportModal = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-[#D946EF] text-white hover:bg-[#c026d3] tracking-wider py-2 cursor-pointer">
+        <Button className="bg-[#DC8B18] text-white hover:bg-[#C17600] tracking-wider py-2 cursor-pointer">
           <Download size={16} className="mr-2" />
           Export
         </Button>

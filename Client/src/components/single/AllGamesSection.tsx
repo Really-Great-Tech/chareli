@@ -51,6 +51,7 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
     <div className="p-4">
       <div>
         <h1 className="text-[#DC8B18] text-3xl mb-4 font-worksans">All Games</h1>
+        <h1 className="text-[#DC8B18] text-3xl mb-4 font-worksans">All Games</h1>
       </div>
       {/* filtering tabs */}
       <div className="relative mb-8">

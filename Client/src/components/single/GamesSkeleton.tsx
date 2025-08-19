@@ -10,7 +10,7 @@ const GamesSkeleton = ({ count = 4, showCategories = false }: GamesSkeletonProps
         <div className="w-full">
             {/* Title Skeleton */}
             <div className="mb-4">
-                <div className="h-8 w-48 bg-gradient-to-r from-[#0f1221] via-[#D946EF]/10 to-[#0f1221] animate-shimmer rounded-lg"></div>
+                <div className="h-8 w-48 bg-gradient-to-r from-[#0f1221] via-[#C17600]/10 to-[#0f1221] animate-shimmer rounded-lg"></div>
             </div>
 
             {/* Categories Skeleton */}
@@ -19,7 +19,7 @@ const GamesSkeleton = ({ count = 4, showCategories = false }: GamesSkeletonProps
                     {[...Array(7)].map((_, i) => (
                         <div 
                             key={i}
-                            className="h-10 w-24 bg-gradient-to-r from-[#0f1221] via-[#D946EF]/10 to-[#0f1221] animate-shimmer rounded-lg"
+                            className="h-10 w-24 bg-gradient-to-r from-[#0f1221] via-[#C17600]/10 to-[#0f1221] animate-shimmer rounded-lg"
                         ></div>
                     ))}
                 </div>
@@ -31,7 +31,7 @@ const GamesSkeleton = ({ count = 4, showCategories = false }: GamesSkeletonProps
                     {[...Array(count)].map((_, i) => (
                         <div key={i} className="relative p-[10px] group">
                             <div className="relative h-[290px] rounded-[32px] overflow-hidden">
-                                <div className="absolute inset-0 bg-gradient-to-r from-[#0f1221] via-[#D946EF]/10 to-[#0f1221] animate-shimmer"></div>
+                                <div className="absolute inset-0 bg-gradient-to-r from-[#0f1221] via-[#C17600]/10 to-[#0f1221] animate-shimmer"></div>
                             </div>
                         </div>
                     ))}

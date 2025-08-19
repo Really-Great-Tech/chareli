@@ -64,14 +64,14 @@ const GameLoadingScreen = ({
     >
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
       <div className="relative z-10 flex flex-col items-center">
-        <ImSpinner8 className="w-16 h-16 text-[#D946EF] animate-spin" />
+        <ImSpinner8 className="w-16 h-16 text-[#DC8B18] animate-spin" />
         <h2 className="mt-4 text-2xl font-dmmono text-white">{game.title}</h2>
-        <p className="mt-2 text-[#D946EF]">Getting your game ready...</p>
+        <p className="mt-2 text-[#DC8B18]">Getting your game ready...</p>
 
         {/* Progress Bar */}
         <div className="w-64 h-2 mt-4 bg-gray-700 rounded-full overflow-hidden">
           <div
-            className="h-full bg-[#D946EF] transition-all duration-300 ease-out"
+            className="h-full bg-[#DC8B18] transition-all duration-300 ease-out"
             style={{ width: `${Math.min(progress, 100)}%` }}
           />
         </div>

@@ -156,7 +156,7 @@ export default function UserManagement() {
   return (
     <div className="px-3">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-        <h1 className="text-[#D946EF] text-2xl sm:text-3xl font-worksans">
+        <h1 className="text-[#DC8B18] text-2xl sm:text-3xl font-worksans">
           User Management
         </h1>
         <div className="flex flex-col sm:flex-row flex-wrap gap-3 justify-end">
@@ -186,7 +186,7 @@ export default function UserManagement() {
                   className="border-[#475568] text-[#475568] flex items-center gap-2 dark:text-white py-5 cursor-pointer"
                 >
                   Filter
-                  <div className="text-[#D946EF] bg-[#FAE8FF] px-2 sm:px-3 py-1 rounded-full text-sm">
+                  <div className="text-[#DC8B18] bg-[#FFF7ED] px-2 sm:px-3 py-1 rounded-full text-sm">
                     {
                       Object.entries(filters).filter(([, value]) =>
                         typeof value === "object"
@@ -216,7 +216,7 @@ export default function UserManagement() {
       <div className="col-span-1 md:col-span-2 lg:col-span-4">
         <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
           <div className="flex justify-between p-4 text-3xl">
-            <p className="text-xl dark:text-[#D946EF]">Recent User Activity</p>
+            <p className="text-xl dark:text-[#DC8B18]">Recent User Activity</p>
             {/* <p className="text-xl cursor-pointer">View All</p> */}
           </div>
           
@@ -344,10 +344,10 @@ export default function UserManagement() {
                     <div className="flex items-center gap-1 order-1 sm:order-2">
                       {/* Previous button */}
                       <button
-                        className={`w-8 h-8 rounded-full transition-colors border border-[#D946EF] ${
+                        className={`w-8 h-8 rounded-full transition-colors border border-[#C17600] ${
                           page === 1
                             ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
-                            : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                            : "hover:bg-[#FFF7ED] text-black dark:text-white"
                         }`}
                         onClick={() => setPage(Math.max(1, page - 1))}
                         disabled={page === 1}
@@ -356,14 +356,14 @@ export default function UserManagement() {
                       </button>
 
                       {/* Mobile: Show only current page info */}
-                      <div className="sm:hidden flex items-center gap-1 px-3 py-1 rounded-full border border-[#D946EF]">
+                      <div className="sm:hidden flex items-center gap-1 px-3 py-1 rounded-full border border-[#C17600]">
                         <span className="text-sm text-black dark:text-white">
                           {page} / {Math.ceil((filteredUsers?.length || 0) / usersPerPage)}
                         </span>
                       </div>
 
                       {/* Desktop: Show page numbers with smart truncation */}
-                      <div className="hidden sm:flex items-center gap-1 rounded-full border border-[#D946EF] p-1">
+                      <div className="hidden sm:flex items-center gap-1 rounded-full border border-[#C17600] p-1">
                         {(() => {
                           const pages = [];
                           const totalPages = Math.ceil((filteredUsers?.length || 0) / usersPerPage);
@@ -377,8 +377,8 @@ export default function UserManagement() {
                                   key={i}
                                   className={`w-8 h-8 rounded-full transition-colors ${
                                     page === i
-                                      ? "bg-[#D946EF] text-white"
-                                      : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                                      ? "bg-[#DC8B18] text-white"
+                                      : "hover:bg-[#FFF7ED] text-black dark:text-white"
                                   }`}
                                   onClick={() => setPage(i)}
                                 >
@@ -398,8 +398,8 @@ export default function UserManagement() {
                                   key={1}
                                   className={`w-8 h-8 rounded-full transition-colors ${
                                     page === 1
-                                      ? "bg-[#D946EF] text-white"
-                                      : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                                      ? "bg-[#DC8B18] text-white"
+                                      : "hover:bg-[#FFF7ED] text-black dark:text-white"
                                   }`}
                                   onClick={() => setPage(1)}
                                 >
@@ -422,8 +422,8 @@ export default function UserManagement() {
                                   key={i}
                                   className={`w-8 h-8 rounded-full transition-colors ${
                                     page === i
-                                      ? "bg-[#D946EF] text-white"
-                                      : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                                      ? "bg-[#DC8B18] text-white"
+                                      : "hover:bg-[#FFF7ED] text-black dark:text-white"
                                   }`}
                                   onClick={() => setPage(i)}
                                 >
@@ -446,8 +446,8 @@ export default function UserManagement() {
                                   key={totalPages}
                                   className={`w-8 h-8 rounded-full transition-colors ${
                                     page === totalPages
-                                      ? "bg-[#D946EF] text-white"
-                                      : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                                      ? "bg-[#DC8B18] text-white"
+                                      : "hover:bg-[#FFF7ED] text-black dark:text-white"
                                   }`}
                                   onClick={() => setPage(totalPages)}
                                 >
@@ -463,10 +463,10 @@ export default function UserManagement() {
 
                       {/* Next button */}
                       <button
-                        className={`w-8 h-8 rounded-full transition-colors border border-[#D946EF] ${
+                        className={`w-8 h-8 rounded-full transition-colors border border-[#C17600] ${
                           page === Math.ceil((filteredUsers?.length || 0) / usersPerPage)
                             ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
-                            : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                            : "hover:bg-[#FFF7ED] text-black dark:text-white"
                         }`}
                         onClick={() => setPage(Math.min(Math.ceil((filteredUsers?.length || 0) / usersPerPage), page + 1))}
                         disabled={page === Math.ceil((filteredUsers?.length || 0) / usersPerPage)}

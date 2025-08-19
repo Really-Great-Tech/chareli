@@ -28,11 +28,11 @@ export function ToggleGameStatusModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <CustomDialogContent 
         className="bg-white dark:bg-[#232B3B] rounded-2xl shadow-lg p-4 sm:p-8 min-w-[320px] max-w-[90vw] w-full sm:w-[480px] border-none font-dmmono tracking-wide"
-        style={{ boxShadow: "0 2px 4px 2px #e879f9" }}
+        style={{ boxShadow: "0 2px 4px 2px #DC8B18" }}
       >
         {/* Custom Close Button */}
         <button
-          className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#C026D3] flex items-center justify-center shadow-lg hover:bg-[#a21caf] transition-colors z-10"
+          className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#DC8B18] flex items-center justify-center shadow-lg hover:bg-[#C17600] transition-colors z-10"
           onClick={() => onOpenChange(false)}
           aria-label="Close"
         >
@@ -63,7 +63,7 @@ export function ToggleGameStatusModal({
             Cancel
           </Button>
           <Button
-            className="w-full sm:w-auto h-10 sm:h-12 text-sm rounded-lg bg-[#D946EF] text-white tracking-wider hover:bg-[#c026d3] order-1 sm:order-2 cursor-pointer"
+            className="w-full sm:w-auto h-10 sm:h-12 text-sm rounded-lg bg-[#DC8B18] text-white tracking-wider hover:bg-[#C17600] order-1 sm:order-2 cursor-pointer"
             onClick={onConfirm}
             disabled={isToggling}
           >

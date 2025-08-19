@@ -44,12 +44,12 @@ export default function GameCategories() {
   return (
     <div className="p-8">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
-        <h1 className="text-lg sm:text-3xl font-worksans text-[#D946EF]">
+        <h1 className="text-lg sm:text-3xl font-worksans text-[#DC8B18]">
           Game category
         </h1>
         {permissions.canManageGames && (
           <button
-            className="bg-[#D946EF] text-white px-3 py-2 sm:py-3 rounded-lg text-sm sm:text-base tracking-wide hover:bg-[#D946EF] transition self-start sm:self-auto font-dmmono cursor-pointer"
+            className="bg-[#DC8B18] text-white px-3 py-2 sm:py-3 rounded-lg text-sm sm:text-base tracking-wide hover:bg-[#C17600] transition self-start sm:self-auto font-dmmono cursor-pointer"
             onClick={() => setCreateOpen(true)}
           >
             Create New Category
@@ -81,7 +81,7 @@ export default function GameCategories() {
                     {cat.name}
                   </h2>
                   {cat.isDefault && (
-                    <span className="bg-[#D946EF] text-white text-xs px-2 py-1 rounded-full font-medium">
+                    <span className="bg-[#DC8B18] text-white text-xs px-2 py-1 rounded-full font-medium">
                       Default
                     </span>
                   )}
@@ -118,7 +118,7 @@ export default function GameCategories() {
               <p className="text-[#475568] mb-2 font-worksans text-base tracking-wider dark:text-white">
                 {cat.description || "No description"}
               </p>
-              <span className="text-[#D946EF] font-bold text-sm shadow-none tracking-wider">
+              <span className="text-[#DC8B18] font-bold text-sm shadow-none tracking-wider">
                 {(games as any)?.filter(
                   (game: any) => game.categoryId === cat.id
                 ).length || 0}{" "}

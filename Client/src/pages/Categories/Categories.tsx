@@ -209,7 +209,7 @@ export default function Categories() {
                       setSelectedSecondary(null);
                     }}
                   >
-                    All Games
+                    All Categories
                   </button>
                 </li>
                 {categories.map((cat) => {
@@ -318,7 +318,7 @@ export default function Categories() {
                           alt={game.title}
                           className="w-full h-full object-cover"
                           loadingClassName="rounded-[16px]"
-                          spinnerColor="#D946EF"
+                          spinnerColor="#DC8B18"
                           rootMargin="50px"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent group-hover:opacity-100 transition-opacity duration-300 lg:opacity-0 lg:group-hover:opacity-100 rounded-[16px]">

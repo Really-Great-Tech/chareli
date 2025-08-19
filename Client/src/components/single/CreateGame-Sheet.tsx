@@ -349,7 +349,7 @@ export function CreateGameSheet({
                   id="position"
                   name="position"
                   min="1"
-                  className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white bg-[#F1F5F9] dark:bg-[#121C2D] px-3 text-gray-700 focus:border-[#D946EF] focus:outline-none font-worksans tracking-wider text-sm"
+                  className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white bg-[#F1F5F9] dark:bg-[#121C2D] px-3 text-gray-700 focus:border-[#DC8B18] focus:outline-none font-worksans tracking-wider text-sm"
                   placeholder="e.g., 1, 2, 3..."
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-worksans">
@@ -374,7 +374,7 @@ export function CreateGameSheet({
                   as={Input}
                   id="title"
                   name="title"
-                  className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white bg-[#F1F5F9] dark:bg-[#121C2D] px-3 text-gray-700 focus:border-[#D946EF] focus:outline-none font-worksans tracking-wider text-sm"
+                  className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white bg-[#F1F5F9] dark:bg-[#121C2D] px-3 text-gray-700 focus:border-[#DC8B18] focus:outline-none font-worksans tracking-wider text-sm"
                   placeholder="Enter game title"
                 />
                 <ErrorMessage
@@ -396,7 +396,7 @@ export function CreateGameSheet({
                   as="textarea"
                   id="description"
                   name="description"
-                  className="w-full min-h-[80px] rounded-md border border-[#CBD5E0] dark:text-white dark:bg-[#121C2D] bg-[#F1F5F9] px-3 py-2 font-worksans text-sm tracking-wider  text-gray-700 focus:border-[#D946EF] focus:outline-none resize-none"
+                  className="w-full min-h-[80px] rounded-md border border-[#CBD5E0] dark:text-white dark:bg-[#121C2D] bg-[#F1F5F9] px-3 py-2 font-worksans text-sm tracking-wider  text-gray-700 focus:border-gray-500 focus:outline-none resize-none"
                   placeholder="Description"
                 />
                 <ErrorMessage
@@ -492,7 +492,7 @@ export function CreateGameSheet({
                   id="config"
                   name="config"
                   min="1"
-                  className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white dark:bg-[#121C2D] bg-[#F1F5F9] px-3 font-worksans text-sm tracking-wider  text-gray-700 focus:border-[#D946EF] focus:outline-none"
+                  className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white dark:bg-[#121C2D] bg-[#F1F5F9] px-3 font-worksans text-sm tracking-wider  text-gray-700 focus:border-[#DC8B18] focus:outline-none"
                   placeholder="Enter config number eg. (1)"
                 />
                 <ErrorMessage
@@ -528,7 +528,7 @@ export function CreateGameSheet({
                     isUploading.thumbnail ||
                     isUploading.game
                   }
-                  className="w-24 h-12 bg-[#D946EF] text-white hover:bg-[#C026D3] dark:text-white dark:hover:bg-[#C026D3] cursor-pointer"
+                  className="w-24 h-12 bg-[#DC8B18] text-white hover:bg-[#C17600] dark:text-white dark:hover:bg-[#C17600] cursor-pointer"
                 >
                   {isSubmitting ? "Creating..." : "Create"}
                 </Button>

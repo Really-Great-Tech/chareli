@@ -64,13 +64,13 @@ const Navbar: React.FC = () => {
         className="cursor-pointer flex justify-center items-center bg-gradient-to-t from-[#121C2D] to-[#475568] rounded-br-[40px] py-2 px-8 -mt-4 -ml-4"
       >
         <img src={Logo} alt="logo" className="w-12 pt-4 " />
-        <p className="text-[20.22px] md:text-[52px] text-center text-white dark:text-white font-bold font-jersey pt-4">
+        <p className="text-[20.22px] lg:text-[40px] text-center text-white dark:text-white font-bold font-jersey pt-4">
           Arcades Box
         </p>
       </div>
 
       {/* Desktop Navigation - Center */}
-      <div className="hidden md:flex gap-4 text-[16px] font-bold text-white items-center justify-center flex-1 pt-2">
+      <div className="hidden lg:flex gap-4 text-[16px] font-bold text-white items-center justify-center flex-1 pt-2">
         <Link
           to="/about"
           className="bg-[#DC8B18] text-white px-4 py-2 rounded-md transition-colors duration-300 hover:bg-[#C17600] flex items-center gap-2"
@@ -88,7 +88,7 @@ const Navbar: React.FC = () => {
       </div>
 
       {/* Mobile Menu Button and Theme Toggle */}
-      <div className="md:hidden flex items-center space-x-2 mx-2">
+      <div className="lg:hidden flex items-center space-x-2 mx-2">
         {/* Mobile Theme Toggle */}
         <button
           onClick={toggleDarkMode}
@@ -118,7 +118,7 @@ const Navbar: React.FC = () => {
       {isMobileMenuOpen && (
         <div
           ref={mobileMenuRef}
-          className="absolute top-full right-0 mt-2 mx-2 bg-white dark:bg-[#0f1221] shadow-lg md:hidden z-50 border border-gray-200 dark:border-gray-800 rounded-lg min-w-[300px]"
+          className="absolute top-full right-0 mt-2 mx-2 bg-white dark:bg-[#0f1221] shadow-lg lg:hidden z-50 border border-gray-200 dark:border-gray-800 rounded-lg min-w-[300px]"
         >
           <div className="flex flex-col p-4 gap-2">
             <div className=" text-[15px]">
@@ -255,7 +255,7 @@ const Navbar: React.FC = () => {
       />
 
       {/* Desktop Actions */}
-      <div className="hidden md:flex space-x-4 items-center pt-2 pr-4">
+      <div className="hidden lg:flex space-x-4 items-center pt-2 pr-4">
         <img
           onClick={toggleDarkMode}
           src={isDarkMode ? moon : sun}

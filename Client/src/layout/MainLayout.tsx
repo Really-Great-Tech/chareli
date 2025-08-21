@@ -1,6 +1,7 @@
 import React from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../components/single/Navbar";
+import CookieBanner from "../components/single/CookieBanner";
 
 const MainLayout: React.FC = () => {
   const location = useLocation();
@@ -55,6 +56,7 @@ const MainLayout: React.FC = () => {
           </div>
         </footer>
       )}
+      <CookieBanner />
     </div>
   );
 };

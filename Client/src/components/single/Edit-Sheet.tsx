@@ -305,7 +305,7 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
                   id="position"
                   name="position"
                   min="1"
-                  className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white bg-[#F1F5F9] dark:bg-[#121C2D] px-3 text-gray-700 focus:border-[#C17600] focus:outline-none font-worksans tracking-wider text-sm"
+                  className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white bg-[#F1F5F9] dark:bg-[#121C2D] px-3 text-gray-700 focus:border-[#6A7282] focus:outline-none font-worksans tracking-wider text-sm"
                   placeholder="e.g., 1, 2, 3..."
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-worksans">
@@ -327,7 +327,7 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
                   as={Input}
                   id="title"
                   name="title"
-                  className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white bg-[#F1F5F9] dark:bg-[#121C2D] px-3 text-gray-700 focus:border-[#C17600] focus:outline-none font-worksans tracking-wider text-sm"
+                  className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white bg-[#F1F5F9] dark:bg-[#121C2D] px-3 text-gray-700 focus:border-[#6A7282] focus:outline-none font-worksans tracking-wider text-sm"
                   placeholder="Enter game title"
                 />
                 <ErrorMessage
@@ -346,7 +346,7 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
                   as="textarea"
                   id="description"
                   name="description"
-                  className="w-full min-h-[80px] rounded-md border border-[#CBD5E0] dark:text-white dark:bg-[#121C2D] bg-[#F1F5F9] px-3 py-2 font-worksans text-sm tracking-wider text-gray-700 focus:border-[#C17600] focus:outline-none resize-none"
+                  className="w-full min-h-[80px] rounded-md border border-[#CBD5E0] dark:text-white dark:bg-[#121C2D] bg-[#F1F5F9] px-3 py-2 font-worksans text-sm tracking-wider text-gray-700 focus:border-[#6A7282] focus:outline-none resize-none"
                   placeholder="Description"
                 />
                 <ErrorMessage
@@ -431,7 +431,7 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
                   id="config"
                   name="config"
                   min="0"
-                  className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white dark:bg-[#121C2D] bg-[#F1F5F9] px-3 font-worksans text-sm tracking-wider text-gray-700 focus:border-[#C17600] focus:outline-none"
+                  className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white dark:bg-[#121C2D] bg-[#F1F5F9] px-3 font-worksans text-sm tracking-wider text-gray-700 focus:border-[#6A7282] focus:outline-none"
                   placeholder="Enter config number eg. (1)"
                 />
                 <ErrorMessage
@@ -468,7 +468,7 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
                       isUploading.game
                     }
                     variant="default"
-                    className="bg-[#DC8B18] hover:bg-[#C17600] dark:text-white cursor-pointer"
+                    className="bg-[#6A7282] hover:bg-[#5A626F] dark:text-white cursor-pointer"
                     onClick={(e) => {
                       console.log('🔘 Update button clicked!', e);
                       // Don't prevent default - let form handle submission

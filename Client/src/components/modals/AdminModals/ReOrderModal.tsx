@@ -76,7 +76,7 @@ export default function ReOrderModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 sm:p-0">
       <div className="relative bg-white dark:bg-[#334154] rounded-lg shadow-md p-4 sm:p-6 w-full max-w-sm sm:max-w-xl">
         <button
-          className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#C026D3] flex items-center justify-center shadow-lg hover:bg-[#a21caf] transition-colors"
+          className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#6A7282] flex items-center justify-center shadow-lg hover:bg-[#5A626F] transition-colors"
           onClick={() => onOpenChange(false)}
           aria-label="Close"
           style={{ border: "none" }}
@@ -184,7 +184,7 @@ export default function ReOrderModal({
             Cancel
           </button>
           <button
-            className="bg-[#D946EF] text-white rounded-md py-2 px-4 hover:bg-[#D946EF] cursor-pointer"
+            className="bg-[#6A7282] text-white rounded-md py-2 px-4 hover:bg-[#5A626F] cursor-pointer"
             onClick={handleReorder}
           >
             Reorder

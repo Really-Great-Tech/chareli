@@ -125,7 +125,7 @@ export default function GameManagement() {
   return (
     <div className="p-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-        <h1 className="text-[#DC8B18] text-2xl sm:text-3xl font-worksans">
+        <h1 className="text-[#6A7282] dark:text-white text-2xl sm:text-3xl font-worksans">
           All Games
         </h1>
         <div className="flex flex-wrap gap-3 justify-end ">
@@ -186,7 +186,7 @@ export default function GameManagement() {
                 <Button
                   className={`font-normal text-sm sm:text-base px-[16px] py-[14px] h-[48px] bg-white hover:bg-[#F8FAFC]  text-black border-[#E2E8F0] border-1 dark:border-none font-dmmono cursor-pointer ${
                     reorderHistoryOpen
-                      ? "bg-[#DC8B18] hover:bg-[#C17600] text-white"
+                      ? "bg-[#6A7282] hover:bg-[#5A626F] text-white"
                       : ""
                   }`}
                   onClick={() => setReorderHistoryOpen(!reorderHistoryOpen)}
@@ -196,7 +196,7 @@ export default function GameManagement() {
               )}
               {!reorderOpen && (
                 <CreateGameSheet>
-                  <Button className="bg-[#DC8B18] text-white hover:bg-[#DC8B18] tracking-wider py-2 sm:py-[14px] text-sm sm:text-base h-[48px] font-dmmono cursor-pointer">
+                  <Button className="bg-[#6A7282] text-white hover:bg-[#6A7282] tracking-wider py-2 sm:py-[14px] text-sm sm:text-base h-[48px] font-dmmono cursor-pointer">
                     Create New Game
                   </Button>
                 </CreateGameSheet>
@@ -206,7 +206,7 @@ export default function GameManagement() {
         </div>
       </div>
       {reorderOpen && (
-        <div className="flex bg-[#FFF7ED] dark:bg-[#FFF7ED]/70 text-[#DC8B18] text-sm sm:text-[18px] font-bolde justify-center items-center h-[52px] mb-[20px]">
+        <div className="flex bg-[#FFF7ED] dark:bg-[#FFF7ED]/70 text-[#6A7282] text-sm sm:text-[18px] font-bolde justify-center items-center h-[52px] mb-[20px]">
           <p>Reorder-mode: Click game to reorder</p>
         </div>
       )}
@@ -409,7 +409,7 @@ export default function GameManagement() {
                 <div className="flex items-center gap-1 order-1 sm:order-2">
                   {/* Previous button */}
                   <button
-                    className={`w-8 h-8 rounded-full transition-colors border border-[#C17600] ${
+                    className={`w-8 h-8 rounded-full transition-colors border border-[#6A7282] ${
                       page === 1
                         ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
                         : "hover:bg-[#FFF7ED] text-black dark:text-white"
@@ -421,14 +421,14 @@ export default function GameManagement() {
                   </button>
 
                   {/* Mobile: Show only current page info */}
-                  <div className="sm:hidden flex items-center gap-1 px-3 py-1 rounded-full border border-[#C17600]">
+                  <div className="sm:hidden flex items-center gap-1 px-3 py-1 rounded-full border border-[#6A7282]">
                     <span className="text-sm text-black dark:text-white">
                       {page} / {totalPages}
                     </span>
                   </div>
 
                   {/* Desktop: Show page numbers with smart truncation */}
-                  <div className="hidden sm:flex items-center gap-1 rounded-full border border-[#C17600] p-1">
+                  <div className="hidden sm:flex items-center gap-1 rounded-full border border-[#6A7282] p-1">
                     {(() => {
                       const pages = [];
                       const maxVisiblePages = 5;
@@ -441,8 +441,8 @@ export default function GameManagement() {
                               key={i}
                               className={`w-8 h-8 rounded-full transition-colors ${
                                 page === i
-                                  ? "bg-[#DC8B18] text-white"
-                                  : "hover:bg-[#FFF7ED] text-black dark:text-white"
+                                  ? "bg-[#6A7282] text-white"
+                                  : "hover:bg-[#6A7282]/20 text-black dark:text-white"
                               }`}
                               onClick={() => setPage(i)}
                             >
@@ -462,8 +462,8 @@ export default function GameManagement() {
                               key={1}
                               className={`w-8 h-8 rounded-full transition-colors ${
                                 page === 1
-                                  ? "bg-[#DC8B18] text-white"
-                                  : "hover:bg-[#FFF7ED] text-black dark:text-white"
+                                  ? "bg-[#6A7282] text-white"
+                                  : "hover:bg-[#6A7282]/20 text-black dark:text-white"
                               }`}
                               onClick={() => setPage(1)}
                             >
@@ -486,8 +486,8 @@ export default function GameManagement() {
                               key={i}
                               className={`w-8 h-8 rounded-full transition-colors ${
                                 page === i
-                                  ? "bg-[#DC8B18] text-white"
-                                  : "hover:bg-[#FFF7ED] text-black dark:text-white"
+                                  ? "bg-[#6A7282] text-white"
+                                  : "hover:bg-[#6A7282]/20 text-black dark:text-white"
                               }`}
                               onClick={() => setPage(i)}
                             >
@@ -510,8 +510,8 @@ export default function GameManagement() {
                               key={totalPages}
                               className={`w-8 h-8 rounded-full transition-colors ${
                                 page === totalPages
-                                  ? "bg-[#DC8B18] text-white"
-                                  : "hover:bg-[#FFF7ED] text-black dark:text-white"
+                                  ? "bg-[#6A7282] text-white"
+                                  : "hover:bg-[#6A7282]/20 text-black dark:text-white"
                               }`}
                               onClick={() => setPage(totalPages)}
                             >
@@ -527,7 +527,7 @@ export default function GameManagement() {
 
                   {/* Next button */}
                   <button
-                    className={`w-8 h-8 rounded-full transition-colors border border-[#C17600] ${
+                    className={`w-8 h-8 rounded-full transition-colors border border-[#6A7282] ${
                       page === totalPages
                         ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
                         : "hover:bg-[#FFF7ED] text-black dark:text-white"
@@ -626,10 +626,10 @@ export default function GameManagement() {
                 <div className="flex items-center gap-1 order-1 sm:order-2">
                   {/* Previous button */}
                   <button
-                    className={`w-8 h-8 rounded-full transition-colors border border-[#C17600] ${
+                    className={`w-8 h-8 rounded-full transition-colors border border-[#6A7282] ${
                       historyPage === 1
                         ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
-                        : "hover:bg-[#FFF7ED] text-black dark:text-white"
+                        : "hover:bg-[#6A7282]/20 text-black dark:text-white"
                     }`}
                     onClick={() => setHistoryPage(Math.max(1, historyPage - 1))}
                     disabled={historyPage === 1}
@@ -638,14 +638,14 @@ export default function GameManagement() {
                   </button>
 
                   {/* Mobile: Show only current page info */}
-                  <div className="sm:hidden flex items-center gap-1 px-3 py-1 rounded-full border border-[#C17600]">
+                  <div className="sm:hidden flex items-center gap-1 px-3 py-1 rounded-full border border-[#6A7282]">
                     <span className="text-sm text-black dark:text-white">
                       {historyPage} / {historyTotalPages}
                     </span>
                   </div>
 
                   {/* Desktop: Show page numbers with smart truncation */}
-                  <div className="hidden sm:flex items-center gap-1 rounded-full border border-[#C17600] p-1">
+                  <div className="hidden sm:flex items-center gap-1 rounded-full border border-[#6A7282] p-1">
                     {(() => {
                       const pages = [];
                       const maxVisiblePages = 5;
@@ -658,8 +658,8 @@ export default function GameManagement() {
                               key={i}
                               className={`w-8 h-8 rounded-full transition-colors ${
                                 historyPage === i
-                                  ? "bg-[#DC8B18] text-white"
-                                  : "hover:bg-[#FFF7ED] text-black dark:text-white"
+                                  ? "bg-[#6A7282] text-white"
+                                  : "hover:bg-[#6A7282]/20 text-black dark:text-white"
                               }`}
                               onClick={() => setHistoryPage(i)}
                             >
@@ -679,8 +679,8 @@ export default function GameManagement() {
                               key={1}
                               className={`w-8 h-8 rounded-full transition-colors ${
                                 historyPage === 1
-                                  ? "bg-[#DC8B18] text-white"
-                                  : "hover:bg-[#FFF7ED] text-black dark:text-white"
+                                  ? "bg-[#6A7282] text-white"
+                                  : "hover:bg-[#6A7282]/20 text-black dark:text-white"
                               }`}
                               onClick={() => setHistoryPage(1)}
                             >
@@ -703,8 +703,8 @@ export default function GameManagement() {
                               key={i}
                               className={`w-8 h-8 rounded-full transition-colors ${
                                 historyPage === i
-                                  ? "bg-[#DC8B18] text-white"
-                                  : "hover:bg-[#FFF7ED] text-black dark:text-white"
+                                  ? "bg-[#6A7282] text-white"
+                                  : "hover:bg-[#6A7282]/20 text-black dark:text-white"
                               }`}
                               onClick={() => setHistoryPage(i)}
                             >
@@ -727,8 +727,8 @@ export default function GameManagement() {
                               key={historyTotalPages}
                               className={`w-8 h-8 rounded-full transition-colors ${
                                 historyPage === historyTotalPages
-                                  ? "bg-[#DC8B18] text-white"
-                                  : "hover:bg-[#FFF7ED] text-black dark:text-white"
+                                  ? "bg-[#6A7282] text-white"
+                                  : "hover:bg-[#6A7282]/20 text-black dark:text-white"
                               }`}
                               onClick={() => setHistoryPage(historyTotalPages)}
                             >
@@ -744,10 +744,10 @@ export default function GameManagement() {
 
                   {/* Next button */}
                   <button
-                    className={`w-8 h-8 rounded-full transition-colors border border-[#C17600] ${
+                    className={`w-8 h-8 rounded-full transition-colors border border-[#6A7282] ${
                       historyPage === historyTotalPages
                         ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
-                        : "hover:bg-[#FFF7ED] text-black dark:text-white"
+                        : "hover:bg-[#6A7282]/20 text-black dark:text-white"
                     }`}
                     onClick={() => setHistoryPage(Math.min(historyTotalPages, historyPage + 1))}
                     disabled={historyPage === historyTotalPages}

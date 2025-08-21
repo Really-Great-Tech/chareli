@@ -129,7 +129,7 @@ export function PrivacySheet({ open, onOpenChange }: PrivacySheetProps) {
           <div>
             <Label className="text-lg mb-2 block">Upload file</Label>
             <div className="flex items-center">
-              <label className="w-40 h-38 flex flex-col items-center justify-center border border-[#CBD5E0] rounded-lg cursor-pointer hover:border-[#C17600] transition">
+              <label className="w-40 h-38 flex flex-col items-center justify-center border border-[#CBD5E0] rounded-lg cursor-pointer hover:border-[#6A7282] transition">
                 {selectedFile?.name ? (
                   <img src="/doc.png" alt="document icon" className="w-20" />
                 ) : (
@@ -166,7 +166,7 @@ export function PrivacySheet({ open, onOpenChange }: PrivacySheetProps) {
           </SheetClose>
           <Button
             type="submit"
-            className="w-fit h-12 bg-[#DC8B18] text-white hover:bg-[#C17600] dark:text-white dark:hover:bg-[#DC8B18] shadow-none cursor-pointer px-4"
+            className="w-fit h-12 bg-[#6A7282] text-white hover:bg-[#5A626F] dark:text-white dark:hover:bg-[#6A7282] shadow-none cursor-pointer px-4"
             onClick={handleSubmit}
             disabled={!selectedFile || createConfig.isPending}
           >

@@ -31,7 +31,7 @@ const GameCreationProgress = ({
         <div className="bg-white dark:bg-gray-800 rounded-lg px-6 py-4 shadow-2xl border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between text-gray-900 dark:text-white">
             {/* Progress percentage */}
-            <div className="text-[#DC8B18] font-bold text-xl">
+            <div className="text-[#6A7282] font-bold text-xl">
               {Math.round(displayProgress)}%
             </div>
             
@@ -49,7 +49,7 @@ const GameCreationProgress = ({
           {/* Progress bar */}
           <div className="mt-3 w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
             <div 
-              className="bg-gradient-to-r from-[#DC8B18] to-[#C17600] h-2 rounded-full transition-all duration-500 ease-out"
+              className="bg-gradient-to-r from-[#6A7282] to-[#5A626F] h-2 rounded-full transition-all duration-500 ease-out"
               style={{ width: `${displayProgress}%` }}
             ></div>
           </div>

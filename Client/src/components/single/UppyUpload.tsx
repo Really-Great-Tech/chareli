@@ -200,17 +200,17 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
           }
           
           .uppy-upload-container .uppy-Dashboard:hover {
-            border-color: #C17600 !important;
-            background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%) !important;
+            border-color: #6A7282 !important;
+            background: linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 100%) !important;
             transform: translateY(-1px) !important;
-            box-shadow: 0 8px 25px rgba(193, 118, 0, 0.15) !important;
+            box-shadow: 0 8px 25px rgba(106, 114, 130, 0.15) !important;
           }
           
           .uppy-upload-container .uppy-Dashboard.uppy-Dashboard--isDraggingOver {
-            border-color: #C17600 !important;
-            background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%) !important;
+            border-color: #6A7282 !important;
+            background: linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 100%) !important;
             transform: scale(1.02) !important;
-            box-shadow: 0 12px 35px rgba(193, 118, 0, 0.25) !important;
+            box-shadow: 0 12px 35px rgba(106, 114, 130, 0.25) !important;
           }
           
           .uppy-upload-container .uppy-Dashboard-inner {
@@ -239,11 +239,11 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
           }
           
           .uppy-upload-container .uppy-Dashboard-browse {
-            color: #C17600 !important;
+            color: #6A7282 !important;
             font-weight: 600 !important;
             text-decoration: none !important;
             padding: 8px 16px !important;
-            background: rgba(193, 118, 0, 0.1) !important;
+            background: rgba(106, 114, 130, 0.1) !important;
             border-radius: 6px !important;
             transition: all 0.2s ease !important;
             display: inline-block !important;
@@ -251,9 +251,9 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
           
           .uppy-upload-container .uppy-Dashboard-browse:hover {
             color: #FFFFFF !important;
-            background: #C17600 !important;
+            background: #6A7282 !important;
             transform: translateY(-1px) !important;
-            box-shadow: 0 4px 12px rgba(193, 118, 0, 0.3) !important;
+            box-shadow: 0 4px 12px rgba(106, 114, 130, 0.3) !important;
           }
           
           .uppy-upload-container .uppy-Dashboard-note {
@@ -270,13 +270,13 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
           }
           
           .dark .uppy-upload-container .uppy-Dashboard:hover {
-            border-color: #C17600 !important;
-            background: linear-gradient(135deg, #92400E 0%, #78350F 100%) !important;
+            border-color: #6A7282 !important;
+            background: linear-gradient(135deg, #475569 0%, #334155 100%) !important;
           }
           
           .dark .uppy-upload-container .uppy-Dashboard.uppy-Dashboard--isDraggingOver {
-            border-color: #C17600 !important;
-            background: linear-gradient(135deg, #92400E 0%, #78350F 100%) !important;
+            border-color: #6A7282 !important;
+            background: linear-gradient(135deg, #475569 0%, #334155 100%) !important;
           }
           
           .dark .uppy-upload-container .uppy-Dashboard-AddFiles-title {
@@ -292,7 +292,7 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
           }
           
           .dark .uppy-upload-container .uppy-Dashboard-browse {
-            background: rgba(193, 118, 0, 0.2) !important;
+            background: rgba(106, 114, 130, 0.2) !important;
           }
           
           /* Progress bar styling */
@@ -305,7 +305,7 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
           }
           
           .uppy-upload-container .uppy-ProgressBar-inner {
-            background: linear-gradient(90deg, #C17600 0%, #DC8B18 100%) !important;
+            background: linear-gradient(90deg, #6A7282 0%, #5A626F 100%) !important;
             border-radius: 8px !important;
             transition: width 0.3s ease !important;
           }

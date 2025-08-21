@@ -242,7 +242,7 @@ export function HistoryFilterSheet({
             <SheetClose asChild>
               <Button
                 type="submit"
-                className="w-20 h-12 bg-[#DC8B18] text-white hover:bg-[#C17600] cursor-pointer"
+                className="w-20 h-12 bg-[#6A7282] text-white hover:bg-[#5A626F] cursor-pointer"
               >
                 Filter
               </Button>

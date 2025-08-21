@@ -36,13 +36,13 @@ const SearchBarConfiguration = forwardRef<SearchBarConfigurationRef, SearchBarCo
 
     return (
       <div>
-        <h2 className="text-lg sm:text-xl font-worksans text-[#DC8B18] mb-4">
+        <h2 className="text-lg sm:text-xl font-worksans text-[#6A7282] dark:text-white mb-4">
             Search Bar Configuration
           </h2>
         <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg mb-6 relative">
           {isLoadingConfig && (
             <div className="absolute inset-0 bg-white/50 dark:bg-gray-800/50 flex items-center justify-center rounded-lg">
-              <Loader2 className="h-6 w-6 animate-spin text-purple-600" />
+              <Loader2 className="h-6 w-6 animate-spin text-[#6A7282]" />
             </div>
           )}
           <div className="flex items-center space-x-3">
@@ -50,7 +50,7 @@ const SearchBarConfiguration = forwardRef<SearchBarConfigurationRef, SearchBarCo
               checked={showSearchBar}
               onCheckedChange={handleToggleSearchBar}
               id="show-search-bar"
-              color="#DC8B18"
+              color="#6A7282"
               disabled={disabled || isLoadingConfig}
             />
             <Label 

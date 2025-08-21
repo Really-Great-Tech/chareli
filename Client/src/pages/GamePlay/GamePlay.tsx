@@ -356,7 +356,7 @@ export default function GamePlay() {
                 <div className="grid gap-[8px] w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 justify-items-center">
                   {game.similarGames.map((similarGame: SimilarGame) => (
                     <div key={similarGame.id} className="relative p-[10px] group cursor-pointer w-full max-w-[360px]">
-                      <div className="relative h-[290px] min-h-[290px] max-h-[290px] rounded-[18px] border-4 border-transparent group-hover:border-[#DC8B18] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(220,139,24,0.3)] overflow-hidden"
+                      <div className="relative h-[290px] min-h-[290px] max-h-[290px] rounded-[18px] border-4 border-transparent group-hover:border-[#6A7282] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(106,114,130,0.3)] overflow-hidden"
                            onClick={() => {
                              if (analyticsIdRef.current) {
                                updateEndTime();
@@ -368,7 +368,7 @@ export default function GamePlay() {
                           alt={similarGame.title}
                           className="w-full h-full object-cover"
                           loadingClassName="rounded-[14px]"
-                          spinnerColor="#DC8B18"
+                          spinnerColor="#6A7282"
                           rootMargin="50px"
                         />
                         {/* Game Info Overlay - Only visible on hover */}

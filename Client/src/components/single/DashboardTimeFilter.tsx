@@ -71,7 +71,7 @@ export function DashboardTimeFilter({ value, onChange }: DashboardTimeFilterProp
         <DropdownMenuTrigger asChild>
           <button className="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#334154] border border-gray-200 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#334155] transition-colors cursor-pointer">
             <span className="text-gray-600 dark:text-gray-400">Filter</span>
-            <span className="text-[#C17600] font-medium">
+            <span className="text-[#6A7282] dark:text-white font-medium">
               {getCurrentLabel()}
             </span>
             <ChevronDown className="h-4 w-4 text-gray-500" />
@@ -84,7 +84,7 @@ export function DashboardTimeFilter({ value, onChange }: DashboardTimeFilterProp
               onClick={() => handlePeriodChange(option.value)}
               className={`cursor-pointer ${
                 value.period === option.value 
-                  ? 'bg-[#C17600] text-white dark:bg-[#C17600]/20' 
+                  ? 'bg-[#6A7282] text-white dark:bg-[#6A7282]/20' 
                   : ''
               }`}
             >
@@ -136,7 +136,7 @@ export function DashboardTimeFilter({ value, onChange }: DashboardTimeFilterProp
             <Button
               onClick={handleCustomDateApply}
               disabled={!tempStartDate || !tempEndDate}
-              className="bg-[#DC8B18] hover:bg-[#C17600] text-white"
+              className="bg-[#6A7282] hover:bg-[#5A626F] text-white"
             >
               Apply
             </Button>

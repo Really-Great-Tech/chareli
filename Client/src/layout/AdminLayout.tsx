@@ -6,7 +6,7 @@ import { IoGameControllerOutline } from "react-icons/io5";
 import { FiHome } from "react-icons/fi";
 import { MdOutlineCategory } from "react-icons/md";
 import { FaRegUser } from "react-icons/fa6";
-import { FaChartLine } from "react-icons/fa";
+// import { FaChartLine } from "react-icons/fa";
 import { SlEqualizer } from "react-icons/sl";
 import { RiTeamLine } from "react-icons/ri";
 import { IoChevronBackOutline, IoChevronForwardOutline } from "react-icons/io5";
@@ -43,12 +43,12 @@ const allMenuItems = [
     path: "/admin/team",
     requiresConfig: false,
   },
-  {
-    title: "Analytics",
-    icon: <FaChartLine size={20} />,
-    path: "/admin/analytics",
-    requiresConfig: false,
-  },
+  // {
+  //   title: "Analytics",
+  //   icon: <FaChartLine size={20} />,
+  //   path: "/admin/analytics",
+  //   requiresConfig: false,
+  // },
   {
     title: "Configuration",
     icon: <SlEqualizer size={20} />,

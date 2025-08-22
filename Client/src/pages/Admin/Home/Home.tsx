@@ -1,4 +1,5 @@
 import click from "../../../assets/click.svg";
+import usersLine from "../../../assets/users-line.svg";
 import { Card } from "../../../components/ui/card";
 import { AcceptInvitationModal } from "../../../components/modals/AdminModals/AcceptInvitationModal";
 import { DashboardTimeFilter } from "../../../components/single/DashboardTimeFilter";
@@ -13,6 +14,10 @@ import {
 } from "../../../backend/analytics.service";
 import { MostPlayedGames } from "./MostPlayedGames";
 import { usePermissions } from "../../../hooks/usePermissions";
+import UserActivityLog from "../Analytics/UserActivityLog";
+import GameActivity from "../Analytics/GameActivity";
+import { DonutChart } from "../../../components/charts/donutChart";
+import HorizontalBarChart from "../../../components/charts/barChart";
 // import { RecentUserActivity } from './RecentUserActivity';
 
 export default function Home() {
@@ -26,6 +31,13 @@ export default function Home() {
   // Separate state for insights filter
   const [insightsTimeRange, setInsightsTimeRange] =
     useState<DashboardTimeRange>({ period: "last30days" });
+
+  const [barChartTimeRange, setBarChartTimeRange] =
+    useState<DashboardTimeRange>({ period: "last30days" });
+
+    console.log("barchartTimeRange:", barChartTimeRange);
+
+    const [registrationTimeRange, setRegistrationTimeRange] = useState<DashboardTimeRange>({ period: "last30days" });
 
   const { data: analyticsData } = useSignupAnalyticsData();
   return (
@@ -92,6 +104,79 @@ export default function Home() {
           </Card>
         </div>
 
+        {/* User activity log */}
+        <UserActivityLog />
+
+        {/* Game activity */}
+        <GameActivity />
+
+        {/* Registration insights donut chart */}
+      <div className="w-full mt-4">
+        <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
+          <div className="justify-between items-center flex p-3">
+            <p className="text-lg sm:text-xl lg:text-2xl">
+              Registration insights
+            </p>
+            <DashboardTimeFilter
+              value={registrationTimeRange}
+              onChange={setRegistrationTimeRange}
+            />
+          </div>
+          {/* inner card */}
+          <Card className="bg-[#F8FAFC] dark:bg-[#0F1221] shadow-none border-none mx-3 p-4">
+            <div className="flex flex-col space-y-8">
+              <div className="">
+                <div className="justify-start flex items-center gap-4 font-worksans">
+                  <img
+                    src={usersLine}
+                    alt="users"
+                    className="w-10 h-10 dark:text-white"
+                  />
+                  <p className="text-sm sm:text-base lg:text-lg text-[#64748A] dark:text-white">
+                    Total number of verified users
+                  </p>
+                </div>
+
+                <DonutChart timeRange={registrationTimeRange} />
+              </div>
+            </div>
+          </Card>
+        </Card>
+      </div>
+
+      {/* bar chart - insights */}
+      <div className="w-full mt-4">
+        <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
+          <div className="justify-between items-center flex p-3">
+            <p className="text-base sm:text-xl lg:text-2xl">Click insights (Buttons)</p>
+            <DashboardTimeFilter
+              value={barChartTimeRange}
+              onChange={setBarChartTimeRange}
+            />
+          </div>
+          {/* inner card */}
+          <Card className="bg-[#F8FAFC] dark:bg-[#0F1221] shadow-none border-none mx-3 p-4">
+            <div className="flex flex-col space-y-8">
+              <div className="">
+                <div className="justify-start flex items-center gap-4">
+                  <img
+                    src={click}
+                    alt="users"
+                    className="w-10 h-10 dark:text-white"
+                  />
+                  <p className="text-sm sm:text-base lg:text-lg text-[#64748A] dark:text-white">
+                    Total clicks on Sign-up button (
+                    {analyticsData?.totalClicks || 0})
+                  </p>
+                </div>
+
+                <HorizontalBarChart timeRange={barChartTimeRange} />
+              </div>
+            </div>
+          </Card>
+        </Card>
+      </div>
+
         {/* <div className="col-span-1 md:col-span-2 lg:col-span-4 mb-6">
           <RecentUserActivity />
         </div> */}
@@ -133,8 +218,8 @@ function SignupClickInsights({ timeRange }: { timeRange: DashboardTimeRange }) {
   // Use the periodClicks from signup analytics (already filtered by time range)
   const totalClicks = signupAnalytics?.periodClicks || 0;
 
-  // For now, use registered users as a proxy for verified users
-  // This is the closest we can get with current data structure
+  // IMPORTANT: Using the same verified user count as the registration insights
+  // This ensures consistency between click insights and registration insights
   const verifiedCount = registeredInPeriod;
   const didntVerifyCount = Math.max(0, totalClicks - verifiedCount);
 
@@ -143,7 +228,7 @@ function SignupClickInsights({ timeRange }: { timeRange: DashboardTimeRange }) {
     { name: "Verified users", value: verifiedCount, fill: "#334154" },
   ];
 
-  return <PieChart data={chartData} totalClicks={totalClicks} />;
+  return <PieChart data={chartData} totalClicks={totalClicks} />; 
 }
 
 // // Separate component for signup click insights

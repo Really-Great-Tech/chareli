@@ -35,8 +35,8 @@ export default function Component({ data, totalClicks }: PieChartProps) {
       </CardHeader>
       <CardContent className="flex-1 pb-0 flex flex-col items-center px-2 sm:px-6">
         <div className="w-full flex justify-center">
-          <div className="w-[200px] h-[200px] sm:w-[250px] sm:h-[250px]">
-            <PieChart width={200} height={200} className="sm:!w-[250px] sm:!h-[250px]">
+          <div className="w-[200px] h-[200px] sm:w-[250px] sm:h-[200px]">
+            <PieChart width={200} height={180} className="sm:!w-[200px] sm:!h-[200px]">
               <Pie
                 data={data}
                 dataKey="value"

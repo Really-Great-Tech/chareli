@@ -206,7 +206,7 @@ export default function GameManagement() {
         </div>
       </div>
       {reorderOpen && (
-        <div className="flex bg-[#FFF7ED] dark:bg-[#FFF7ED]/70 text-[#6A7282] text-sm sm:text-[18px] font-bolde justify-center items-center h-[52px] mb-[20px]">
+        <div className="flex bg-[#6A7282] text-white text-sm sm:text-[18px] font-bolde justify-center items-center h-[52px] mb-[20px]">
           <p>Reorder-mode: Click game to reorder</p>
         </div>
       )}

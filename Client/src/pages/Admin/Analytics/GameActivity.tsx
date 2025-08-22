@@ -17,12 +17,12 @@ import GameThumbnail from "./GameThumbnail";
 export default function GameActivity() {
   const { data: gamesAnalytics, isError, isLoading } = useGamesWithPopularity();
 
-  const gamesPerPage = 10;
+  const gamesPerPage = 4;
   const [gamePage, setGamePage] = useState(1);
 
   if (isLoading) {
     return (
-      <div className="col-span-1 md:col-span-2 lg:col-span-4 mt-4">
+      <div className="col-span-1 md:col-span-2 lg:col-span-4 mt-2">
         <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full pl-4">
           <div className="justify-between items-center flex p-3">
             <p className="text-lg md:text-2xl">Game Activity</p>

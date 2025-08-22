@@ -31,7 +31,7 @@ export function MostPlayedGames() {
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const gamesPerPage = 5;
+  const gamesPerPage = 4;
   const totalPages = Math.ceil(allGames.length / gamesPerPage);
 
   const getGamesForPage = (page: number) => {

@@ -8,7 +8,7 @@ const clickTypeLabels: Record<string, string> = {
   "keep-playing": "Keep Playing Pop-up sign-up button clicks",
 };
 
-const colors = ["#6A7282", "#334154"];
+const colors = ["#6A7282", "#D1D5DB"];
 
 interface HorizontalBarChartProps {
   timeRange?: DashboardTimeRange;
@@ -86,7 +86,7 @@ const HorizontalBarChart = ({ timeRange }: HorizontalBarChartProps) => {
         {/* Improved layout for 2 bars */}
         <div className="overflow-x-auto">
           <div style={{ minWidth: '400px' }}>
-            <ResponsiveContainer width="100%" height={250}>
+            <ResponsiveContainer width="80%" height={220}>
               <BarChart layout="vertical" data={data} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.6} />
                 <XAxis
@@ -142,7 +142,7 @@ const HorizontalBarChart = ({ timeRange }: HorizontalBarChartProps) => {
                 <Bar 
                   dataKey="value" 
                   barSize={80}
-                  fill="#334154"
+                  fill="#D1D5DB"
                   radius={[0, 8, 8, 0]}
                 >
                   {data.map((entry: ChartDataPoint, index: number) => (

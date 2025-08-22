@@ -115,13 +115,13 @@ export function ResetPasswordPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-200">
       <div className="bg-white dark:bg-[#0F1221] rounded-lg shadow-xl p-8 max-w-md w-full">
-        <h1 className="text-xl font-bold mb-6 text-center text-[#DC8B18] font-dmmono">
+        <h1 className="text-xl font-bold mb-6 text-center text-[#6A7282] dark:text-white font-dmmono">
           {isSuccess ? "Password Reset Successful" : "Reset Your Password"}
         </h1>
 
         {isTokenChecking ? (
           <div className="flex flex-col items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#DC8B18]"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#6A7282]"></div>
             <p className="mt-4  text-black dark:text-white font-worksans text-lg tracking-wider">
               {isPhoneFlow
                 ? "Preparing reset form..."
@@ -142,7 +142,7 @@ export function ResetPasswordPage() {
               <Button
                 type="button"
                 onClick={requestNewResetLink}
-                className="w-full bg-[#DC8B18] hover:bg-[#C17600] text-white font-dmmono"
+                className="w-full bg-[#6A7282] hover:bg-[#5A626F] text-white font-dmmono"
               >
                 Request New Reset Link
               </Button>
@@ -171,7 +171,7 @@ export function ResetPasswordPage() {
               Redirecting you to login...
             </p>
             <div className="flex justify-center mt-4">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#DC8B18]"></div>
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#6A7282]"></div>
             </div>
           </div>
         ) : (
@@ -263,7 +263,7 @@ export function ResetPasswordPage() {
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full bg-[#DC8B18] hover:bg-[#C17600] text-white font-dmmono"
+                    className="w-full bg-[#6A7282] hover:bg-[#5A626F] text-white font-dmmono"
                   >
                     {isSubmitting ? "Resetting..." : "Reset Password"}
                   </Button>

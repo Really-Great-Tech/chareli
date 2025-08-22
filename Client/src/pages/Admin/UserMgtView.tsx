@@ -48,7 +48,7 @@ const UserManagementView = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="w-8 h-8 border-4 border-[#DC8B18] border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-4 border-[#6A7282] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -81,7 +81,7 @@ const UserManagementView = () => {
             <img
               src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y"
               alt="Profile"
-              className="w-20 h-20 rounded-full border-2 border-[#DC8B18]"
+              className="w-20 h-20 rounded-full border-2 border-[#6A7282]"
             />
             <div className="flex flex-col gap-3 items-center mt-4 text-center w-full">
               <p className="mb-0 text-xl font-normal text-[#121C2D] dark:text-white tracking-wide text-center break-words w-full px-2" title={`${response.user.firstName ?? ""} ${response.user.lastName ?? ""}`}>
@@ -147,7 +147,7 @@ const UserManagementView = () => {
           {/* Stats Cards */}
           <div className="w-full space-y-3">
             <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl p-4 flex gap-4">
-              <div className="bg-[#DC8B18] rounded-full px-3 py-3 items-center h-fit w-fit">
+              <div className="bg-[#6A7282] rounded-full px-3 py-3 items-center h-fit w-fit">
                 <FiClock className="w-8 h-8  text-white dark:text-[#OF1621]" />
               </div>
               <div className="flex flex-col justify-start">
@@ -160,7 +160,7 @@ const UserManagementView = () => {
               </div>
             </div>
             <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl p-4 flex gap-4">
-              <div className="bg-[#DC8B18] rounded-full px-3 py-3 h-fit w-fit">
+              <div className="bg-[#6A7282] rounded-full px-3 py-3 h-fit w-fit">
                 <LuGamepad2 className="w-8 h-8 text-white dark:text-[#OF1621]" />
               </div>
               <div className="flex flex-col justify-start">
@@ -173,7 +173,7 @@ const UserManagementView = () => {
               </div>
             </div>
             <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl p-4 flex-1 flex gap-4">
-              <div className="bg-[#DC8B18] rounded-full px-3 py-3 h-fit w-fit">
+              <div className="bg-[#6A7282] rounded-full px-3 py-3 h-fit w-fit">
                 <TbCalendarClock className="w-8 h-8 text-white dark:text-[#OF1621] " />
               </div>
               <div className="flex flex-col justify-start">
@@ -195,21 +195,21 @@ const UserManagementView = () => {
               Profile Details
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 md:gap-x-16 space-y-border-b dark:text-white">
-              <div className="text-[#DC8B18] tracking-wide">Name</div>
+              <div className="text-[#6A7282] tracking-wide">Name</div>
               <div className="text-[#334154] font-worksans text-sm tracking-wider dark:text-white break-words" title={`${response.user.firstName} ${response.user.lastName}`}>
                 {`${response.user.firstName} ${response.user.lastName}`}
               </div>
-              <div className="text-[#DC8B18] tracking-wide">Email</div>
+              <div className="text-[#6A7282] tracking-wide">Email</div>
               <div className="text-[#334154] font-worksans text-sm tracking-wider dark:text-white break-all" title={response.user.email}>
                 {response.user.email}
               </div>
-              <div className="text-[#DC8B18] tracking-wide">
+              <div className="text-[#6A7282] tracking-wide">
                 Mobile number
               </div>
               <div className="text-[#334154] font-worksans text-sm tracking-wider dark:text-white break-all" title={response.user.phoneNumber ?? "-"}>
                 {response.user.phoneNumber ?? "-"}
               </div>
-              <div className="text-[#DC8B18] tracking-wide">Country</div>
+              <div className="text-[#6A7282] tracking-wide">Country</div>
               <div className="text-[#334154] font-worksans text-sm tracking-wider dark:text-white break-words" title={response?.user?.country ?? "-"}>
                 {response?.user?.country ?? "-"}
               </div>
@@ -259,7 +259,7 @@ const UserManagementView = () => {
                                 alt={game.gameTitle}
                                 className="w-full h-full object-cover"
                                 loadingClassName="rounded-lg"
-                                spinnerColor="#DC8B18"
+                                spinnerColor="#6A7282"
                                 rootMargin="50px"
                               />
                             </div>
@@ -292,10 +292,10 @@ const UserManagementView = () => {
                   <div className="flex items-center gap-1 order-1 sm:order-2">
                     {/* Previous button */}
                     <button
-                      className={`w-8 h-8 rounded-full transition-colors border border-[#DC8B18] ${
+                      className={`w-8 h-8 rounded-full transition-colors border border-[#6A7282] ${
                         page === 1
                           ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
-                          : "hover:bg-[#C17600]/20 text-black dark:text-white"
+                          : "hover:bg-[#6A7282]/20 text-black dark:text-white"
                       }`}
                       onClick={() => setPage(Math.max(1, page - 1))}
                       disabled={page === 1}
@@ -304,14 +304,14 @@ const UserManagementView = () => {
                     </button>
 
                     {/* Mobile: Show only current page info */}
-                    <div className="sm:hidden flex items-center gap-1 px-3 py-1 rounded-full border border-[#DC8B18]">
+                    <div className="sm:hidden flex items-center gap-1 px-3 py-1 rounded-full border border-[#6A7282]">
                       <span className="text-sm text-black dark:text-white">
                         {page} / {Math.ceil(games.length / PAGE_SIZE)}
                       </span>
                     </div>
 
                     {/* Desktop: Show page numbers with smart truncation */}
-                    <div className="hidden sm:flex items-center gap-1 rounded-full border border-[#DC8B18] p-1">
+                    <div className="hidden sm:flex items-center gap-1 rounded-full border border-[#6A7282] p-1">
                       {(() => {
                         const pages = [];
                         const totalPages = Math.ceil(games.length / PAGE_SIZE);
@@ -325,8 +325,8 @@ const UserManagementView = () => {
                                 key={i}
                                 className={`w-8 h-8 rounded-full transition-colors ${
                                   page === i
-                                    ? "bg-[#DC8B18] text-white"
-                                    : "hover:bg-[#C17600]/20 text-black dark:text-white"
+                                    ? "bg-[#6A7282] text-white"
+                                    : "hover:bg-[#6A7282]/20 text-black dark:text-white"
                                 }`}
                                 onClick={() => setPage(i)}
                               >
@@ -346,8 +346,8 @@ const UserManagementView = () => {
                                 key={1}
                                 className={`w-8 h-8 rounded-full transition-colors ${
                                   page === 1
-                                    ? "bg-[#DC8B18] text-white"
-                                    : "hover:bg-[#C17600]/20 text-black dark:text-white"
+                                    ? "bg-[#6A7282] text-white"
+                                    : "hover:bg-[#6A7282]/20 text-black dark:text-white"
                                 }`}
                                 onClick={() => setPage(1)}
                               >
@@ -370,8 +370,8 @@ const UserManagementView = () => {
                                 key={i}
                                 className={`w-8 h-8 rounded-full transition-colors ${
                                   page === i
-                                    ? "bg-[#DC8B18] text-white"
-                                    : "hover:bg-[#C17600]/20 text-black dark:text-white"
+                                    ? "bg-[#6A7282] text-white"
+                                    : "hover:bg-[#6A7282]/20 text-black dark:text-white"
                                 }`}
                                 onClick={() => setPage(i)}
                               >
@@ -394,8 +394,8 @@ const UserManagementView = () => {
                                 key={totalPages}
                                 className={`w-8 h-8 rounded-full transition-colors ${
                                   page === totalPages
-                                    ? "bg-[#DC8B18] text-white"
-                                    : "hover:bg-[#C17600]/20 text-black dark:text-white"
+                                    ? "bg-[#6A7282] text-white"
+                                    : "hover:bg-[#6A7282]/20 text-black dark:text-white"
                                 }`}
                                 onClick={() => setPage(totalPages)}
                               >
@@ -411,10 +411,10 @@ const UserManagementView = () => {
 
                     {/* Next button */}
                     <button
-                      className={`w-8 h-8 rounded-full transition-colors border border-[#DC8B18] ${
+                      className={`w-8 h-8 rounded-full transition-colors border border-[#6A7282] ${
                         page === Math.ceil(games.length / PAGE_SIZE)
                           ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
-                          : "hover:bg-[#C17600]/20 text-black dark:text-white"
+                          : "hover:bg-[#6A7282]/20 text-black dark:text-white"
                       }`}
                       onClick={() => setPage(Math.min(Math.ceil(games.length / PAGE_SIZE), page + 1))}
                       disabled={page === Math.ceil(games.length / PAGE_SIZE)}

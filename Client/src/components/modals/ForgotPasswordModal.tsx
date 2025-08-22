@@ -153,7 +153,7 @@ export function ForgotPasswordModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <CustomDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221]">
         <button
-          className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#DC8B18] flex items-center justify-center shadow-lg hover:bg-[#C17600] transition-colors"
+          className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#6A7282] flex items-center justify-center shadow-lg hover:bg-[#5A626F] transition-colors"
           onClick={() => onOpenChange(false)}
           aria-label="Close"
           style={{ border: "none" }}
@@ -161,7 +161,7 @@ export function ForgotPasswordModal({
           <span className="text-white text-2xl font-bold">×</span>
         </button>
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-[#FFAA33] text-center font-dmmono">
+          <DialogTitle className="text-2xl font-bold text-[#6A7282] dark:text-white text-center font-dmmono">
             {isSubmitted ? "Reset Instructions Sent" : "Forgot Password"}
           </DialogTitle>
           <div className="flex font-dmmono text-xl tracking-wide">
@@ -169,8 +169,8 @@ export function ForgotPasswordModal({
               <button
                 className={`flex-1 py-2 font-semibold ${
                   activeTab === "email"
-                    ? "text-[#DC8B18] border-b-2 border-[#DC8B18]"
-                    : "text-gray-500"
+                    ? "text-[#6A7282] dark:text-white border-b-2 border-[#6A7282] dark:border-white"
+                    : "text-gray-500 dark:text-gray-300"
                 }`}
                 onClick={() => {
                   if (activeTab !== "email") {
@@ -184,8 +184,8 @@ export function ForgotPasswordModal({
               <button
                 className={`flex-1 py-2 font-semibold ${
                   activeTab === "phone"
-                    ? "text-[#DC8B18] border-b-2 border-[#DC8B18]"
-                    : "text-gray-500"
+                    ? "text-[#6A7282] dark:text-white border-b-2 border-[#6A7282] dark:border-white"
+                    : "text-gray-500 dark:text-gray-300"
                 }`}
                 onClick={() => {
                   if (activeTab !== "phone") {
@@ -211,7 +211,7 @@ export function ForgotPasswordModal({
                   <Button
                     type="button"
                     onClick={resetForm}
-                    className="w-full bg-[#DC8B18] hover:bg-[#C17600] text-white font-dmmono cursor-pointer"
+                    className="w-full bg-[#6A7282] hover:bg-[#5A626F] text-white font-dmmono cursor-pointer"
                   >
                     Try Again
                   </Button>
@@ -320,7 +320,7 @@ export function ForgotPasswordModal({
                     <Button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full bg-[#DC8B18] hover:bg-[#C17600] text-white font-dmmono cursor-pointer"
+                      className="w-full bg-[#6A7282] hover:bg-[#5A626F] text-white font-dmmono cursor-pointer"
                     >
                       {isSubmitting ? "Sending..." : "Send Reset Instructions"}
                     </Button>

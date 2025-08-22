@@ -20,7 +20,7 @@ export const AcceptInvitationModal: React.FC<AcceptInvitationModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="bg-[#F1F5F9] rounded-2xl p-4 sm:p-6 md:p-8 w-[90%] sm:w-[420px] md:w-[450px] lg:w-[480px] max-w-[90vw] shadow-xl border border-[#E2E8F0] flex flex-col items-center mx-4">
-        <h2 className="text-2xl sm:text-2xl font-bold text-[#D946EF] mb-4 sm:mb-6 underline underline-offset-4 text-center font-dmmono">
+        <h2 className="text-2xl sm:text-2xl font-bold text-[#6A7282] mb-4 sm:mb-6 underline underline-offset-4 text-center font-dmmono">
           Accept Invitation
         </h2>
         <form className="w-full flex flex-col gap-4">
@@ -83,7 +83,7 @@ export const AcceptInvitationModal: React.FC<AcceptInvitationModalProps> = ({
               </div>
               <button
                 type="submit"
-                className="w-full mt-4 bg-[#D946EF] text-white font-bold py-2 sm:py-3 rounded-lg text-base sm:text-lg tracking-wider cursor-pointer"
+                className="w-full mt-4 bg-[#6A7282] text-white font-bold py-2 sm:py-3 rounded-lg text-base sm:text-lg tracking-wider cursor-pointer"
               >
                 Login
               </button>
@@ -168,7 +168,7 @@ export const AcceptInvitationModal: React.FC<AcceptInvitationModalProps> = ({
               </div>
               <button
                 type="submit"
-                className="w-full mt-4 bg-[#D946EF] text-white font-bold py-2 sm:py-3 rounded-lg text-base sm:text-lg tracking-wider cursor-pointer"
+                className="w-full mt-4 bg-[#6A7282] text-white font-bold py-2 sm:py-3 rounded-lg text-base sm:text-lg tracking-wider cursor-pointer"
               >
                 Sign Up
               </button>

@@ -81,7 +81,7 @@ export function ResetPasswordOTPModal({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221]">
         <button
-          className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#DC8B18] flex items-center justify-center shadow-lg hover:bg-[#C17600] transition-colors"
+          className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#6A7282] flex items-center justify-center shadow-lg hover:bg-[#5A626F] transition-colors"
           onClick={() => onOpenChange(false)}
           aria-label="Close"
           style={{ border: "none" }}
@@ -89,7 +89,7 @@ export function ResetPasswordOTPModal({
           <span className="text-white text-2xl font-bold">×</span>
         </button>
         <AlertDialogHeader className="text-center">
-          <AlertDialogTitle className="text-[20px] font-bold text-[#FFAA33] font-dmmono">
+          <AlertDialogTitle className="text-[20px] font-bold text-[#6A7282] dark:text-white font-dmmono">
             Reset Password Verification
           </AlertDialogTitle>
           <AlertDialogDescription className="dark:text-white text-black font-worksans text-[14px] tracking-wider mt-1">
@@ -102,7 +102,7 @@ export function ResetPasswordOTPModal({
             onChange={setOtp}
             numInputs={6}
             renderInput={(props) => (
-              <div className="px-2 py-2 border-2 border-[#DC8B18] mx-1 rounded-lg">
+              <div className="px-2 py-2 border-2 border-[#6A7282] mx-1 rounded-lg">
                 <input
                   {...props}
                   className="w-12 h-12 text-center bg-transparent rounded-none dark:text-white text-black font-worksans  tracking-wider text-2xl font-bold mx-1 focus:outline-none focus:ring-0"
@@ -126,7 +126,7 @@ export function ResetPasswordOTPModal({
         <Button
           onClick={handleVerify}
           disabled={isVerifying || otp.length !== 6}
-          className="w-full bg-[#DC8B18] hover:bg-[#C17600] text-white font-dmmono cursor-pointer"
+          className="w-full bg-[#6A7282] hover:bg-[#5A626F] text-white font-dmmono cursor-pointer"
         >
           {isVerifying ? "Verifying..." : "Verify"}
         </Button>
@@ -135,7 +135,7 @@ export function ResetPasswordOTPModal({
           <button
             onClick={handleResendOtp}
             disabled={requestOtp.isPending}
-            className="underline text-[#DC8B18] cursor-pointer"
+            className="underline text-[#6A7282] cursor-pointer"
           >
             {requestOtp.isPending ? "Sending..." : "Resend"}
           </button>

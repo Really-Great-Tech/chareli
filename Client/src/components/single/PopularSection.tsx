@@ -41,7 +41,7 @@ const PopularSection = ({
             <div className="relative w-full md:w-[400px]">
               <IoIosSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#64748A] text-xl pointer-events-none" />
               <Input
-                className="pl-12 w-full h-12 rounded-2xl text-[#64748A] tracking-wider border-2 border-[#DC8B18] focus:border-[#DC8B18] focus:outline-none shadow-[0_0_8px_rgba(220,139,24,0.2)] 
+              className="pl-12 w-full h-12 rounded-2xl text-[#64748A] tracking-wider border-2 border-[#64748A] focus:border-[#64748A] focus:outline-none shadow-[0_0_8px_rgba(100,116,138,0.2)] 
                             placeholder:text-[#64748A] bg-white/5
                             placeholder:text-sm"
                 placeholder="Which game do you want to search for?"
@@ -62,14 +62,14 @@ const PopularSection = ({
           uiSettings.showSearchBar ? "justify-between" : "justify-start"
         } gap-4 mb-8`}
       >
-        <h1 className="text-[#DC8B18] text-3xl font-worksans tracking-wide">
+        <h1 className="text-[#6A7282] dark:text-[#FEFEFE] text-3xl font-worksans tracking-wide">
           Popular
         </h1>
         {uiSettings.showSearchBar && (
           <div className="relative w-full md:w-[400px]">
             <IoIosSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#64748A] text-xl pointer-events-none" />
             <Input
-              className="pl-12 w-full h-12 rounded-2xl text-[#64748A] tracking-wider border-2 border-[#DC8B18] focus:border-[#DC8B18] focus:outline-none shadow-[0_0_8px_rgba(220,139,24,0.2)] 
+              className="pl-12 w-full h-12 rounded-2xl text-[#64748A] tracking-wider border-2 border-[#64748A] focus:border-[#64748A] focus:outline-none shadow-[0_0_8px_rgba(100,116,138,0.2)] 
                           placeholder:text-[#64748A] bg-white/5
                           placeholder:text-sm"
               placeholder="Which game do you want to search for?"
@@ -88,7 +88,7 @@ const PopularSection = ({
             </div>
           )}
           {!isLoading && !error && games.length === 0 && searchQuery && (
-            <div className="text-center py-8 min-h-[60vh] flex flex-col items-center justify-center gap-4 text-[#C17600] text-4xl">
+            <div className="text-center py-8 min-h-[60vh] flex flex-col items-center justify-center gap-4 text-[#64748A] text-4xl">
               <img
                 src={emptyGameImg}
                 alt="No games"
@@ -105,7 +105,7 @@ const PopularSection = ({
                   className="relative group cursor-pointer w-full"
                 >
                   <div
-                    className="relative h-[290px] min-h-[290px] max-h-[290px] rounded-[32px] border-4 border-transparent group-hover:border-[#DC8B18] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(220,139,24,0.3)] box-border overflow-hidden"
+                    className="relative h-[290px] min-h-[290px] max-h-[290px] rounded-[32px] border-4 border-transparent group-hover:border-[#64748A] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(100,116,138,0.3)] box-border overflow-hidden"
                     onClick={() => handleGameClick(game.id)}
                   >
                     <LazyImage
@@ -113,7 +113,7 @@ const PopularSection = ({
                       alt={game.title}
                       className="w-full h-full object-cover"
                       loadingClassName="rounded-[28px]"
-                      spinnerColor="#DC8B18"
+                      spinnerColor="#64748A"
                       rootMargin="50px"
                     />
                     {/* Game Info Overlay - Only visible on hover */}

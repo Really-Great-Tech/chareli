@@ -154,8 +154,8 @@ const AdminLayout: React.FC = () => {
                         className={({ isActive }) =>
                           `flex items-center p-2 rounded-lg transition-colors ${
                             isActive
-                              ? "bg-[#DC8B18] text-white"
-                              : "hover:text-[#DC8B18] hover:bg-[#FEF3C7] dark:text-white dark:hover:text-[#DC8B18] text-[#121C2D]"
+                              ? "bg-[#6A7282] text-white"
+                              : "hover:text-[#6A7282] hover:bg-[#F1F5F9] dark:text-white dark:hover:text-[#6A7282] text-[#121C2D]"
                           } ${isSidebarCollapsed ? "justify-center" : ""}`
                         }
                         onClick={() => {
@@ -181,7 +181,7 @@ const AdminLayout: React.FC = () => {
                   onClick={toggleSidebar}
                   className={`absolute ${
                     isSidebarCollapsed ? "-right-12" : "-right-4"
-                  } bg-[#DC8B18] dark:bg-[#DC8B18] rounded-full p-1.5 text-white hover:bg-[#C17600] dark:hover:bg-[#C17600] shadow-lg transition-all duration-300`}
+                  } bg-[#6A7282] dark:bg-[#6A7282] rounded-full p-1.5 text-white hover:bg-[#5A626F] dark:hover:bg-[#5A626F] shadow-lg transition-all duration-300`}
                   style={{ bottom: "20px" }}
                 >
                   {isSidebarCollapsed ? (

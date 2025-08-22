@@ -50,7 +50,7 @@ export function OTPModal({ open, onClose }: OTPModalProps) {
                 renderInput={(props, idx) => {
                   const isFilled = !!otp[idx];
                   return (
-                    <div className="px-2 py-0 border-1 border-[#E328AF] mx-4 rounded">
+                    <div className="px-2 py-0 border-1 border-[#6A7282] mx-4 rounded">
                       <input
                         {...props}
                         readOnly={isFilled}
@@ -67,7 +67,7 @@ export function OTPModal({ open, onClose }: OTPModalProps) {
           </div>
           <button
             type="submit"
-            className="w-full mt-2 bg-[#D946EF] text-white py-3 rounded-xl text-lg tracking-wider cursor-pointer"
+            className="w-full mt-2 bg-[#6A7282] text-white py-3 rounded-xl text-lg tracking-wider cursor-pointer"
             onClick={() => setNewPassOpen(true)}
           >
             Verify
@@ -77,7 +77,7 @@ export function OTPModal({ open, onClose }: OTPModalProps) {
           <p className="font-worksans text-lg tracking-wider">
             Didn't recieve a code?
           </p>
-          <p className="text-[#D946EF] hover:underline">Resend</p>
+          <p className="text-[#6A7282] hover:underline">Resend</p>
         </div>
       </div>
       <CreateNewPassModal

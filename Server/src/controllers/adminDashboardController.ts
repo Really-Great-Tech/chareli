@@ -222,18 +222,22 @@ export const getDashboardAnalytics = async (
       isActive: true, 
       isDeleted: false,
       lastLoggedIn: Not(IsNull()), // Users who have logged in at least once
-      createdAt: Between(twentyFourHoursAgo, now) // Filter by registration time period
+      createdAt: Between(twentyFourHoursAgo, now), // Filter by registration time period
+      hasCompletedFirstLogin: true
     };
     let systemInactiveWhere: any = { 
       isActive: false, 
       isDeleted: false,
-      createdAt: Between(twentyFourHoursAgo, now) // Filter by registration time period
+      createdAt: Between(twentyFourHoursAgo, now), // Filter by registration time period
+      hasCompletedFirstLogin: true
     };
     let neverLoggedInWhere: any = { 
       isActive: true, 
       isDeleted: false,
       lastLoggedIn: IsNull(),
-      createdAt: Between(twentyFourHoursAgo, now) // Filter by registration time period
+      createdAt: Between(twentyFourHoursAgo, now),
+      hasCompletedFirstLogin: true
+       // Filter by registration time period
     };
 
     // Add country filter if provided
@@ -255,19 +259,19 @@ export const getDashboardAnalytics = async (
     const registeredButNeverLoggedIn = neverLoggedInUsers;
     
     // Verify that our breakdown equals the total registered users in the period
-    const calculatedTotal = activeUsers + inactiveUsers;
-    if (calculatedTotal !== currentTotalRegisteredUsers) {
-      console.warn(`User count mismatch: activeUsers (${activeUsers}) + inactiveUsers (${inactiveUsers}) = ${calculatedTotal}, but totalRegisteredUsers.current = ${currentTotalRegisteredUsers}`);
+    // const calculatedTotal = activeUsers + inactiveUsers;
+    // if (calculatedTotal !== currentTotalRegisteredUsers) {
+    //   console.warn(`User count mismatch: activeUsers (${activeUsers}) + inactiveUsers (${inactiveUsers}) = ${calculatedTotal}, but totalRegisteredUsers.current = ${currentTotalRegisteredUsers}`);
       
-      // If there's a mismatch, we need to ensure the total matches
-      // This could happen if there are users who don't fit our current categories
-      // For now, let's adjust inactiveUsers to make the total match
-      if (calculatedTotal < currentTotalRegisteredUsers) {
-        // Add the difference to inactiveUsers to ensure total matches
-        const difference = currentTotalRegisteredUsers - calculatedTotal;
-        inactiveUsers += difference;
-      }
-    }
+    //   // If there's a mismatch, we need to ensure the total matches
+    //   // This could happen if there are users who don't fit our current categories
+    //   // For now, let's adjust inactiveUsers to make the total match
+    //   if (calculatedTotal < currentTotalRegisteredUsers) {
+    //     // Add the difference to inactiveUsers to ensure total matches
+    //     const difference = currentTotalRegisteredUsers - calculatedTotal;
+    //     inactiveUsers += difference;
+    //   }
+    // }
 
     // 3. Game Coverage - Percentage of total games that have been played
     const totalGames = await gameRepository.count();

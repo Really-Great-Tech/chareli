@@ -87,12 +87,12 @@ export function DonutChart({ timeRange }: DonutChartProps) {
     {
       name: "Active users",
       value: analytics?.activeUsers || 0,
-      fill: "#DC8B18",
+      fill: "#64748A",
     },
     {
       name: "Non-active",
       value: analytics?.inactiveUsers || 0,
-      fill: "#FEF3C7",
+      fill: "#334154",
     },
   ];
 
@@ -101,7 +101,7 @@ export function DonutChart({ timeRange }: DonutChartProps) {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[300px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#DC8B18]"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#64748A]"></div>
       </div>
     );
   }
@@ -165,7 +165,7 @@ export function DonutChart({ timeRange }: DonutChartProps) {
             >
               <div
                 className="w-5 h-5 mr-3"
-                style={{ backgroundColor: index === 0 ? "#DC8B18" : "#FEF3C7" }}
+                style={{ backgroundColor: index === 0 ? "#64748A" : "#334154" }}
               ></div>
               <span className="text-base lg:text-lg text-gray-600 dark:text-white">
                 {index === 0 ? "Active users" : "Non-active"} = {_entry.value}

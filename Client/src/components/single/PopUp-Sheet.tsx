@@ -161,7 +161,7 @@ export function PopUpSheet({ children }: { children: React.ReactNode }) {
                       type="checkbox"
                       id="enabled"
                       name="enabled"
-                      className="w-4 h-4 rounded border border-gray-200 dark:border dark:border-[#C17600]"
+                      className="w-4 h-4 rounded border border-gray-200 dark:border dark:border-[#6A7282]"
                     />
                   </div>
                   <Label htmlFor="enabled" className="text-right text-lg">
@@ -180,7 +180,7 @@ export function PopUpSheet({ children }: { children: React.ReactNode }) {
                 </SheetClose>
                 <Button
                   type="submit"
-                  className="w-full sm:w-fit h-12 cursor-pointer bg-[#DC8B18] hover:bg-[#C17600] dark:text-white dark:hover:bg-[#DC8B18] px-4"
+                  className="w-full sm:w-fit h-12 cursor-pointer bg-[#6A7282] hover:bg-[#5A626F] dark:text-white dark:hover:bg-[#6A7282] px-4"
                   disabled={isSubmitting || createConfig.isPending}
                 >
                   {isSubmitting || createConfig.isPending

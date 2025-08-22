@@ -31,9 +31,9 @@ const App: React.FC = () => {
                   duration: 10000,
                   style: {
                     background: "white",
-                    color: "#DC8B18",
+                    color: "#6A7282",
                     fontSize: "17px",
-                    // border: "1px solid #DC8B18",
+                    // border: "1px solid #6A7282",
                   },
                 }}
               />

@@ -72,7 +72,7 @@ export function MostPlayedGames() {
                   colSpan={3}
                   className="text-center py-6 hover:bg-transparent"
                 >
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C17600] mx-auto"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6A7282] mx-auto"></div>
                 </TableCell>
               </TableRow>
             ) : !gamesToShow.length ? (
@@ -99,7 +99,7 @@ export function MostPlayedGames() {
                           alt={game.title}
                           className="w-full h-full object-cover"
                           loadingClassName="rounded-[16px]"
-                          spinnerColor="#DC8B18"
+                          spinnerColor="#6A7282"
                           rootMargin="50px"
                         />
                       </div>
@@ -130,7 +130,7 @@ export function MostPlayedGames() {
               <div className="flex items-center gap-1 order-1 sm:order-2">
                 {/* Previous button */}
                 <button
-                  className={`w-8 h-8 rounded-full transition-colors border border-[#C17600] ${
+                  className={`w-8 h-8 rounded-full transition-colors border border-[#6A7282] ${
                     currentPage === 1
                       ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
                       : "hover:bg-[#FFF7ED] text-black dark:text-white"
@@ -142,14 +142,14 @@ export function MostPlayedGames() {
                 </button>
 
                 {/* Mobile: Show only current page info */}
-                <div className="sm:hidden flex items-center gap-1 px-3 py-1 rounded-full border border-[#C17600]">
+                <div className="sm:hidden flex items-center gap-1 px-3 py-1 rounded-full border border-[#6A7282]">
                   <span className="text-sm text-black dark:text-white">
                     {currentPage} / {totalPages}
                   </span>
                 </div>
 
                 {/* Desktop: Show page numbers with smart truncation */}
-                <div className="hidden sm:flex items-center gap-1 rounded-full border border-[#C17600] p-1">
+                <div className="hidden sm:flex items-center gap-1 rounded-full border border-[#6A7282] p-1">
                   {(() => {
                     const pages = [];
                     const maxVisiblePages = 5;
@@ -162,8 +162,8 @@ export function MostPlayedGames() {
                             key={i}
                             className={`w-8 h-8 rounded-full transition-colors ${
                               currentPage === i
-                                ? "bg-[#DC8B18] text-white"
-                                : "hover:bg-[#C17600] text-black dark:text-white"
+                                ? "bg-[#6A7282] text-white"
+                                : "hover:bg-[#6A7282] text-black dark:text-white"
                             }`}
                             onClick={() => setCurrentPage(i)}
                           >
@@ -183,8 +183,8 @@ export function MostPlayedGames() {
                             key={1}
                             className={`w-8 h-8 rounded-full transition-colors ${
                               currentPage === 1
-                                ? "bg-[#DC8B18] text-white"
-                                : "hover:bg-[#C17600] text-black dark:text-white"
+                                ? "bg-[#6A7282] text-white"
+                                : "hover:bg-[#6A7282] text-black dark:text-white"
                             }`}
                             onClick={() => setCurrentPage(1)}
                           >
@@ -207,8 +207,8 @@ export function MostPlayedGames() {
                             key={i}
                             className={`w-8 h-8 rounded-full transition-colors ${
                               currentPage === i
-                                ? "bg-[#DC8B18] text-white"
-                                : "hover:bg-[#C17600] text-black dark:text-white"
+                                ? "bg-[#6A7282] text-white"
+                                : "hover:bg-[#6A7282] text-black dark:text-white"
                             }`}
                             onClick={() => setCurrentPage(i)}
                           >
@@ -231,8 +231,8 @@ export function MostPlayedGames() {
                             key={totalPages}
                             className={`w-8 h-8 rounded-full transition-colors ${
                               currentPage === totalPages
-                                ? "bg-[#DC8B18] text-white"
-                                : "hover:bg-[#C17600] text-black dark:text-white"
+                                ? "bg-[#6A7282] text-white"
+                                : "hover:bg-[#6A7282] text-black dark:text-white"
                             }`}
                             onClick={() => setCurrentPage(totalPages)}
                           >
@@ -248,10 +248,10 @@ export function MostPlayedGames() {
 
                 {/* Next button */}
                 <button
-                  className={`w-8 h-8 rounded-full transition-colors border border-[#C17600] ${
+                  className={`w-8 h-8 rounded-full transition-colors border border-[#6A7282] ${
                     currentPage === totalPages
                       ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
-                      : "hover:bg-[#C17600] text-black dark:text-white"
+                      : "hover:bg-[#6A7282] text-black dark:text-white"
                   }`}
                   onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                   disabled={currentPage === totalPages}

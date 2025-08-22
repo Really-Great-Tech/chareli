@@ -19,7 +19,7 @@ import moon from "../../assets/moon.svg";
 
 import { SignUpModal } from "../modals/SignUpModal";
 import { LoginModal } from "../modals/LoginModal";
-import { Menu} from "lucide-react";
+import { CircleUserRound, Menu} from "lucide-react";
 
 const Navbar: React.FC = () => {
   const { isAuthenticated, logout } = useAuth();
@@ -64,23 +64,23 @@ const Navbar: React.FC = () => {
         className="cursor-pointer flex justify-center items-center bg-gradient-to-t from-[#121C2D] to-[#475568] rounded-br-[40px] py-2 px-8 -mt-4 -ml-4"
       >
         <img src={Logo} alt="logo" className="w-12 pt-4 " />
-        <p className="text-[20.22px] text-center text-white dark:text-white font-bold font-jersey pt-4">
+        <p className="text-[20.22px] lg:text-[40px] text-center text-white dark:text-white font-bold font-jersey pt-4">
           Arcades Box
         </p>
       </div>
 
       {/* Desktop Navigation - Center */}
-      <div className="hidden md:flex gap-4 text-[16px] font-bold text-white items-center justify-center flex-1 pt-2">
+      <div className="hidden lg:flex gap-4 text-[16px] font-bold text-white items-center justify-center flex-1 pt-2">
         <Link
           to="/about"
-          className="bg-[#DC8B18] text-white px-4 py-2 rounded-md transition-colors duration-300 hover:bg-[#C17600] flex items-center gap-2"
+          className="bg-[#6A7282] text-white px-4 py-2 rounded-md transition-colors duration-300 hover:bg-[#5A626F] flex items-center gap-2"
         >
           <img src={aboutIcon} alt="About" className="w-5 h-5" />
           About Us
         </Link>
         <Link
           to="/categories"
-          className="bg-[#DC8B18] text-white px-4 py-2 rounded-md transition-colors duration-300 hover:bg-[#C17600] flex items-center gap-2"
+          className="bg-[#6A7282] text-white px-4 py-2 rounded-md transition-colors duration-300 hover:bg-[#5A626F] flex items-center gap-2"
         >
           <img src={categoryIcon} alt="Category" className="w-5 h-5" />
           Categories
@@ -88,11 +88,11 @@ const Navbar: React.FC = () => {
       </div>
 
       {/* Mobile Menu Button and Theme Toggle */}
-      <div className="md:hidden flex items-center space-x-2 mx-2">
+      <div className="lg:hidden flex items-center space-x-2 mx-2">
         {/* Mobile Theme Toggle */}
         <button
           onClick={toggleDarkMode}
-          className="text-white bg-[#DC8B18] py-2 px-2 rounded-3xl flex items-center justify-center"
+          className="text-white bg-[#6A7282] py-2 px-2 rounded-3xl flex items-center justify-center hover:bg-[#5A626F] transition-colors"
         >
           <img
             src={isDarkMode ? moon : sun}
@@ -103,7 +103,7 @@ const Navbar: React.FC = () => {
         
         <button
           ref={menuButtonRef}
-          className="text-white bg-[#DC8B18] py-2 px-3 pt-4 rounded-md flex items-center justify-center"
+          className="text-white bg-[#6A7282] py-2 px-3 pt-4 rounded-md flex items-center justify-center hover:bg-[#5A626F] transition-colors"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
           {isMobileMenuOpen ? (
@@ -118,7 +118,7 @@ const Navbar: React.FC = () => {
       {isMobileMenuOpen && (
         <div
           ref={mobileMenuRef}
-          className="absolute top-full right-0 mt-2 mx-2 bg-white dark:bg-[#0f1221] shadow-lg md:hidden z-50 border border-gray-200 dark:border-gray-800 rounded-lg min-w-[300px]"
+          className="absolute top-full right-0 mt-2 mx-2 bg-white dark:bg-[#0f1221] shadow-lg lg:hidden z-50 border border-gray-200 dark:border-gray-800 rounded-lg min-w-[300px]"
         >
           <div className="flex flex-col p-4 gap-2">
             <div className=" text-[15px]">
@@ -145,7 +145,7 @@ const Navbar: React.FC = () => {
                       navigate("/admin");
                       setIsMobileMenuOpen(false);
                     }}
-                    className="bg-[#DC8B18] text-white hover:from-[#DC8B18] hover:to-[#A21CAF] w-full py-3 rounded-lg font-semibold shadow-lg transform hover:scale-[1.02] transition-all duration-300 text-[15px]"
+                    className="bg-[#6A7282] text-white hover:bg-[#5A626F] w-full py-3 rounded-lg font-semibold shadow-lg transform hover:scale-[1.02] transition-all duration-300 text-[15px]"
                   >
                     Admin Dashboard
                   </Button>
@@ -182,7 +182,7 @@ const Navbar: React.FC = () => {
                     setIsProfileModalOpen(true);
                     setIsMobileMenuOpen(false);
                   }}
-                  className="bg-[#DC8B18] text-white w-full py-2 rounded-lg font-semibold shadow-lg transform hover:scale-[1.02] transition-all duration-300 text-[15px]"
+                  className="bg-[#6A7282] text-white w-full py-2 rounded-lg font-semibold shadow-lg transform hover:scale-[1.02] transition-all duration-300 text-[15px] hover:bg-[#5A626F]"
                 >
                   Profile
                 </button>
@@ -204,7 +204,7 @@ const Navbar: React.FC = () => {
                     setIsLoginModalOpen(true);
                     setIsMobileMenuOpen(false);
                   }}
-                  className="bg-[#DC8B18] text-white text-[15px] w-full py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-[1.02]"
+                  className="bg-[#6A7282] text-white text-[15px] w-full py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-[1.02] hover:bg-[#5A626F]"
                 >
                   Log in
                 </Button>
@@ -217,7 +217,7 @@ const Navbar: React.FC = () => {
                     setIsSignUpModalOpen(true);
                     setIsMobileMenuOpen(false);
                   }}
-                  className="bg-transparent border border-[#DC8B18] text-[#DC8B18] text-[15px] w-full py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-[1.02]"
+                  className="bg-transparent border border-[#6A7282] text-[#6A7282] text-[15px] w-full py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-[1.02] hover:bg-[#6A7282] hover:text-white"
                 >
                   Sign up
                 </Button>
@@ -255,7 +255,7 @@ const Navbar: React.FC = () => {
       />
 
       {/* Desktop Actions */}
-      <div className="hidden md:flex space-x-4 items-center pt-2 pr-4">
+      <div className="hidden lg:flex space-x-4 items-center pt-2 pr-4">
         <img
           onClick={toggleDarkMode}
           src={isDarkMode ? moon : sun}
@@ -268,7 +268,7 @@ const Navbar: React.FC = () => {
             {permissions.hasAdminAccess && (
               <Button
                 onClick={() => navigate("/admin")}
-                className="bg-[#DC8B18] text-white hover:bg-[#DC8B18] cursor-pointer text-[15px]"
+                className="bg-[#6A7282] text-white hover:bg-[#5A626F] cursor-pointer text-[15px] transition-colors"
               >
                 Admin Dashboard
               </Button>
@@ -281,10 +281,10 @@ const Navbar: React.FC = () => {
               onClick={() => setIsStatsModalOpen(true)}
             /> */}
 
-            {/* <CircleUserRound
-              className="cursor-pointer text-[#DC8B18] w-6 h-6"
+            <CircleUserRound
+              className="cursor-pointer text-[#6A7282] w-6 h-6 hover:text-[#5A626F] transition-colors"
               onClick={() => setIsProfileModalOpen(true)}
-            /> */}
+            />
 
             {/* Logout Button */}
             <Button
@@ -301,7 +301,7 @@ const Navbar: React.FC = () => {
           <>
             <Button
               onClick={() => setIsLoginModalOpen(true)}
-              className="bg-[#DC8B18] dark:border-gray-500 text-white hover:text-[#111826] dark:text-gray-300 text-[15px] cursor-pointer hover:bg-accent"
+              className="bg-[#6A7282] text-white hover:bg-[#5A626F] text-[15px] cursor-pointer transition-colors"
             >
               Log in
             </Button>
@@ -313,7 +313,7 @@ const Navbar: React.FC = () => {
                 });
                 setIsSignUpModalOpen(true);
               }}
-              className="bg-transparent border border-[#DC8B18] text-[#DC8B18] text-[15px] hover:bg-transparent hover:text-[#DC8B18] cursor-pointer"
+              className="bg-transparent border border-[#6A7282] text-[#6A7282] text-[15px] hover:bg-[#6A7282] hover:text-white cursor-pointer transition-colors"
             >
               Sign up
             </Button>

@@ -18,7 +18,7 @@ export default function ViewProfile() {
   if (isLoading) {
     return (
       <div className="px-8 flex items-center justify-center h-96">
-        <div className="w-8 h-8 border-4 border-[#DC8B18] border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-4 border-[#6A7282] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -47,7 +47,7 @@ export default function ViewProfile() {
             <img
               src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y"
               alt="Profile"
-              className="w-20 h-20 rounded-full border-2 border-[#DC8B18]"
+              className="w-20 h-20 rounded-full border-2 border-[#6A7282]"
             />
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-center mt-4 w-full">
               <h2 className="mb-0 text-base sm:text-lg text-[#121C2D] dark:text-white tracking-wider text-center sm:text-left truncate max-w-full">
@@ -61,7 +61,7 @@ export default function ViewProfile() {
               </div>
             </div>
             <Button
-              className="w-full mt-3 border border-white bg-transparent shadow-none text-[#121C2D] h-14 hover:bg-[#DC8B18] dark:text-white cursor-pointer"
+              className="w-full mt-3 border border-white bg-transparent shadow-none text-[#121C2D] h-14 hover:bg-[#6A7282] dark:text-white cursor-pointer"
               onClick={() => setEditOpen(true)}
             >
               Edit <CiEdit />
@@ -85,17 +85,17 @@ export default function ViewProfile() {
               Profile Details
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-4 sm:gap-x-8 dark:text-white">
-              <div className="text-[#DC8B18] tracking-wide text-base">Name</div>
+              <div className="text-[#6A7282] dark:text-white tracking-wide text-base">Name</div>
               <div className="text-[#334154] font-worksans text-sm tracking-wider dark:text-white break-words">
                 {user.firstName} {user.lastName}
               </div>
-              <div className="text-[#DC8B18] tracking-wide text-base">
+              <div className="text-[#6A7282] dark:text-white tracking-wide text-base">
                 Email
               </div>
               <div className="text-[#334154] font-worksans text-sm tracking-wider dark:text-white break-all overflow-hidden">
                 {user.email}
               </div>
-              <div className="text-[#DC8B18] tracking-wide text-base">
+              <div className="text-[#6A7282] dark:text-white tracking-wide text-base">
                 Mobile number
               </div>
               <div className="text-[#334154] font-worksans text-sm tracking-wider dark:text-white break-words">

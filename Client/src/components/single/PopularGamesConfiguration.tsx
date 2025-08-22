@@ -77,13 +77,13 @@ const PopularGamesConfiguration = forwardRef<PopularGamesConfigurationRef, Popul
 
     return (
       <div>
-          <h2 className="text-lg sm:text-xl font-worksans text-[#DC8B18] mb-4">
+          <h2 className="text-lg sm:text-xl font-worksans text-[#6A7282] dark:text-white mb-4">
             Popular Games
           </h2>
           <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg mb-6 relative">
             {(isLoadingConfig || isLoadingGames) && (
               <div className="absolute inset-0 bg-white/50 dark:bg-gray-800/50 flex items-center justify-center rounded-lg">
-                <Loader2 className="h-6 w-6 animate-spin text-purple-600" />
+                <Loader2 className="h-6 w-6 animate-spin text-[#6A7282]" />
               </div>
             )}
             
@@ -94,7 +94,7 @@ const PopularGamesConfiguration = forwardRef<PopularGamesConfigurationRef, Popul
                   checked={isManualMode}
                   onCheckedChange={handleToggleManualMode}
                   id="manual-popular-games"
-                  color="#DC8B18"
+                  color="#6A7282"
                   disabled={disabled || isLoadingConfig || isLoadingGames}
                 />
                 <Label 
@@ -113,7 +113,7 @@ const PopularGamesConfiguration = forwardRef<PopularGamesConfigurationRef, Popul
                       type="button"
                       onClick={() => !disabled && setIsDropdownOpen(!isDropdownOpen)}
                       disabled={disabled || isLoadingGames}
-                      className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-left text-sm text-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between hover:border-[#C17600] focus:border-[#C17600] focus:outline-none"
+                      className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-left text-sm text-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between hover:border-[#6A7282] focus:border-[#6A7282] focus:outline-none"
                     >
                       <span className="text-gray-500">Select Games</span>
                       <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
@@ -146,7 +146,7 @@ const PopularGamesConfiguration = forwardRef<PopularGamesConfigurationRef, Popul
                               alt={game.title}
                               className="w-full h-full object-cover"
                               loadingClassName="rounded-lg"
-                              spinnerColor="#DC8B18"
+                              spinnerColor="#6A7282"
                             />
                             <button
                               onClick={() => handleRemoveGame(game.id)}

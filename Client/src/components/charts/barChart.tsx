@@ -8,7 +8,7 @@ const clickTypeLabels: Record<string, string> = {
   "keep-playing": "Keep Playing Pop-up sign-up button clicks",
 };
 
-const colors = ["#FEF3C7", "#DC8B18"];
+const colors = ["#6A7282", "#334154"];
 
 interface HorizontalBarChartProps {
   timeRange?: DashboardTimeRange;
@@ -142,7 +142,7 @@ const HorizontalBarChart = ({ timeRange }: HorizontalBarChartProps) => {
                 <Bar 
                   dataKey="value" 
                   barSize={80}
-                  fill="#FEF3C7"
+                  fill="#334154"
                   radius={[0, 8, 8, 0]}
                 >
                   {data.map((entry: ChartDataPoint, index: number) => (

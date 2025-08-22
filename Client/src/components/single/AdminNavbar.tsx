@@ -48,7 +48,7 @@ const AdminNavbar: React.FC = () => {
         className="cursor-pointer flex justify-center items-center bg-gradient-to-t from-[#121C2D] to-[#475568] rounded-br-[40px] py-2 px-8 -mt-4 -ml-4"
       >
         <img src={Logo} alt="logo" className="w-12 pt-4" />
-        <p className="text-[20.22px] text-center text-white dark:text-white font-bold font-jersey pt-4">
+        <p className="text-[16px] md:text-[28px] text-center text-white dark:text-white font-bold font-jersey pt-4">
           Arcades Box
         </p>
       </div>
@@ -91,7 +91,7 @@ const AdminNavbar: React.FC = () => {
           )} */}
           {permissions.canAccessConfig && (
             <IoMdSettings
-              className="w-6 h-6 cursor-pointer text-[#DC8B18]"
+              className="w-6 h-6 cursor-pointer text-[#6A7282]"
               onClick={() => navigate("/admin/settings")}
             />
           )}

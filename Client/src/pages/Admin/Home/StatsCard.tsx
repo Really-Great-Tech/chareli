@@ -161,7 +161,7 @@ export default function StatsCard({ filters }: StatsCardProps) {
   ];
 
   return (
-    <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
       {cardData.map((card, idx) => (
         <div
           key={idx}

@@ -133,8 +133,8 @@ function SignupClickInsights({ timeRange }: { timeRange: DashboardTimeRange }) {
   // Use the periodClicks from signup analytics (already filtered by time range)
   const totalClicks = signupAnalytics?.periodClicks || 0;
 
-  // For now, use registered users as a proxy for verified users
-  // This is the closest we can get with current data structure
+  // IMPORTANT: Using the same verified user count as the registration insights
+  // This ensures consistency between click insights and registration insights
   const verifiedCount = registeredInPeriod;
   const didntVerifyCount = Math.max(0, totalClicks - verifiedCount);
 

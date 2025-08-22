@@ -35,7 +35,7 @@ const PrivacyPolicy: React.FC = () => {
     <div className="h-screen flex flex-col">
       {/* Fixed Header */}
       <div className="flex-shrink-0 px-4 md:px-8 lg:px-16 py-6">
-        <h1 className="text-4xl md:text-5xl font-bold text-[#DC8B18] font-dmmono">
+        <h1 className="text-4xl md:text-5xl font-bold text-[#6A7282] dark:text-white font-dmmono">
           Privacy Policy
         </h1>
       </div>
@@ -44,7 +44,7 @@ const PrivacyPolicy: React.FC = () => {
       <div className="flex-1 px-4 md:px-8 lg:px-16 pb-6 overflow-hidden">
         {isLoading && (
           <div className="flex justify-center items-center h-full">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#DC8B18]"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#6A7282]"></div>
           </div>
         )}
 
@@ -70,7 +70,7 @@ const PrivacyPolicy: React.FC = () => {
                     href={fileUrl} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="px-3 py-1 bg-[#DC8B18] text-white text-sm rounded-md hover:bg-[#C17600] transition-colors shadow-md"
+                    className="px-3 py-1 bg-[#6A7282] text-white text-sm rounded-md hover:bg-[#5A626F] transition-colors shadow-md"
                   >
                     Download
                   </a>
@@ -96,7 +96,7 @@ const PrivacyPolicy: React.FC = () => {
                   href={fileUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-4 py-2 bg-[#DC8B18] text-white rounded-md hover:bg-[#C17600] transition-colors inline-block"
+                  className="px-4 py-2 bg-[#6A7282] text-white rounded-md hover:bg-[#5A626F] transition-colors inline-block"
                 >
                   Download Privacy Policy Document
                 </a>

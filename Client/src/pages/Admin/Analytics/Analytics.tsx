@@ -1,23 +1,23 @@
-import { DonutChart } from "../../../components/charts/donutChart";
-import { Card } from "../../../components/ui/card";
-import usersLine from "../../../assets/users-line.svg";
-import HorizontalBarChart from "../../../components/charts/barChart";
-import click from "../../../assets/click.svg";
-import UserActivityLog from "./UserActivityLog";
-import GameActivity from "./GameActivity";
+// import { DonutChart } from "../../../components/charts/donutChart";
+// import { Card } from "../../../components/ui/card";
+// import usersLine from "../../../assets/users-line.svg";
+// import HorizontalBarChart from "../../../components/charts/barChart";
+// import click from "../../../assets/click.svg";
+// import UserActivityLog from "./UserActivityLog";
+// import GameActivity from "./GameActivity";
 import type { DashboardTimeRange } from "../../../backend/analytics.service";
-import { DashboardTimeFilter } from "../../../components/single/DashboardTimeFilter";
-import { useState } from "react";
+// import { DashboardTimeFilter } from "../../../components/single/DashboardTimeFilter";
+// import { useState } from "react";
 import { useSignupAnalyticsData } from "../../../backend/signup.analytics.service";
 
 export default function Analytics() {
   // State for bar chart filter
-  const [barChartTimeRange, setBarChartTimeRange] =
-    useState<DashboardTimeRange>({ period: "last30days" });
+  // const [barChartTimeRange, setBarChartTimeRange] =
+  //   useState<DashboardTimeRange>({ period: "last30days" });
   // State for registration insights filter
-  const [registrationTimeRange, setRegistrationTimeRange] = useState<DashboardTimeRange>({ period: "last30days" });
+  // const [registrationTimeRange, setRegistrationTimeRange] = useState<DashboardTimeRange>({ period: "last30days" });
 
-  console.log("barchartTimeRange:", barChartTimeRange);
+  // console.log("barchartTimeRange:", barChartTimeRange);
 
   const { data: analyticsData } = useSignupAnalyticsData();
 
@@ -59,13 +59,13 @@ export default function Analytics() {
         </Card>
       </div> */}
 
-      <UserActivityLog />
-      <GameActivity />
+      {/* <UserActivityLog /> */}
+      {/* <GameActivity /> */}
 
-      {/* donut chart */}
-      <div className="w-full">
-        <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
-          <div className="justify-between items-center flex p-3">
+      {/* Registration insights donut chart */}
+      {/* <div className="w-full"> */}
+        {/* <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full"> */}
+          {/* <div className="justify-between items-center flex p-3">
             <p className="text-lg sm:text-xl lg:text-2xl">
               Registration insights
             </p>
@@ -73,9 +73,9 @@ export default function Analytics() {
               value={registrationTimeRange}
               onChange={setRegistrationTimeRange}
             />
-          </div>
+          </div> */}
           {/* inner card */}
-          <Card className="bg-[#F8FAFC] dark:bg-[#0F1221] shadow-none border-none mx-3 p-4">
+          {/* <Card className="bg-[#F8FAFC] dark:bg-[#0F1221] shadow-none border-none mx-3 p-4">
             <div className="flex flex-col space-y-8">
               <div className="">
                 <div className="justify-start flex items-center gap-4 font-worksans">
@@ -92,22 +92,22 @@ export default function Analytics() {
                 <DonutChart timeRange={registrationTimeRange} />
               </div>
             </div>
-          </Card>
-        </Card>
-      </div>
+          </Card> */}
+        {/* </Card> */}
+      {/* </div> */}
 
       {/* bar chart - insights */}
-      <div className="w-full">
-        <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
-          <div className="justify-between items-center flex p-3">
+      {/* <div className="w-full"> */}
+        {/* <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full"> */}
+          {/* <div className="justify-between items-center flex p-3">
             <p className="text-base sm:text-xl lg:text-2xl">Click insights</p>
             <DashboardTimeFilter
               value={barChartTimeRange}
               onChange={setBarChartTimeRange}
             />
-          </div>
+          </div> */}
           {/* inner card */}
-          <Card className="bg-[#F8FAFC] dark:bg-[#0F1221] shadow-none border-none mx-3 p-4">
+          {/* <Card className="bg-[#F8FAFC] dark:bg-[#0F1221] shadow-none border-none mx-3 p-4">
             <div className="flex flex-col space-y-8">
               <div className="">
                 <div className="justify-start flex items-center gap-4">
@@ -125,9 +125,9 @@ export default function Analytics() {
                 <HorizontalBarChart timeRange={barChartTimeRange} />
               </div>
             </div>
-          </Card>
-        </Card>
-      </div>
+          </Card> */}
+        {/* </Card> */}
+      {/* </div> */}
     </div>
   );
 }

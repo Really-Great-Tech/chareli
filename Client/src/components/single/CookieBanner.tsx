@@ -35,11 +35,11 @@ export default function CookieBanner() {
 
   return (
     <div className="fixed bottom-2 right-2 left-2 lg:left-auto z-50">
-      <div className="max-w-5xl rounded-2xl bg-white pt-12 pb-6 px-4 sm:px-6 shadow-2xl border border-gray-200">
+      <div className="max-w-5xl rounded-2xl bg-white pt-12 pb-6 px-4 sm:px-6 shadow-2xl border border-gray-200 dark:border-[#334154] dark:bg-[#0F1221]">
         {/* Close button */}
         <button
           onClick={handleClose}
-          className="absolute right-3 top-2 text-[#334154] hover:text-gray-600 transition-colors"
+          className="absolute right-3 top-2 text-[#334154] dark:text-white hover:text-gray-600 transition-colors"
           aria-label="Close cookie banner"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -51,12 +51,12 @@ export default function CookieBanner() {
         <div className="flex flex-col lg:flex-row items-start gap-4 lg:gap-6">
           {/* Left side - Text content */}
           <div className="flex-1">
-            <p className="text-gray-700 text-sm leading-relaxed">
+            <p className="text-gray-700 text-sm leading-relaxed dark:text-white">
               By clicking "Accept", you agree to the storing of cookies on your device to enhance site navigation, 
               analyze site usage, and assist in our marketing efforts.{' '}
               <Link 
                 to="/privacy" 
-                className="text-[#334154] underline transition-colors"
+                className="text-[#334154] underline transition-colors dark:text-white"
               >
                 View our Privacy Policy
               </Link>{' '}

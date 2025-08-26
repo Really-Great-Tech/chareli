@@ -63,6 +63,7 @@ export const useCreateGame = () => {
       });
       // Invalidate category queries to update category pages when new game is added
       queryClient.invalidateQueries({ queryKey: [BackendRoute.CATEGORIES] });
+      queryClient.invalidateQueries({queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS_POPULARITY]})
     },
   });
 };
@@ -97,6 +98,7 @@ export const useUpdateGame = () => {
       });
       // Invalidate category queries to update category pages when game category changes
       queryClient.invalidateQueries({ queryKey: [BackendRoute.CATEGORIES] });
+      queryClient.invalidateQueries({queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS_POPULARITY]})
     },
   });
 };

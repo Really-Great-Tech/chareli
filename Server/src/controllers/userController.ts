@@ -15,6 +15,7 @@ import { emailService } from "../services/email.service";
 import { anonymizationService } from "../services/anonymization.service";
 import redis from "../config/redisClient";
 import { cacheService } from "../services/cache.service";
+import { invalidateAdminDashboardCaches } from "./adminDashboardController";
 import logger from "../utils/logger";
 
 const userRepository = AppDataSource.getRepository(User);
@@ -411,6 +412,9 @@ export const createUser = async (
     signupAnalytics.activityType = "Signed up";
     await analyticsRepository.save(signupAnalytics);
 
+    // Invalidate analytics cache since new data was added
+    await cacheService.invalidateAnalyticsCache();
+
     // Don't return sensitive information
     const { password: _, ...userWithoutSensitiveInfo } = user;
 
@@ -683,8 +687,11 @@ export const deleteUser = async (
     // Anonymize user data (GDPR compliant soft deletion)
     await anonymizationService.anonymizeUserData(id);
 
-    // Invalidate analytics-related cache since user data affects analytics
-    await cacheService.invalidateAnalyticsCache();
+    // Invalidate analytics and admin dashboard caches since user data affects analytics
+    await Promise.all([
+      cacheService.invalidateAnalyticsCache(),
+      invalidateAdminDashboardCaches()
+    ]);
 
     const actionMessage = isSelfDeactivation
       ? "Account deactivated and data anonymized successfully. Notification email sent."

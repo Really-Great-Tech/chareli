@@ -19,6 +19,27 @@ const signupAnalyticsRepository = AppDataSource.getRepository(SignupAnalytics);
 const gamePositionHistoryRepository = AppDataSource.getRepository(GamePositionHistory);
 
 /**
+ * Helper function to invalidate all admin dashboard caches
+ * This should be called whenever data changes that affects dashboard analytics
+ */
+export const invalidateAdminDashboardCaches = async (): Promise<void> => {
+  try {
+    // Invalidate all dashboard-related cache patterns
+    await Promise.all([
+      cacheService.deleteByPattern('admin:dashboard:*'),
+      cacheService.deleteByPattern('admin:games-analytics:*'),
+      cacheService.deleteByPattern('admin:users-analytics:*'),
+      cacheService.deleteByPattern('admin:games-popularity*'), // Fixed pattern to include variations
+      // Also invalidate specific cache keys that don't follow patterns
+      cacheService.delete('admin:games-popularity'),
+    ]);
+    console.log('[Cache] Invalidated all admin dashboard caches');
+  } catch (error) {
+    console.error('[Cache] Error invalidating admin dashboard caches:', error);
+  }
+};
+
+/**
  * @swagger
  * /admin/dashboard:
  *   get:

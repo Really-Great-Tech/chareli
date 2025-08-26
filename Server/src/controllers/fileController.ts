@@ -5,6 +5,8 @@ import { ApiError } from '../middlewares/errorHandler';
 import { v4 as uuidv4 } from 'uuid';
 import { storageService } from '../services/storage.service';
 import { zipService } from '../services/zip.service';
+import { cacheService } from '../services/cache.service';
+import { invalidateAdminDashboardCaches } from './adminDashboardController';
 import multer from 'multer';
 import logger from '../utils/logger';
 import * as path from 'path';
@@ -272,6 +274,12 @@ export const createFile = async (
     // Transform file to include storage URL
     const transformedFile = transformFileWithStorageUrl(fileRecord);
     
+    // Invalidate related caches since file operations can affect games and dashboard analytics
+    await Promise.all([
+      cacheService.invalidateGamesCache(),
+      invalidateAdminDashboardCaches()
+    ]);
+    
     res.status(201).json({
       success: true,
       data: transformedFile,
@@ -359,6 +367,12 @@ export const updateFile = async (
     // Transform file to include storage URL
     const transformedFile = transformFileWithStorageUrl(file);
     
+    // Invalidate related caches since file operations can affect games and dashboard analytics
+    await Promise.all([
+      cacheService.invalidateGamesCache(),
+      invalidateAdminDashboardCaches()
+    ]);
+    
     res.status(200).json({
       success: true,
       data: transformedFile,
@@ -415,6 +429,12 @@ export const deleteFile = async (
     }
     
     await fileRepository.remove(file);
+    
+    // Invalidate related caches since file operations can affect games and dashboard analytics
+    await Promise.all([
+      cacheService.invalidateGamesCache(),
+      invalidateAdminDashboardCaches()
+    ]);
     
     res.status(200).json({
       success: true,

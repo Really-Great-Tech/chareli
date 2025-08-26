@@ -11,6 +11,7 @@ import * as crypto from 'crypto';
 import * as bcrypt from 'bcrypt';
 import { getCountryFromIP, extractClientIP } from '../utils/ipUtils';
 import { detectDeviceType } from '../utils/deviceUtils';
+import { cacheService } from '../services/cache.service';
 import logger from '../utils/logger';
 
 // Section: Core Authentication
@@ -99,6 +100,9 @@ export const registerPlayer = async (
     signupAnalytics.userId = user.id;
     signupAnalytics.activityType = 'Signed up';
     await analyticsRepository.save(signupAnalytics);
+
+    // Invalidate analytics cache since new data was added
+    await cacheService.invalidateAnalyticsCache();
 
     res.status(201).json({
       success: true,
@@ -204,6 +208,9 @@ export const registerFromInvitation = async (
     // Don't set sessionCount for non-game activities
     await analyticsRepository.save(signupAnalytics);
 
+    // Invalidate analytics cache since new data was added
+    await cacheService.invalidateAnalyticsCache();
+
     res.status(201).json({
       success: true,
       message: 'User registered successfully from invitation.',
@@ -279,6 +286,9 @@ export const login = async (
       loginAnalytics.activityType = 'Logged in';
       await analyticsRepository.save(loginAnalytics);
 
+      // Invalidate analytics cache since new data was added
+      await cacheService.invalidateAnalyticsCache();
+
       res.status(200).json({
         success: true,
         message: 'Login successful.',
@@ -309,6 +319,9 @@ export const login = async (
         loginAnalytics.userId = user.id;
         loginAnalytics.activityType = 'Logged in';
         await analyticsRepository.save(loginAnalytics);
+
+        // Invalidate analytics cache since new data was added
+        await cacheService.invalidateAnalyticsCache();
 
         res.status(200).json({
           success: true,
@@ -470,6 +483,9 @@ export const verifyOtp = async (
       loginAnalytics.userId = user.id;
       loginAnalytics.activityType = 'Logged in';
       await analyticsRepository.save(loginAnalytics);
+
+      // Invalidate analytics cache since new data was added
+      await cacheService.invalidateAnalyticsCache();
     }
 
     res.status(200).json({

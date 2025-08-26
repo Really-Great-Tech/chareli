@@ -123,6 +123,9 @@ export const trackSignupClick = async (
 
     await signupAnalyticsRepository.save(analytics);
 
+    // Invalidate signup analytics cache since new data was added
+    await cacheService.deleteByPattern('signup-analytics:*');
+
     res.status(201).json({ success: true });
   } catch (error) {
     console.error('Failed to track signup click:', error);

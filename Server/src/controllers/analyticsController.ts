@@ -5,6 +5,7 @@ import { ApiError } from '../middlewares/errorHandler';
 import { Between, FindOptionsWhere } from 'typeorm';
 import redis from '../config/redisClient';
 import { cacheService } from '../services/cache.service';
+import { invalidateAdminDashboardCaches } from './adminDashboardController';
 
 const analyticsRepository = AppDataSource.getRepository(Analytics);
 
@@ -90,7 +91,10 @@ export const createAnalytics = async (
     await analyticsRepository.save(analytics);
     
     // Invalidate analytics cache using cache service
-    await cacheService.invalidateAnalyticsCache();
+    await Promise.all([
+      cacheService.invalidateAnalyticsCache(),
+      invalidateAdminDashboardCaches()
+    ]);
 
     res.status(201).json({
       success: true,
@@ -386,7 +390,10 @@ export const updateAnalytics = async (
         await analyticsRepository.remove(analytics);
         
         // Invalidate analytics cache using cache service
-        await cacheService.invalidateAnalyticsCache();
+        await Promise.all([
+          cacheService.invalidateAnalyticsCache(),
+          invalidateAdminDashboardCaches()
+        ]);
 
         res.status(200).json({
           success: true,
@@ -400,7 +407,10 @@ export const updateAnalytics = async (
     await analyticsRepository.save(analytics);
     
     // Invalidate analytics cache using cache service
-    await cacheService.invalidateAnalyticsCache();
+    await Promise.all([
+      cacheService.invalidateAnalyticsCache(),
+      invalidateAdminDashboardCaches()
+    ]);
     res.status(200).json({
       success: true,
       data: analytics
@@ -493,7 +503,10 @@ export const updateAnalyticsEndTime = async (
         await analyticsRepository.remove(analytics);
         
         // Invalidate analytics cache using cache service
-        await cacheService.invalidateAnalyticsCache();
+        await Promise.all([
+          cacheService.invalidateAnalyticsCache(),
+          invalidateAdminDashboardCaches()
+        ]);
 
         res.status(200).json({
           success: true,
@@ -507,7 +520,10 @@ export const updateAnalyticsEndTime = async (
     await analyticsRepository.save(analytics);
     
     // Invalidate analytics cache using cache service
-    await cacheService.invalidateAnalyticsCache();
+    await Promise.all([
+      cacheService.invalidateAnalyticsCache(),
+      invalidateAdminDashboardCaches()
+    ]);
     res.status(200).json({
       success: true,
       data: analytics
@@ -536,7 +552,10 @@ export const deleteAnalytics = async (
     await analyticsRepository.remove(analytics);
     
     // Invalidate analytics cache using cache service
-    await cacheService.invalidateAnalyticsCache();
+    await Promise.all([
+      cacheService.invalidateAnalyticsCache(),
+      invalidateAdminDashboardCaches()
+    ]);
     res.status(200).json({
       success: true,
       message: 'Analytics entry deleted successfully'

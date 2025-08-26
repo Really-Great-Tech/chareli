@@ -232,7 +232,7 @@ export function RegisterForm({ email, token, onSuccess }: RegisterFormProps) {
 
           <Button
             type="submit"
-            className="w-full bg-[#D946EF] dark:text-white hover:text-[#D946EF] hover:bg-[#F3E8FF]"
+            className="w-full bg-[#6A7282] text-white hover:bg-[#5A626F] transition-colors"
             disabled={isSubmitting || isPending}
           >
             {isSubmitting || isPending ? 'Creating Account...' : 'Create Account'}

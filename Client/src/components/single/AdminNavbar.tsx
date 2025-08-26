@@ -1,20 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import { useTheme } from '../../context/ThemeContext';
-import { Button } from '../ui/button';
-import { usePermissions } from '../../hooks/usePermissions';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
+import { Button } from "../ui/button";
+import { usePermissions } from "../../hooks/usePermissions";
+import Logo from "../../assets/logo.svg";
 
 import { IoMdSettings } from "react-icons/io";
 // import { IoIosSearch } from "react-icons/io";
 // import { CommandInput } from '../ui/command';
 import { IoExitOutline } from "react-icons/io5";
 
-
-
-import sun from '../../assets/sun.svg';
-import moon from '../../assets/moon.svg';
-
+import sun from "../../assets/sun.svg";
+import moon from "../../assets/moon.svg";
 
 const AdminNavbar: React.FC = () => {
   const { logout } = useAuth();
@@ -43,16 +41,20 @@ const AdminNavbar: React.FC = () => {
   }, [showSearch]);
 
   return (
-    <header className="flex justify-between p-4 items-center bg-white dark:bg-[#0f1221] transition-colors duration-300">
+    <header className="relative flex justify-between items-center bg-white dark:bg-[#0f1221] transition-colors duration-300">
+      {/* Logo */}
       <div
-        onClick={() => navigate('/')}
-        className="text-2xl font-extrabold text-[#D946EF] dark:text-[#E879F9] font-ponggame cursor-pointer tracking-wider"
+        onClick={() => navigate("/")}
+        className="cursor-pointer flex justify-center items-center bg-gradient-to-t from-[#121C2D] to-[#475568] rounded-br-[40px] py-2 px-8 -mt-4 -ml-4"
       >
-        ARCADES BOX
+        <img src={Logo} alt="logo" className="w-12 pt-4" />
+        <p className="text-[16px] md:text-[28px] text-center text-white dark:text-white font-bold font-jersey pt-4">
+          Arcades Box
+        </p>
       </div>
 
       {/* right side */}
-      <div className='flex gap-4 items-center'>
+      <div className="flex gap-4 items-center pt-4 pr-4">
         <div className="font-extrabold text-[#D946EF] dark:text-[#E879F9] flex items-center gap-4">
           {/* {!showSearch ? (
             <button
@@ -88,22 +90,25 @@ const AdminNavbar: React.FC = () => {
             </div>
           )} */}
           {permissions.canAccessConfig && (
-            <IoMdSettings className='w-6 h-6 cursor-pointer' onClick={() => navigate('/admin/settings')} />
+            <IoMdSettings
+              className="w-6 h-6 cursor-pointer text-[#6A7282]"
+              onClick={() => navigate("/admin/settings")}
+            />
           )}
         </div>
         <div className="space-x-4 flex items-center cursor-pointer">
           <img
             onClick={toggleDarkMode}
             src={isDarkMode ? moon : sun}
-          alt={isDarkMode ? 'light mode' : 'dark mode'}
-          className="w-6 h-6 cursor"
+            alt={isDarkMode ? "light mode" : "dark mode"}
+            className="w-6 h-6 cursor"
           />
           <Button
             onClick={() => {
               logout();
-              navigate('/');
+              navigate("/");
             }}
-            className="bg-transparent flex items-center gap-2 text-red-500 hover:bg-red-500 hover:text-white cursor-pointer"
+            className="bg-transparent flex items-center gap-2 text-red-500 hover:bg-red-500 hover:text-white cursor-pointer text-[15px]"
           >
             <IoExitOutline className="w-5 h-5" />
             Logout

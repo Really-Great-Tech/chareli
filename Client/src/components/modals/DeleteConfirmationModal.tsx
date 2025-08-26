@@ -31,7 +31,7 @@ export function DeleteConfirmationModal({
       >
         {/* Custom Close Button */}
         <button
-          className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#C026D3] flex items-center justify-center shadow-lg hover:bg-[#a21caf] transition-colors z-10"
+          className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#6A7282] flex items-center justify-center shadow-lg hover:bg-[#5A626F] transition-colors z-10"
           onClick={() => onOpenChange(false)}
           aria-label="Close"
         >

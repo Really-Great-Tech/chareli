@@ -228,7 +228,7 @@ export function EditProfileSheet({
                 </SheetClose>
                 <Button
                   type="submit"
-                  className="w-20 h-12 bg-[#D946EF] text-white tracking-wide cursor-pointer"
+                  className="w-20 h-12 bg-[#6A7282] hover:bg-[#5A626F] text-white tracking-wide cursor-pointer"
                   disabled={updateUser.isPending}
                 >
                   {updateUser.isPending ? "..." : "Update"}

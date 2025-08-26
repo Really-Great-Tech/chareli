@@ -35,7 +35,7 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
 
   // Combine static filters with dynamic categories
   const allCategories = [
-    { id: "all", name: "All Games", color: "#C026D3" },
+    { id: "all", name: "All Games", color: "#64748A" },
     ...(categoriesData?.map((cat) => ({
       id: cat.id,
       name: cat.name,
@@ -50,7 +50,7 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
   return (
     <div className="p-4">
       <div>
-        <h1 className="text-[#D946EF] text-3xl mb-4 font-worksans">All Games</h1>
+        <h1 className="text-[#6A7282] dark:text-[#FEFEFE] text-3xl mb-4 font-worksans">All Games</h1>
       </div>
       {/* filtering tabs */}
       <div className="relative mb-8">
@@ -107,8 +107,8 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
                     key={category.id}
                     className={`text-white cursor-pointer min-w-[120px] max-w-[200px] px-4 py-2 relative group flex-shrink-0 ${
                       selectedCategory === category.id
-                        ? "bg-[#C026D3]"
-                        : "bg-[#94A3B7]"
+                        ? "bg-[#64748A]"
+                        : "bg-[#94A3B8]"
                     }`}
                     onClick={() => setSelectedCategory(category.id)}
                     title={category.name.length > 18 ? category.name : undefined}
@@ -139,7 +139,7 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
               Error loading games
             </div>
           ) : games.length === 0 ? (
-            <div className="text-center py-8 min-h-[60vh] flex flex-col items-center justify-center gap-4 text-[#C026D3] text-4xl">
+            <div className="text-center py-8 min-h-[60vh] flex flex-col items-center justify-center gap-4 text-[#64748A] text-4xl">
               <img
                 src={emptyGameImg}
                 alt="No games"
@@ -168,14 +168,14 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
                     style={{ gridRow: `span ${Math.round(rowSpan * 2)}` }}
                     onClick={() => handleGameClick(game.id)}
                   >
-                    <div className="relative h-full overflow-hidden rounded-[20px] transition-all duration-300 ease-in-out group-hover:shadow-[0_0px_20px_#D946EF,0_0px_10px_rgba(217,70,239,0.8)]">
+                    <div className="relative h-full overflow-hidden rounded-[20px] transition-all duration-300 ease-in-out group-hover:shadow-[0_0px_20px_#64748A,0_0px_10px_rgba(100,116,138,0.8)]">
                       <div className="w-full h-full rounded-[16px] overflow-hidden">
                         <LazyImage
                           src={game.thumbnailFile?.s3Key}
                           alt={game.title}
                           className="w-full h-full object-cover"
                           loadingClassName="rounded-[16px]"
-                          spinnerColor="#D946EF"
+                          spinnerColor="#64748A"
                           rootMargin="50px"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent group-hover:opacity-100 transition-opacity duration-300 lg:opacity-0 lg:group-hover:opacity-100 rounded-[16px]">

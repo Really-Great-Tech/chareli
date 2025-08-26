@@ -34,7 +34,7 @@ export default function LoginModal({ open, email }: AdminLoginModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-white">
       <div className="bg-[#F1F5F9] rounded-2xl p-10 w-[420px] max-w-full shadow-none border border-[#E2E8F0] flex flex-col items-center relative">
-        <h2 className="text-2xl font-bold text-[#D946EF] mb-6 underline underline-offset-4 text-center font-dmmono tracking-wider">
+        <h2 className="text-2xl font-bold text-[#6A7282] mb-6 underline underline-offset-4 text-center font-dmmono tracking-wider">
           Login
         </h2>
         <form className="w-full flex flex-col gap-4" onSubmit={handleSubmit}>
@@ -79,12 +79,12 @@ export default function LoginModal({ open, email }: AdminLoginModalProps) {
           </div>
           <button
             type="submit"
-            className="w-full mt-4 bg-[#D946EF] text-white font-bold py-3 rounded-lg text-lg tracking-wider"
+            className="w-full mt-4 bg-[#6A7282] text-white font-bold py-3 rounded-lg text-lg tracking-wider"
             onClick={handleHome}
           >
             Login
           </button>
-          <div className="mt-2 text-[#D946EF]">
+          <div className="mt-2 text-[#6A7282]">
             <p
               className="text-2xl hover:underline cursor-pointer"
               onClick={() => setResetOpen(true)}

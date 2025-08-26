@@ -27,6 +27,11 @@
   src: url('./fonts/pong game/Pong-Game.ttf'),
 }
 
+@font-face {
+  font-family: 'Jersey 25';
+  src: url('./fonts/jersey 25/Jersey25-Regular.ttf'),
+}
+
 @layer base {
   :root {
     --chart-1: 12 76% 61%;
@@ -58,6 +63,10 @@
 /* logo text */
 .font-ponggame {
   font-family: 'Pong Game', cursive;
+}
+
+.font-jersey {
+  font-family: 'Jersey 25', cursive;
 }
 
 /* Custom cursor disabled - using normal system cursors */
@@ -109,10 +118,10 @@ h6 {
 
 .gradient-shadow-hover:hover::after {
   opacity: 1;
-  box-shadow: 0 10px 12px 0 rgba(217, 70, 239, 0.5);
+  box-shadow: 0 10px 12px 0 rgba(106, 114, 130, 0.5);
   filter: blur(2px);
   /* mix-blend-mode: lighten; */
-  /* filter: drop-shadow(8px 8px 10px #D946EF); */
+  /* filter: drop-shadow(8px 8px 10px #6A7282); */
   border-radius: 30px;
 }
 
@@ -123,7 +132,7 @@ h6 {
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.3s;
-  filter: drop-shadow(8px 8px 10px #d946ef);
+  filter: drop-shadow(8px 8px 10px #6A7282);
 }
 
 /* in your CSS */
@@ -162,7 +171,7 @@ h6 {
 .custom-scrollbar {
   /* Firefox */
   scrollbar-width: thin;
-  scrollbar-color: #850891 transparent;
+  scrollbar-color: #6A7282 transparent;
 
   /* Webkit browsers */
   &::-webkit-scrollbar {

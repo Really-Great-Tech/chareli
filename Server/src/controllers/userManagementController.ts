@@ -8,6 +8,8 @@ import { Invitation } from '../entities/Invitation';
 import { emailService } from '../services/email.service';
 import { getCountryFromIP, extractClientIP } from '../utils/ipUtils';
 import { detectDeviceType } from '../utils/deviceUtils';
+import { cacheService } from '../services/cache.service';
+import { invalidateAdminDashboardCaches } from './adminDashboardController';
 import * as bcrypt from 'bcrypt';
 
 const userRepository = AppDataSource.getRepository(User);
@@ -471,6 +473,12 @@ export const resetPasswordFromInvitation = async (
     invitation.isAccepted = true;
     await invitationRepository.save(invitation);
 
+    // Invalidate relevant caches since user data changed
+    await Promise.all([
+      cacheService.invalidateAnalyticsCache(),
+      invalidateAdminDashboardCaches()
+    ]);
+
     res.status(200).json({
       success: true,
       message: 'Password reset successful. You can now log in with your new password.'
@@ -614,6 +622,12 @@ export const revokeRole = async (
     user.roleId = playerRole.id;
     await userRepository.save(user);
 
+    // Invalidate relevant caches since user roles changed
+    await Promise.all([
+      cacheService.invalidateAnalyticsCache(),
+      invalidateAdminDashboardCaches()
+    ]);
+
     // Send email notification
     await emailService.sendRoleRevokedEmail(user.email, oldRoleName);
     const { password: _, ...userWithoutSensitiveInfo } = user;
@@ -729,6 +743,12 @@ export const changeUserRole = async (
       newRoleName as RoleType,
       currentUserId!
     );
+
+    // Invalidate relevant caches since user roles changed
+    await Promise.all([
+      cacheService.invalidateAnalyticsCache(),
+      invalidateAdminDashboardCaches()
+    ]);
 
     const { password: _, ...userWithoutSensitiveInfo } = updatedUser;
 

@@ -148,7 +148,7 @@ export function OTPVerificationModal({
       <AlertDialogContent className="max-w-[90vw] sm:max-w-[425px] p-4 sm:p-6 dark:bg-[#0F1221] rounded-xl">
         {/* Custom Close Button */}
         <button
-          className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#C026D3] flex items-center justify-center shadow-lg hover:bg-[#a21caf] transition-colors"
+          className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#6A7282] flex items-center justify-center shadow-lg hover:bg-[#5A626F] transition-colors"
           onClick={() => onOpenChange(false)}
           aria-label="Close"
           style={{ border: "none" }}
@@ -156,7 +156,7 @@ export function OTPVerificationModal({
           <span className="text-white text-2xl font-bold">×</span>
         </button>
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-xl sm:text-2xl font-bold dark:text-white text-black font-dmmono">
+          <AlertDialogTitle className="text-xl sm:text-2xl font-bold text-[#6A7282] dark:text-white font-dmmono">
             OTP Verification
           </AlertDialogTitle>
           <AlertDialogDescription className="dark:text-white text-black font-dmmono text-md tracking-wider sm:text-sm mt-1">
@@ -169,7 +169,7 @@ export function OTPVerificationModal({
             onChange={setOtp}
             numInputs={6}
             renderInput={(props) => (
-              <div className="px-3 sm:px-3 py-2 sm:py-3 border-2 border-[#E328AF] mx-0.5 sm:mx-1 rounded-lg">
+              <div className="px-3 sm:px-3 py-2 sm:py-3 border-2 border-[#6A7282] mx-0.5 sm:mx-1 rounded-lg">
                 <input
                   {...props}
                   className="w-12 h-10 sm:w-10 sm:h-10 text-center bg-transparent rounded-none dark:text-white text-black font-worksans text-xl sm:text-2xl font-bold focus:outline-none focus:ring-0"
@@ -193,7 +193,7 @@ export function OTPVerificationModal({
         <Button
           onClick={handleVerify}
           disabled={isVerifying || otp.length !== 6}
-          className="w-full bg-[#D946EF] hover:bg-[#C026D3] text-white font-dmmono text-base sm:text-lg py-2 sm:py-3 mt-4 sm:mt-6 cursor-pointer"
+          className="w-full bg-[#6A7282] hover:bg-[#5A626F] text-white font-dmmono text-base sm:text-lg py-2 sm:py-3 mt-4 sm:mt-6 cursor-pointer"
         >
           {isVerifying ? "Verifying..." : "Verify"}
         </Button>
@@ -204,7 +204,7 @@ export function OTPVerificationModal({
             disabled={!canResend || requestOtp.isPending}
             className={`underline text-lg transition-colors ${
               canResend && !requestOtp.isPending
-                ? "text-[#C026D3] cursor-pointer hover:text-[#a21caf]"
+                ? "text-[#6A7282] cursor-pointer hover:text-[#5A626F]"
                 : "text-gray-400 cursor-not-allowed"
             }`}
           >

@@ -19,6 +19,27 @@ const signupAnalyticsRepository = AppDataSource.getRepository(SignupAnalytics);
 const gamePositionHistoryRepository = AppDataSource.getRepository(GamePositionHistory);
 
 /**
+ * Helper function to invalidate all admin dashboard caches
+ * This should be called whenever data changes that affects dashboard analytics
+ */
+export const invalidateAdminDashboardCaches = async (): Promise<void> => {
+  try {
+    // Invalidate all dashboard-related cache patterns
+    await Promise.all([
+      cacheService.deleteByPattern('admin:dashboard:*'),
+      cacheService.deleteByPattern('admin:games-analytics:*'),
+      cacheService.deleteByPattern('admin:users-analytics:*'),
+      cacheService.deleteByPattern('admin:games-popularity*'), // Fixed pattern to include variations
+      // Also invalidate specific cache keys that don't follow patterns
+      cacheService.delete('admin:games-popularity'),
+    ]);
+    console.log('[Cache] Invalidated all admin dashboard caches');
+  } catch (error) {
+    console.error('[Cache] Error invalidating admin dashboard caches:', error);
+  }
+};
+
+/**
  * @swagger
  * /admin/dashboard:
  *   get:
@@ -226,22 +247,30 @@ export const getDashboardAnalytics = async (
     // Apply time period filtering to active/inactive user counts for registration insights
     // This ensures that the DonutChart shows users who REGISTERED in the selected time period
     // and their current active/inactive status, not just total counts across all time
+    
+    // IMPORTANT: We need to ensure that activeUsers + inactiveUsers equals totalRegisteredUsers.current
+    // This means we need to categorize ALL users who registered in the time period
+    
     let activeUsersWhere: any = { 
       isActive: true, 
       isDeleted: false,
-      lastLoggedIn: Not(IsNull()), // Only count users who have actually logged in
-      createdAt: Between(twentyFourHoursAgo, now) // Filter by registration time period
+      lastLoggedIn: Not(IsNull()), // Users who have logged in at least once
+      createdAt: Between(twentyFourHoursAgo, now), // Filter by registration time period
+      hasCompletedFirstLogin: true
     };
     let systemInactiveWhere: any = { 
       isActive: false, 
       isDeleted: false,
-      createdAt: Between(twentyFourHoursAgo, now) // Filter by registration time period
+      createdAt: Between(twentyFourHoursAgo, now), // Filter by registration time period
+      hasCompletedFirstLogin: true
     };
     let neverLoggedInWhere: any = { 
       isActive: true, 
       isDeleted: false,
       lastLoggedIn: IsNull(),
-      createdAt: Between(twentyFourHoursAgo, now) // Filter by registration time period
+      createdAt: Between(twentyFourHoursAgo, now),
+      hasCompletedFirstLogin: true
+       // Filter by registration time period
     };
 
     // Add country filter if provided
@@ -259,8 +288,23 @@ export const getDashboardAnalytics = async (
       userRepository.count({ where: neverLoggedInWhere })
     ]);
     
-    const inactiveUsers = systemInactiveUsers + neverLoggedInUsers;
+    let inactiveUsers = systemInactiveUsers + neverLoggedInUsers;
     const registeredButNeverLoggedIn = neverLoggedInUsers;
+    
+    // Verify that our breakdown equals the total registered users in the period
+    // const calculatedTotal = activeUsers + inactiveUsers;
+    // if (calculatedTotal !== currentTotalRegisteredUsers) {
+    //   console.warn(`User count mismatch: activeUsers (${activeUsers}) + inactiveUsers (${inactiveUsers}) = ${calculatedTotal}, but totalRegisteredUsers.current = ${currentTotalRegisteredUsers}`);
+      
+    //   // If there's a mismatch, we need to ensure the total matches
+    //   // This could happen if there are users who don't fit our current categories
+    //   // For now, let's adjust inactiveUsers to make the total match
+    //   if (calculatedTotal < currentTotalRegisteredUsers) {
+    //     // Add the difference to inactiveUsers to ensure total matches
+    //     const difference = currentTotalRegisteredUsers - calculatedTotal;
+    //     inactiveUsers += difference;
+    //   }
+    // }
 
     // 3. Game Coverage - Percentage of total games that have been played
     const totalGames = await gameRepository.count();

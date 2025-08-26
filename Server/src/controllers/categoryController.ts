@@ -6,6 +6,7 @@ import { File } from '../entities/Files';
 import { storageService } from '../services/storage.service';
 import redis from '../config/redisClient';
 import { cacheService } from '../services/cache.service';
+import { invalidateAdminDashboardCaches } from './adminDashboardController';
 
 // Extend File type to include url
 type FileWithUrl = File & { url?: string };
@@ -350,8 +351,11 @@ export const createCategory = async (
     
     await categoryRepository.save(category);
     
-    // Invalidate categories cache using cache service
-    await cacheService.invalidateCategoriesCache();
+    // Invalidate categories and admin dashboard caches
+    await Promise.all([
+      cacheService.invalidateCategoriesCache(),
+      invalidateAdminDashboardCaches()
+    ]);
     
     res.status(201).json({
       success: true,
@@ -441,8 +445,11 @@ export const updateCategory = async (
     
     await categoryRepository.save(category);
     
-    // Invalidate categories cache using cache service
-    await cacheService.invalidateCategoryCache(id);
+    // Invalidate categories and admin dashboard caches
+    await Promise.all([
+      cacheService.invalidateCategoryCache(id),
+      invalidateAdminDashboardCaches()
+    ]);
     
     res.status(200).json({
       success: true,
@@ -513,8 +520,11 @@ export const deleteCategory = async (
     
     await categoryRepository.remove(category);
     
-    // Invalidate categories cache using cache service
-    await cacheService.invalidateCategoryCache(id);
+    // Invalidate categories and admin dashboard caches
+    await Promise.all([
+      cacheService.invalidateCategoryCache(id),
+      invalidateAdminDashboardCaches()
+    ]);
     
     res.status(200).json({
       success: true,

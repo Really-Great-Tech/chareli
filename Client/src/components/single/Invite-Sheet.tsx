@@ -164,7 +164,7 @@ export function InviteSheet({ children }: { children: React.ReactNode }) {
                 </SheetClose>
                 <Button
                   type="submit"
-                  className="w-fit h-12 bg-[#D946EF] text-white hover:bg-[#C026D3] dark:text-white dark:hover:bg-[#C026D3] cursor-pointer"
+                  className="w-fit h-12 bg-[#6A7282] text-white hover:bg-[#5A626F] dark:text-white dark:hover:bg-[#6A7282] cursor-pointer"
                   disabled={isSubmitting || isPending || !isValid || !dirty}
                 >
                   {isSubmitting || isPending ? "Sending..." : "Send Invite"}

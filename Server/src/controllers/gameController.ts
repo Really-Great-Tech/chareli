@@ -20,6 +20,7 @@ import path from 'path';
 import { moveFileToPermanentStorage } from '../utils/fileUtils';
 import redis from '../config/redisClient';
 import { cacheService } from '../services/cache.service';
+import { invalidateAdminDashboardCaches } from './adminDashboardController';
 // import { processImage } from '../services/file.service';
 
 const gameRepository = AppDataSource.getRepository(Game);
@@ -819,7 +820,10 @@ export const createGame = async (
       await queryRunner.commitTransaction();
 
       // Invalidate games cache using cache service
-      await cacheService.invalidateGamesCache();
+      await Promise.all([
+        cacheService.invalidateGamesCache(),
+        invalidateAdminDashboardCaches()
+      ]);
 
     // Fetch the game with relations to return
     const savedGame = await gameRepository.findOne({
@@ -1163,7 +1167,10 @@ export const updateGame = async (
     await queryRunner.commitTransaction();
     
     // Invalidate games cache using cache service
-    await cacheService.invalidateGameCache(id);
+    await Promise.all([
+      cacheService.invalidateGameCache(id),
+      invalidateAdminDashboardCaches()
+    ]);
     
     // Fetch the updated game with relations to return
       const updatedGame = await gameRepository.findOne({
@@ -1266,7 +1273,10 @@ export const deleteGame = async (
     await gameRepository.remove(game);
     
     // Invalidate games cache using cache service
-    await cacheService.invalidateGameCache(id);
+    await Promise.all([
+      cacheService.invalidateGameCache(id),
+      invalidateAdminDashboardCaches()
+    ]);
     
     res.status(200).json({
       success: true,

@@ -33,7 +33,7 @@ export default function ResetPasswordModal({
       </Button>
 
       <div className="bg-[#F1F5F9] rounded-2xl p-10 w-[500px] max-w-full shadow-none border border-[#E2E8F0] flex flex-col items-center relative">
-        <h2 className="text-2xl font-bold text-[#D946EF] mb-8 underline underline-offset-4 text-center font-dmmono tracking-wider">
+        <h2 className="text-2xl font-bold text-black dark:text-white mb-8 underline underline-offset-4 text-center font-dmmono tracking-wider">
           Reset Password
         </h2>
         <form className="w-full flex flex-col gap-6" onSubmit={handleSubmit}>
@@ -52,7 +52,7 @@ export default function ResetPasswordModal({
           </div>
           <button
             type="submit"
-            className="w-full mt-2 bg-[#D946EF] text-white py-3 rounded-xl text-lg tracking-wider cursor-pointer"
+            className="w-full mt-2 bg-[#6A7282] hover:bg-[#5A626F] text-white py-3 rounded-xl text-lg tracking-wider cursor-pointer transition-colors"
             onClick={() => setOTPOpen(true)}
           >
             Send email

@@ -666,7 +666,7 @@ const ExportModal = ({
           header: {
             fontSize: 18,
             bold: true,
-            color: "#D946EF",
+            color: "#6A7282",
           },
           subheader: {
             fontSize: 14,
@@ -717,7 +717,7 @@ const ExportModal = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="flex items-center gap-2 bg-[#D946EF] text-white hover:bg-[#c026d3] cursor-pointer">
+        <Button className="flex items-center gap-2 bg-[#6A7282] text-white hover:bg-[#5A626F] cursor-pointer">
           <Download size={16} />
           Export Data
         </Button>

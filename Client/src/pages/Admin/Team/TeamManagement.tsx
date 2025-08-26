@@ -120,12 +120,12 @@ export default function TeamManagement() {
   return (
     <div className="px-4 sm:px-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <h1 className="text-[#D946EF] text-2xl sm:text-3xl font-worksans ">
+        <h1 className="text-[#6A7282] dark:text-white text-2xl sm:text-3xl font-worksans ">
           Team Management
         </h1>
         {permissions.canInvite && (
           <InviteSheet>
-            <button className="bg-[#D946EF] text-white px-3 sm:px-4 py-2 sm:py-3 rounded-lg hover:bg-[#c026d3] transition-all text-sm sm:text-base w-full sm:w-auto font-dmmono cursor-pointer">
+            <button className="bg-[#6A7282] text-white px-3 sm:px-4 py-2 sm:py-3 rounded-lg hover:bg-[#5A626F] transition-all text-sm sm:text-base w-full sm:w-auto font-dmmono cursor-pointer">
               Invite Team Member
             </button>
           </InviteSheet>
@@ -137,7 +137,7 @@ export default function TeamManagement() {
           onClick={() => handleTabChange("members")}
           className={`px-4 py-2 sm:py-3 rounded-lg transition-all whitespace-nowrap text-xs sm:text-sm md:text-base flex-shrink-0 cursor-pointer ${
             activeTab === "members"
-              ? "bg-[#D946EF] text-white"
+              ? "bg-[#6A7282] text-white"
               : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200"
           }`}
         >
@@ -147,7 +147,7 @@ export default function TeamManagement() {
           onClick={() => handleTabChange("invitations")}
           className={`px-4 py-2 sm:py-3 rounded-lg transition-all whitespace-nowrap text-xs sm:text-sm md:text-base flex-shrink-0 cursor-pointer ${
             activeTab === "invitations"
-              ? "bg-[#D946EF] text-white"
+              ? "bg-[#6A7282] text-white"
               : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200"
           }`}
         >
@@ -176,7 +176,7 @@ export default function TeamManagement() {
                 ) : isLoading ? (
                   <tr>
                     <td colSpan={4} className="text-center py-6">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D946EF] mx-auto"></div>
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6A7282] mx-auto"></div>
                     </td>
                   </tr>
                 ) : !filteredTeamMembers.length ? (
@@ -205,19 +205,19 @@ export default function TeamManagement() {
                         </td>
                         <td className="py-6 pr-4">
                           {member.role.name.toLowerCase() === "admin" ? (
-                            <span className="bg-[#D946EF] text-white px-3 py-2 rounded-lg text-md text-nowrap">
+                            <span className="bg-[#6A7282] text-white px-3 py-2 rounded-lg text-md text-nowrap">
                               Admin
                             </span>
                           ) : member.role.name.toLowerCase() === "superadmin" ? (
-                            <span className="bg-[#7C3AED] text-white px-3 py-2 rounded-lg text-md">
+                            <span className="bg-[#5A626F] text-white px-3 py-2 rounded-lg text-md">
                               SuperAdmin
                             </span>
                           ) : member.role.name.toLowerCase() === "viewer" ? (
-                            <span className="bg-[#10B981] text-white px-3 py-2 rounded-lg text-md text-nowrap">
+                            <span className="bg-[#6A7282] text-white px-3 py-2 rounded-lg text-md text-nowrap">
                               Viewer
                             </span>
                           ) : (
-                            <span className="bg-[#334154] text-white px-3 py-2 rounded-lg text-md text-nowrap">
+                            <span className="bg-[#5A626F] text-white px-3 py-2 rounded-lg text-md text-nowrap">
                               {member.role.name}
                             </span>
                           )}
@@ -266,10 +266,10 @@ export default function TeamManagement() {
                 <div className="flex items-center gap-1 order-1 sm:order-2">
                   {/* Previous button */}
                   <button
-                    className={`w-8 h-8 rounded-full transition-colors border border-[#D946EF] ${
+                    className={`w-8 h-8 rounded-full transition-colors border border-[#6A7282] ${
                       currentPage === 1
                         ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
-                        : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                        : "hover:bg-[#FFF7ED] text-black dark:text-white"
                     }`}
                     onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                     disabled={currentPage === 1}
@@ -278,14 +278,14 @@ export default function TeamManagement() {
                   </button>
 
                   {/* Mobile: Show only current page info */}
-                  <div className="sm:hidden flex items-center gap-1 px-3 py-1 rounded-full border border-[#D946EF]">
+                  <div className="sm:hidden flex items-center gap-1 px-3 py-1 rounded-full border border-[#6A7282]">
                     <span className="text-sm text-black dark:text-white">
                       {currentPage} / {totalMembersPages}
                     </span>
                   </div>
 
                   {/* Desktop: Show page numbers with smart truncation */}
-                  <div className="hidden sm:flex items-center gap-1 rounded-full border border-[#D946EF] p-1">
+                  <div className="hidden sm:flex items-center gap-1 rounded-full border border-[#6A7282] p-1">
                     {(() => {
                       const pages = [];
                       const maxVisiblePages = 5;
@@ -298,8 +298,8 @@ export default function TeamManagement() {
                               key={i}
                               className={`w-8 h-8 rounded-full transition-colors ${
                                 currentPage === i
-                                  ? "bg-[#D946EF] text-white"
-                                  : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                                  ? "bg-[#6A7282] text-white"
+                                  : "hover:bg-[#6A7282] text-black dark:text-white"
                               }`}
                               onClick={() => setCurrentPage(i)}
                             >
@@ -319,8 +319,8 @@ export default function TeamManagement() {
                               key={1}
                               className={`w-8 h-8 rounded-full transition-colors ${
                                 currentPage === 1
-                                  ? "bg-[#D946EF] text-white"
-                                  : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                                  ? "bg-[#6A7282] text-white"
+                                  : "hover:bg-[#6A7282] text-black dark:text-white"
                               }`}
                               onClick={() => setCurrentPage(1)}
                             >
@@ -343,8 +343,8 @@ export default function TeamManagement() {
                               key={i}
                               className={`w-8 h-8 rounded-full transition-colors ${
                                 currentPage === i
-                                  ? "bg-[#D946EF] text-white"
-                                  : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                                  ? "bg-[#6A7282] text-white"
+                                  : "hover:bg-[#6A7282] text-black dark:text-white"
                               }`}
                               onClick={() => setCurrentPage(i)}
                             >
@@ -367,8 +367,8 @@ export default function TeamManagement() {
                               key={totalMembersPages}
                               className={`w-8 h-8 rounded-full transition-colors ${
                                 currentPage === totalMembersPages
-                                  ? "bg-[#D946EF] text-white"
-                                  : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                                  ? "bg-[#6A7282] text-white"
+                                  : "hover:bg-[#6A7282] text-black dark:text-white"
                               }`}
                               onClick={() => setCurrentPage(totalMembersPages)}
                             >
@@ -384,10 +384,10 @@ export default function TeamManagement() {
 
                   {/* Next button */}
                   <button
-                    className={`w-8 h-8 rounded-full transition-colors border border-[#D946EF] ${
+                    className={`w-8 h-8 rounded-full transition-colors border border-[#6A7282] ${
                       currentPage === totalMembersPages
                         ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
-                        : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                        : "hover:bg-[#6A7282] text-black dark:text-white"
                     }`}
                     onClick={() => setCurrentPage(Math.min(totalMembersPages, currentPage + 1))}
                     disabled={currentPage === totalMembersPages}
@@ -423,7 +423,7 @@ export default function TeamManagement() {
                 ) : isLoadingInvitations ? (
                   <tr>
                     <td colSpan={6} className="text-center py-6">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D946EF] mx-auto"></div>
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6A7282] mx-auto"></div>
                     </td>
                   </tr>
                 ) : !filteredInvitations.length ? (
@@ -451,7 +451,7 @@ export default function TeamManagement() {
                           <span
                             className={`px-3 py-2 rounded-lg text-md text-nowrap ${
                               invitation.role.name.toLowerCase() === "admin"
-                                ? "bg-[#D946EF] text-white"
+                                ? "bg-[#6A7282] text-white"
                                 : "bg-[#334154] text-white"
                             }`}
                           >
@@ -521,10 +521,10 @@ export default function TeamManagement() {
                 <div className="flex items-center gap-1 order-1 sm:order-2">
                   {/* Previous button */}
                   <button
-                    className={`w-8 h-8 rounded-full transition-colors border border-[#D946EF] ${
+                    className={`w-8 h-8 rounded-full transition-colors border border-[#6A7282] ${
                       currentPage === 1
                         ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
-                        : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                        : "hover:bg-[#FFF7ED] text-black dark:text-white"
                     }`}
                     onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                     disabled={currentPage === 1}
@@ -533,14 +533,14 @@ export default function TeamManagement() {
                   </button>
 
                   {/* Mobile: Show only current page info */}
-                  <div className="sm:hidden flex items-center gap-1 px-3 py-1 rounded-full border border-[#D946EF]">
+                  <div className="sm:hidden flex items-center gap-1 px-3 py-1 rounded-full border border-[#6A7282]">
                     <span className="text-sm text-black dark:text-white">
                       {currentPage} / {totalInvitationsPages}
                     </span>
                   </div>
 
                   {/* Desktop: Show page numbers with smart truncation */}
-                  <div className="hidden sm:flex items-center gap-1 rounded-full border border-[#D946EF] p-1">
+                  <div className="hidden sm:flex items-center gap-1 rounded-full border border-[#6A7282] p-1">
                     {(() => {
                       const pages = [];
                       const maxVisiblePages = 5;
@@ -553,8 +553,8 @@ export default function TeamManagement() {
                               key={i}
                               className={`w-8 h-8 rounded-full transition-colors ${
                                 currentPage === i
-                                  ? "bg-[#D946EF] text-white"
-                                  : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                                  ? "bg-[#6A7282] text-white"
+                                  : "hover:bg-[#6A7282]/20 text-black dark:text-white"
                               }`}
                               onClick={() => setCurrentPage(i)}
                             >
@@ -574,8 +574,8 @@ export default function TeamManagement() {
                               key={1}
                               className={`w-8 h-8 rounded-full transition-colors ${
                                 currentPage === 1
-                                  ? "bg-[#D946EF] text-white"
-                                  : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                                  ? "bg-[#6A7282] text-white"
+                                  : "hover:bg-[#6A7282]/20 text-black dark:text-white"
                               }`}
                               onClick={() => setCurrentPage(1)}
                             >
@@ -598,8 +598,8 @@ export default function TeamManagement() {
                               key={i}
                               className={`w-8 h-8 rounded-full transition-colors ${
                                 currentPage === i
-                                  ? "bg-[#D946EF] text-white"
-                                  : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                                  ? "bg-[#6A7282] text-white"
+                                  : "hover:bg-[#6A7282]/20 text-black dark:text-white"
                               }`}
                               onClick={() => setCurrentPage(i)}
                             >
@@ -622,8 +622,8 @@ export default function TeamManagement() {
                               key={totalInvitationsPages}
                               className={`w-8 h-8 rounded-full transition-colors ${
                                 currentPage === totalInvitationsPages
-                                  ? "bg-[#D946EF] text-white"
-                                  : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                                  ? "bg-[#6A7282] text-white"
+                                  : "hover:bg-[#6A7282]/20 text-black dark:text-white"
                               }`}
                               onClick={() => setCurrentPage(totalInvitationsPages)}
                             >
@@ -639,10 +639,10 @@ export default function TeamManagement() {
 
                   {/* Next button */}
                   <button
-                    className={`w-8 h-8 rounded-full transition-colors border border-[#D946EF] ${
+                    className={`w-8 h-8 rounded-full transition-colors border border-[#6A7282] ${
                       currentPage === totalInvitationsPages
                         ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
-                        : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                        : "hover:bg-[#FFF7ED] text-black dark:text-white"
                     }`}
                     onClick={() => setCurrentPage(Math.min(totalInvitationsPages, currentPage + 1))}
                     disabled={currentPage === totalInvitationsPages}

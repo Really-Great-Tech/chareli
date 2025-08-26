@@ -18,15 +18,6 @@ const TermsOfService: React.FC = () => {
     }
   }, [data]);
 
-  if (!data?.value?.file || !data?.value?.file?.s3Key) {
-    return (
-      <div className="">
-        {/* <p>No terms are available.</p> */}
-        <TermsError />
-      </div>
-    );
-  }
-
   // For Word documents, try Microsoft's Office Web Viewer with embed parameters
   const getViewableUrl = (url: string) => {
     if (url.endsWith(".doc") || url.endsWith(".docx")) {
@@ -42,7 +33,7 @@ const TermsOfService: React.FC = () => {
     <div className="h-screen flex flex-col">
       {/* Fixed Header */}
       <div className="flex-shrink-0 px-4 md:px-8 lg:px-16 py-6">
-        <h1 className="text-4xl md:text-5xl font-bold text-[#C026D3] font-dmmono">
+        <h1 className="text-4xl md:text-5xl font-bold text-[#6A7282] dark:text-white font-dmmono">
           Terms and Conditions
         </h1>
       </div>
@@ -51,13 +42,19 @@ const TermsOfService: React.FC = () => {
       <div className="flex-1 px-4 md:px-8 lg:px-16 pb-6 overflow-hidden">
         {isLoading && (
           <div className="flex justify-center items-center h-full">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#C026D3]"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#6A7282]"></div>
           </div>
         )}
 
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
             <p>Failed to load terms and conditions: {error.toString()}</p>
+          </div>
+        )}
+
+        {!isLoading && !error && (!data?.value?.file || !data?.value?.file?.s3Key) && (
+          <div className="">
+            <TermsError />
           </div>
         )}
 
@@ -71,7 +68,7 @@ const TermsOfService: React.FC = () => {
                     href={fileUrl} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="px-3 py-1 bg-[#C026D3] text-white text-sm rounded-md hover:bg-[#A21CAF] transition-colors shadow-md"
+                    className="px-3 py-1 bg-[#6A7282] text-white text-sm rounded-md hover:bg-[#5A626F] transition-colors shadow-md"
                   >
                     Download
                   </a>
@@ -97,7 +94,7 @@ const TermsOfService: React.FC = () => {
                   href={fileUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-4 py-2 bg-[#C026D3] text-white rounded-md hover:bg-[#A21CAF] transition-colors inline-block"
+                  className="px-4 py-2 bg-[#6A7282] text-white rounded-md hover:bg-[#5A626F] transition-colors inline-block"
                 >
                   Download Terms Document
                 </a>
@@ -106,7 +103,7 @@ const TermsOfService: React.FC = () => {
           </div>
         )}
 
-        {!isLoading && !error && !fileUrl && (
+        {!isLoading && !error && !fileUrl && data && (
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center h-full flex items-center justify-center">
             <p className="text-gray-600 text-xl">
               No terms and conditions file has been uploaded yet.

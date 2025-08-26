@@ -19,7 +19,7 @@ const TermsErrorPage: React.FC<TermsErrorPageProps> = ({ type = 'terms' }) => {
         </p>
         <button
           onClick={() => window.history.back()}
-          className="bg-[#D946EF] hover:bg-[#C026D3] text-white px-6 py-2 rounded-md transition"
+          className="bg-[#6A7282] hover:bg-[#5A626F] text-white px-6 py-2 rounded-md transition"
         >
           Go Back Home
         </button>

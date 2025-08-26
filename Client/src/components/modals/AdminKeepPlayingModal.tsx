@@ -45,10 +45,10 @@ export default function AdminKeepPlayingModal({ open, onClose, isGameLoading }: 
       className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50"
       onClick={handleBackdropClick}
     >
-      <div className="relative bg-white dark:bg-[#475568] rounded-2xl shadow-xl p-4 sm:p-6 md:p-8 w-[90%] sm:w-[450px] md:w-[500px] lg:w-[550px] max-w-[90vw] border-4 border-[#C026D3]">
+      <div className="relative bg-white dark:bg-[#475568] rounded-2xl shadow-xl p-4 sm:p-6 md:p-8 w-[90%] sm:w-[450px] md:w-[500px] lg:w-[550px] max-w-[90vw] border-4 border-[#6A7282]">
         {/* Custom Close Button - Same style as LoginModal */}
         <button
-          className="absolute -top-5 -right-5 w-10 h-10 rounded-full bg-[#C026D3] flex items-center justify-center shadow-lg hover:bg-[#a21caf] transition-colors"
+          className="absolute -top-5 -right-5 w-10 h-10 rounded-full bg-[#6A7282] flex items-center justify-center shadow-lg hover:bg-[#5A626F] transition-colors"
           onClick={onClose}
           aria-label="Close"
           style={{ border: "none" }}
@@ -62,7 +62,7 @@ export default function AdminKeepPlayingModal({ open, onClose, isGameLoading }: 
           <div className='flex items-center justify-center'>
             <button
               onClick={onClose}
-              className='bg-[#C026D3] hover:bg-[#a21caf] text-white text-base sm:text-lg lg:text-lg font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-xl transition-colors cursor-pointer'
+              className='bg-[#6A7282] hover:bg-[#5A626F] text-white text-base sm:text-lg lg:text-lg font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-xl transition-colors cursor-pointer'
             >
               Close Preview
             </button>

@@ -106,7 +106,7 @@ export default function UserActivityLog() {
     <div className="col-span-1 md:col-span-2 lg:col-span-4 mt-4">
       <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-4">
-          <p className="text-xl md:text-2xl dark:text-[#D946EF]">
+          <p className="text-xl md:text-2xl">
             User Activity Log
           </p>
           {(permissions.canFilter || permissions.canExport) && (
@@ -122,7 +122,7 @@ export default function UserActivityLog() {
                     className="border-[#475568] text-[#475568] flex items-center justify-center gap-2 dark:text-white py-3 sm:py-5 cursor-pointer w-full sm:w-auto"
                   >
                     <span className="text-sm sm:text-base">Filter</span>
-                    <div className="text-[#D946EF] bg-[#FAE8FF] px-2 py-1 rounded-full text-xs sm:text-sm">
+                    <div className="text-white bg-[#6A7282] px-2 py-1 rounded-full text-xs sm:text-sm">
                       {
                         Object.entries(filters).filter(([, value]) =>
                           typeof value === "object"
@@ -263,10 +263,10 @@ export default function UserActivityLog() {
                 <div className="flex items-center gap-1 order-1 sm:order-2">
                   {/* Previous button */}
                   <button
-                    className={`w-8 h-8 rounded-full transition-colors border border-[#D946EF] ${
+                    className={`w-8 h-8 rounded-full transition-colors border border-[#6A7282] ${
                       activityPage === 1
                         ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
-                        : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                        : "hover:bg-[#6A7282]/20 text-black dark:text-white"
                     }`}
                     onClick={() => setActivityPage(Math.max(1, activityPage - 1))}
                     disabled={activityPage === 1}
@@ -275,14 +275,14 @@ export default function UserActivityLog() {
                   </button>
 
                   {/* Mobile: Show only current page info */}
-                  <div className="sm:hidden flex items-center gap-1 px-3 py-1 rounded-full border border-[#D946EF]">
+                  <div className="sm:hidden flex items-center gap-1 px-3 py-1 rounded-full border border-[#6A7282]">
                     <span className="text-sm text-black dark:text-white">
                       {activityPage} / {totalActivityPages}
                     </span>
                   </div>
 
                   {/* Desktop: Show page numbers with smart truncation */}
-                  <div className="hidden sm:flex items-center gap-1 rounded-full border border-[#D946EF] p-1">
+                  <div className="hidden sm:flex items-center gap-1 rounded-full border border-[#6A7282] p-1">
                     {(() => {
                       const pages = [];
                       const maxVisiblePages = 5;
@@ -295,8 +295,8 @@ export default function UserActivityLog() {
                               key={i}
                               className={`w-8 h-8 rounded-full transition-colors ${
                                 activityPage === i
-                                  ? "bg-[#D946EF] text-white"
-                                  : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                                  ? "bg-[#6A7282] text-white"
+                                  : "hover:bg-[#6A7282]/20 text-black dark:text-white"
                               }`}
                               onClick={() => setActivityPage(i)}
                             >
@@ -316,8 +316,8 @@ export default function UserActivityLog() {
                               key={1}
                               className={`w-8 h-8 rounded-full transition-colors ${
                                 activityPage === 1
-                                  ? "bg-[#D946EF] text-white"
-                                  : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                                  ? "bg-[#6A7282] text-white"
+                                  : "hover:bg-[#6A7282]/20 text-black dark:text-white"
                               }`}
                               onClick={() => setActivityPage(1)}
                             >
@@ -340,8 +340,8 @@ export default function UserActivityLog() {
                               key={i}
                               className={`w-8 h-8 rounded-full transition-colors ${
                                 activityPage === i
-                                  ? "bg-[#D946EF] text-white"
-                                  : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                                  ? "bg-[#6A7282] text-white"
+                                  : "hover:bg-[#6A7282]/20 text-black dark:text-white"
                               }`}
                               onClick={() => setActivityPage(i)}
                             >
@@ -364,8 +364,8 @@ export default function UserActivityLog() {
                               key={totalActivityPages}
                               className={`w-8 h-8 rounded-full transition-colors ${
                                 activityPage === totalActivityPages
-                                  ? "bg-[#D946EF] text-white"
-                                  : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                                  ? "bg-[#6A7282] text-white"
+                                  : "hover:bg-[#6A7282]/20 text-black dark:text-white"
                               }`}
                               onClick={() => setActivityPage(totalActivityPages)}
                             >
@@ -381,10 +381,10 @@ export default function UserActivityLog() {
 
                   {/* Next button */}
                   <button
-                    className={`w-8 h-8 rounded-full transition-colors border border-[#D946EF] ${
+                    className={`w-8 h-8 rounded-full transition-colors border border-[#6A7282] ${
                       activityPage === totalActivityPages
                         ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
-                        : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                        : "hover:bg-[#6A7282]/20 text-black dark:text-white"
                     }`}
                     onClick={() => setActivityPage(Math.min(totalActivityPages, activityPage + 1))}
                     disabled={activityPage === totalActivityPages}

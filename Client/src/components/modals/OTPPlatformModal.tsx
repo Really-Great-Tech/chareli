@@ -52,7 +52,7 @@ export function OTPPlatformModal({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="sm:max-w-[425px] dark:bg-[#0F1221] rounded-lg p-6">
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-2xl font-bold dark:text-white text-black font-dmmono">
+          <AlertDialogTitle className="text-2xl font-bold text-[#6A7282] font-dmmono">
             OTP Verification
           </AlertDialogTitle>
           <AlertDialogDescription className=" dark:text-white text-black font-worksans text-xl tracking-wider mt-1">
@@ -72,11 +72,11 @@ export function OTPPlatformModal({
               setSelectedOtpType(value as "EMAIL" | "SMS")
             }
           >
-            <div className="flex items-center justify-center space-x-3 border-[#E328AF] border-1 rounded p-2">
+            <div className="flex items-center justify-center space-x-3 border-[#6A7282] border-1 rounded p-2">
               <RadioGroupItem
                 value="EMAIL"
                 id="email"
-                className="text-[#E328AF] border-2 border-[#E328AF] h-5 w-5 focus:ring-[#E328AF] checked:bg-[#E328AF]"
+                className="text-[#6A7282] border-2 border-[#6A7282] h-5 w-5 focus:ring-[#6A7282] checked:bg-[#6A7282]"
               />
               <Label
                 htmlFor="email"
@@ -85,11 +85,11 @@ export function OTPPlatformModal({
                 {email}
               </Label>
             </div>
-            <div className="flex items-center justify-center space-x-3 border-[#E328AF] border-1 rounded p-2">
+            <div className="flex items-center justify-center space-x-3 border-[#6A7282] border-1 rounded p-2">
               <RadioGroupItem
                 value="SMS"
                 id="phone"
-                className="text-[#E328AF] border-2 border-[#E328AF] h-5 w-5 focus:ring-[#E328AF] checked:bg-[#E328AF]"
+                className="text-[#6A7282] border-2 border-[#6A7282] h-5 w-5 focus:ring-[#6A7282] checked:bg-[#6A7282]"
               />
               <Label
                 htmlFor="phone"
@@ -103,7 +103,7 @@ export function OTPPlatformModal({
 
         <Button
           onClick={handleSendOTP}
-          className="w-full mt-6 bg-[#E328AF] hover:bg-[#C026D3] text-white font-dmmono py-3 cursor-pointer rounded-md text-lg"
+          className="w-full mt-6 bg-[#6A7282] hover:bg-[#5A626F] text-white font-dmmono py-3 cursor-pointer rounded-md text-lg"
         >
           Next
         </Button>

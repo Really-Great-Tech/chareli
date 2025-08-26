@@ -1,6 +1,7 @@
 import React from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../components/single/Navbar";
+import CookieBanner from "../components/single/CookieBanner";
 
 const MainLayout: React.FC = () => {
   const location = useLocation();
@@ -8,6 +9,10 @@ const MainLayout: React.FC = () => {
   const navigation = useNavigate();
   const handleTermsPage = () => {
     navigation("/terms");
+  };
+
+  const handlePrivacyPage = () => {
+    navigation("/privacy");
   };
 
   const isGamePlay = location.pathname.includes("/gameplay/");
@@ -18,26 +23,28 @@ const MainLayout: React.FC = () => {
         <Outlet />
       </main>
       {!isGamePlay && (
-        <footer className="text-center text-white dark:white py-4 md:py-6 lg:py-8 bg-[#1E0420] dark:bg-[#1E0420] w-full">
+        <footer className="text-center text-white dark:white py-4 md:py-6 lg:py-8 bg-[#6A7282] dark:bg-[#6A7282] w-full">
           <div className="w-[90%] md:w-[85%] lg:w-[800px] mx-auto px-4 md:px-6">
             <p className="font-dmmono mb-3 text-[12px] sm:text-xs md:text-sm">
-              These games are brought to you by Arcades Box, a web-based gaming
+              These games are brought to you by Arcades Box, a web-based gaming 
               platform.
             </p>
 
             <p className="font-worksans text-[10px] sm:text-xs md:text-sm mt-3 leading-relaxed">
               By using this service, you agree to the Arcades Box{" "}
-              <span
-                className="text-[#C026D3] underline cursor-pointer hover:text-[#db2ee8] transition-colors"
-                onClick={handleTermsPage}
-              >
-                Terms of Service
-              </span>
-              . Arcades Box{" "}
-              <span /*className="text-[#C026D3] underline cursor-pointer hover:text-[#db2ee8] transition-colors"*/
-              >
-                Privacy Policy
-              </span>{" "}
+                              <span
+                  className="text-[#0F1621] underline cursor-pointer hover:text-[#FEF3C7] transition-colors font-semibold"
+                  onClick={handleTermsPage}
+                >
+                  Terms of Service
+                </span>
+                . The Arcades Box{" "}
+                <span
+                  className="text-[#0F1621] underline cursor-pointer hover:text-[#FEF3C7] transition-colors font-semibold"
+                  onClick={handlePrivacyPage}
+                >
+                  Privacy Policy
+                </span>{" "}
               sets out how we handle your data.
             </p>
 
@@ -49,6 +56,7 @@ const MainLayout: React.FC = () => {
           </div>
         </footer>
       )}
+      <CookieBanner />
     </div>
   );
 };

@@ -61,7 +61,7 @@ export default function CategoryDetail() {
   if (isLoading) {
     return (
       <div className="p-8 flex justify-center items-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D946EF]"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6A7282]"></div>
       </div>
     );
   }
@@ -146,7 +146,7 @@ export default function CategoryDetail() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-xl p-4 sm:p-6">
               <div className="flex items-center gap-3 sm:gap-4">
-                <div className="bg-[#F0ABFC] rounded-full p-2 sm:p-3 flex-shrink-0">
+                <div className="bg-[#6A7282] rounded-full p-2 sm:p-3 flex-shrink-0">
                   <LuGamepad2 className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -162,7 +162,7 @@ export default function CategoryDetail() {
 
             <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-xl p-4 sm:p-6">
               <div className="flex items-center gap-3 sm:gap-4">
-                <div className="bg-[#F0ABFC] rounded-full p-2 sm:p-3 flex-shrink-0">
+                <div className="bg-[#6A7282] rounded-full p-2 sm:p-3 flex-shrink-0">
                   <TbCalendarClock className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -178,7 +178,7 @@ export default function CategoryDetail() {
 
             <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-xl p-4 sm:p-6 sm:col-span-2 lg:col-span-1">
               <div className="flex items-center gap-3 sm:gap-4">
-                <div className="bg-[#F0ABFC] rounded-full p-2 sm:p-3 flex-shrink-0">
+                <div className="bg-[#6A7282] rounded-full p-2 sm:p-3 flex-shrink-0">
                   <FiClock className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -286,10 +286,10 @@ export default function CategoryDetail() {
                     <div className="flex items-center gap-1 order-1 sm:order-2">
                       {/* Previous button */}
                       <button
-                        className={`w-8 h-8 rounded-full transition-colors border border-[#D946EF] ${
+                        className={`w-8 h-8 rounded-full transition-colors border border-[#6A7282] ${
                           pagination.currentPage === 1
                             ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
-                            : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                            : "hover:bg-[#6A7282]/20 text-black dark:text-white"
                         }`}
                         onClick={() => handlePageChange(Math.max(1, pagination.currentPage - 1))}
                         disabled={pagination.currentPage === 1}
@@ -298,21 +298,21 @@ export default function CategoryDetail() {
                       </button>
 
                       {/* Mobile: Show only current page info */}
-                      <div className="sm:hidden flex items-center gap-1 px-3 py-1 rounded-full border border-[#D946EF]">
+                      <div className="sm:hidden flex items-center gap-1 px-3 py-1 rounded-full border border-[#6A7282]">
                         <span className="text-sm text-black dark:text-white">
                           {pagination.currentPage} / {pagination.totalPages}
                         </span>
                       </div>
 
                       {/* Desktop: Show page numbers */}
-                      <div className="hidden sm:flex items-center gap-1 rounded-full border border-[#D946EF] p-1">
+                      <div className="hidden sm:flex items-center gap-1 rounded-full border border-[#6A7282] p-1">
                         {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
                           <button
                             key={page}
                             className={`w-8 h-8 rounded-full transition-colors ${
                               page === pagination.currentPage
-                                ? "bg-[#D946EF] text-white"
-                                : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                                ? "bg-[#6A7282] text-white"
+                                : "hover:bg-[#6A7282]/20 text-black dark:text-white"
                             }`}
                             onClick={() => handlePageChange(page)}
                           >
@@ -323,10 +323,10 @@ export default function CategoryDetail() {
 
                       {/* Next button */}
                       <button
-                        className={`w-8 h-8 rounded-full transition-colors border border-[#D946EF] ${
+                        className={`w-8 h-8 rounded-full transition-colors border border-[#6A7282] ${
                           pagination.currentPage === pagination.totalPages
                             ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
-                            : "hover:bg-[#F3E8FF] text-black dark:text-white"
+                            : "hover:bg-[#6A7282]/20 text-black dark:text-white"
                         }`}
                         onClick={() => handlePageChange(Math.min(pagination.totalPages, pagination.currentPage + 1))}
                         disabled={pagination.currentPage === pagination.totalPages}

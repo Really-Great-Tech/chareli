@@ -87,12 +87,12 @@ export function DonutChart({ timeRange }: DonutChartProps) {
     {
       name: "Active users",
       value: analytics?.activeUsers || 0,
-      fill: "#D946EF",
+      fill: "#64748A",
     },
     {
       name: "Non-active",
       value: analytics?.inactiveUsers || 0,
-      fill: "#F5D0FE",
+      fill: "#D1D5DB",
     },
   ];
 
@@ -101,7 +101,7 @@ export function DonutChart({ timeRange }: DonutChartProps) {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[300px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D946EF]"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#64748A]"></div>
       </div>
     );
   }
@@ -109,7 +109,7 @@ export function DonutChart({ timeRange }: DonutChartProps) {
   return (
     <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between max-w-4xl mx-auto gap-6">
       {/* Chart container */}
-      <div className="relative w-full lg:w-80 h-64 sm:h-80 flex items-center justify-center">
+      <div className="relative w-full lg:w-50 h-64 sm:h-50 flex items-center justify-center">
         <PieChart width={300} height={300}>
           <Pie
             data={data}
@@ -165,7 +165,7 @@ export function DonutChart({ timeRange }: DonutChartProps) {
             >
               <div
                 className="w-5 h-5 mr-3"
-                style={{ backgroundColor: index === 0 ? "#D946EF" : "#F5D0FE" }}
+                style={{ backgroundColor: index === 0 ? "#64748A" : "#D1D5DB" }}
               ></div>
               <span className="text-base lg:text-lg text-gray-600 dark:text-white">
                 {index === 0 ? "Active users" : "Non-active"} = {_entry.value}

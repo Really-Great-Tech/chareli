@@ -80,7 +80,7 @@ export default function StatsCard({ filters }: StatsCardProps) {
       changeType:
         data.totalRegisteredUsers.percentageChange >= 0 ? "up" : "down",
       description: timeDescription,
-      color: "text-[#D946EF] dark:text-[#F0ABFC]",
+      color: "text-[#64748A] dark:text-white",
     },
     {
       title: "Daily Active Users",
@@ -89,7 +89,7 @@ export default function StatsCard({ filters }: StatsCardProps) {
       change: "24h only",
       changeType: "up",
       description: "Always last 24 hours",
-      color: "text-[#D946EF] dark:text-[#F0ABFC]",
+      color: "text-[#64748A] dark:text-white",
       isStatic: true, // No percentage change
     },
     {
@@ -99,7 +99,7 @@ export default function StatsCard({ filters }: StatsCardProps) {
       change: `${data.totalTimePlayed.percentageChange ?? 0}%`,
       changeType: data.totalTimePlayed.percentageChange >= 0 ? "up" : "down",
       description: timeDescription,
-      color: "text-[#D946EF] dark:text-[#F0ABFC]",
+      color: "text-[#64748A] dark:text-white",
     },
     {
       title: "Sessions Played",
@@ -108,7 +108,7 @@ export default function StatsCard({ filters }: StatsCardProps) {
       change: `${data.totalSessions.percentageChange ?? 0}%`,
       changeType: data.totalSessions.percentageChange >= 0 ? "up" : "down",
       description: timeDescription,
-      color: "text-[#D946EF] dark:text-[#F0ABFC]",
+      color: "text-[#64748A] dark:text-white",
     },
     {
       title: "Average Session Time",
@@ -117,7 +117,7 @@ export default function StatsCard({ filters }: StatsCardProps) {
       change: `${data.avgSessionDuration.percentageChange ?? 0}%`,
       changeType: data.avgSessionDuration.percentageChange >= 0 ? "up" : "down",
       description: timeDescription,
-      color: "text-[#D946EF] dark:text-[#F0ABFC]",
+      color: "text-[#64748A] dark:text-white",
     },  
     {
       title: "Most Played Games",
@@ -128,7 +128,7 @@ export default function StatsCard({ filters }: StatsCardProps) {
       change: `${data.mostPlayedGames?.percentageChange ?? 0}%`,
       changeType: (data.mostPlayedGames?.percentageChange ?? 0) >= 0 ? "up" : "down",
       description: timeDescription,
-      color: "text-[#D946EF] dark:text-[#F0ABFC]",
+      color: "text-[#64748A] dark:text-white",
       isGamesList: true,
     },
     {
@@ -138,7 +138,7 @@ export default function StatsCard({ filters }: StatsCardProps) {
       change: `${data.gameCoverage.percentageChange ?? 0}%`,
       changeType: data.gameCoverage.percentageChange >= 0 ? "up" : "down",
       description: timeDescription,
-      color: "text-[#D946EF] dark:text-[#F0ABFC]",
+      color: "text-[#64748A] dark:text-white",
     },
     {
       title: "Total Active Users",
@@ -147,7 +147,7 @@ export default function StatsCard({ filters }: StatsCardProps) {
       change: `${data.totalActiveUsers.percentageChange ?? 0}%`,
       changeType: data.totalActiveUsers.percentageChange >= 0 ? "up" : "down",
       description: timeDescription,
-      color: "text-[#D946EF] dark:text-[#F0ABFC]",
+      color: "text-[#64748A] dark:text-white",
     },
     {
       title: "User Retention",
@@ -156,12 +156,12 @@ export default function StatsCard({ filters }: StatsCardProps) {
       change: "0%",
       changeType: "up",
       description: timeDescription,
-      color: "text-[#D946EF] dark:text-[#F0ABFC]",
+      color: "text-[#64748A] dark:text-white",
     },
   ];
 
   return (
-    <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
       {cardData.map((card, idx) => (
         <div
           key={idx}
@@ -210,8 +210,8 @@ export default function StatsCard({ filters }: StatsCardProps) {
               <div
                 className={`flex flex-row gap-1 items-center text-[14px] flex-shrink-0 ${
                   card.changeType === "up"
-                    ? "text-white bg-[#D946EF] pl-1 pr-1 pt-1 pb-1 rounded-lg dark:bg-[#64748A]"
-                    : "text-white bg-[#D946EF] dark:bg-[#64748A] pl-2 pr-2 pt-1 pb-1 rounded-lg"
+                    ? "text-white bg-[#475568] pl-1 pr-1 pt-1 pb-1 rounded-lg dark:bg-[#64748A]"
+                    : "text-white bg-[#475568] dark:bg-[#64748A] pl-2 pr-2 pt-1 pb-1 rounded-lg"
                 }`}
               >
                 {card.changeType === "up" ? (

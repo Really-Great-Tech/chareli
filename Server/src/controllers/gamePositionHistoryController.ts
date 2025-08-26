@@ -5,6 +5,7 @@ import { Game } from '../entities/Games';
 import { ApiError } from '../middlewares/errorHandler';
 import { storageService } from '../services/storage.service';
 import { cacheService } from '../services/cache.service';
+import { invalidateAdminDashboardCaches } from './adminDashboardController';
 
 const gamePositionHistoryRepository = AppDataSource.getRepository(GamePositionHistory);
 const gameRepository = AppDataSource.getRepository(Game);
@@ -149,6 +150,12 @@ export const recordGameClick = async (
     }
     
     await gamePositionHistoryRepository.save(positionHistory);
+    
+    // Invalidate related caches since position history affects dashboard analytics
+    await Promise.all([
+      cacheService.deleteByPattern('game-position-history:*'),
+      invalidateAdminDashboardCaches()
+    ]);
     
     res.status(200).json({
       success: true,

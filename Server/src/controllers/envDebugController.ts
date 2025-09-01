@@ -26,7 +26,6 @@ const ALL_ENV_VARIABLES = [
   'PORT',
   'CLIENT_URL',
   'STORAGE_PROVIDER',
-  'ALLOW_ENV_DEBUG',
 
   // Database
   'DB_HOST',
@@ -275,11 +274,6 @@ export const getEnvironmentDebug = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    // Check if this is production and if debug is explicitly allowed
-    if (process.env.NODE_ENV === 'production' && process.env.ALLOW_ENV_DEBUG !== 'true') {
-      return next(ApiError.forbidden('Environment debug is disabled in production. Set ALLOW_ENV_DEBUG=true to enable.'));
-    }
-    
     // Check for full access - only SUPERADMIN can see full values
     const showFull = req.query.full === 'true' && req.user?.role === 'SUPERADMIN';
     

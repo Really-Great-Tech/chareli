@@ -14,7 +14,7 @@ const router = Router();
  *       - Requires ADMIN or SUPERADMIN role
  *       - Sensitive values are masked by default
  *       - Use ?full=true query parameter to see full values (SUPERADMIN only)
- *       - Disabled in production unless ALLOW_ENV_DEBUG=true is set
+ *       - Available in all environments with proper authentication
  *     tags: [Environment Debug]
  *     security:
  *       - bearerAuth: []

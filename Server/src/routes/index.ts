@@ -9,6 +9,7 @@ import systemConfigRoutes from './systemConfigRoutes';
 import signupAnalyticsRoutes from './signupAnalyticsRoutes';
 import analyticsRoutes from './analyticsRoutes';
 import adminRoutes from './adminRoutes';
+import envDebugRoutes from './envDebugRoutes';
 import { ApiError } from '../middlewares/errorHandler';
 import redis from '../config/redisClient';
 import logger from '../utils/logger';
@@ -111,6 +112,7 @@ router.use('/system-configs', systemConfigRoutes);
 router.use('/signup-analytics', signupAnalyticsRoutes);
 router.use('/analytics', analyticsRoutes);
 router.use('/admin', adminRoutes);
+router.use('/env-debug', envDebugRoutes);
 
 // Handle 404 errors for routes that don't exist
 router.all('/:path', (req, _res, next) => {

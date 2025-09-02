@@ -4,7 +4,7 @@ import { LazyImage } from "../../components/ui/LazyImage";
 import { useGames } from "../../backend/games.service";
 import { useCategories } from "../../backend/category.service";
 import { useGameClickHandler } from "../../hooks/useGameClickHandler";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import GamesSkeleton from "./GamesSkeleton";
 
 import emptyGameImg from "../../assets/empty-game.png";
@@ -15,6 +15,8 @@ interface AllGamesSectionProps {
 
 const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [screenSize, setScreenSize] = useState<'mobile' | 'tablet' | 'desktop'>('mobile');
+  
   const { data: categoriesData, isLoading: categoriesLoading } =
     useCategories();
   const {
@@ -46,6 +48,24 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
 
   const games: any = gamesData || [];
   const { handleGameClick } = useGameClickHandler();
+
+  // Screen size detection
+  useEffect(() => {
+    const updateScreenSize = () => {
+      const width = window.innerWidth;
+      if (width < 768) {
+        setScreenSize('mobile'); // 2 columns
+      } else if (width < 1024) {
+        setScreenSize('tablet'); // 3 columns
+      } else {
+        setScreenSize('desktop'); // 3+ columns
+      }
+    };
+
+    updateScreenSize();
+    window.addEventListener('resize', updateScreenSize);
+    return () => window.removeEventListener('resize', updateScreenSize);
+  }, []);
 
   return (
     <div className="p-4">
@@ -154,18 +174,33 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
                     ?.name || "this category"}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-[150px]">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 md:gap-6 auto-rows-[150px] sm:auto-rows-[160px] md:auto-rows-[150px]">
               {games.map((game: any, index: number) => {
-                // Alternate between different spans for subtle height variations
-                const spans = [1, 1.3, 1.1]; // More subtle height differences
-                const spanIndex = index % spans.length;
-                const rowSpan = spans[spanIndex];
+                // Different behavior for mobile vs desktop
+                let colSpan = 1;
+                let rowSpan = 1;
+
+                if (screenSize === 'mobile') {
+                  // Mobile: varied widths, uniform heights
+                  const widthPatterns = [1, 1, 1, 1, 2, 1, 1, 1, 1]; // 4 single + 1 double + 4 single = proper rows
+                  const widthIndex = index % widthPatterns.length;
+                  colSpan = widthPatterns[widthIndex];
+                } else {
+                  // Desktop: original varied heights like before
+                  const spans = [1, 1.3, 1.1]; // Original desktop height variations
+                  const spanIndex = index % spans.length;
+                  const heightSpan = spans[spanIndex];
+                  rowSpan = Math.round(heightSpan * 2);
+                }
 
                 return (
                   <div
                     key={game.id}
                     className="relative group cursor-pointer"
-                    style={{ gridRow: `span ${Math.round(rowSpan * 2)}` }}
+                    style={{ 
+                      gridColumn: screenSize === 'mobile' ? `span ${colSpan}` : 'span 1',
+                      gridRow: screenSize === 'mobile' ? 'span 1' : `span ${rowSpan}`
+                    }}
                     onClick={() => handleGameClick(game.id)}
                   >
                     <div className="relative h-full overflow-hidden rounded-[20px] transition-all duration-300 ease-in-out group-hover:shadow-[0_0px_20px_#64748A,0_0px_10px_rgba(100,116,138,0.8)]">
@@ -179,7 +214,7 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
                           rootMargin="50px"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent group-hover:opacity-100 transition-opacity duration-300 lg:opacity-0 lg:group-hover:opacity-100 rounded-[16px]">
-                          <span className="absolute bottom-3 left-4 text-white font-semibold text-base drop-shadow-lg text-shadow-black/55 text-shadow-lg">
+                          <span className="absolute bottom-2 left-2 md:bottom-3 md:left-4 text-white font-semibold text-xs md:text-base drop-shadow-lg text-shadow-black/55 text-shadow-lg">
                             {game.title}
                           </span>
                         </div>

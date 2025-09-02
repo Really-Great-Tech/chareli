@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCategories } from "../../backend/category.service";
 import { useGames } from "../../backend/games.service";
 import { useGameClickHandler } from "../../hooks/useGameClickHandler";
@@ -17,6 +17,7 @@ export default function Categories() {
     null
   );
   const [showMobileCategories, setShowMobileCategories] = useState(false);
+  const [screenSize, setScreenSize] = useState<'mobile' | 'tablet' | 'desktop'>('mobile');
 
   const {
     data: categoriesData,
@@ -44,6 +45,24 @@ export default function Categories() {
   const categories = (categoriesData || []) as Category[];
   const games: any = gamesData || [];
   const { handleGameClick } = useGameClickHandler();
+
+  // Screen size detection
+  useEffect(() => {
+    const updateScreenSize = () => {
+      const width = window.innerWidth;
+      if (width < 768) {
+        setScreenSize('mobile'); // 2 columns
+      } else if (width < 1024) {
+        setScreenSize('tablet'); // 3 columns
+      } else {
+        setScreenSize('desktop'); // 3+ columns
+      }
+    };
+
+    updateScreenSize();
+    window.addEventListener('resize', updateScreenSize);
+    return () => window.removeEventListener('resize', updateScreenSize);
+  }, []);
 
   return (
     <div className="flex flex-col lg:flex-row min-h-[calc(100vh-80px)] bg-white dark:bg-[#0f1221]">
@@ -298,17 +317,31 @@ export default function Categories() {
                   : ""}
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-[150px]">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 md:gap-6 auto-rows-[300px] sm:auto-rows-[160px] md:auto-rows-[150px]">
                 {games.map((game: any, index: number) => {
-                  const spans = [1, 1.3, 1.1];
-                  const spanIndex = index % spans.length;
-                  const rowSpan = spans[spanIndex];
+                  // Different behavior for mobile vs desktop
+                  let colSpan = 1;
+                  let rowSpan = 1;
+
+                  if (screenSize === 'mobile') {
+                    // Mobile: uniform sizes (no varied widths)
+                    colSpan = 1;
+                  } else {
+                    // Desktop: keep original varied heights
+                    const spans = [1, 1.3, 1.1]; // Original desktop height variations
+                    const spanIndex = index % spans.length;
+                    const heightSpan = spans[spanIndex];
+                    rowSpan = Math.round(heightSpan * 2);
+                  }
 
                   return (
                     <div
                       key={game.id}
                       className="relative group cursor-pointer"
-                      style={{ gridRow: `span ${Math.round(rowSpan * 2)}` }}
+                      style={{ 
+                        gridColumn: screenSize === 'mobile' ? `span ${colSpan}` : 'span 1',
+                        gridRow: screenSize === 'mobile' ? 'span 1' : `span ${rowSpan}`
+                      }}
                       onClick={() => handleGameClick(game.id)}
                     >
                       <div className="relative h-full overflow-hidden rounded-[20px] transition-all duration-300 ease-in-out group-hover:shadow-[0_0px_20px_#6A7282,0_0px_10px_rgba(106,114,130,0.8)]">
@@ -322,7 +355,7 @@ export default function Categories() {
                           rootMargin="50px"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent group-hover:opacity-100 transition-opacity duration-300 lg:opacity-0 lg:group-hover:opacity-100 rounded-[16px]">
-                          <span className="absolute bottom-3 left-4 text-white font-bold text-lg drop-shadow-lg">
+                          <span className="absolute bottom-2 left-2 md:bottom-3 md:left-4 text-white font-bold text-xs md:text-lg drop-shadow-lg">
                             {game.title}
                           </span>
                         </div>

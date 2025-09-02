@@ -6,7 +6,6 @@ import { useGames } from "../../backend/games.service";
 import { useGameClickHandler } from "../../hooks/useGameClickHandler";
 import { useUISettings } from "../../hooks/useUISettings";
 import GamesSkeleton from "./GamesSkeleton";
-
 import emptyGameImg from "../../assets/empty-game.png";
 
 interface PopularSectionProps {
@@ -19,6 +18,7 @@ const PopularSection = ({
   setSearchQuery,
 }: PopularSectionProps) => {
   const { uiSettings } = useUISettings();
+
   const {
     data: gamesData,
     isLoading,
@@ -98,14 +98,15 @@ const PopularSection = ({
             </div>
           )}
           {!isLoading && !error && games.length > 0 && (
-            <div className="grid gap-6 w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-4 3xl:grid-cols-4 justify-center">
-              {games.map((game: any) => (
+            <div className="grid gap-6 w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 auto-rows-[300px] justify-center">
+              {games.map((game: any, _index: number) => {
+                return (
                 <div
                   key={game.id}
                   className="relative group cursor-pointer w-full"
                 >
                   <div
-                    className="relative h-[290px] min-h-[290px] max-h-[290px] rounded-[32px] border-4 border-transparent group-hover:border-[#64748A] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(100,116,138,0.3)] box-border overflow-hidden"
+                    className="relative h-[300px] min-h-[300px] max-h-[300px] rounded-[32px] border-4 border-transparent group-hover:border-[#64748A] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(100,116,138,0.3)] box-border overflow-hidden"
                     onClick={() => handleGameClick(game.id)}
                   >
                     <LazyImage
@@ -118,7 +119,7 @@ const PopularSection = ({
                     />
                     {/* Game Info Overlay - Only visible on hover */}
                     <div className="absolute bottom-0 left-0 right-0 rounded-b-[28px] p-4 group-hover:opacity-100 transition-opacity duration-300 ease-in-out lg:opacity-0 lg:group-hover:opacity-100">
-                      <h3 className="text-white font-semibold text-shadow-black/55 text-shadow-lg text-lg mb-1 truncate">
+                      <h3 className="text-white font-semibold text-shadow-black/55 text-shadow-lg text-xs md:text-lg mb-1 truncate">
                         {game.title}
                       </h3>
                       {game.description && (
@@ -131,7 +132,8 @@ const PopularSection = ({
                     </div>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </Card>

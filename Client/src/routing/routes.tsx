@@ -24,6 +24,7 @@ import ViewProfile from '../pages/Admin/ViewProfile';
 import Terms from '../pages/TermsOfService/Terms';
 import Privacy from '../pages/PrivacyPolicy/Privacy';
 import GamePlayTest from '../pages/GamePlay/GamePlayTest';
+import SecureGamePlay from '../pages/GamePlay/SecureGamePlay';
 
 
 export const AppRoutes = () => {
@@ -36,6 +37,7 @@ export const AppRoutes = () => {
           <Route path="categories" element={<Categories />} />
           {/* <Route path="gameplay/:gameId" element={<GamePlay />} /> */}
           <Route path="gameplay/:gameId" element={<GamePlayTest />} />
+          <Route path="secure-gameplay/:gameId" element={<SecureGamePlay />} />
           <Route path="terms" element={<Terms />} />
           <Route path="privacy" element={<Privacy />} />
 

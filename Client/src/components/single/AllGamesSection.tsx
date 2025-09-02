@@ -6,6 +6,7 @@ import { useCategories } from "../../backend/category.service";
 import { useGameClickHandler } from "../../hooks/useGameClickHandler";
 import { useState } from "react";
 import GamesSkeleton from "./GamesSkeleton";
+import SecureGameTestButton from "./SecureGameTestButton";
 
 import emptyGameImg from "../../assets/empty-game.png";
 
@@ -182,6 +183,14 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
                           <span className="absolute bottom-3 left-4 text-white font-semibold text-base drop-shadow-lg text-shadow-black/55 text-shadow-lg">
                             {game.title}
                           </span>
+                          {/* Secure Game Test Button - appears on hover */}
+                          <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <SecureGameTestButton 
+                              gameId={game.id} 
+                              className="text-xs px-2 py-1"
+                              onClick={(e) => e.stopPropagation()} // Prevent triggering the card click
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>

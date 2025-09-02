@@ -174,7 +174,7 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
                     ?.name || "this category"}
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 md:gap-6 auto-rows-[300px] sm:auto-rows-[160px] md:auto-rows-[150px]">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 md:gap-6 auto-rows-[290px] sm:auto-rows-[160px] md:auto-rows-[150px]">
               {games.map((game: any, index: number) => {
                 // Different behavior for mobile vs desktop
                 let colSpan = 1;

@@ -6,8 +6,6 @@ import { useGames } from "../../backend/games.service";
 import { useGameClickHandler } from "../../hooks/useGameClickHandler";
 import { useUISettings } from "../../hooks/useUISettings";
 import GamesSkeleton from "./GamesSkeleton";
-import { useState, useEffect } from "react";
-
 import emptyGameImg from "../../assets/empty-game.png";
 
 interface PopularSectionProps {
@@ -19,25 +17,8 @@ const PopularSection = ({
   searchQuery,
   setSearchQuery,
 }: PopularSectionProps) => {
-  const [screenSize, setScreenSize] = useState<'mobile' | 'tablet' | 'desktop'>('mobile');
   const { uiSettings } = useUISettings();
 
-  useEffect(() => {
-    const handleResize = () => {
-      const width = window.innerWidth;
-      if (width < 768) {
-        setScreenSize('mobile');
-      } else if (width < 1024) {
-        setScreenSize('tablet');
-      } else {
-        setScreenSize('desktop');
-      }
-    };
-
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
   const {
     data: gamesData,
     isLoading,
@@ -117,33 +98,15 @@ const PopularSection = ({
             </div>
           )}
           {!isLoading && !error && games.length > 0 && (
-            <div className="grid gap-6 w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 auto-rows-fr justify-center">
-              {games.map((game: any, index: number) => {
-                let colSpan = 1;
-                let rowSpan = 1;
-
-                if (screenSize === 'mobile') {
-                  const widthPatterns = [1, 1, 1, 1, 2, 1, 1, 1, 1];
-                  const widthIndex = index % widthPatterns.length;
-                  colSpan = widthPatterns[widthIndex];
-                } else {
-                  const spans = [1, 1.3, 1.1];
-                  const spanIndex = index % spans.length;
-                  const heightSpan = spans[spanIndex];
-                  rowSpan = Math.round(heightSpan * 2);
-                }
-
+            <div className="grid gap-6 w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 auto-rows-[300px] justify-center">
+              {games.map((game: any, _index: number) => {
                 return (
                 <div
                   key={game.id}
                   className="relative group cursor-pointer w-full"
-                  style={{
-                    gridColumn: `span ${colSpan}`,
-                    gridRow: screenSize !== 'mobile' ? `span ${rowSpan}` : 'auto',
-                  }}
                 >
                   <div
-                    className="relative h-[290px] min-h-[290px] max-h-[290px] rounded-[32px] border-4 border-transparent group-hover:border-[#64748A] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(100,116,138,0.3)] box-border overflow-hidden"
+                    className="relative h-[300px] min-h-[300px] max-h-[300px] rounded-[32px] border-4 border-transparent group-hover:border-[#64748A] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(100,116,138,0.3)] box-border overflow-hidden"
                     onClick={() => handleGameClick(game.id)}
                   >
                     <LazyImage

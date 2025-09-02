@@ -174,19 +174,17 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
                     ?.name || "this category"}
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 md:gap-6 auto-rows-[150px] sm:auto-rows-[160px] md:auto-rows-[150px]">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 md:gap-6 auto-rows-[300px] sm:auto-rows-[160px] md:auto-rows-[150px]">
               {games.map((game: any, index: number) => {
                 // Different behavior for mobile vs desktop
                 let colSpan = 1;
                 let rowSpan = 1;
 
                 if (screenSize === 'mobile') {
-                  // Mobile: varied widths, uniform heights
-                  const widthPatterns = [1, 1, 1, 1, 2, 1, 1, 1, 1]; // 4 single + 1 double + 4 single = proper rows
-                  const widthIndex = index % widthPatterns.length;
-                  colSpan = widthPatterns[widthIndex];
+                  // Mobile: uniform sizes (no varied widths)
+                  colSpan = 1;
                 } else {
-                  // Desktop: original varied heights like before
+                  // Desktop: keep original varied heights
                   const spans = [1, 1.3, 1.1]; // Original desktop height variations
                   const spanIndex = index % spans.length;
                   const heightSpan = spans[spanIndex];

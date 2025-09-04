@@ -98,7 +98,7 @@ const PopularSection = ({
             </div>
           )}
           {!isLoading && !error && games.length > 0 && (
-            <div className="grid gap-6 w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 auto-rows-[290px] justify-center">
+            <div className="grid gap-6 w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 auto-rows-[1fr] sm:auto-rows-[290px] justify-center">
               {games.map((game: any, _index: number) => {
                 return (
                 <div
@@ -106,7 +106,7 @@ const PopularSection = ({
                   className="relative group cursor-pointer w-full"
                 >
                   <div
-                    className="relative h-[290px] min-h-[290px] max-h-[290px] rounded-[32px] border-4 border-transparent group-hover:border-[#64748A] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(100,116,138,0.3)] box-border overflow-hidden"
+                    className="relative h-full sm:h-[290px] sm:min-h-[290px] sm:max-h-[290px] rounded-[32px] border-4 border-transparent group-hover:border-[#64748A] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(100,116,138,0.3)] box-border overflow-hidden aspect-square sm:aspect-auto"
                     onClick={() => handleGameClick(game.id)}
                   >
                     <LazyImage
@@ -117,18 +117,11 @@ const PopularSection = ({
                       spinnerColor="#64748A"
                       rootMargin="50px"
                     />
-                    {/* Game Info Overlay - Only visible on hover */}
-                    <div className="absolute bottom-0 left-0 right-0 rounded-b-[28px] p-4 group-hover:opacity-100 transition-opacity duration-300 ease-in-out lg:opacity-0 lg:group-hover:opacity-100">
-                      <h3 className="text-white font-semibold text-shadow-black/55 text-shadow-lg text-xs md:text-lg mb-1 truncate">
+                    {/* Game Info Overlay - Always visible on mobile, hover on desktop */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent group-hover:opacity-100 transition-opacity duration-300 lg:opacity-0 lg:group-hover:opacity-100 rounded-[28px]">
+                      <span className="absolute bottom-2 left-2 md:bottom-3 md:left-4 text-white font-semibold text-xs md:text-base drop-shadow-lg text-shadow-black/55 text-shadow-lg">
                         {game.title}
-                      </h3>
-                      {game.description && (
-                        <p className="text-gray-200 text-sm leading-tight">
-                          {game.description.length > 80
-                            ? `${game.description.substring(0, 80)}...`
-                            : game.description}
-                        </p>
-                      )}
+                      </span>
                     </div>
                   </div>
                 </div>

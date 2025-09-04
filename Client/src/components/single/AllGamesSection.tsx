@@ -174,7 +174,7 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
                     ?.name || "this category"}
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 md:gap-6 auto-rows-[290px] sm:auto-rows-[160px] md:auto-rows-[150px]">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 md:gap-6 auto-rows-[1fr] sm:auto-rows-[160px] md:auto-rows-[150px]">
               {games.map((game: any, index: number) => {
                 // Different behavior for mobile vs desktop
                 let colSpan = 1;
@@ -201,7 +201,7 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
                     }}
                     onClick={() => handleGameClick(game.id)}
                   >
-                    <div className="relative h-full overflow-hidden rounded-[20px] transition-all duration-300 ease-in-out group-hover:shadow-[0_0px_20px_#64748A,0_0px_10px_rgba(100,116,138,0.8)]">
+                    <div className="relative h-full overflow-hidden rounded-[20px] transition-all duration-300 ease-in-out group-hover:shadow-[0_0px_20px_#64748A,0_0px_10px_rgba(100,116,138,0.8)] aspect-square sm:aspect-auto">
                       <div className="w-full h-full rounded-[16px] overflow-hidden">
                         <LazyImage
                           src={game.thumbnailFile?.s3Key}

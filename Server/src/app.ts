@@ -10,6 +10,8 @@ import { sanitizeInput } from './middlewares/sanitizationMiddleware';
 import logger from './utils/logger';
 import { specs } from './config/swagger';
 import config from './config/config';
+import { redisService } from './services/redis.service';
+import { initializeGameZipWorker } from './workers/gameZipProcessor';
 // import { cloudFrontService } from './services/cloudfront.service';
 
 const app: Express = express();
@@ -163,5 +165,25 @@ app.use('/api', routes);
 // Error handling middleware
 app.use(errorHandler);
 logger.info(`Express application initialized in ${config.env} mode`);
+
+// Initialize Redis connection and background services
+async function initializeServices(): Promise<void> {
+  try {
+    // Connect to Redis
+    await redisService.connect();
+    logger.info('Redis connected successfully');
+    
+    // Initialize background workers
+    initializeGameZipWorker();
+    logger.info('Background workers initialized successfully');
+  } catch (error) {
+    logger.error('Failed to initialize services:', error);
+    // Don't exit process, allow app to start without background services
+    // Background processing will just be disabled
+  }
+}
+
+// Initialize services when app starts
+initializeServices();
 
 export default app;

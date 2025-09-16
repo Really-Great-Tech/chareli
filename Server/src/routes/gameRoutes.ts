@@ -8,7 +8,9 @@ import {
   deleteGame,
   uploadGameFiles,
   uploadGameFilesForUpdate,
-  generatePresignedUrl
+  generatePresignedUrl,
+  getGameProcessingStatus,
+  retryGameProcessing
 } from '../controllers/gameController';
 import { authenticate, isAdmin, optionalAuthenticate } from '../middlewares/authMiddleware';
 import { validateBody, validateParams, validateQuery } from '../middlewares/validationMiddleware';
@@ -33,5 +35,9 @@ router.post('/presigned-url', generatePresignedUrl);
 router.post('/', uploadGameFiles, createGame);
 router.put('/:id', validateParams(gameIdParamSchema), uploadGameFilesForUpdate, updateGame);
 router.delete('/:id', validateParams(gameIdParamSchema), deleteGame);
+
+// Game processing status routes
+router.get('/:id/processing-status', validateParams(gameIdParamSchema), getGameProcessingStatus);
+router.post('/:id/retry-processing', validateParams(gameIdParamSchema), retryGameProcessing);
 
 export default router;

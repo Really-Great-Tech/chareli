@@ -84,6 +84,12 @@ interface Config {
     enabled: boolean;
     verifySid: string;
   };
+  redis: {
+    host: string;
+    port: number;
+    password?: string;
+    db?: number;
+  };
 }
 
 function getEnv(key: string, defaultValue?: string): string {
@@ -182,6 +188,12 @@ const config: Config = {
     fromNumber: process.env.TWILIO_FROM_NUMBER || '',
     enabled: process.env.USE_TWILIO === 'true',
     verifySid: process.env.TWILIO_SERVICE_SID || '',
+  },
+  redis: {
+    host: process.env.REDIS_HOST || 'localhost',
+    port: parseInt(process.env.REDIS_PORT || '6379', 10),
+    password: process.env.REDIS_PASSWORD,
+    db: parseInt(process.env.REDIS_DB || '0', 10),
   }
 };
 

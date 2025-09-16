@@ -9,6 +9,13 @@ export enum GameStatus {
   DISABLED = 'disabled'
 }
 
+export enum GameProcessingStatus {
+  PENDING = 'pending',      // ZIP processing queued
+  PROCESSING = 'processing', // ZIP being extracted/uploaded
+  COMPLETED = 'completed',   // Ready to play
+  FAILED = 'failed'         // Processing failed
+}
+
 @Entity('games')
 @Index(['status', 'position'])
 @Index(['categoryId', 'status'])
@@ -68,6 +75,20 @@ export class Game {
   @Column({ type: 'int', nullable: true })
   @Index()
   position: number;
+
+  @Column({
+    type: 'enum',
+    enum: GameProcessingStatus,
+    default: GameProcessingStatus.COMPLETED
+  })
+  @Index()
+  processingStatus: GameProcessingStatus;
+
+  @Column({ type: 'text', nullable: true })
+  processingError: string;
+
+  @Column({ type: 'varchar', nullable: true })
+  jobId: string;
 
   @CreateDateColumn()
   @Index()

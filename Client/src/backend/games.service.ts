@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { backendService } from './api.service';
 import { BackendRoute } from './constants';
-import type { GameResponse, GameStatus, PaginatedResponse } from './types';
+import type { GameResponse, GameStatus, PaginatedResponse, GameProcessingStatusResponse } from './types';
 
 export const useGames = (params?: { 
   categoryId?: string; 
@@ -224,6 +224,41 @@ export const usePositionPerformance = () => {
     queryFn: async () => {
       const response = await backendService.get(BackendRoute.GAME_POSITION_HISTORY_PERFORMANCE);
       return response.data;
+    },
+  });
+};
+
+// ============================================================================
+// GAME PROCESSING STATUS HOOKS
+// ============================================================================
+
+export const useGameProcessingStatus = (gameId: string) => {
+  return useQuery<GameProcessingStatusResponse>({
+    queryKey: ['game-processing-status', gameId],
+    queryFn: async () => {
+      const response = await backendService.get(`/api/games/${gameId}/processing-status`);
+      return response.data as GameProcessingStatusResponse;
+    },
+    enabled: !!gameId,
+    refetchInterval: (data) => {
+      // Poll every 2 seconds if game is still processing
+      const processingStatus = data?.data?.processingStatus;
+      return processingStatus === 'pending' || processingStatus === 'processing' ? 2000 : false;
+    },
+    refetchOnWindowFocus: true,
+  });
+};
+
+export const useRetryGameProcessing = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (gameId: string) =>
+      backendService.post(`/api/games/${gameId}/retry-processing`),
+    onSuccess: (_, gameId) => {
+      // Invalidate processing status queries
+      queryClient.invalidateQueries({ queryKey: ['game-processing-status', gameId] });
+      // Also invalidate games queries to refresh the list
+      queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES] });
     },
   });
 };

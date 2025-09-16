@@ -11,11 +11,9 @@ class RedisService {
       port: config.redis.port,
       password: config.redis.password,
       db: config.redis.db,
-      retryDelayOnFailover: 100,
       enableReadyCheck: true,
       lazyConnect: true,
       maxRetriesPerRequest: 3,
-      // Connection event handlers
       connectTimeout: 10000,
       commandTimeout: 5000,
     });

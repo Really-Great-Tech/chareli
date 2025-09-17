@@ -11,7 +11,6 @@ import logger from './utils/logger';
 import { specs } from './config/swagger';
 import config from './config/config';
 import { redisService } from './services/redis.service';
-import { initializeGameZipWorker } from './workers/gameZipProcessor';
 // import { cloudFrontService } from './services/cloudfront.service';
 
 const app: Express = express();
@@ -22,15 +21,7 @@ app.use(requestLogger);
 
 // Security middleware
 app.use(helmet()); // Adds various HTTP headers for security
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production'
-    ? [config.app.clientUrl] // Change this line to use the configured client URL
-    : '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
-  maxAge: 86400 // 24 hours
-}));
+app.use(cors());
 
 // Content Security Policy
 app.use((req, res, next) => {
@@ -172,13 +163,9 @@ async function initializeServices(): Promise<void> {
     // Connect to Redis
     await redisService.connect();
     logger.info('Redis connected successfully');
-    
-    // Initialize background workers
-    initializeGameZipWorker();
-    logger.info('Background workers initialized successfully');
   } catch (error) {
-    logger.error('Failed to initialize services:', error);
-    // Don't exit process, allow app to start without background services
+    logger.error('Failed to initialize Redis:', error);
+    // Don't exit process, allow app to start without Redis
     // Background processing will just be disabled
   }
 }

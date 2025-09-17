@@ -1,6 +1,6 @@
 import { Job } from 'bullmq';
 import { AppDataSource } from '../config/database';
-import { Game, GameProcessingStatus } from '../entities/Games';
+import { Game, GameProcessingStatus, GameStatus } from '../entities/Games';
 import { File } from '../entities/Files';
 import { zipService } from '../services/zip.service';
 import { storageService } from '../services/storage.service';
@@ -17,6 +17,12 @@ export async function processGameZip(job: Job<GameZipProcessingJobData>): Promis
   logger.info(`Starting ZIP processing for game ${gameId} with job ${job.id}`);
 
   try {
+    // Verify database connection before processing
+    if (!AppDataSource.isInitialized) {
+      throw new Error('Database connection not initialized');
+    }
+
+    logger.info(`Database connection verified, proceeding with ZIP processing for game ${gameId}`);
     // Update game status to processing
     await updateGameProcessingStatus(gameId, GameProcessingStatus.PROCESSING, job.id);
     
@@ -62,12 +68,13 @@ export async function processGameZip(job: Job<GameZipProcessingJobData>): Promis
 
     await fileRepository.save(gameFileRecord);
 
-    // Step 5: Update game with file ID and mark as completed
-    logger.info(`Updating game ${gameId} with gameFileId and marking as completed`);
+    // Step 5: Update game with file ID, mark as completed, and activate the game
+    logger.info(`Updating game ${gameId} with gameFileId, marking as completed, and activating game`);
     await gameRepository.update(gameId, {
       gameFileId: gameFileRecord.id,
       processingStatus: GameProcessingStatus.COMPLETED,
       processingError: undefined,
+      status: GameStatus.ACTIVE, // Activate the game when processing completes successfully
     });
 
     await job.updateProgress(90);

@@ -7,11 +7,43 @@ import fs from 'fs';
 import path from 'path';
 import { authService } from './services/auth.service';
 import { initializeScheduledJobs } from './jobs';
+import { redisService } from './services/redis.service';
+import { initializeGameZipWorker } from './workers/gameZipProcessor';
 
 const logDir = path.join(process.cwd(), 'logs');
 if (!fs.existsSync(logDir)) {
   fs.mkdirSync(logDir);
   logger.info(`Created logs directory at ${logDir}`);
+}
+
+// Initialize background services (Redis + Workers)
+async function initializeBackgroundServices(): Promise<void> {
+  try {
+    // Connect to Redis
+    logger.info('Connecting to Redis...');
+    await redisService.connect();
+    logger.info('Redis connected successfully');
+    
+    // Wait a moment to ensure Redis is fully ready
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Initialize background workers
+    logger.info('Initializing background workers...');
+    initializeGameZipWorker();
+    logger.info('Background workers initialized successfully');
+    
+    // Verify worker is properly connected
+    const isRedisConnected = await redisService.isConnected();
+    if (!isRedisConnected) {
+      throw new Error('Redis connection verification failed');
+    }
+    
+    logger.info('Background services are fully operational');
+  } catch (error) {
+    logger.error('Failed to initialize background services:', error);
+    logger.warn('Background job processing will be disabled');
+    // Don't throw error - allow server to continue without background processing
+  }
 }
 
 const startServer = async () => {
@@ -32,6 +64,9 @@ const startServer = async () => {
       // Initialize superadmin account
       logger.info('Initializing superadmin account...');
       await authService.initializeSuperadmin();
+
+      // Initialize background services (Redis + Workers) after database is ready
+      await initializeBackgroundServices();
 
       // Initialize scheduled jobs
       initializeScheduledJobs();

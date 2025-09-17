@@ -1136,13 +1136,17 @@ export const getGamesWithAnalytics = async (
         totalPlayTime: 0
       };
       
-      // Transform game data to include CloudFront URLs
+      // Transform game data to include CloudFront URLs and processing status
       const transformedGame = {
         ...game,
         thumbnailFile: game.thumbnailFile ? {
           ...game.thumbnailFile,
         url: game.thumbnailFile.s3Key ? storageService.getPublicUrl(game.thumbnailFile.s3Key) : null
         } : null,
+        // Explicitly include processing status fields
+        processingStatus: game.processingStatus,
+        processingError: game.processingError,
+        jobId: game.jobId,
         analytics
       };
       

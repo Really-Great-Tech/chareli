@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppDataSource } from '../config/database';
-import { Game, GameStatus } from '../entities/Games';
+import { Game, GameStatus, GameProcessingStatus } from '../entities/Games';
 import { GamePositionHistory } from '../entities/GamePositionHistory';
 import { Category } from '../entities/Category';
 import { File } from '../entities/Files';
@@ -11,6 +11,7 @@ import { RoleType } from '../entities/Role';
 import { Not, In } from 'typeorm';
 import { storageService } from '../services/storage.service';
 import { zipService } from '../services/zip.service';
+import { queueService } from '../services/queue.service';
 import multer from 'multer';
 import logger from '../utils/logger';
 import { v4 as uuidv4 } from 'uuid';
@@ -705,65 +706,35 @@ export const createGame = async (
       finalCategoryId = await getDefaultCategoryId(queryRunner);
     }
 
-    // Download and process the uploaded ZIP file from storage
-    logger.info(`Downloading and processing game ZIP file from storage...`);
-    logger.info(`Attempting to download file with key: ${gameFileKey}`);
-    logger.info(`Thumbnail file key: ${thumbnailFileKey}`);
-    
-    const zipBuffer = await storageService.downloadFile(gameFileKey);
-    logger.info(`Successfully downloaded ZIP file, size: ${zipBuffer.length} bytes`);
-    const processedZip = await zipService.processGameZip(zipBuffer);
-    
-    if (processedZip.error) {
-      throw new ApiError(400, processedZip.error);
-    }
-
-    // Generate unique game folder name
-    const gameFolderId = uuidv4();
-    const gamePath = `games/${gameFolderId}`;
-
-    // Upload extracted game files to permanent storage location
-    logger.info('Uploading extracted game files to permanent storage...');
-    await storageService.uploadDirectory(processedZip.extractedPath, gamePath);
-
-    // Move thumbnail to permanent storage using utility function
+    // Move thumbnail to permanent storage using utility function (synchronous)
     logger.info('Moving thumbnail to permanent storage...');
     const permanentThumbnailKey = await moveFileToPermanentStorage(thumbnailFileKey, 'thumbnails');
     
-    // Create file records in the database using transaction
-    logger.info('Creating file records in the database...');
+    // Create thumbnail file record in the database using transaction
+    logger.info('Creating thumbnail file record in the database...');
     const thumbnailFileRecord = fileRepository.create({
       s3Key: permanentThumbnailKey,
       type: 'thumbnail'
     });
 
-    if (!processedZip.indexPath) {
-      throw new ApiError(400, 'No index.html found in the zip file');
-    }
-
-    const indexPath = processedZip.indexPath.replace(/\\/g, '/');
-    const gameFileRecord = fileRepository.create({
-      s3Key: `${gamePath}/${indexPath}`,
-      type: 'game_file'
-    });
-
-    await queryRunner.manager.save([thumbnailFileRecord, gameFileRecord]);
+    await queryRunner.manager.save(thumbnailFileRecord);
 
     // Assign position for the new game
     logger.info('Assigning position for new game...');
     const assignedPosition = await assignPositionForNewGame(position ? parseInt(position) : undefined, queryRunner);
 
-    // Create new game with file IDs and position using transaction
-    logger.info('Creating game record...');
+    // Create new game with pending processing status (no gameFileId yet)
+    logger.info('Creating game record with pending processing status...');
     const game = gameRepository.create({
       title,
       description,
       thumbnailFileId: thumbnailFileRecord.id,
-      gameFileId: gameFileRecord.id,
+      gameFileId: undefined, // Will be set by background worker
       categoryId: finalCategoryId,
       status,
       config,
       position: assignedPosition,
+      processingStatus: GameProcessingStatus.PENDING,
       createdById: req.user?.userId
     });
 
@@ -773,13 +744,24 @@ export const createGame = async (
     logger.info('Creating initial position history record...');
     await createOrUpdatePositionHistoryRecord(game.id, assignedPosition, queryRunner);
 
-    // Clean up temporary files
-    logger.info('Cleaning up temporary files...');
+    // Queue background job for ZIP processing
+    logger.info('Queuing background job for ZIP processing...');
+    const job = await queueService.addGameZipProcessingJob({
+      gameId: game.id,
+      gameFileKey,
+      userId: req.user?.userId
+    });
+
+    // Update game with job ID
+    game.jobId = job.id as string;
+    await queryRunner.manager.save(game);
+
+    // Clean up temporary thumbnail file (game file will be cleaned up by worker)
+    logger.info('Cleaning up temporary thumbnail file...');
     try {
       await storageService.deleteFile(thumbnailFileKey);
-      await storageService.deleteFile(gameFileKey);
     } catch (cleanupError) {
-      logger.warn('Failed to clean up temporary files:', cleanupError);
+      logger.warn('Failed to clean up temporary thumbnail file:', cleanupError);
     }
 
     // Commit transaction
@@ -1387,6 +1369,188 @@ export const generatePresignedUrl = async (
     });
   } catch (error) {
     logger.error('Error generating presigned URL:', error);
+    next(error);
+  }
+};
+
+/**
+ * @swagger
+ * /games/{id}/processing-status:
+ *   get:
+ *     summary: Get game processing status
+ *     description: Get the current processing status of a game. Accessible by admins.
+ *     tags: [Games]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID of the game to check processing status
+ *     responses:
+ *       200:
+ *         description: Processing status retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     processingStatus:
+ *                       type: string
+ *                       enum: [pending, processing, completed, failed]
+ *                     processingError:
+ *                       type: string
+ *                       nullable: true
+ *                     jobId:
+ *                       type: string
+ *                       nullable: true
+ *                     jobStatus:
+ *                       type: object
+ *                       nullable: true
+ *                       properties:
+ *                         status:
+ *                           type: string
+ *                         progress:
+ *                           type: number
+ *                         error:
+ *                           type: string
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Game not found
+ *       500:
+ *         description: Internal server error
+ */
+export const getGameProcessingStatus = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    
+    const game = await gameRepository.findOne({
+      where: { id },
+      select: ['id', 'processingStatus', 'processingError', 'jobId']
+    });
+    
+    if (!game) {
+      return next(ApiError.notFound(`Game with id ${id} not found`));
+    }
+
+    let jobStatus = null;
+    if (game.jobId) {
+      try {
+        jobStatus = await queueService.getJobStatus(game.jobId, 'game-zip-processing');
+      } catch (error) {
+        logger.warn(`Failed to get job status for job ${game.jobId}:`, error);
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        processingStatus: game.processingStatus,
+        processingError: game.processingError,
+        jobId: game.jobId,
+        jobStatus
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @swagger
+ * /games/{id}/retry-processing:
+ *   post:
+ *     summary: Retry failed game processing
+ *     description: Retry processing for a failed game. Accessible by admins.
+ *     tags: [Games]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID of the game to retry processing
+ *     responses:
+ *       200:
+ *         description: Processing retry queued successfully
+ *       400:
+ *         description: Game cannot be retried (not in failed state)
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Game not found
+ *       500:
+ *         description: Internal server error
+ */
+export const retryGameProcessing = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    
+    const game = await gameRepository.findOne({
+      where: { id }
+    });
+    
+    if (!game) {
+      return next(ApiError.notFound(`Game with id ${id} not found`));
+    }
+
+    if (game.processingStatus !== GameProcessingStatus.FAILED) {
+      return next(ApiError.badRequest('Can only retry processing for failed games'));
+    }
+
+    // For retry, we need the original game file key stored somewhere
+    // Since we don't store the original temp key, this would require a new file upload
+    // For now, return an error indicating they need to re-upload
+    return next(ApiError.badRequest('Cannot retry processing. Please re-upload the game file.'));
+
+    // If we had stored the original temp key, this would be the implementation:
+    /*
+    // Reset processing status to pending
+    game.processingStatus = GameProcessingStatus.PENDING;
+    game.processingError = null;
+    
+    // Queue new job
+    const job = await queueService.addGameZipProcessingJob({
+      gameId: game.id,
+      gameFileKey: game.originalGameFileKey, // Would need to be stored
+      userId: req.user?.userId
+    });
+    
+    game.jobId = job.id as string;
+    await gameRepository.save(game);
+    
+    res.status(200).json({
+      success: true,
+      message: 'Processing retry queued successfully',
+      data: { jobId: job.id }
+    });
+    */
+  } catch (error) {
     next(error);
   }
 };

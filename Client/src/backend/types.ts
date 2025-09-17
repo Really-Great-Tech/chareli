@@ -29,6 +29,8 @@ export interface FileMetadata {
 
 export type GameStatus = 'active' | 'disabled';
 
+export type GameProcessingStatus = 'pending' | 'processing' | 'completed' | 'failed';
+
 export interface Game {
   id: string;
   title: string;
@@ -43,6 +45,9 @@ export interface Game {
   category?: Category;
   createdById?: string;
   createdBy?: User;
+  processingStatus?: GameProcessingStatus;
+  processingError?: string;
+  jobId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -97,6 +102,9 @@ export interface GameData {
   category?: Category;
   createdById?: string;
   createdBy?: User;
+  processingStatus?: GameProcessingStatus;
+  processingError?: string;
+  jobId?: string;
   createdAt: string;
   updatedAt: string;
   similarGames?: SimilarGame[];
@@ -176,4 +184,19 @@ export interface Analytics {
   sessionCount?: number;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface GameProcessingStatusResponse {
+  success: boolean;
+  data: {
+    processingStatus: GameProcessingStatus;
+    processingError?: string;
+    jobId?: string;
+    jobStatus?: {
+      status: string;
+      progress?: number;
+      error?: string;
+      result?: any;
+    };
+  };
 }

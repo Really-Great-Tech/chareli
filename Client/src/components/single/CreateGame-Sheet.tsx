@@ -149,9 +149,12 @@ export function CreateGameSheet({
   const [showProgress, setShowProgress] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState("");
+  const [createdGameId, setCreatedGameId] = useState<string | null>(null);
   const createGame = useCreateGame();
   const { data: categories } = useCategories();
   const queryClient = useQueryClient(); // Add query client for manual cache invalidation
+
+  console.log(createdGameId, "createGameId")
   const handleSubmit = async (
     values: FormValues,
     { setSubmitting, resetForm }: any
@@ -159,8 +162,8 @@ export function CreateGameSheet({
     try {
       // Show progress bar
       setShowProgress(true);
-      setProgress(0);
-      setCurrentStep("Processing game...");
+      setProgress(25);
+      setCurrentStep("Creating game record...");
 
       // Send file keys instead of files
       const gameData = {
@@ -173,21 +176,34 @@ export function CreateGameSheet({
         gameFileKey: values.gameFile?.key,
       };
 
-      setProgress(50);
-      setCurrentStep("Creating game...");
+      setProgress(75);
+      setCurrentStep("Queueing background processing...");
 
-      await createGame.mutateAsync(gameData);
+      const result = await createGame.mutateAsync(gameData);
+      //edmond check this 
+      const newGameId = result?.data?.data?.id;
 
       setProgress(100);
-      setCurrentStep("Complete!");
+      setCurrentStep("Game created successfully!");
+      
+      // Store the created game ID for potential status tracking
+      if (newGameId) {
+        setCreatedGameId(newGameId);
+      }
+
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      toast.success("Game created successfully!");
+      toast.success(
+        "Game created successfully! ZIP processing will continue in the background.", 
+        { duration: 4000 }
+      );
+      
       resetForm();
       setUploadedFiles({ thumbnail: null, game: null });
       setShowProgress(false);
       setProgress(0);
       setCurrentStep("");
+      setCreatedGameId(null);
       setIsOpen(false);
       onOpenChange?.(false);
     } catch (error: any) {
@@ -256,7 +272,6 @@ export function CreateGameSheet({
       setProgress(0);
       setCurrentStep("");
       toast.error("Failed to create game");
-      console.error("Error creating game:", error);
     } finally {
       setSubmitting(false);
     }

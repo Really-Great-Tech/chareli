@@ -153,6 +153,8 @@ export function CreateGameSheet({
   const createGame = useCreateGame();
   const { data: categories } = useCategories();
   const queryClient = useQueryClient(); // Add query client for manual cache invalidation
+
+  console.log(createdGameId, "createGameId")
   const handleSubmit = async (
     values: FormValues,
     { setSubmitting, resetForm }: any

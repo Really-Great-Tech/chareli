@@ -240,7 +240,7 @@ export const useGameProcessingStatus = (gameId: string) => {
       return response.data as GameProcessingStatusResponse;
     },
     enabled: !!gameId,
-    refetchInterval: (data) => {
+    refetchInterval: (data: any) => {
       // Poll every 2 seconds if game is still processing
       const processingStatus = data?.data?.processingStatus;
       return processingStatus === 'pending' || processingStatus === 'processing' ? 2000 : false;

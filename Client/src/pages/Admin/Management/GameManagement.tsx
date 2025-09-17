@@ -9,7 +9,7 @@ import {
   useAllPositionHistory,
   useDeleteGame,
 } from "../../../backend/games.service";
-import { useGamesAnalytics } from "../../../backend/analytics.service";
+// import { useGamesAnalytics } from "../../../backend/analytics.service";
 import type { GameStatus } from "../../../backend/types";
 import { useQuery } from "@tanstack/react-query";
 import { backendService } from "../../../backend/api.service";
@@ -159,6 +159,8 @@ export default function GameManagement() {
   const { data: gamesWithAnalytics, isLoading, isRefetching, dataUpdatedAt } = useSmartGamesAnalytics();
 
   const deleteGame = useDeleteGame();
+
+  console.log(isRefetching, dataUpdatedAt)
 
   // Enhanced status rendering function
   const renderGameStatus = useCallback((game: any) => {
@@ -412,7 +414,7 @@ export default function GameManagement() {
                   </td>
                 </tr>
               ) : (
-                filteredGames.map((game, idx) => (
+                filteredGames.map((game: any, idx: any) => (
                   <tr
                     key={game.id}
                     className={cn(

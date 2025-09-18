@@ -23,9 +23,19 @@ class QueueService {
   }
 
   private initializeQueues(): void {
+    // Create Redis connection config optimized for BullMQ
+    const redisConfig = {
+      host: redisService.getClient().options.host,
+      port: redisService.getClient().options.port,
+      password: redisService.getClient().options.password,
+      db: redisService.getClient().options.db,
+      maxRetriesPerRequest: null,
+      retryDelayOnFailover: 100,
+    };
+
     // Create game processing queue
     const gameProcessingQueue = new Queue(JobType.GAME_ZIP_PROCESSING, {
-      connection: redisService.getClient(),
+      connection: redisConfig,
       defaultJobOptions: {
         removeOnComplete: 10, // Keep last 10 completed jobs
         removeOnFail: 50, // Keep last 50 failed jobs
@@ -71,9 +81,19 @@ class QueueService {
     queueName: string,
     processor: (job: Job<T>) => Promise<void>
   ): Worker<T> {
+    // Use the same Redis config as queues
+    const redisConfig = {
+      host: redisService.getClient().options.host,
+      port: redisService.getClient().options.port,
+      password: redisService.getClient().options.password,
+      db: redisService.getClient().options.db,
+      maxRetriesPerRequest: null,
+      retryDelayOnFailover: 100,
+    };
+
     const worker = new Worker(queueName, processor, {
-      connection: redisService.getClient(),
-      concurrency: 2, // Process 2 jobs concurrently
+      connection: redisConfig,
+      concurrency: 1, // Reduce concurrency to avoid overload
     });
 
     // Set up event handlers

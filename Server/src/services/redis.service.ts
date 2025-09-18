@@ -11,11 +11,9 @@ class RedisService {
       port: config.redis.port,
       password: config.redis.password,
       db: config.redis.db,
-      enableReadyCheck: true,
+      maxRetriesPerRequest: null, // BullMQ requires this to be null
       lazyConnect: true,
-      maxRetriesPerRequest: 3,
-      connectTimeout: 10000,
-      commandTimeout: 5000,
+      // Remove timeout settings that can interfere with BullMQ
     });
 
     this.setupEventHandlers();
@@ -45,6 +43,12 @@ class RedisService {
 
   async connect(): Promise<void> {
     try {
+      // Check if already connected or connecting
+      if (this.redis.status === 'ready' || this.redis.status === 'connecting') {
+        logger.info('Redis already connected or connecting');
+        return;
+      }
+      
       await this.redis.connect();
       logger.info('Successfully connected to Redis');
     } catch (error) {

@@ -723,7 +723,7 @@ export const createGame = async (
     logger.info('Assigning position for new game...');
     const assignedPosition = await assignPositionForNewGame(position ? parseInt(position) : undefined, queryRunner);
 
-    // Create new game with pending processing status (no gameFileId yet)
+    // Create new game with pending processing status and disabled status (no gameFileId yet)
     logger.info('Creating game record with pending processing status...');
     const game = gameRepository.create({
       title,
@@ -731,7 +731,7 @@ export const createGame = async (
       thumbnailFileId: thumbnailFileRecord.id,
       gameFileId: undefined, // Will be set by background worker
       categoryId: finalCategoryId,
-      status,
+      status: GameStatus.DISABLED, // Always start as disabled until processing completes
       config,
       position: assignedPosition,
       processingStatus: GameProcessingStatus.PENDING,

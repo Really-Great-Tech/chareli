@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import ReOrderModal from "../../../components/modals/AdminModals/ReOrderModal";
 import { Card } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
@@ -9,8 +9,10 @@ import {
   useAllPositionHistory,
   useDeleteGame,
 } from "../../../backend/games.service";
-import { useGamesAnalytics } from "../../../backend/analytics.service";
+// import { useGamesAnalytics } from "../../../backend/analytics.service";
 import type { GameStatus } from "../../../backend/types";
+import { useQuery } from "@tanstack/react-query";
+import { backendService } from "../../../backend/api.service";
 import { NoResults } from "../../../components/single/NoResults";
 import { useQueryClient } from "@tanstack/react-query";
 import { BackendRoute } from "../../../backend/constants";
@@ -33,6 +35,46 @@ import { X } from "lucide-react";
 import { usePermissions } from "../../../hooks/usePermissions";
 
 const pageSize = 10;
+
+// Custom hook to detect user activity/idle state
+const useUserActivity = (idleTimeMs = 60000) => {
+  const [isUserActive, setIsUserActive] = useState(true);
+  
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+    
+    const resetActivityTimer = () => {
+      clearTimeout(timeout);
+      setIsUserActive(true);
+      timeout = setTimeout(() => {
+        setIsUserActive(false); // User becomes inactive after 60s
+      }, idleTimeMs);
+    };
+    
+    // All user activity events
+    const activityEvents = [
+      'mousedown', 'mousemove', 'mouseup', 'click',
+      'keydown', 'keyup', 'scroll', 'wheel',
+      'touchstart', 'touchmove', 'touchend'
+    ];
+    
+    activityEvents.forEach(event => {
+      document.addEventListener(event, resetActivityTimer, { passive: true });
+    });
+    
+    // Initialize timer
+    resetActivityTimer();
+    
+    return () => {
+      clearTimeout(timeout);
+      activityEvents.forEach(event => {
+        document.removeEventListener(event, resetActivityTimer);
+      });
+    };
+  }, [idleTimeMs]);
+  
+  return isUserActive;
+};
 
 export default function GameManagement() {
   const permissions = usePermissions();
@@ -66,8 +108,114 @@ export default function GameManagement() {
   const [reorderOpen, setReorderOpen] = useState(false);
   const [reorderHistoryOpen, setReorderHistoryOpen] = useState(false);
   const queryClient = useQueryClient();
-  const { data: gamesWithAnalytics, isLoading } = useGamesAnalytics();
+  
+  // User activity detection (becomes inactive after 60s of no activity)
+  const isUserActive = useUserActivity(60000);
+
+  // Custom hook for smart polling games analytics - created locally for efficiency
+  const useSmartGamesAnalytics = () => {
+    return useQuery({
+      queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS],
+      queryFn: async () => {
+        const response = await backendService.get(BackendRoute.ADMIN_GAMES_ANALYTICS);
+        return response.data;
+      },
+      refetchOnWindowFocus: false,
+      refetchInterval: (data: any) => {
+        if (!data?.data || !Array.isArray(data.data)) return false;
+        
+        const processingGames = data.data.filter((game: any) => 
+          game.processingStatus && ['pending', 'processing'].includes(game.processingStatus)
+        );
+        
+        if (processingGames.length === 0) return false;
+        
+        // User interaction checks - directly access local state
+        const modalOpen = editOpen || deleteModalOpen || reOrderModalOpen;
+        const filterActive = !!filters || !!historyFilters;
+        const reorderModeActive = reorderOpen || reorderHistoryOpen;
+        
+        // Smart polling logic:
+        const shouldPausePolling = (modalOpen || filterActive || reorderModeActive) && isUserActive;
+        
+        if (shouldPausePolling) {
+          console.log('⏸️ Polling paused - user actively interacting');
+          return false;
+        }
+        
+        if (modalOpen && !isUserActive) {
+          console.log('▶️ Polling resumed - user idle for 60s');
+        }
+        
+        // Poll every 10 seconds for processing games
+        return 10000;
+      },
+      refetchIntervalInBackground: true,
+      staleTime: 5000,
+    });
+  };
+
+  // Use the local smart polling hook
+  const { data: gamesWithAnalytics, isLoading, isRefetching, dataUpdatedAt } = useSmartGamesAnalytics();
+
   const deleteGame = useDeleteGame();
+
+  console.log(isRefetching, dataUpdatedAt)
+
+  // Enhanced status rendering function
+  const renderGameStatus = useCallback((game: any) => {
+    // Show processing status if game is being processed
+    if (game.processingStatus && game.processingStatus !== 'completed') {
+      switch (game.processingStatus) {
+        case 'pending':
+          return (
+            <span className="inline-flex items-center gap-2 p-1 rounded bg-yellow-500 text-white tracking-wider text-nowrap">
+              <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+              Queued
+            </span>
+          );
+          
+        case 'processing':
+          return (
+            <span className="inline-flex items-center gap-2 p-1 rounded bg-blue-500 text-white tracking-wider text-nowrap">
+              <div className="w-2 h-2 border border-white border-t-transparent rounded-full animate-spin"></div>
+              Processing...
+            </span>
+          );
+          
+        case 'failed':
+          return (
+            <div className="relative group">
+              <span className="inline-flex items-center gap-2 p-1 rounded bg-red-500 text-white tracking-wider text-nowrap cursor-help">
+                <span className="w-2 h-2 bg-white rounded-full"></span>
+                Failed
+              </span>
+              
+              {/* Error tooltip */}
+              {game.processingError && (
+                <div className="absolute left-0 top-full mt-1 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 shadow-lg max-w-xs">
+                  {game.processingError}
+                  <div className="absolute bottom-full left-4 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-900"></div>
+                </div>
+              )}
+            </div>
+          );
+      }
+    }
+    
+    // Show normal active/inactive status for completed games
+    return game.status === "active" ? (
+      <span className="inline-flex items-center gap-2 p-1 rounded bg-[#419E6A] text-white tracking-wider text-nowrap">
+        <span className="w-2 h-2 bg-white rounded-full"></span>
+        Active
+      </span>
+    ) : (
+      <span className="inline-flex items-center gap-2 p-1 rounded bg-[#CBD5E0] text-[#22223B] tracking-wider text-nowrap">
+        <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+        Inactive
+      </span>
+    );
+  }, []);
   const { data: historyResponse } = useAllPositionHistory({
     ...historyFilters
   });
@@ -85,7 +233,7 @@ export default function GameManagement() {
   const gameData = allHistoryData.slice(startIndex, endIndex);
 
   // Apply filters
-  const filteredGames = (gamesWithAnalytics ?? []).filter((game) => {
+  const filteredGames = (gamesWithAnalytics ?? []).filter((game: any) => {
     if (filters?.categoryId && game.category?.id !== filters.categoryId)
       return false;
     if (filters?.status && game.status !== filters.status) return false;
@@ -266,7 +414,7 @@ export default function GameManagement() {
                   </td>
                 </tr>
               ) : (
-                filteredGames.map((game, idx) => (
+                filteredGames.map((game: any, idx: any) => (
                   <tr
                     key={game.id}
                     className={cn(
@@ -327,17 +475,7 @@ export default function GameManagement() {
                       {`#${game.position ?? "-"}`}
                     </td>
                     <td className="px-4 py-3">
-                      {game.status === "active" ? (
-                        <span className="inline-flex items-center gap-2 p-1 rounded bg-[#419E6A] text-white  tracking-wider text-nowrap">
-                          <span className="w-2 h-2 bg-white rounded-full inline-block"></span>
-                          Active
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-2  p-1 rounded bg-[#CBD5E0] text-[#22223B]  tracking-wider text-nowrap">
-                          <span className="w-2 h-2 bg-red-500 rounded-full inline-block"></span>
-                          Inactive
-                        </span>
-                      )}
+                      {renderGameStatus(game)}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex gap-3 items-center">

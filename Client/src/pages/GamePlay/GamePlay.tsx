@@ -46,7 +46,7 @@ export default function GamePlay() {
       const timer = setTimeout(() => {
         setIsGameLoading(false);
         setLoadProgress(100);
-      }, 5000);
+      }, 2000);
 
       return () => clearTimeout(timer);
     }

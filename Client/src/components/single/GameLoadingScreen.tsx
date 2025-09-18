@@ -29,7 +29,7 @@ const GameLoadingScreen = ({
     // Fast progress simulation
     if (progress < 100) {
       progressInterval = setInterval(() => {
-        const increment = 5; // Smaller increment for slower progress
+        const increment = 10; // Larger increment for faster progress to match 2-second duration
         const nextProgress = progress + increment;
 
         if (nextProgress < 100) {
@@ -37,13 +37,13 @@ const GameLoadingScreen = ({
         } else {
           clearInterval(progressInterval);
         }
-      }, 250);
+      }, 200);
     }
 
-    // Show slow load message after 10 seconds
+    // Show slow load message after 2.5 seconds (only if loading takes longer than expected)
     slowLoadTimeout = setTimeout(() => {
       setShowSlowLoadMessage(true);
-    }, 3000);
+    }, 2500);
 
     return () => {
       if (progressInterval) clearInterval(progressInterval);

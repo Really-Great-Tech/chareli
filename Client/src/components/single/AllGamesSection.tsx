@@ -258,7 +258,7 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
                   colSpan = 1;
                 } else {
                   // Desktop: keep original varied heights
-                  const spans = [1, 1.3, 1.1]; // Original desktop height variations
+                  const spans = [1.2, 1.3, 1.25]; // Even more uniform heights with minimal variation
                   const spanIndex = index % spans.length;
                   const heightSpan = spans[spanIndex];
                   rowSpan = Math.round(heightSpan * 2);
@@ -279,7 +279,7 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
                         <LazyImage
                           src={game.thumbnailFile?.s3Key}
                           alt={game.title}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-fill"
                           loadingClassName="rounded-[16px]"
                           spinnerColor="#64748A"
                           rootMargin="50px"

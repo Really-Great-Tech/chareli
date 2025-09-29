@@ -328,7 +328,7 @@ export default function Categories() {
                     colSpan = 1;
                   } else {
                     // Desktop: keep original varied heights
-                    const spans = [1, 1.3, 1.1]; // Original desktop height variations
+                    const spans = [1.2, 1.3, 1.25]; // Original desktop height variations
                     const spanIndex = index % spans.length;
                     const heightSpan = spans[spanIndex];
                     rowSpan = Math.round(heightSpan * 2);
@@ -349,7 +349,7 @@ export default function Categories() {
                         <LazyImage
                           src={game.thumbnailFile?.s3Key}
                           alt={game.title}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-fill"
                           loadingClassName="rounded-[16px]"
                           spinnerColor="#6A7282"
                           rootMargin="50px"

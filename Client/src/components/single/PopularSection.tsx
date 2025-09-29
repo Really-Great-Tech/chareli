@@ -98,7 +98,7 @@ const PopularSection = ({
             </div>
           )}
           {!isLoading && !error && games.length > 0 && (
-            <div className="grid gap-6 w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 auto-rows-[1fr] sm:auto-rows-[290px] justify-center">
+            <div className="grid gap-6 w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 auto-rows-[1fr] sm:auto-rows-[350px] justify-center">
               {games.map((game: any, _index: number) => {
                 return (
                 <div
@@ -106,13 +106,13 @@ const PopularSection = ({
                   className="relative group cursor-pointer w-full"
                 >
                   <div
-                    className="relative h-full sm:h-[290px] sm:min-h-[290px] sm:max-h-[290px] rounded-[32px] border-4 border-transparent group-hover:border-[#64748A] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(100,116,138,0.3)] box-border overflow-hidden aspect-square sm:aspect-auto"
+                    className="relative h-full sm:h-[350px] sm:min-h-[350px] sm:max-h-[350px] rounded-[32px] border-4 border-transparent group-hover:border-[#64748A] transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(100,116,138,0.3)] box-border overflow-hidden aspect-square sm:aspect-auto"
                     onClick={() => handleGameClick(game.id)}
                   >
                     <LazyImage
                       src={game.thumbnailFile?.s3Key || emptyGameImg}
                       alt={game.title}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-fill"
                       loadingClassName="rounded-[28px]"
                       spinnerColor="#64748A"
                       rootMargin="50px"

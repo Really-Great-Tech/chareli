@@ -1,5 +1,6 @@
 import React from 'react';
 import { useLazyImage } from '../../hooks/useLazyImage';
+import './LazyImage.css';
 
 interface LazyImageProps {
   src: string;
@@ -40,9 +41,7 @@ export const LazyImage: React.FC<LazyImageProps> = ({
           ref={imgRef}
           src={imageSrc}
           alt={alt}
-          className={`w-full h-full transition-all duration-500 opacity-100 blur-0 ${className}`}
-          // IMPORTANT: Using inline style instead of Tailwind object-cover class
-          style={{ objectFit: 'cover !important' } as unknown as React.CSSProperties}
+          className={`w-full h-full transition-all duration-500 opacity-100 blur-0 lazy-image-cover ${className}`}
         />
       )}
       

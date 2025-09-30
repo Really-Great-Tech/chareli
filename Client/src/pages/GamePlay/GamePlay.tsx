@@ -39,6 +39,10 @@ export default function GamePlay() {
     setIsGameLoading(true);
     setLoadProgress(0);
     setTimeRemaining(null);
+
+    if (typeof window !== "undefined") {
+      window.scrollTo(0, 0);
+    }
   }, [gameId]);
 
   useEffect(() => {

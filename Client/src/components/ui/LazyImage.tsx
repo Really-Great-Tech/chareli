@@ -40,7 +40,9 @@ export const LazyImage: React.FC<LazyImageProps> = ({
           ref={imgRef}
           src={imageSrc}
           alt={alt}
-          className={`w-full h-full transition-all duration-500 opacity-100 blur-0 ${className} object-cover`}
+          className={`w-full h-full transition-all duration-500 opacity-100 blur-0 ${className}`}
+          // IMPORTANT: Using inline style instead of Tailwind object-cover class
+          style={{ objectFit: 'cover !important' } as unknown as React.CSSProperties}
         />
       )}
       

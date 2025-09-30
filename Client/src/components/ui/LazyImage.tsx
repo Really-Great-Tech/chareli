@@ -40,7 +40,7 @@ export const LazyImage: React.FC<LazyImageProps> = ({
           ref={imgRef}
           src={imageSrc}
           alt={alt}
-          className={`w-full h-full transition-all duration-500 opacity-100 blur-0 ${className}`}
+          className={`w-full h-full object-cover transition-all duration-500 opacity-100 blur-0 ${className}`}
         />
       )}
       

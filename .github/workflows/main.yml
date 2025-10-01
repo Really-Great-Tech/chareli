@@ -21,8 +21,6 @@ env:
   IMAGE_TAG_SERVER_COMMIT: server-production-${{ github.sha }}
   IMAGE_TAG_SERVER_FIXED: latest
 
-  TEST_DISCORD_WEBHOOK: https://discordapp.com/api/webhooks/1383471955394433126/NP0eSZWI3usTVMdbnFbxDlc6sOEcmihbT3ioBs5ehLcy-PRyNZhcL8qw8MfjyNHI7Bbx
-
 jobs:
   build-and-test:
     name: Build & Test Application

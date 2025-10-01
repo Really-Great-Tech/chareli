@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: ['22.x']
+        node-version: ["22.x"]
 
     steps:
       - name: Checkout Code
@@ -40,7 +40,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+          cache: "npm"
           cache-dependency-path: Server/package-lock.json
 
       - name: Install Backend Dependencies
@@ -62,7 +62,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+          cache: "npm"
           cache-dependency-path: Client/package-lock.json
 
       - name: Install Frontend Dependencies
@@ -82,8 +82,8 @@ jobs:
       - name: Build Frontend
         working-directory: ./Client
         env:
-          VITE_API_URL: 'https://api.chareli.reallygreattech.com'
-          VITE_GAMES_CDN_URL: 'https://pub-19e35e027f2848b39d57032cb6b2df46.r2.dev'
+          VITE_API_URL: "https://api.chareli.reallygreattech.com"
+          VITE_GAMES_CDN_URL: "https://pub-19e35e027f2848b39d57032cb6b2df46.r2.dev"
         run: npm run build
 
       - name: Archive Frontend Build
@@ -206,14 +206,15 @@ jobs:
         if: always()
         uses: appleboy/discord-action@v1.2.0
         with:
-          webhook_url: ${{ env.TEST_DISCORD_WEBHOOK }}
-          username: Chareli Production Pipeline Bot
+          webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          username: Chareli Dev Pipeline Bot
           message: |
             🚀 **Chareli Production Deployment Summary**
             🔀 Branch: `${{ github.ref_name }}`
-            📄 Commit: `${{ github.sha }}` by `${{ github.actor }}`
+            📄 Commit: `${{ github.event.head_commit.message }}` by `${{ github.actor }}`
             🏗️ Event: `${{ github.event_name }}`
             🧪 **Build & Test:** ${{ steps.build-status.outputs.build_msg }}
             🖥️ **Backend (ECS):** ${{ steps.backend-status.outputs.backend_msg }}
-            🌐 **Frontend (S3/CloudFront):** ${{ steps.frontend-status.outputs.frontend_msg }}
+            🌐 **Frontend (Cloudflare Pages):** ${{ steps.frontend-status.outputs.frontend_msg }}
             🔗 [View Run on GitHub](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            🔗 [View site here](https://dev.arcadesbox.reallygreattech.com)

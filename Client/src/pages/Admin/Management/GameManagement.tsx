@@ -269,6 +269,11 @@ export default function GameManagement() {
 
   const totalGames = filteredGames.length;
   const totalPages = Math.ceil(totalGames / pageSize);
+  
+  // Apply client-side pagination to games data
+  const gamesStartIndex = (page - 1) * pageSize;
+  const gamesEndIndex = gamesStartIndex + pageSize;
+  const paginatedGames = filteredGames.slice(gamesStartIndex, gamesEndIndex);
 
   return (
     <div className="p-6">
@@ -414,7 +419,7 @@ export default function GameManagement() {
                   </td>
                 </tr>
               ) : (
-                filteredGames.map((game: any, idx: any) => (
+                paginatedGames.map((game: any, idx: any) => (
                   <tr
                     key={game.id}
                     className={cn(

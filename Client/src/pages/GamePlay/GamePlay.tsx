@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { Card } from "../../components/ui/card";
 import { LazyImage } from "../../components/ui/LazyImage";
-import { LuExpand, LuX } from "react-icons/lu";
+import { LuExpand, LuX, LuChevronLeft } from "react-icons/lu";
 import KeepPlayingModal from "../../components/modals/KeepPlayingModal";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useGameById } from "../../backend/games.service";
@@ -258,6 +258,24 @@ export default function GamePlay() {
               } overflow-hidden`}
               // style={{ background: "#18181b" }}
             >
+              {/* Mobile back button - larger and more prominent */}
+              {isMobile && expanded && (
+                <button
+                  onClick={() => {
+                    if (analyticsIdRef.current) {
+                      updateEndTime();
+                    }
+                    navigate(-1);
+                  }}
+                  className="absolute top-4 left-4 z-50 flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-3 py-2 shadow-lg hover:bg-white transition-all"
+                  style={{ minHeight: '44px', minWidth: '60px' }}
+                  title="Go Back"
+                >
+                  <div className="bg-orange-600 rounded-full p-1.5">
+                    <LuChevronLeft className="w-5 h-5 text-white" strokeWidth={3} />
+                  </div>
+                </button>
+              )}
               {isGameLoading && (
                 <GameLoadingScreen
                   game={game}

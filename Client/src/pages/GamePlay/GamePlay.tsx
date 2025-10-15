@@ -45,21 +45,15 @@ export default function GamePlay() {
   useEffect(() => {
     if (isMobile && expanded) {
       document.body.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
-      document.body.style.height = '100%';
+      document.body.style.touchAction = 'none';
     } else {
       document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-      document.body.style.height = '';
+      document.body.style.touchAction = '';
     }
 
     return () => {
       document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-      document.body.style.height = '';
+      document.body.style.touchAction = '';
     };
   }, [isMobile, expanded]);
 
@@ -223,7 +217,7 @@ export default function GamePlay() {
             <div
               className={`relative ${
                 expanded
-                  ? "h-screen w-full"
+                  ? "h-full w-full flex flex-col"
                   : "w-full"
               } overflow-hidden`}
               // style={{ background: "#18181b" }}
@@ -256,11 +250,11 @@ export default function GamePlay() {
               {!isModalOpen ? (
                 <iframe
                   src={`${game.gameFile.s3Key}`}
-                  className={`w-full`}
+                  className={expanded ? "w-full flex-1" : "w-full"}
                   style={{
                     display: "block",
                     // background: "transparent",
-                    height: expanded ? (isMobile ? "calc(100dvh - 60px)" : "calc(100% - 60px)") : "100vh",
+                    height: expanded ? "auto" : "100vh",
                     border: "none"
                   }}
                   sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
@@ -273,9 +267,9 @@ export default function GamePlay() {
                 />
               ) : (
                 <div
-                  className="w-full bg-gray-900"
+                  className={expanded ? "w-full bg-gray-900 flex-1" : "w-full bg-gray-900"}
                   style={{
-                    height: expanded ? (isMobile ? "calc(100dvh - 60px)" : "calc(100% - 60px)") : "100vh",
+                    height: expanded ? "auto" : "100vh",
                   }}
                 />
               )}
@@ -303,7 +297,14 @@ export default function GamePlay() {
                 isGameLoading={isGameLoading}
               />
               {expanded && (
-                <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-6 py-2 bg-[#7C2D12] border-t border-orange-400 z-50">
+                <div
+                  className="flex items-center justify-between px-6 py-2 bg-[#7C2D12] border-t border-orange-400 z-50"
+                  style={{
+                    paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))',
+                    paddingLeft: 'max(1.5rem, env(safe-area-inset-left))',
+                    paddingRight: 'max(1.5rem, env(safe-area-inset-right))'
+                  }}
+                >
                   <span className="text-white text-sm font-semibold">
                     {game.title}
                   </span>

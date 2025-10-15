@@ -1,4 +1,4 @@
 /* IMPORTANT: object-fit with !important to override any conflicting styles */
 .lazy-image-cover {
-  object-fit: cover !important;
+  object-fit: fit !important;
 }

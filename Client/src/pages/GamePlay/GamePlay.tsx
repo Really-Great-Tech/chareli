@@ -12,6 +12,7 @@ import {
 } from "../../backend/analytics.service";
 import type { SimilarGame } from "../../backend/types";
 import GameLoadingScreen from "../../components/single/GameLoadingScreen";
+import { useIsMobile } from "../../hooks/useIsMobile";
 
 export default function GamePlay() {
   const { gameId } = useParams();
@@ -27,11 +28,41 @@ export default function GamePlay() {
     setIsSignUpModalOpen(true);
   };
 
+  const isMobile = useIsMobile();
   const [expanded, setExpanded] = useState(false);
   const [isGameLoading, setIsGameLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const { isAuthenticated } = useAuth();
+
+  // Auto-expand to fullscreen on mobile devices
+  useEffect(() => {
+    if (isMobile) {
+      setExpanded(true);
+    }
+  }, [isMobile]);
+
+  // Prevent body scroll on mobile fullscreen to fix viewport issues
+  useEffect(() => {
+    if (isMobile && expanded) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.height = '100%';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+    };
+  }, [isMobile, expanded]);
 
   console.log(isSignUpModalOpen, timeRemaining);
 
@@ -238,10 +269,10 @@ export default function GamePlay() {
                 <iframe
                   src={`${game.gameFile.s3Key}`}
                   className={`w-full`}
-                  style={{ 
-                    display: "block", 
+                  style={{
+                    display: "block",
                     // background: "transparent",
-                    height: expanded ? "calc(100% - 60px)" : "100vh",
+                    height: expanded ? (isMobile ? "calc(100dvh - 60px)" : "calc(100% - 60px)") : "100vh",
                     border: "none"
                   }}
                   sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
@@ -253,10 +284,10 @@ export default function GamePlay() {
                   }}
                 />
               ) : (
-                <div 
+                <div
                   className="w-full bg-gray-900"
-                  style={{ 
-                    height: expanded ? "calc(100% - 60px)" : "100vh",
+                  style={{
+                    height: expanded ? (isMobile ? "calc(100dvh - 60px)" : "calc(100% - 60px)") : "100vh",
                   }}
                 />
               )}
@@ -307,13 +338,16 @@ export default function GamePlay() {
                           </span>
                         </div>
                       )}
-                      <button
-                        className="text-white hover:text-orange-400 transition-colors"
-                        onClick={() => setExpanded((e) => !e)}
-                        title={expanded ? "Exit Fullscreen" : "Expand"}
-                      >
-                        <LuExpand className="w-5 h-5" />
-                      </button>
+                      {/* Hide expand button on mobile since it's auto-fullscreen */}
+                      {!isMobile && (
+                        <button
+                          className="text-white hover:text-orange-400 transition-colors"
+                          onClick={() => setExpanded((e) => !e)}
+                          title={expanded ? "Exit Fullscreen" : "Expand"}
+                        >
+                          <LuExpand className="w-5 h-5" />
+                        </button>
+                      )}
                       <button
                         className="text-white hover:text-orange-400 transition-colors"
                         onClick={() => {
@@ -355,13 +389,16 @@ export default function GamePlay() {
                         </span>
                       </div>
                     )}
-                    <button
-                      className="text-white hover:text-orange-400 transition-colors"
-                      onClick={() => setExpanded((e) => !e)}
-                      title={expanded ? "Exit Fullscreen" : "Expand"}
-                    >
-                      <LuExpand className="w-5 h-5" />
-                    </button>
+                    {/* Hide expand button on mobile since it's auto-fullscreen */}
+                    {!isMobile && (
+                      <button
+                        className="text-white hover:text-orange-400 transition-colors"
+                        onClick={() => setExpanded((e) => !e)}
+                        title={expanded ? "Exit Fullscreen" : "Expand"}
+                      >
+                        <LuExpand className="w-5 h-5" />
+                      </button>
+                    )}
                     <button
                       className="text-white hover:text-orange-400 transition-colors cursor-pointer"
                       onClick={() => {

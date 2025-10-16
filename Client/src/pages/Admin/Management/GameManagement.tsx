@@ -9,7 +9,7 @@ import {
   useAllPositionHistory,
   useDeleteGame,
 } from "../../../backend/games.service";
-import { useGamesAnalytics } from "../../../backend/analytics.service";
+// import { useGamesAnalytics } from "../../../backend/analytics.service";
 import type { GameStatus } from "../../../backend/types";
 import { useQuery } from "@tanstack/react-query";
 import { backendService } from "../../../backend/api.service";
@@ -160,6 +160,8 @@ export default function GameManagement() {
 
   const deleteGame = useDeleteGame();
 
+  console.log(isRefetching, dataUpdatedAt)
+
   // Enhanced status rendering function
   const renderGameStatus = useCallback((game: any) => {
     // Show processing status if game is being processed
@@ -267,6 +269,11 @@ export default function GameManagement() {
 
   const totalGames = filteredGames.length;
   const totalPages = Math.ceil(totalGames / pageSize);
+  
+  // Apply client-side pagination to games data
+  const gamesStartIndex = (page - 1) * pageSize;
+  const gamesEndIndex = gamesStartIndex + pageSize;
+  const paginatedGames = filteredGames.slice(gamesStartIndex, gamesEndIndex);
 
   return (
     <div className="p-6">
@@ -412,7 +419,7 @@ export default function GameManagement() {
                   </td>
                 </tr>
               ) : (
-                filteredGames.map((game, idx) => (
+                paginatedGames.map((game: any, idx: any) => (
                   <tr
                     key={game.id}
                     className={cn(

@@ -4,7 +4,7 @@ import { LazyImage } from "../../components/ui/LazyImage";
 import { useGames } from "../../backend/games.service";
 import { useCategories } from "../../backend/category.service";
 import { useGameClickHandler } from "../../hooks/useGameClickHandler";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import GamesSkeleton from "./GamesSkeleton";
 
 import emptyGameImg from "../../assets/empty-game.png";
@@ -16,6 +16,8 @@ interface AllGamesSectionProps {
 const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [screenSize, setScreenSize] = useState<'mobile' | 'tablet' | 'desktop'>('mobile');
+  const containerRef = useRef<HTMLDivElement>(null);
+  const savedScrollPosition = useRef<number>(0);
   
   const { data: categoriesData, isLoading: categoriesLoading } =
     useCategories();
@@ -67,8 +69,79 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
     return () => window.removeEventListener('resize', updateScreenSize);
   }, []);
 
+  // Scroll position management - prevent auto-scroll to bottom
+  useEffect(() => {
+    // Save current scroll position before category change
+    const saveScrollPosition = () => {
+      savedScrollPosition.current = window.scrollY;
+    };
+
+    // Save scroll position when category is about to change
+    if (selectedCategory !== 'all') {
+      saveScrollPosition();
+    }
+  }, [selectedCategory]);
+
+  // Restore scroll position after games load and prevent layout shifts
+  useEffect(() => {
+    if (!gamesLoading && games.length > 0) {
+      // Small delay to ensure DOM has updated
+      const timer = setTimeout(() => {
+        // On mobile, prevent automatic scrolling to bottom
+        if (screenSize === 'mobile') {
+          // Force scroll to a controlled position instead of auto-scroll
+          if (savedScrollPosition.current > 0) {
+            window.scrollTo({
+              top: Math.min(savedScrollPosition.current, document.documentElement.scrollTop),
+              behavior: 'instant'
+            });
+          }
+        } else {
+          // On desktop, restore saved position
+          if (savedScrollPosition.current > 0) {
+            window.scrollTo({
+              top: savedScrollPosition.current,
+              behavior: 'smooth'
+            });
+          }
+        }
+      }, 100);
+
+      return () => clearTimeout(timer);
+    }
+  }, [gamesLoading, games.length, screenSize]);
+
+  // Prevent unwanted scroll behavior on mobile
+  useEffect(() => {
+    if (screenSize === 'mobile') {
+      // Override scroll restoration for mobile
+      if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'manual';
+      }
+
+      // Prevent automatic scrolling caused by layout changes
+      const preventAutoScroll = (e: Event) => {
+        // If user didn't initiate the scroll, prevent it
+        if (!e.isTrusted) {
+          e.preventDefault();
+          return false;
+        }
+      };
+
+      // Add passive event listener to monitor scrolls
+      window.addEventListener('scroll', preventAutoScroll, { passive: false });
+
+      return () => {
+        window.removeEventListener('scroll', preventAutoScroll);
+        if ('scrollRestoration' in history) {
+          history.scrollRestoration = 'auto';
+        }
+      };
+    }
+  }, [screenSize]);
+
   return (
-    <div className="p-4">
+    <div ref={containerRef} className="p-4">
       <div>
         <h1 className="text-[#6A7282] dark:text-[#FEFEFE] text-3xl mb-4 font-worksans">All Games</h1>
       </div>
@@ -185,7 +258,7 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
                   colSpan = 1;
                 } else {
                   // Desktop: keep original varied heights
-                  const spans = [1, 1.3, 1.1]; // Original desktop height variations
+                  const spans = [1.2, 1.3, 1.25]; // Even more uniform heights with minimal variation
                   const spanIndex = index % spans.length;
                   const heightSpan = spans[spanIndex];
                   rowSpan = Math.round(heightSpan * 2);
@@ -206,7 +279,7 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
                         <LazyImage
                           src={game.thumbnailFile?.s3Key}
                           alt={game.title}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-fill"
                           loadingClassName="rounded-[16px]"
                           spinnerColor="#64748A"
                           rootMargin="50px"
@@ -216,6 +289,7 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
                             {game.title}
                           </span>
                         </div>
+
                       </div>
                     </div>
                   </div>

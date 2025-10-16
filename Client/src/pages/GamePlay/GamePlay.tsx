@@ -68,12 +68,41 @@ export default function GamePlay() {
     }
   }, [gameId]);
 
+  // Scroll management: Keep users at the top (main game area) when they arrive
+  useEffect(() => {
+    // Scroll to top when component mounts or gameId changes
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    
+    // Also ensure the game container is visible
+    if (gameContainerRef.current) {
+      gameContainerRef.current.scrollIntoView({ behavior: 'instant', block: 'start' });
+    }
+  }, [gameId]);
+
+  // Prevent auto-scroll when page loads
+  useEffect(() => {
+    // Override any potential scroll restoration
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+    
+    // Force scroll to top on initial load
+    window.scrollTo(0, 0);
+    
+    return () => {
+      // Restore scroll restoration when component unmounts
+      if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'auto';
+      }
+    };
+  }, []);
+
   useEffect(() => {
     if (game?.gameFile?.s3Key) {
       const timer = setTimeout(() => {
         setIsGameLoading(false);
         setLoadProgress(100);
-      }, 5000);
+      }, 2000);
 
       return () => clearTimeout(timer);
     }

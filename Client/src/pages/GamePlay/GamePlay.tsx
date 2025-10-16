@@ -19,6 +19,7 @@ export default function GamePlay() {
   const { data: game, isLoading, error } = useGameById(gameId || "");
   const { mutate: createAnalytics } = useCreateAnalytics();
   const analyticsIdRef = useRef<string | null>(null);
+  const gameContainerRef = useRef<HTMLDivElement>(null);
 
   const handleOpenSignUpModal = () => {
     setIsSignUpModalOpen(true);
@@ -210,7 +211,7 @@ export default function GamePlay() {
         </div>
       ) : game?.gameFile?.s3Key ? (
         <>
-          <div className={expanded ? "fixed inset-0 z-40 bg-black" : "relative"} style={!expanded ? { height: 'calc(100vh - 64px)' } : undefined}>
+          <div ref={gameContainerRef} className={expanded ? "fixed inset-0 z-40 bg-black" : "relative"} style={!expanded ? { height: 'calc(100vh - 64px)' } : undefined}>
             <div
               className={`relative ${
                 expanded
@@ -336,7 +337,11 @@ export default function GamePlay() {
                         if (analyticsIdRef.current) {
                           updateEndTime();
                         }
-                        navigate(expanded ? -1 : '/');
+                        if (expanded) {
+                          navigate(-1);
+                        } else {
+                          navigate('/');
+                        }
                       }}
                       title="Close Game"
                     >

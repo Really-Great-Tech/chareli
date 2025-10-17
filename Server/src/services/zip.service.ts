@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
-import AdmZip from 'adm-zip';
+import yauzl from 'yauzl';
 import { v4 as uuidv4 } from 'uuid';
 import logger from '../utils/logger';
 
@@ -18,10 +18,18 @@ export class ZipService {
     const tempDir = path.join(os.tmpdir(), 'game-uploads', uuidv4());
     
     try {
-      // Extract zip maintaining folder structure
-      const zip = new AdmZip(zipBuffer);
+      // Create temp directory
       await fs.mkdir(tempDir, { recursive: true });
-      zip.extractAllTo(tempDir, true);
+      
+      // Write buffer to temporary file for yauzl
+      const tempZipPath = path.join(tempDir, 'temp.zip');
+      await fs.writeFile(tempZipPath, zipBuffer);
+      
+      // Extract using yauzl
+      await this.extractZip(tempZipPath, tempDir);
+      
+      // Delete temporary zip file
+      await fs.unlink(tempZipPath);
       
       // Find index.html recursively
       const indexPath = await this.findIndexHtml(tempDir);
@@ -44,6 +52,82 @@ export class ZipService {
         error: errorMessage
       };
     }
+  }
+
+  private extractZip(zipPath: string, targetDir: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      yauzl.open(zipPath, { lazyEntries: true, autoClose: true }, (err, zipfile) => {
+        if (err) {
+          return reject(err);
+        }
+
+        if (!zipfile) {
+          return reject(new Error('Failed to open ZIP file'));
+        }
+
+        zipfile.readEntry();
+
+        zipfile.on('entry', async (entry) => {
+          const fullPath = path.join(targetDir, entry.fileName);
+
+          // Directory entry
+          if (/\/$/.test(entry.fileName)) {
+            try {
+              await fs.mkdir(fullPath, { recursive: true });
+              zipfile.readEntry();
+            } catch (err) {
+              zipfile.close();
+              reject(err);
+            }
+            return;
+          }
+
+          // File entry
+          zipfile.openReadStream(entry, async (err, readStream) => {
+            if (err) {
+              zipfile.close();
+              return reject(err);
+            }
+
+            if (!readStream) {
+              zipfile.close();
+              return reject(new Error('Failed to open read stream'));
+            }
+
+            try {
+              // Ensure directory exists
+              const dirPath = path.dirname(fullPath);
+              await fs.mkdir(dirPath, { recursive: true });
+
+              // Create write stream
+              const writeStream = require('fs').createWriteStream(fullPath);
+
+              readStream.pipe(writeStream);
+
+              writeStream.on('close', () => {
+                zipfile.readEntry();
+              });
+
+              writeStream.on('error', (err: Error) => {
+                zipfile.close();
+                reject(err);
+              });
+            } catch (err) {
+              zipfile.close();
+              reject(err);
+            }
+          });
+        });
+
+        zipfile.on('end', () => {
+          resolve();
+        });
+
+        zipfile.on('error', (err) => {
+          reject(err);
+        });
+      });
+    });
   }
 
 

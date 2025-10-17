@@ -14,6 +14,11 @@ const fileRepository = AppDataSource.getRepository(File);
 export async function processGameZip(job: Job<GameZipProcessingJobData>): Promise<void> {
   const { gameId, gameFileKey } = job.data;
   
+  console.log('🔄 [WORKER] Starting ZIP processing:', { 
+    gameId, 
+    gameFileKey, 
+    jobId: job.id 
+  });
   logger.info(`Starting ZIP processing for game ${gameId} with job ${job.id}`);
 
   try {
@@ -23,6 +28,8 @@ export async function processGameZip(job: Job<GameZipProcessingJobData>): Promis
     }
 
     logger.info(`Database connection verified, proceeding with ZIP processing for game ${gameId}`);
+    console.log('✅ [WORKER] Database connection verified for game:', gameId);
+    
     // Update game status to processing
     await updateGameProcessingStatus(gameId, GameProcessingStatus.PROCESSING, job.id);
     
@@ -31,22 +38,41 @@ export async function processGameZip(job: Job<GameZipProcessingJobData>): Promis
 
     // Step 1: Download ZIP file from temporary storage
     logger.info(`Downloading ZIP file from temporary storage: ${gameFileKey}`);
+    console.log('⬇️ [WORKER] Downloading ZIP from storage:', { gameId, gameFileKey });
+    
     const zipBuffer = await storageService.downloadFile(gameFileKey);
     logger.info(`Successfully downloaded ZIP file, size: ${zipBuffer.length} bytes`);
+    console.log('✅ [WORKER] ZIP downloaded successfully:', { 
+      gameId, 
+      sizeBytes: zipBuffer.length,
+      sizeMB: (zipBuffer.length / (1024 * 1024)).toFixed(2)
+    });
     
     await job.updateProgress(30);
 
     // Step 2: Extract ZIP contents
     logger.info('Extracting ZIP contents...');
+    console.log('📦 [WORKER] Extracting ZIP contents for game:', gameId);
+    
     const processedZip = await zipService.processGameZip(zipBuffer);
     
     if (processedZip.error) {
+      console.error('❌ [WORKER] ZIP extraction failed:', { 
+        gameId, 
+        error: processedZip.error 
+      });
       throw new Error(`ZIP processing failed: ${processedZip.error}`);
     }
 
     if (!processedZip.indexPath) {
+      console.error('❌ [WORKER] No index.html found in ZIP:', { gameId });
       throw new Error('No index.html found in the ZIP file');
     }
+
+    console.log('✅ [WORKER] ZIP extracted successfully:', { 
+      gameId, 
+      indexPath: processedZip.indexPath 
+    });
 
     await job.updateProgress(50);
 
@@ -55,7 +81,13 @@ export async function processGameZip(job: Job<GameZipProcessingJobData>): Promis
     const gamePath = `games/${gameFolderId}`;
 
     logger.info(`Uploading extracted game files to permanent storage at path: ${gamePath}`);
+    console.log('⬆️ [WORKER] Uploading files to permanent storage:', { 
+      gameId, 
+      gamePath 
+    });
+    
     await storageService.uploadDirectory(processedZip.extractedPath, gamePath);
+    console.log('✅ [WORKER] Files uploaded to permanent storage:', { gameId, gamePath });
 
     await job.updateProgress(80);
 
@@ -67,9 +99,15 @@ export async function processGameZip(job: Job<GameZipProcessingJobData>): Promis
     });
 
     await fileRepository.save(gameFileRecord);
+    console.log('✅ [WORKER] Game file record created:', { 
+      gameId, 
+      fileId: gameFileRecord.id 
+    });
 
     // Step 5: Update game with file ID, mark as completed, and activate the game
     logger.info(`Updating game ${gameId} with gameFileId, marking as completed, and activating game`);
+    console.log('🎮 [WORKER] Activating game:', { gameId });
+    
     await gameRepository.update(gameId, {
       gameFileId: gameFileRecord.id,
       processingStatus: GameProcessingStatus.COMPLETED,
@@ -83,6 +121,7 @@ export async function processGameZip(job: Job<GameZipProcessingJobData>): Promis
     logger.info('Cleaning up temporary files...');
     try {
       await storageService.deleteFile(gameFileKey);
+      console.log('🗑️ [WORKER] Temporary file cleaned up:', { gameId });
     } catch (cleanupError) {
       logger.warn('Failed to clean up temporary file:', cleanupError);
       // Don't fail the job for cleanup errors
@@ -90,26 +129,50 @@ export async function processGameZip(job: Job<GameZipProcessingJobData>): Promis
 
     await job.updateProgress(100);
     logger.info(`Successfully completed ZIP processing for game ${gameId}`);
+    console.log('✅ [WORKER] Processing completed successfully:', { gameId, jobId: job.id });
 
   } catch (error: any) {
     logger.error(`ZIP processing failed for game ${gameId}:`, error);
-    
-    // Update game status to failed with error message
-    await updateGameProcessingStatus(
+    console.error('❌ [WORKER] Processing failed:', { 
       gameId, 
-      GameProcessingStatus.FAILED, 
-      job.id, 
-      error.message || 'Unknown error occurred during ZIP processing'
-    );
+      jobId: job.id,
+      attemptsMade: job.attemptsMade,
+      attemptsRemaining: (job.opts?.attempts || 3) - job.attemptsMade,
+      error: error.message,
+      stack: error.stack,
+      errorDetails: error
+    });
+    
+    // Check if this is the final attempt
+    const isFinalAttempt = job.attemptsMade >= (job.opts?.attempts || 3);
+    
+    if (isFinalAttempt) {
+      console.log('⚠️ [WORKER] Final retry attempt failed, marking as failed and cleaning up:', { gameId });
+      
+      // Update game status to failed with error message (only on final attempt)
+      await updateGameProcessingStatus(
+        gameId, 
+        GameProcessingStatus.FAILED, 
+        job.id, 
+        error.message || 'Unknown error occurred during ZIP processing'
+      );
 
-    // Cleanup temporary file on error
-    try {
-      await storageService.deleteFile(gameFileKey);
-    } catch (cleanupError) {
-      logger.warn('Failed to clean up temporary file after error:', cleanupError);
+      // Cleanup temporary file only on final attempt
+      try {
+        await storageService.deleteFile(gameFileKey);
+        console.log('🗑️ [WORKER] Temporary file cleaned up after final failure:', { gameId });
+      } catch (cleanupError) {
+        logger.warn('Failed to clean up temporary file after error:', cleanupError);
+      }
+    } else {
+      console.log('🔄 [WORKER] Job will retry, keeping temporary file:', { 
+        gameId, 
+        attemptsMade: job.attemptsMade,
+        maxAttempts: job.opts?.attempts || 3
+      });
     }
 
-    throw error; // Re-throw to mark job as failed
+    throw error; // Re-throw to mark job as failed and trigger retry if attempts remain
   }
 }
 

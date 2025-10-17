@@ -746,6 +746,13 @@ export const createGame = async (
 
     // Queue background job for ZIP processing
     logger.info('Queuing background job for ZIP processing...');
+    console.log('🚀 [CREATE GAME] Queuing job for game:', { 
+      gameId: game.id, 
+      title, 
+      gameFileKey,
+      thumbnailFileKey: permanentThumbnailKey 
+    });
+    
     const job = await queueService.addGameZipProcessingJob({
       gameId: game.id,
       gameFileKey,
@@ -755,6 +762,11 @@ export const createGame = async (
     // Update game with job ID
     game.jobId = job.id as string;
     await queryRunner.manager.save(game);
+    
+    console.log('✅ [CREATE GAME] Job queued successfully:', { 
+      gameId: game.id, 
+      jobId: job.id 
+    });
 
     // Clean up temporary thumbnail file (game file will be cleaned up by worker)
     logger.info('Cleaning up temporary thumbnail file...');

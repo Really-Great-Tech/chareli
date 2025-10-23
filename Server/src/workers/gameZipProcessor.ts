@@ -5,6 +5,7 @@ import { File } from '../entities/Files';
 import { zipService } from '../services/zip.service';
 import { storageService } from '../services/storage.service';
 import { queueService, JobType, GameZipProcessingJobData } from '../services/queue.service';
+import { websocketService } from '../services/websocket.service';
 import logger from '../utils/logger';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -33,8 +34,15 @@ export async function processGameZip(job: Job<GameZipProcessingJobData>): Promis
     // Update game status to processing
     await updateGameProcessingStatus(gameId, GameProcessingStatus.PROCESSING, job.id);
     
+    // Emit WebSocket event for status update
+    websocketService.emitGameStatusUpdate(gameId, {
+      processingStatus: GameProcessingStatus.PROCESSING,
+      jobId: job.id as string,
+    });
+    
     // Report progress
     await job.updateProgress(10);
+    websocketService.emitGameProcessingProgress(gameId, 10);
 
     // Step 1: Download ZIP file from temporary storage
     logger.info(`Downloading ZIP file from temporary storage: ${gameFileKey}`);
@@ -49,6 +57,7 @@ export async function processGameZip(job: Job<GameZipProcessingJobData>): Promis
     });
     
     await job.updateProgress(30);
+    websocketService.emitGameProcessingProgress(gameId, 30);
 
     // Step 2: Extract ZIP contents
     logger.info('Extracting ZIP contents...');
@@ -75,6 +84,7 @@ export async function processGameZip(job: Job<GameZipProcessingJobData>): Promis
     });
 
     await job.updateProgress(50);
+    websocketService.emitGameProcessingProgress(gameId, 50);
 
     // Step 3: Generate unique game folder and upload extracted files
     const gameFolderId = uuidv4();
@@ -90,6 +100,7 @@ export async function processGameZip(job: Job<GameZipProcessingJobData>): Promis
     console.log('✅ [WORKER] Files uploaded to permanent storage:', { gameId, gamePath });
 
     await job.updateProgress(80);
+    websocketService.emitGameProcessingProgress(gameId, 80);
 
     // Step 4: Create file record for the game
     const indexPath = processedZip.indexPath.replace(/\\/g, '/');
@@ -116,6 +127,7 @@ export async function processGameZip(job: Job<GameZipProcessingJobData>): Promis
     });
 
     await job.updateProgress(90);
+    websocketService.emitGameProcessingProgress(gameId, 90);
 
     // Step 6: Cleanup temporary files
     logger.info('Cleaning up temporary files...');
@@ -128,6 +140,15 @@ export async function processGameZip(job: Job<GameZipProcessingJobData>): Promis
     }
 
     await job.updateProgress(100);
+    websocketService.emitGameProcessingProgress(gameId, 100);
+    
+    // Emit final status update - game is now completed and active
+    websocketService.emitGameStatusUpdate(gameId, {
+      processingStatus: GameProcessingStatus.COMPLETED,
+      status: GameStatus.ACTIVE,
+      jobId: job.id as string,
+    });
+    
     logger.info(`Successfully completed ZIP processing for game ${gameId}`);
     console.log('✅ [WORKER] Processing completed successfully:', { gameId, jobId: job.id });
 
@@ -150,12 +171,20 @@ export async function processGameZip(job: Job<GameZipProcessingJobData>): Promis
       console.log('⚠️ [WORKER] Final retry attempt failed, marking as failed and cleaning up:', { gameId });
       
       // Update game status to failed with error message (only on final attempt)
+      const errorMessage = error.message || 'Unknown error occurred during ZIP processing';
       await updateGameProcessingStatus(
         gameId, 
         GameProcessingStatus.FAILED, 
         job.id, 
-        error.message || 'Unknown error occurred during ZIP processing'
+        errorMessage
       );
+      
+      // Emit WebSocket event for failed status
+      websocketService.emitGameStatusUpdate(gameId, {
+        processingStatus: GameProcessingStatus.FAILED,
+        processingError: errorMessage,
+        jobId: job.id as string,
+      });
 
       // Cleanup temporary file only on final attempt
       try {

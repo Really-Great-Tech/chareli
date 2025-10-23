@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import ReOrderModal from "../../../components/modals/AdminModals/ReOrderModal";
 import { Card } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
@@ -33,6 +33,8 @@ import { formatTime } from "../../../utils/main";
 import GameThumbnail from "../Analytics/GameThumbnail";
 import { X } from "lucide-react";
 import { usePermissions } from "../../../hooks/usePermissions";
+import { useWebSocket } from "../../../hooks/useWebSocket";
+import { getGameProgress } from "../../../utils/gameProgress";
 
 const pageSize = 10;
 
@@ -78,6 +80,10 @@ const useUserActivity = (idleTimeMs = 60000) => {
 
 export default function GameManagement() {
   const permissions = usePermissions();
+  
+  // Initialize WebSocket connection for real-time status updates
+  useWebSocket();
+  
   const [page, setPage] = useState(1);
   const [historyPage, setHistoryPage] = useState(1);
   const [filters, setFilters] = useState<{
@@ -151,7 +157,8 @@ export default function GameManagement() {
         return 10000;
       },
       refetchIntervalInBackground: true,
-      staleTime: 5000,
+      staleTime: 0, // Set to 0 to ensure cache updates trigger re-renders
+      structuralSharing: false, // Disable structural sharing to force re-renders on cache updates
     });
   };
 
@@ -163,11 +170,34 @@ export default function GameManagement() {
   console.log(isRefetching, dataUpdatedAt)
 
   // Enhanced status rendering function
-  const renderGameStatus = useCallback((game: any) => {
+  const renderGameStatus = (game: any) => {
     // Show processing status if game is being processed
     if (game.processingStatus && game.processingStatus !== 'completed') {
       switch (game.processingStatus) {
         case 'pending':
+          // Get progress from global storage
+          const pendingProgress = getGameProgress(game.id) || 0;
+          
+          // If there's progress, show it like processing
+          if (pendingProgress > 0) {
+            return (
+              <div className="flex flex-col gap-1 min-w-[120px]">
+                <span className="inline-flex items-center gap-2 p-1 rounded bg-yellow-500 text-white tracking-wider text-nowrap">
+                  <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                  Queued... {pendingProgress}%
+                </span>
+                {/* Progress bar */}
+                <div className="w-full h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-yellow-500 transition-all duration-300 ease-out"
+                    style={{ width: `${pendingProgress}%` }}
+                  ></div>
+                </div>
+              </div>
+            );
+          }
+          
+          // No progress yet, show regular queued
           return (
             <span className="inline-flex items-center gap-2 p-1 rounded bg-yellow-500 text-white tracking-wider text-nowrap">
               <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
@@ -176,11 +206,22 @@ export default function GameManagement() {
           );
           
         case 'processing':
+          // Get progress from global storage
+          const progress = getGameProgress(game.id) || 0;
           return (
-            <span className="inline-flex items-center gap-2 p-1 rounded bg-blue-500 text-white tracking-wider text-nowrap">
-              <div className="w-2 h-2 border border-white border-t-transparent rounded-full animate-spin"></div>
-              Processing...
-            </span>
+            <div className="flex flex-col gap-1 min-w-[120px]">
+              <span className="inline-flex items-center gap-2 p-1 rounded bg-blue-500 text-white tracking-wider text-nowrap">
+                <div className="w-2 h-2 border border-white border-t-transparent rounded-full animate-spin"></div>
+                Processing... {progress}%
+              </span>
+              {/* Progress bar */}
+              <div className="w-full h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-blue-500 transition-all duration-300 ease-out"
+                  style={{ width: `${progress}%` }}
+                ></div>
+              </div>
+            </div>
           );
           
         case 'failed':
@@ -215,7 +256,7 @@ export default function GameManagement() {
         Inactive
       </span>
     );
-  }, []);
+  };
   const { data: historyResponse } = useAllPositionHistory({
     ...historyFilters
   });

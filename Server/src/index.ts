@@ -9,6 +9,8 @@ import { authService } from './services/auth.service';
 import { initializeScheduledJobs } from './jobs';
 import { redisService } from './services/redis.service';
 import { initializeGameZipWorker } from './workers/gameZipProcessor';
+import { createServer } from 'http';
+import { websocketService } from './services/websocket.service';
 
 const logDir = path.join(process.cwd(), 'logs');
 if (!fs.existsSync(logDir)) {
@@ -83,7 +85,14 @@ const startServer = async () => {
       }
     }
 
-    const server = app.listen(config.port, '0.0.0.0', () => {
+    // Create HTTP server
+    const httpServer = createServer(app);
+    
+    // Initialize WebSocket service
+    websocketService.initialize(httpServer);
+    logger.info('WebSocket service initialized');
+
+    const server = httpServer.listen(config.port, '0.0.0.0', () => {
       logger.info(
         `Server running in ${config.env} mode on port ${config.port}`
       );
@@ -91,6 +100,7 @@ const startServer = async () => {
       logger.info(
         `API documentation available at http://localhost:${config.port}/api-docs`
       );
+      logger.info(`WebSocket server ready for connections`);
     });
 
     // Handle unhandled promise rejections

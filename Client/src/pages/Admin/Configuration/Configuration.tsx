@@ -10,6 +10,7 @@ import SearchBarConfiguration, { type SearchBarConfigurationRef } from '../../..
 import DynamicPopupConfiguration from '../../../components/single/DynamicPopupConfiguration';
 import UserInactivityConfiguration, { type UserInactivityConfigurationRef } from '../../../components/single/UserInactivityConfiguration';
 import PopularGamesConfiguration, { type PopularGamesConfigurationRef } from '../../../components/single/PopularGamesConfiguration';
+import AboutMissionConfiguration, { type AboutMissionConfigurationRef } from '../../../components/single/AboutMissionConfiguration';
 
 interface AuthMethodSettings {
   enabled: boolean;
@@ -48,6 +49,7 @@ export default function Configuration() {
   const searchBarConfigRef = useRef<SearchBarConfigurationRef>(null);
   const userInactivityConfigRef = useRef<UserInactivityConfigurationRef>(null);
   const popularGamesConfigRef = useRef<PopularGamesConfigurationRef>(null);
+  const aboutMissionConfigRef = useRef<AboutMissionConfigurationRef>(null);
   const queryClient = useQueryClient();
   const { mutateAsync: createConfig } = useCreateSystemConfig();
   const { data: configData, isLoading: isLoadingConfig } = useSystemConfigByKey('authentication_settings');
@@ -208,6 +210,16 @@ export default function Configuration() {
         
         // Invalidate games queries to refresh popular section
         queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES] });
+      }
+
+      // Save about & mission settings
+      if (aboutMissionConfigRef.current) {
+        const aboutMissionSettings = aboutMissionConfigRef.current.getSettings();
+        await createConfig({
+          key: 'about_mission_settings',
+          value: aboutMissionSettings,
+          description: 'About Us and Mission text configuration'
+        });
       }
 
       toast.success('Configuration saved successfully!');
@@ -386,6 +398,7 @@ export default function Configuration() {
       <DynamicPopupConfiguration />
       <UserInactivityConfiguration ref={userInactivityConfigRef} disabled={isSubmitting} />
       <PopularGamesConfiguration ref={popularGamesConfigRef} disabled={isSubmitting} />
+      <AboutMissionConfiguration ref={aboutMissionConfigRef} disabled={isSubmitting} />
       
       <div className="flex justify-end mt-6 mb-4 px-2">
         <button

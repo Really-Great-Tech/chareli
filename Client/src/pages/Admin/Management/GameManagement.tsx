@@ -31,10 +31,11 @@ import { EditSheet } from "../../../components/single/Edit-Sheet";
 import { cn } from "../../../lib/utils";
 import { formatTime } from "../../../utils/main";
 import GameThumbnail from "../Analytics/GameThumbnail";
-import { X } from "lucide-react";
+import { X, Search } from "lucide-react";
 import { usePermissions } from "../../../hooks/usePermissions";
 import { useWebSocket } from "../../../hooks/useWebSocket";
 import { getGameProgress } from "../../../utils/gameProgress";
+import { Input } from "../../../components/ui/input";
 
 const pageSize = 10;
 
@@ -113,6 +114,7 @@ export default function GameManagement() {
   } | null>(null);
   const [reorderOpen, setReorderOpen] = useState(false);
   const [reorderHistoryOpen, setReorderHistoryOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const queryClient = useQueryClient();
   
   // User activity detection (becomes inactive after 60s of no activity)
@@ -273,11 +275,17 @@ export default function GameManagement() {
   const endIndex = startIndex + pageSize;
   const gameData = allHistoryData.slice(startIndex, endIndex);
 
-  // Apply filters
+  // Apply filters and search
   const filteredGames = (gamesWithAnalytics ?? []).filter((game: any) => {
+    // Apply category and status filters
     if (filters?.categoryId && game.category?.id !== filters.categoryId)
       return false;
     if (filters?.status && game.status !== filters.status) return false;
+    
+    // Apply search filter
+    if (searchQuery && !game.title.toLowerCase().includes(searchQuery.toLowerCase()))
+      return false;
+    
     return true;
   });
 
@@ -399,6 +407,35 @@ export default function GameManagement() {
           )}
         </div>
       </div>
+      {/* Search bar */}
+      {!reorderHistoryOpen && (
+        <div className="mb-4">
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Input
+              type="text"
+              placeholder="Search games by title..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPage(1); // Reset to first page when searching
+              }}
+              className="pl-10 h-12 bg-white dark:bg-[#23243a] border-gray-300 dark:border-gray-600 focus:border-[#6A7282] dark:focus:border-[#6A7282]"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => {
+                  setSearchQuery("");
+                  setPage(1);
+                }}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
       {reorderOpen && (
         <div className="flex bg-[#6A7282] text-white text-sm sm:text-[18px] font-bolde justify-center items-center h-[52px] mb-[20px]">
           <p>Reorder-mode: Click game to reorder</p>

@@ -27,6 +27,7 @@ const App: React.FC = () => {
               <Toaster
                 position="bottom-right"
                 richColors
+                closeButton
                 toastOptions={{
                   duration: 10000,
                   style: {

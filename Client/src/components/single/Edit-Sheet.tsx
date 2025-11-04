@@ -178,7 +178,15 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
       setCurrentStep("Update complete!");
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      toast.success("Game updated successfully!");
+      // Show different message based on whether game file was updated
+      if (values.gameFile?.key) {
+        toast.success(
+          "Game updated successfully! ZIP processing will continue in the background.", 
+          { duration: 4000 }
+        );
+      } else {
+        toast.success("Game updated successfully!");
+      }
       setUploadedFiles({ thumbnail: null, game: null });
       setShowProgress(false);
       setProgress(0);

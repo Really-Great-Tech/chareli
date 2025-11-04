@@ -977,46 +977,30 @@ export const updateGame = async (
     if (gameFileKey) {
       logger.info(`Updating game file from temporary storage: ${gameFileKey}`);
       
-      // Download and process the uploaded ZIP file from storage
-      const zipBuffer = await storageService.downloadFile(gameFileKey);
-      logger.info(`Successfully downloaded ZIP file, size: ${zipBuffer.length} bytes`);
-      const processedZip = await zipService.processGameZip(zipBuffer);
-      
-      if (processedZip.error) {
-        throw new ApiError(400, processedZip.error);
-      }
-
-      // Generate unique game folder name
-      const gameFolderId = uuidv4();
-      const gamePath = `games/${gameFolderId}`;
-
-      // Upload extracted game files to permanent storage location
-      logger.info('Uploading extracted game files to permanent storage...');
-      await storageService.uploadDirectory(processedZip.extractedPath, gamePath);
-
-      // Create file record for the index.html
-      logger.info('Creating new game file record...');
-      if (!processedZip.indexPath) {
-        throw new ApiError(400, 'No index.html found in the zip file');
-      }
-
-      const indexPath = processedZip.indexPath.replace(/\\/g, '/');
-      const gameFileRecord = fileRepository.create({
-        s3Key: `${gamePath}/${indexPath}`,
-        type: 'game_file'
+      // Queue background job for ZIP processing (same as create flow)
+      console.log('🚀 [UPDATE GAME] Queuing job for game:', { 
+        gameId: game.id, 
+        gameFileKey
       });
       
-      await queryRunner.manager.save(gameFileRecord);
+      // Set game to processing status and disabled until processing completes
+      game.processingStatus = GameProcessingStatus.PENDING;
+      game.status = GameStatus.DISABLED; // Disable until processing completes
+      // processingError will be cleared by worker on successful completion
       
-      // Update game with new file ID
-      game.gameFileId = gameFileRecord.id;
+      const job = await queueService.addGameZipProcessingJob({
+        gameId: game.id,
+        gameFileKey,
+        userId: req.user?.userId
+      });
+
+      // Update game with job ID
+      game.jobId = job.id as string;
       
-      // Clean up temporary file
-      try {
-        await storageService.deleteFile(gameFileKey);
-      } catch (cleanupError) {
-        logger.warn('Failed to clean up temporary game file:', cleanupError);
-      }
+      console.log('✅ [UPDATE GAME] Job queued successfully:', { 
+        gameId: game.id, 
+        jobId: job.id 
+      });
     }
     // Handle game file upload - Old multer approach (for backward compatibility)
     else if (files?.gameFile && files.gameFile[0]) {

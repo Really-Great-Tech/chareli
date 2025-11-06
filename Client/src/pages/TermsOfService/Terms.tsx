@@ -8,6 +8,11 @@ const TermsOfService: React.FC = () => {
   const [viewerError, setViewerError] = useState(false);
 
   useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
     // Check if we have the file data in the response
     if (data?.value?.file?.s3Key) {
       setFileUrl(data.value.file.s3Key);

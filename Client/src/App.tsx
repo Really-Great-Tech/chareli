@@ -5,6 +5,8 @@ import AppRoutes from "./routing/routes";
 import { AuthProvider } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { Toaster } from "sonner";
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -16,11 +18,28 @@ const queryClient = new QueryClient({
   },
 });
 
+// Google Analytics tracking component
+const GoogleAnalytics = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    // Track pageview on route change
+    if (typeof window.gtag !== 'undefined') {
+      window.gtag('config', 'G-M661H945TQ', {
+        page_path: location.pathname + location.search,
+      });
+    }
+  }, [location]);
+
+  return null;
+};
+
 const App: React.FC = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
+        <GoogleAnalytics />
         <ThemeProvider>
           <AuthProvider>
             <div className="font-dmmono">

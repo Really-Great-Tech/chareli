@@ -35,6 +35,46 @@ import { useUserCountry } from "../../hooks/useUserCountry";
 import { WelcomeModal } from "./WelcomeModal";
 
 const getAuthFields = (config?: { value?: { settings: any } }) => {
+  // CHANGE REQUEST: Force email-only authentication (phone number field disabled)
+  // To re-enable phone number field, uncomment the original logic below and comment out the custom logic
+  
+  // Default state when no config or invalid config
+  const defaultFields = {
+    showAll: false,
+    showEmail: true,
+    showPhone: false, // CHANGED: Always false for email-only mode
+    firstName: true,
+    lastName: true,
+  };
+
+  if (!config?.value?.settings) return defaultFields;
+
+  const { both, email, sms } = config.value.settings;
+
+  // Guard against undefined settings
+  if (!both || !email || !sms) return defaultFields;
+
+  // Force email-only mode but respect firstName/lastName configuration
+  if (email.enabled) {
+    return {
+      showAll: false,
+      showEmail: true,
+      showPhone: false, // CHANGED: Always false for email-only mode
+      firstName: !!email.firstName,
+      lastName: !!email.lastName,
+    };
+  }
+
+  // Even if other modes are enabled, force email-only
+  return {
+    showAll: false,
+    showEmail: true,
+    showPhone: false, // CHANGED: Always false for email-only mode
+    firstName: !!email.firstName,
+    lastName: !!email.lastName,
+  };
+
+  /* ORIGINAL LOGIC - COMMENTED OUT
   // Default state when no config or invalid config
   const defaultFields = {
     showAll: true,
@@ -82,6 +122,7 @@ const getAuthFields = (config?: { value?: { settings: any } }) => {
   }
 
   return defaultFields;
+  */
 };
 
 const getValidationSchema = (config?: { value?: { settings: any } }) => {

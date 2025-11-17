@@ -114,8 +114,9 @@ export function LoginModal({
       setLoginError("");
       setShowPassword(false); // Reset password visibility when modal closes
     } else {
-      // Reset to phone tab when modal opens
-      setActiveTab("phone");
+      // CHANGE REQUEST: Force email tab (phone login disabled)
+      // To re-enable phone login, change "email" back to "phone"
+      setActiveTab("email");
     }
   }, [open]);
 
@@ -203,6 +204,9 @@ export function LoginModal({
           <DialogTitle className="text-2xl font-bold text-[#6A7282] dark:text-white text-center font-dmmono py-4">
             Login
           </DialogTitle>
+          {/* CHANGE REQUEST: Tab section completely removed (Email-only login)
+              To re-enable tabs, uncomment the ORIGINAL TAB SWITCHER below */}
+          {/* ORIGINAL TAB SWITCHER - COMMENTED OUT
           <div className="flex font-dmmono text-lg tracking-wide">
             <div className="px-6 flex w-full border-b">
               <button
@@ -233,6 +237,7 @@ export function LoginModal({
               </button>
             </div>
           </div>
+          */}
         </DialogHeader>
 
         <div className="px-6 pb-6">

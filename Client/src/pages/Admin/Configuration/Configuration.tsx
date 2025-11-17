@@ -30,11 +30,12 @@ interface AuthSettings {
 }
 
 export default function Configuration() {
+  // CHANGE REQUEST: Force email-only authentication with OTP via email
   const [authSettings, setAuthSettings] = useState<AuthSettings>({
     email: {
       enabled: true,
-      firstName: false,
-      lastName: false
+      firstName: true,
+      lastName: true
     },
     sms: {
       enabled: false,
@@ -43,7 +44,7 @@ export default function Configuration() {
     },
     both: {
       enabled: false,
-      otpDeliveryMethod: 'none'
+      otpDeliveryMethod: 'email'
     }
   });
 
@@ -64,24 +65,24 @@ export default function Configuration() {
     }
   }, [configData]);
 
-  const handleEmailAuth = (checked: boolean) => {
-    setAuthSettings({
-      email: {
-        enabled: checked,
-        firstName: false,
-        lastName: false
-      },
-      sms: {
-        enabled: false,
-        firstName: false,
-        lastName: false
-      },
-      both: {
-        enabled: false,
-        otpDeliveryMethod: 'none'
-      }
-    });
-  };
+  // const handleEmailAuth = (checked: boolean) => {
+  //   setAuthSettings({
+  //     email: {
+  //       enabled: checked,
+  //       firstName: false,
+  //       lastName: false
+  //     },
+  //     sms: {
+  //       enabled: false,
+  //       firstName: false,
+  //       lastName: false
+  //     },
+  //     both: {
+  //       enabled: false,
+  //       otpDeliveryMethod: 'none'
+  //     }
+  //   });
+  // };
 
   const handleSmsAuth = (checked: boolean) => {
     setAuthSettings({
@@ -271,18 +272,18 @@ export default function Configuration() {
       
       <h1 className="text-lg sm:text-xl font-worksans text-[#6A7282] dark:text-white mb-4">User Sign Up Configuration</h1>
       <div className="space-y-4">
-        {/* Email Authentication Section */}
-        <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
+        {/* Email Authentication Section - ACTIVE (Email-only mode) */}
+        <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg border-2 border-green-500">
           <div className="flex items-center mb-2">
             <Checkbox
-              checked={authSettings.email.enabled}
-              onCheckedChange={handleEmailAuth}
+              checked={true}
+              onCheckedChange={() => {}} 
               id="email-auth"
               color="#6A7282"
-              disabled={authSettings.both.enabled}
+              disabled={false}
             />
             <Label htmlFor="email-auth" className="ml-2 text-lg font-medium text-black dark:text-white">
-              Email Authentication
+              Email Authentication <span className="text-sm text-green-600 dark:text-green-400 font-bold">(✓ Required - Always Active)</span>
             </Label>
           </div>
           <div className="ml-6 space-y-2">
@@ -291,7 +292,7 @@ export default function Configuration() {
                 checked={authSettings.email.firstName}
                 onCheckedChange={handleEmailFirstName}
                 id="first-name-email"
-                disabled={!authSettings.email.enabled || authSettings.both.enabled}
+                disabled={false}
                 color="#6A7282"
               />
               <Label htmlFor="first-name-email" className="ml-2 text-base">
@@ -303,7 +304,7 @@ export default function Configuration() {
                 checked={authSettings.email.lastName}
                 onCheckedChange={handleEmailLastName}
                 id="last-name-email"
-                disabled={!authSettings.email.enabled || authSettings.both.enabled}
+                disabled={false}
                 color="#6A7282"
               />
               <Label htmlFor="last-name-email" className="ml-2 text-base">
@@ -313,18 +314,18 @@ export default function Configuration() {
           </div>
         </div>
 
-        {/* SMS Authentication Section */}
-        <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
+        {/* SMS Authentication Section - DISABLED (Email-only requirement) */}
+        <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg opacity-50">
           <div className="flex items-center mb-2">
             <Checkbox
               checked={authSettings.sms.enabled}
               onCheckedChange={handleSmsAuth}
               id="sms-auth"
               color="#6A7282"
-              disabled={authSettings.both.enabled}
+              disabled={true}
             />
             <Label htmlFor="sms-auth" className="ml-2 text-lg font-medium text-black dark:text-white">
-              SMS Authentication
+              SMS Authentication <span className="text-sm text-gray-500">(Disabled - Email-only mode)</span>
             </Label>
           </div>
           <div className="ml-6 space-y-2">
@@ -333,7 +334,7 @@ export default function Configuration() {
                 checked={authSettings.sms.firstName}
                 onCheckedChange={handleSmsFirstName}
                 id="first-name-sms"
-                disabled={!authSettings.sms.enabled || authSettings.both.enabled}
+                disabled={true}
                 color="#6A7282"
               />
               <Label htmlFor="first-name-sms" className="ml-2 text-base">
@@ -345,7 +346,7 @@ export default function Configuration() {
                 checked={authSettings.sms.lastName}
                 onCheckedChange={handleSmsLastName}
                 id="last-name-sms"
-                disabled={!authSettings.sms.enabled || authSettings.both.enabled}
+                disabled={true}
               color="#6A7282"
               />
               <Label htmlFor="last-name-sms" className="ml-2 text-base">
@@ -355,17 +356,18 @@ export default function Configuration() {
           </div>
         </div>
 
-        {/* Both Section */}
-        <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
+        {/* Both Section - DISABLED (Email-only requirement) */}
+        <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg opacity-50">
           <div className="flex items-center mb-2">
             <Checkbox
               checked={authSettings.both.enabled}
               onCheckedChange={handleBoth}
               id="both"
               color="#6A7282"
+              disabled={true}
             />
             <Label htmlFor="both" className="ml-2 text-lg font-medium text-black dark:text-white">
-              Both
+              Both <span className="text-sm text-gray-500">(Disabled - Email-only mode)</span>
             </Label>
           </div>
           
@@ -385,6 +387,7 @@ export default function Configuration() {
                     checked={authSettings.both.otpDeliveryMethod === 'email'}
                     onChange={() => handleOtpDeliveryMethod('email')}
                     className="w-4 h-4 text-[#6A7282] bg-gray-100 border-gray-300 dark:bg-gray-700 dark:border-gray-600"
+                    disabled
                   />
                   <Label htmlFor="otp-email" className="ml-2 text-base">
                     Email
@@ -399,6 +402,7 @@ export default function Configuration() {
                     checked={authSettings.both.otpDeliveryMethod === 'sms'}
                     onChange={() => handleOtpDeliveryMethod('sms')}
                     className="w-4 h-4 text-[#6A7282] bg-gray-100 border-gray-300 dark:bg-gray-700 dark:border-gray-600"
+                    disabled
                   />
                   <Label htmlFor="otp-sms" className="ml-2 text-base">
                     SMS
@@ -413,6 +417,7 @@ export default function Configuration() {
                     checked={authSettings.both.otpDeliveryMethod === 'none'}
                     onChange={() => handleOtpDeliveryMethod('none')}
                     className="w-4 h-4 text-[#6A7282] bg-gray-100 border-gray-300 dark:bg-gray-700 dark:border-gray-600"
+                    disabled
                   />
                   <Label htmlFor="otp-none" className="ml-2 text-base">
                     None (No OTP required)

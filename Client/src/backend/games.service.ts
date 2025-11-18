@@ -35,6 +35,7 @@ export const useGameById = (id: string) => {
 export const useCreateGame = () => {
   const queryClient = useQueryClient();
   return useMutation({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mutationFn: (data: any) => 
       backendService.post(BackendRoute.GAMES, data, {
         headers: {
@@ -54,6 +55,7 @@ export const useCreateGame = () => {
 export const useUpdateGame = () => {
   const queryClient = useQueryClient();
   return useMutation({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mutationFn: ({ id, data }: { id: string; data: FormData | any }) => {
       // Check if data is FormData (old approach) or plain object (new approach)
       const isFormData = data instanceof FormData;
@@ -240,6 +242,7 @@ export const useGameProcessingStatus = (gameId: string) => {
       return response.data as GameProcessingStatusResponse;
     },
     enabled: !!gameId,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     refetchInterval: (data: any) => {
       // Poll every 2 seconds if game is still processing
       const processingStatus = data?.data?.processingStatus;

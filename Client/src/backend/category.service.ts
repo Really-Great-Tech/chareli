@@ -24,6 +24,7 @@ export const useCategories = () => {
  * @returns Query result with category data
  */
 export const useCategoryById = (id: string, params?: { page?: number; limit?: number }) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return useQuery<any>({
     queryKey: [BackendRoute.CATEGORIES, id, params],
     queryFn: async () => {
@@ -33,6 +34,7 @@ export const useCategoryById = (id: string, params?: { page?: number; limit?: nu
       });
       return response.data;
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     retry: (failureCount, error: any) => {
       if (error?.response?.status === 404) {
         return false;

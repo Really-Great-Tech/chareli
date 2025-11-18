@@ -37,7 +37,7 @@ describe('Form Validation Business Logic', () => {
       ]
 
       // Basic phone validation (at least 10 digits)
-      const phoneRegex = /[\d\s\-\+\(\)]{10,}/
+      const phoneRegex = /[\d\s\-+()]{10,}/
 
       phoneTestCases.forEach(({ phone, expected }) => {
         const isValid = phone ? phoneRegex.test(phone) : false
@@ -89,7 +89,7 @@ describe('Form Validation Business Logic', () => {
 
       formTestCases.forEach(({ form, requiredFields, expected }) => {
         const isFormValid = requiredFields.every(field => {
-          const value = (form as any)[field]
+          const value = (form as Record<string, unknown>)[field]
           return value && typeof value === 'string' && value.trim().length > 0
         })
 

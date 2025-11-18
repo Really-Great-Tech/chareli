@@ -18,16 +18,21 @@ const queryClient = new QueryClient({
   },
 });
 
-// Google Analytics tracking component
-const GoogleAnalytics = () => {
+// Analytics tracking component for Google Analytics and Facebook Pixel
+const AnalyticsTracker = () => {
   const location = useLocation();
 
   useEffect(() => {
-    // Track pageview on route change
+    // Track pageview on route change for Google Analytics
     if (typeof window.gtag !== 'undefined') {
       window.gtag('config', 'G-M661H945TQ', {
         page_path: location.pathname + location.search,
       });
+    }
+    
+    // Track pageview on route change for Facebook Pixel
+    if (typeof window.fbq !== 'undefined') {
+      window.fbq('track', 'PageView');
     }
   }, [location]);
 
@@ -39,7 +44,7 @@ const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <GoogleAnalytics />
+        <AnalyticsTracker />
         <ThemeProvider>
           <AuthProvider>
             <div className="font-dmmono">

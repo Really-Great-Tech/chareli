@@ -8,4 +8,11 @@ interface Window {
     targetId: string | Date,
     config?: Record<string, any>
   ) => void;
+  // Facebook Pixel type declarations
+  fbq: (
+    command: 'init' | 'track' | 'trackCustom',
+    eventName: string,
+    parameters?: Record<string, any>
+  ) => void;
+  _fbq: any;
 }

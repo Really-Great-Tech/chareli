@@ -7,6 +7,7 @@ import { ThemeProvider } from "./context/ThemeContext";
 import { Toaster } from "sonner";
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import CanonicalTag from "./components/single/CanonicalTag";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -45,6 +46,7 @@ const App: React.FC = () => {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AnalyticsTracker />
+        <CanonicalTag />
         <ThemeProvider>
           <AuthProvider>
             <div className="font-dmmono">

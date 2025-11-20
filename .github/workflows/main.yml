@@ -104,7 +104,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::330858616968:role/chareli-production-v1-github-oidc-role
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: us-east-1
 
       - name: Set up Docker BuildX
         uses: docker/setup-buildx-action@v3
@@ -157,8 +157,8 @@ jobs:
       - name: Deploy to Cloudflare
         uses: cloudflare/wrangler-action@v3
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          apiToken: ${{ secrets.RGT_CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.RGT_CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy ./frontend-build-output/ --project-name=chareli-prod
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 

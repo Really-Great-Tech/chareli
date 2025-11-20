@@ -115,6 +115,11 @@ jobs:
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Debug image paths
+        run: |
+          echo "ECR_REGISTRY= '${{ env.ECR_REGISTRY }}'"
+          echo "ECR_REPO     = '${{ env.ECR_REPO }}'"
+          echo "FULL IMAGE   = '${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}'"
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v5

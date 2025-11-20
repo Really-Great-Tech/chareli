@@ -24,7 +24,7 @@ jobs:
   build-and-test:
     name: Build & Test Application
     runs-on: ubuntu-latest
-    environment: ${{ github.ref_name == 'release' && 'production' || github.ref_name == 'dev' && 'development' || github.ref_name == 'main' && 'staging' || 'development' }}
+    environment: "${{ github.ref_name == 'release' && 'production' || github.ref_name == 'dev' && 'development' || github.ref_name == 'main' && 'staging' || 'development' }}"
     strategy:
       matrix:
         node-version: ["22.x"]
@@ -96,7 +96,7 @@ jobs:
     name: Deploy Backend to ECS
     needs: build-and-test
     runs-on: ubuntu-latest
-    environment: ${{ github.ref_name == 'release' && 'production' || github.ref_name == 'dev' && 'development' || github.ref_name == 'main' && 'staging' || 'development' }}
+    environment: "${{ github.ref_name == 'release' && 'production' || github.ref_name == 'dev' && 'development' || github.ref_name == 'main' && 'staging' || 'development' }}"
     if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
 
     steps:
@@ -165,7 +165,7 @@ jobs:
     name: Deploy Frontend to Cloudflare Pages
     needs: build-and-test
     runs-on: ubuntu-latest
-    environment: "${{ github.ref_name == 'release' && 'production' || 'development' }}"
+    environment: "${{ github.ref_name == 'release' && 'production' || github.ref_name == 'dev' && 'development' || github.ref_name == 'main' && 'staging' || 'development' }}"
     if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
 
     steps:
@@ -186,7 +186,7 @@ jobs:
   notify-discord:
     name: Notify Discord
     needs: [build-and-test, deploy-frontend, deploy-backend]
-    environment: "${{ github.ref_name == 'release' && 'production' || 'development' }}"
+    environment: "${{ github.ref_name == 'release' && 'production' || github.ref_name == 'dev' && 'development' || github.ref_name == 'main' && 'staging' || 'development' }}"
     runs-on: ubuntu-latest
     permissions:
       contents: read

@@ -223,7 +223,7 @@ jobs:
           webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
           username: ArcadesBox Release Pipeline Bot
           message: |
-            🚀 **ArcadesBox Release Deployment Summary**
+            🚀 **ArcadesBox Dev Deployment Summary(Client Account)**
             🔀 Branch: `${{ github.ref_name }}`
             📄 Commit: `${{ github.event.head_commit.message }}` by `${{ github.actor }}`
             🏗️ Event: `${{ github.event_name }}`

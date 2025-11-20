@@ -124,7 +124,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ vars.ECR_REGISTRY }}/${{ vars.ECR_REPO }}
+          images: 476199653856.dkr.ecr.eu-central-1.amazonaws.com/arcadesbox-server-development-v1
           tags: |
             type=semver,pattern={{version}},enable=${{ startsWith(github.ref, 'refs/tags/') }}
             type=semver,pattern={{major}}.{{minor}},enable=${{ startsWith(github.ref, 'refs/tags/') }}

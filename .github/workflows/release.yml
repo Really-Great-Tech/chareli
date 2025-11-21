@@ -1,8 +1,8 @@
-name: Deploy to Staging Environment (arcadesbox)
+name: Deploy to Production Environment (arcadesbox)
 
 on:
   push:
-    branches: [main]
+    branches: [release]
     tags:
       - "v*"
 
@@ -97,7 +97,7 @@ jobs:
     needs: build-and-test
     runs-on: ubuntu-latest
     environment: ${{ github.ref_name == 'release' && 'production' || github.ref_name == 'dev' && 'development' || github.ref_name == 'main' && 'staging' || 'development' }}
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/release'
 
     steps:
       - name: Checkout Code
@@ -124,7 +124,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: 476199653856.dkr.ecr.eu-central-1.amazonaws.com/arcadesbox-server-staging-v1
+          images: 476199653856.dkr.ecr.us-east-1.amazonaws.com/arcadesbox-server-production-v1
           tags: |
             type=semver,pattern={{version}},enable=${{ startsWith(github.ref, 'refs/tags/') }}
             type=semver,pattern={{major}}.{{minor}},enable=${{ startsWith(github.ref, 'refs/tags/') }}
@@ -166,7 +166,7 @@ jobs:
     needs: build-and-test
     runs-on: ubuntu-latest
     environment: ${{ github.ref_name == 'release' && 'production' || github.ref_name == 'dev' && 'development' || github.ref_name == 'main' && 'staging' || 'development' }}
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/release'
 
     steps:
       - name: Download Frontend Build Artifact
@@ -190,7 +190,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/release' }}
 
     steps:
       - name: Generate Build Status

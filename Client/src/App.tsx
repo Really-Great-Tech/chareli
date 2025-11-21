@@ -1,12 +1,12 @@
-import "./App.css";
-import { BrowserRouter } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import AppRoutes from "./routing/routes";
-import { AuthProvider } from "./context/AuthContext";
-import { ThemeProvider } from "./context/ThemeContext";
-import { Toaster } from "sonner";
-import { useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import './App.css';
+import { BrowserRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import AppRoutes from './routing/routes';
+import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
+import { Toaster } from 'sonner';
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -29,10 +29,31 @@ const AnalyticsTracker = () => {
         page_path: location.pathname + location.search,
       });
     }
-    
+
     // Track pageview on route change for Facebook Pixel
     if (typeof window.fbq !== 'undefined') {
       window.fbq('track', 'PageView');
+    }
+
+    const officialDomain = import.meta.env.VITE_OFFICIAL_DOMAIN;
+
+    if (officialDomain) {
+      // Construct the authoritative URL
+      // We remove trailing slashes to be consistent
+      const path = location.pathname === '/' ? '' : location.pathname;
+      const canonicalUrl = `https://${officialDomain}${path}`;
+
+      // Find existing tag or create new one
+      let link = document.querySelector("link[rel='canonical']");
+
+      if (!link) {
+        link = document.createElement('link');
+        link.setAttribute('rel', 'canonical');
+        document.head.appendChild(link);
+      }
+
+      // Update the href
+      link.setAttribute('href', canonicalUrl);
     }
   }, [location]);
 
@@ -40,7 +61,6 @@ const AnalyticsTracker = () => {
 };
 
 const App: React.FC = () => {
-
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
@@ -55,9 +75,9 @@ const App: React.FC = () => {
                 toastOptions={{
                   duration: 10000,
                   style: {
-                    background: "white",
-                    color: "#6A7282",
-                    fontSize: "17px",
+                    background: 'white',
+                    color: '#6A7282',
+                    fontSize: '17px',
                     // border: "1px solid #6A7282",
                   },
                 }}

@@ -17,7 +17,6 @@ import "react-phone-input-2/lib/style.css";
 import "../../styles/phone-input.css";
 import {
   Dialog,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "../../components/ui/dialog";
@@ -270,12 +269,14 @@ export function SignUpModal({
           >
             <span className="text-white text-2xl font-bold">×</span>
           </button>
-          <DialogHeader className="max-h-[70vh] overflow-y-auto custom-scrollbar">
+          <DialogHeader className="space-y-4">
             <DialogTitle className="text-2xl font-bold text-[#6A7282] dark:text-white text-center font-dmmono">
               Sign Up
             </DialogTitle>
-            <DialogDescription className="text-center">
-              <Formik
+          </DialogHeader>
+          
+          <div className="max-h-[70vh] overflow-y-auto custom-scrollbar">
+            <Formik
                 initialValues={getInitialValues(config)}
                 validationSchema={getValidationSchema(config)}
                 onSubmit={handleSignUp}
@@ -603,8 +604,8 @@ export function SignUpModal({
                   </Form>
                 )}
               </Formik>
-            </DialogDescription>
-            <div className="flex flex-col flex-1 bg-green-">
+            
+            <div className="flex flex-col flex-1 bg-green- mt-4">
               <p className=" text-center text-black dark:text-white font-dmmono text-sm tracking-wider">
                 Already have an account?{" "}
                 <button
@@ -631,7 +632,7 @@ export function SignUpModal({
                 </button>
               </div>
             </div>
-          </DialogHeader>
+          </div>
         </CustomDialogContent>
       </Dialog>
     </>

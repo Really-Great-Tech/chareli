@@ -17,7 +17,6 @@ import "react-phone-input-2/lib/style.css";
 import "../../styles/phone-input.css";
 import {
   Dialog,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "../../components/ui/dialog";

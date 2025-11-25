@@ -42,16 +42,16 @@ export default function GamePlay() {
   // Prevent body scroll on mobile fullscreen to fix viewport issues
   useEffect(() => {
     if (isMobile && expanded) {
-      document.body.style.overflow = 'hidden';
-      document.body.style.touchAction = 'none';
+      document.body.style.overflow = "hidden";
+      document.body.style.touchAction = "none";
     } else {
-      document.body.style.overflow = '';
-      document.body.style.touchAction = '';
+      document.body.style.overflow = "";
+      document.body.style.touchAction = "";
     }
 
     return () => {
-      document.body.style.overflow = '';
-      document.body.style.touchAction = '';
+      document.body.style.overflow = "";
+      document.body.style.touchAction = "";
     };
   }, [isMobile, expanded]);
 
@@ -71,28 +71,31 @@ export default function GamePlay() {
   // Scroll management: Keep users at the top (main game area) when they arrive
   useEffect(() => {
     // Scroll to top when component mounts or gameId changes
-    window.scrollTo({ top: 0, behavior: 'instant' });
-    
+    window.scrollTo({ top: 0, behavior: "instant" });
+
     // Also ensure the game container is visible
     if (gameContainerRef.current) {
-      gameContainerRef.current.scrollIntoView({ behavior: 'instant', block: 'start' });
+      gameContainerRef.current.scrollIntoView({
+        behavior: "instant",
+        block: "start",
+      });
     }
   }, [gameId]);
 
   // Prevent auto-scroll when page loads
   useEffect(() => {
     // Override any potential scroll restoration
-    if ('scrollRestoration' in history) {
-      history.scrollRestoration = 'manual';
+    if ("scrollRestoration" in history) {
+      history.scrollRestoration = "manual";
     }
-    
+
     // Force scroll to top on initial load
     window.scrollTo(0, 0);
-    
+
     return () => {
       // Restore scroll restoration when component unmounts
-      if ('scrollRestoration' in history) {
-        history.scrollRestoration = 'auto';
+      if ("scrollRestoration" in history) {
+        history.scrollRestoration = "auto";
       }
     };
   }, []);
@@ -115,9 +118,9 @@ export default function GamePlay() {
     if (game && !isAuthenticated && game.config > 0 && !isGameLoading) {
       setIsModalOpen(false);
       setTimeRemaining(game.config * 60);
-      
+
       timer = setInterval(() => {
-        setTimeRemaining(prev => {
+        setTimeRemaining((prev) => {
           if (prev === null || prev <= 0) {
             clearInterval(timer);
             setIsModalOpen(true);
@@ -160,7 +163,7 @@ export default function GamePlay() {
   // Function to update end time
   const updateEndTime = async () => {
     if (!analyticsIdRef.current) return;
-    
+
     try {
       const endTime = new Date();
       await updateAnalytics({
@@ -170,7 +173,7 @@ export default function GamePlay() {
       // Clear ID after successful update to prevent duplicate updates
       analyticsIdRef.current = null;
     } catch (error) {
-      console.error('Failed to update analytics:', error);
+      console.error("Failed to update analytics:", error);
       // Clear ID even on error to prevent duplicate attempts
       analyticsIdRef.current = null;
     }
@@ -194,10 +197,10 @@ export default function GamePlay() {
     const handleBeforeUnload = () => {
       if (analyticsIdRef.current) {
         const endTime = new Date();
-        const baseURL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
+        const baseURL = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
         const url = `${baseURL}/api/analytics/${analyticsIdRef.current}/end`;
         const data = new Blob([JSON.stringify({ endTime })], {
-          type: 'application/json',
+          type: "application/json",
         });
         navigator.sendBeacon(url, data);
         analyticsIdRef.current = null;
@@ -205,14 +208,14 @@ export default function GamePlay() {
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener("beforeunload", handleBeforeUnload);
 
     return () => {
       if (analyticsIdRef.current) {
         updateEndTime();
       }
       document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
 
       const iframe = document.querySelector<HTMLIFrameElement>("#gameIframe");
       if (iframe) {
@@ -240,7 +243,11 @@ export default function GamePlay() {
         </div>
       ) : game?.gameFile?.s3Key ? (
         <>
-          <div ref={gameContainerRef} className={expanded ? "fixed inset-0 z-40 bg-black" : "relative"} style={!expanded ? { height: 'calc(100vh - 64px)' } : undefined}>
+          <div
+            ref={gameContainerRef}
+            className={expanded ? "fixed inset-0 z-40 bg-black" : "relative"}
+            style={!expanded ? { height: "calc(100vh - 64px)" } : undefined}
+          >
             <div
               className={`relative ${
                 expanded
@@ -249,7 +256,7 @@ export default function GamePlay() {
               } overflow-hidden`}
               // style={{ background: "#18181b" }}
             >
-              {/* Back button - always shown */}
+              {/* Back button - always shown, visible above modal */}
               <button
                 onClick={() => {
                   if (analyticsIdRef.current) {
@@ -257,12 +264,17 @@ export default function GamePlay() {
                   }
                   navigate(-1);
                 }}
-                className="absolute top-4 left-4 z-50 flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-3 py-2 shadow-lg hover:bg-white transition-all"
-                style={{ minHeight: '44px', minWidth: '60px' }}
+                className={`absolute top-4 left-4 flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-3 py-2 shadow-lg hover:bg-white transition-all ${
+                  isModalOpen ? "z-[80]" : "z-50"
+                }`}
+                style={{ minHeight: "44px", minWidth: "60px" }}
                 title="Go Back"
               >
                 <div className="bg-orange-600 rounded-full p-1.5">
-                  <LuChevronLeft className="w-5 h-5 text-white" strokeWidth={3} />
+                  <LuChevronLeft
+                    className="w-5 h-5 text-white"
+                    strokeWidth={3}
+                  />
                 </div>
               </button>
               {isGameLoading && (
@@ -280,7 +292,7 @@ export default function GamePlay() {
                     display: "block",
                     // background: "transparent",
                     border: "none",
-                    overflow: "hidden"
+                    overflow: "hidden",
                   }}
                   sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
                   title={game.title}
@@ -290,14 +302,12 @@ export default function GamePlay() {
                   }}
                 />
               ) : (
-                <div
-                  className="w-full bg-gray-900 flex-1"
-                />
+                <div className="w-full bg-gray-900 flex-1" />
               )}
 
               {/* Beautiful game platform overlay when time is up */}
               {isModalOpen && (
-                <div 
+                <div
                   className="absolute inset-0 z-50 bg-gradient-to-br from-orange-900 via-orange-800 to-orange-900"
                   onMouseDown={(e) => e.preventDefault()}
                   onMouseUp={(e) => e.preventDefault()}
@@ -319,12 +329,19 @@ export default function GamePlay() {
               />
               {/* Control bar - always shown, styling changes based on expanded state */}
               <div
-                className={`flex items-center justify-between px-6 py-2 bg-[#7C2D12] border-t border-orange-400 z-50 ${!expanded ? 'rounded-b-2xl' : ''}`}
-                style={expanded ? {
-                  paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))',
-                  paddingLeft: 'max(1.5rem, env(safe-area-inset-left))',
-                  paddingRight: 'max(1.5rem, env(safe-area-inset-right))'
-                } : undefined}
+                className={`flex items-center justify-between px-6 py-2 bg-[#7C2D12] border-t border-orange-400 z-50 ${
+                  !expanded ? "rounded-b-2xl" : ""
+                }`}
+                style={
+                  expanded
+                    ? {
+                        paddingBottom:
+                          "max(0.5rem, env(safe-area-inset-bottom))",
+                        paddingLeft: "max(1.5rem, env(safe-area-inset-left))",
+                        paddingRight: "max(1.5rem, env(safe-area-inset-right))",
+                      }
+                    : undefined
+                }
               >
                 <span className="text-white text-sm font-semibold">
                   {game.title}
@@ -340,14 +357,17 @@ export default function GamePlay() {
                   </div>
                   <div className="flex items-center space-x-3">
                     {/* Timer display for unauthenticated users */}
-                    {!isAuthenticated && timeRemaining !== null && timeRemaining > 0 && (
-                      <div className="flex items-center space-x-2 bg-orange-600/20 px-3 py-1 rounded-full border border-orange-400/30">
-                        <span className="text-xs text-orange-300">⏱️</span>
-                        <span className="text-white text-sm font-medium">
-                          {Math.floor(timeRemaining / 60)}:{(timeRemaining % 60).toString().padStart(2, '0')}
-                        </span>
-                      </div>
-                    )}
+                    {!isAuthenticated &&
+                      timeRemaining !== null &&
+                      timeRemaining > 0 && (
+                        <div className="flex items-center space-x-2 bg-orange-600/20 px-3 py-1 rounded-full border border-orange-400/30">
+                          <span className="text-xs text-orange-300">⏱️</span>
+                          <span className="text-white text-sm font-medium">
+                            {Math.floor(timeRemaining / 60)}:
+                            {(timeRemaining % 60).toString().padStart(2, "0")}
+                          </span>
+                        </div>
+                      )}
                     {/* Hide expand button on mobile since it's auto-fullscreen */}
                     {!isMobile && (
                       <button
@@ -367,7 +387,7 @@ export default function GamePlay() {
                         if (expanded) {
                           navigate(-1);
                         } else {
-                          navigate('/');
+                          navigate("/");
                         }
                       }}
                       title="Close Game"

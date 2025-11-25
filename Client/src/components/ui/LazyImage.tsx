@@ -1,6 +1,12 @@
-import React from 'react';
-import { useLazyImage } from '../../hooks/useLazyImage';
-import './LazyImage.css';
+import React from "react";
+import { useLazyImage } from "../../hooks/useLazyImage";
+import { transformImageUrl } from "../../utils/cloudflareImageTransform";
+import type { CloudflareImageTransformOptions } from "../../utils/cloudflareImageTransform";
+import {
+  CLOUDFLARE_ZONE,
+  DEFAULT_IMAGE_OPTIONS,
+} from "../../config/imageConfig";
+import "./LazyImage.css";
 
 interface LazyImageProps {
   src: string;
@@ -13,6 +19,12 @@ interface LazyImageProps {
   spinnerColor?: string;
   threshold?: number;
   rootMargin?: string;
+  /** Enable Cloudflare image transformations */
+  enableTransform?: boolean;
+  /** Cloudflare transformation options */
+  transformOptions?: CloudflareImageTransformOptions;
+  /** Width for responsive images (used with transform) */
+  width?: number;
 }
 
 export const LazyImage: React.FC<LazyImageProps> = ({
@@ -25,9 +37,33 @@ export const LazyImage: React.FC<LazyImageProps> = ({
   showSpinner = true,
   spinnerColor = '#D946EF',
   threshold = 0.1,
-  rootMargin = '100px'
+  rootMargin = "100px",
+  enableTransform = true, // Enable by default if Cloudflare zone is configured
+  transformOptions,
+  width,
 }) => {
-  const { imageSrc, isLoaded, hasError, imgRef } = useLazyImage(src, {
+  // Apply Cloudflare transformations if enabled and zone is configured
+  const finalSrc = React.useMemo(() => {
+    // if (!enableTransform || !CLOUDFLARE_ZONE || !src) {
+    //   return src;
+    // }
+
+    // Merge default options with provided options and width
+    const options: CloudflareImageTransformOptions = {
+      ...DEFAULT_IMAGE_OPTIONS,
+      ...transformOptions,
+      ...(width && { width }),
+    };
+    console.log("options", options);
+    console.log("src", src);
+    console.log("enableTransform", enableTransform);
+    console.log("transformOptions", transformOptions);
+    console.log("width", width);
+    console.log("CLOUDFLARE_ZONE", CLOUDFLARE_ZONE);
+    return transformImageUrl(src, options, CLOUDFLARE_ZONE);
+  }, [src, enableTransform, transformOptions, width]);
+
+  const { imageSrc, isLoaded, hasError, imgRef } = useLazyImage(finalSrc, {
     threshold,
     rootMargin,
     placeholder

@@ -69,6 +69,9 @@ interface Config {
     keyPairId: string;
     cookieExpiration: number;
   };
+  cloudflare: {
+    zone?: string;
+  };
   r2: {
     accountId: string;
     accessKeyId: string;
@@ -194,7 +197,10 @@ const config: Config = {
     port: parseInt(process.env.REDIS_PORT || '6379', 10),
     password: process.env.REDIS_PASSWORD,
     db: parseInt(process.env.REDIS_DB || '0', 10),
-  }
+  },
+  cloudflare: {
+    zone: getEnv('CLOUDFLARE_ZONE'),
+  },
 };
 
 export default config;

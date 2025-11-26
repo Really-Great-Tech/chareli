@@ -13,7 +13,7 @@ COPY package*.json ./
 COPY package-lock.json* ./
 
 # Install dependencies
-# Use npm install instead of npm ci since package-lock.json might not exist
+# Use npm ci for reproducible builds
 RUN npm ci
 
 # Copy source code
@@ -22,8 +22,9 @@ COPY . .
 # Build the application
 RUN npm run build
 
-# Remove development dependencies
-RUN npm prune --production
+# Install only production dependencies in a clean node_modules
+# This ensures all production deps including @sendgrid/mail are present
+RUN npm ci --omit=dev
 
 # Production stage
 FROM node:22-alpine AS production

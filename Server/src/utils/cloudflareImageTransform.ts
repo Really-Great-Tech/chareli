@@ -88,11 +88,8 @@ export function transformImageUrl(
   if (params.length === 0) {
     return imageUrl;
   }
-
-  // Construct the transformed URL
-  // Format: https://<ZONE>/cdn-cgi/image/<params>/<original-url>
+  
   const transformParams = params.join(",");
-  const encodedImageUrl = encodeURIComponent(imageUrl);
 
-  return `https://${zone}/cdn-cgi/image/${transformParams}/${encodedImageUrl}`;
+  return `https://${zone}/cdn-cgi/image/${transformParams}/${imageUrl}`;
 }

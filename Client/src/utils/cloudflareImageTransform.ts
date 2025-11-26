@@ -97,13 +97,10 @@ export function transformImageUrl(
     return imageUrl;
   }
 
-  // Construct the transformed URL
-  // Format: https://<ZONE>/cdn-cgi/image/<params>/<original-url>
   const transformParams = params.join(",");
-  const encodedImageUrl = encodeURIComponent(imageUrl);
 
 
-  return `https://${cloudflareZone}/cdn-cgi/image/${transformParams}/${encodedImageUrl}`;
+  return `https://${cloudflareZone}/cdn-cgi/image/${transformParams}/${imageUrl}`;
 }
 
 /**

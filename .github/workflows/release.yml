@@ -1,9 +1,10 @@
-name: Deploy to New Prod Environment (Chareli)
+name: Deploy to Production Environment (arcadesbox)
 
 on:
   push:
-    branches:
-      - main
+    branches: [release]
+    tags:
+      - "v*"
 
 permissions:
   packages: write
@@ -11,20 +12,19 @@ permissions:
   id-token: write
 
 env:
-  AWS_REGION: us-east-1
-  ECR_REGISTRY: 330858616968.dkr.ecr.us-east-1.amazonaws.com
-  ECR_REPO_SERVER: chareli-server-production-v1
-  ECS_SERVICE: chareli-service-production-v1
-  ECS_CLUSTER: chareli-ecs-cluster-production-v1
-  ECS_TASK_DEFINITION: ./task-def.json
-  CONTAINER_NAME: chareli-ecs-backend-production-server-v1
-  IMAGE_TAG_SERVER_COMMIT: server-production-${{ github.sha }}
-  IMAGE_TAG_SERVER_FIXED: latest
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  ECR_REGISTRY: ${{ vars.ECR_REGISTRY }}
+  ECR_REPO: ${{ vars.ECR_REPO }}
+  ECS_SERVICE: ${{ vars.ECS_SERVICE }}
+  ECS_CLUSTER: ${{ vars.ECS_CLUSTER_NAME }}
+  ECS_TASK_DEFINITION: ${{ vars.ECS_TASK_FAMILY }}
+  CONTAINER_NAME: ${{ vars.ECS_CONTAINER_NAME }}
 
 jobs:
   build-and-test:
     name: Build & Test Application
     runs-on: ubuntu-latest
+    environment: ${{ github.ref_name == 'release' && 'production' || github.ref_name == 'dev' && 'development' || github.ref_name == 'main' && 'staging' || 'development' }}
     strategy:
       matrix:
         node-version: ["22.x"]
@@ -80,8 +80,10 @@ jobs:
       - name: Build Frontend
         working-directory: ./Client
         env:
-          VITE_API_URL: "https://api.chareli.reallygreattech.com"
-          VITE_GAMES_CDN_URL: "https://pub-19e35e027f2848b39d57032cb6b2df46.r2.dev"
+          VITE_API_URL: ${{ vars.VITE_API_URL}}
+          VITE_GAMES_CDN_URL: ${{ vars.VITE_GAMES_CDN_URL}}
+          VITE_OFFICIAL_DOMAIN: ${{ vars.VITE_OFFICIAL_DOMAIN }}
+          VITE_PAGES_DEV_DOMAIN: ${{ vars.VITE_PAGES_DEV_DOMAIN }}
         run: npm run build
 
       - name: Archive Frontend Build
@@ -94,7 +96,8 @@ jobs:
     name: Deploy Backend to ECS
     needs: build-and-test
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment: ${{ github.ref_name == 'release' && 'production' || github.ref_name == 'dev' && 'development' || github.ref_name == 'main' && 'staging' || 'development' }}
+    if: github.event_name == 'push' && github.ref == 'refs/heads/release'
 
     steps:
       - name: Checkout Code
@@ -103,7 +106,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::330858616968:role/chareli-production-v1-github-oidc-role
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Set up Docker BuildX
@@ -112,16 +115,33 @@ jobs:
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Debug image paths
+        run: |
+          echo "ECR_REGISTRY= '${{ env.ECR_REGISTRY }}'"
+          echo "ECR_REPO     = '${{ env.ECR_REPO }}'"
+          echo "FULL IMAGE   = '${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}'"
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: 476199653856.dkr.ecr.us-east-1.amazonaws.com/arcadesbox-server-production-v1
+          tags: |
+            type=semver,pattern={{version}},enable=${{ startsWith(github.ref, 'refs/tags/') }}
+            type=semver,pattern={{major}}.{{minor}},enable=${{ startsWith(github.ref, 'refs/tags/') }}
+            type=semver,pattern={{major}},enable=${{ startsWith(github.ref, 'refs/tags/') }}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/') }}
+
+            type=ref,event=branch,enable=${{ !startsWith(github.ref, 'refs/tags/') }}
+            type=sha,enable=${{ !startsWith(github.ref, 'refs/tags/') }}
+
       - name: Build and Push Backend Docker Image
         uses: docker/build-push-action@v6
-        id: build-image
         with:
           context: ./Server
           file: ./Server/Dockerfile
           push: true
-          tags: |
-            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO_SERVER }}:${{ env.IMAGE_TAG_SERVER_COMMIT }}
-            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO_SERVER }}:${{ env.IMAGE_TAG_SERVER_FIXED }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -129,9 +149,9 @@ jobs:
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition: ${{ env.ECS_TASK_DEFINITION }}
+          task-definition-family: ${{ env.ECS_TASK_DEFINITION }}
           container-name: ${{ env.CONTAINER_NAME }}
-          image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO_SERVER }}:${{ env.IMAGE_TAG_SERVER_COMMIT }}
+          image: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
@@ -139,13 +159,14 @@ jobs:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
           service: ${{ env.ECS_SERVICE }}
           cluster: ${{ env.ECS_CLUSTER }}
-          # wait-for-service-stability: true
+          wait-for-service-stability: true
 
   deploy-frontend:
     name: Deploy Frontend to Cloudflare Pages
     needs: build-and-test
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment: ${{ github.ref_name == 'release' && 'production' || github.ref_name == 'dev' && 'development' || github.ref_name == 'main' && 'staging' || 'development' }}
+    if: github.event_name == 'push' && github.ref == 'refs/heads/release'
 
     steps:
       - name: Download Frontend Build Artifact
@@ -159,17 +180,17 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy ./frontend-build-output/ --project-name=chareli-prod
+          command: pages deploy ./frontend-build-output --project-name=${{ vars.PAGES_PROJECT_NAME }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
   notify-discord:
     name: Notify Discord
     needs: [build-and-test, deploy-frontend, deploy-backend]
-    #needs: [build-and-test, deploy-backend, deploy-frontend]
+    environment: ${{ github.ref_name == 'release' && 'production' || github.ref_name == 'dev' && 'development' || github.ref_name == 'main' && 'staging' || 'development' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/release' }}
 
     steps:
       - name: Generate Build Status
@@ -205,9 +226,9 @@ jobs:
         uses: appleboy/discord-action@v1.2.0
         with:
           webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          username: Chareli Dev Pipeline Bot
+          username: ArcadesBox Release Pipeline Bot
           message: |
-            🚀 **Chareli Production Deployment Summary**
+            🚀 **ArcadesBox Production Deployment Summary(Client Account)**
             🔀 Branch: `${{ github.ref_name }}`
             📄 Commit: `${{ github.event.head_commit.message }}` by `${{ github.actor }}`
             🏗️ Event: `${{ github.event_name }}`
@@ -215,4 +236,4 @@ jobs:
             🖥️ **Backend (ECS):** ${{ steps.backend-status.outputs.backend_msg }}
             🌐 **Frontend (Cloudflare Pages):** ${{ steps.frontend-status.outputs.frontend_msg }}
             🔗 [View Run on GitHub](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
-            🔗 [View site here](https://dev.arcadesbox.reallygreattech.com)
+            🔗 [View site here](${{ vars.APP_URL }})

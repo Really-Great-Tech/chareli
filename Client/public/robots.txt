@@ -1,0 +1,13 @@
+# Robots.txt for Arcades Box
+# Allow all search engines to crawl the site
+
+User-agent: *
+Allow: /
+
+# Disallow admin pages and private areas
+Disallow: /admin/
+Disallow: /reset-password/
+Disallow: /register-invitation/
+
+# Sitemap location
+Sitemap: https://www.arcadesbox.com/sitemap.xml

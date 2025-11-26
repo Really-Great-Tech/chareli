@@ -62,9 +62,9 @@ const PopularSection = ({
           uiSettings.showSearchBar ? "justify-between" : "justify-start"
         } gap-4 mb-8`}
       >
-        <h1 className="text-[#6A7282] dark:text-[#FEFEFE] text-3xl font-worksans tracking-wide">
+        <h2 className="text-[#6A7282] dark:text-[#FEFEFE] text-3xl font-worksans tracking-wide">
           Popular
-        </h1>
+        </h2>
         {uiSettings.showSearchBar && (
           <div className="relative w-full md:w-[400px]">
             <IoIosSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#64748A] text-xl pointer-events-none" />

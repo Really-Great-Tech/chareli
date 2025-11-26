@@ -7,6 +7,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { Toaster } from 'sonner';
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import CanonicalTag from './components/single/CanonicalTag';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -23,16 +24,21 @@ const AnalyticsTracker = () => {
   const location = useLocation();
 
   useEffect(() => {
+    // Only track if analytics is enabled for this domain
+    if (!(window as any).shouldLoadAnalytics) {
+      return;
+    }
+
     // Track pageview on route change for Google Analytics
-    if (typeof window.gtag !== 'undefined') {
-      window.gtag('config', 'G-M661H945TQ', {
+    if (typeof (window as any).gtag !== 'undefined') {
+      (window as any).gtag('config', 'G-M661H945TQ', {
         page_path: location.pathname + location.search,
       });
     }
 
     // Track pageview on route change for Facebook Pixel
-    if (typeof window.fbq !== 'undefined') {
-      window.fbq('track', 'PageView');
+    if (typeof (window as any).fbq !== 'undefined') {
+      (window as any).fbq('track', 'PageView');
     }
 
     const officialDomain = import.meta.env.VITE_OFFICIAL_DOMAIN;
@@ -65,6 +71,7 @@ const App: React.FC = () => {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AnalyticsTracker />
+        <CanonicalTag />
         <ThemeProvider>
           <AuthProvider>
             <div className="font-dmmono">

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { MdOutlineCancel } from "react-icons/md";
 import { InviteSheet } from "../../../components/single/Invite-Sheet";
@@ -98,20 +99,26 @@ export default function TeamManagement() {
   };
 
   // Pagination logic for team members
-  const filteredTeamMembers = teamData?.filter(
-    (member: User) => member.role.name.toLowerCase() !== "player"
-  ) || [];
-  const totalMembersPages = Math.ceil(filteredTeamMembers.length / itemsPerPage);
+  const filteredTeamMembers =
+    teamData?.filter(
+      (member: User) => member.role.name.toLowerCase() !== "player"
+    ) || [];
+  const totalMembersPages = Math.ceil(
+    filteredTeamMembers.length / itemsPerPage
+  );
   const paginatedMembers = filteredTeamMembers.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
   // Pagination logic for invitations
-  const filteredInvitations = invitationsData?.data?.filter(
-    (invitation: any) => !invitation.isAccepted
-  ) || [];
-  const totalInvitationsPages = Math.ceil(filteredInvitations.length / itemsPerPage);
+  const filteredInvitations =
+    invitationsData?.data?.filter(
+      (invitation: any) => !invitation.isAccepted
+    ) || [];
+  const totalInvitationsPages = Math.ceil(
+    filteredInvitations.length / itemsPerPage
+  );
   const paginatedInvitations = filteredInvitations.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
@@ -193,63 +200,63 @@ export default function TeamManagement() {
                   </tr>
                 ) : (
                   paginatedMembers.map((member: User) => (
-                      <tr
-                        key={member.id}
-                        className="border-t border-[#d8d9da] text-sm font-worksans font-normal tracking-wider"
-                      >
-                        <td className="py-6 pr-4 text-[#121C2D] dark:text-white text-nowrap">
-                          {member.firstName || ""} {member.lastName || ""}
-                        </td>
-                        <td className="py-6 pr-4 text-[#121C2D] dark:text-white text-nowrap">
-                          {member.email}
-                        </td>
+                    <tr
+                      key={member.id}
+                      className="border-t border-[#d8d9da] text-sm font-worksans font-normal tracking-wider"
+                    >
+                      <td className="py-6 pr-4 text-[#121C2D] dark:text-white text-nowrap">
+                        {member.firstName || ""} {member.lastName || ""}
+                      </td>
+                      <td className="py-6 pr-4 text-[#121C2D] dark:text-white text-nowrap">
+                        {member.email}
+                      </td>
+                      <td className="py-6 pr-4">
+                        {member.role.name.toLowerCase() === "admin" ? (
+                          <span className="bg-[#6A7282] text-white px-3 py-2 rounded-lg text-md text-nowrap">
+                            Admin
+                          </span>
+                        ) : member.role.name.toLowerCase() === "superadmin" ? (
+                          <span className="bg-[#5A626F] text-white px-3 py-2 rounded-lg text-md">
+                            SuperAdmin
+                          </span>
+                        ) : member.role.name.toLowerCase() === "viewer" ? (
+                          <span className="bg-[#6A7282] text-white px-3 py-2 rounded-lg text-md text-nowrap">
+                            Viewer
+                          </span>
+                        ) : (
+                          <span className="bg-[#5A626F] text-white px-3 py-2 rounded-lg text-md text-nowrap">
+                            {member.role.name}
+                          </span>
+                        )}
+                      </td>
+                      {isSuperAdmin && (
                         <td className="py-6 pr-4">
-                          {member.role.name.toLowerCase() === "admin" ? (
-                            <span className="bg-[#6A7282] text-white px-3 py-2 rounded-lg text-md text-nowrap">
-                              Admin
-                            </span>
-                          ) : member.role.name.toLowerCase() === "superadmin" ? (
-                            <span className="bg-[#5A626F] text-white px-3 py-2 rounded-lg text-md">
-                              SuperAdmin
-                            </span>
-                          ) : member.role.name.toLowerCase() === "viewer" ? (
-                            <span className="bg-[#6A7282] text-white px-3 py-2 rounded-lg text-md text-nowrap">
-                              Viewer
-                            </span>
+                          {member.id !== user?.id ? (
+                            <button
+                              onClick={() => handleRevokeClick(member)}
+                              className="flex items-center gap-2 bg-[#EF4444] hover:bg-[#dc2626] text-white px-3 py-1 rounded-lg text-md transition-all cursor-pointer"
+                              disabled={
+                                revokeRole.isPending &&
+                                selectedUser?.id === member.id
+                              }
+                            >
+                              <span className="text-xl">
+                                <MdOutlineCancel className="w-4 h-4" />
+                              </span>
+                              {revokeRole.isPending &&
+                              selectedUser?.id === member.id
+                                ? "Revoking..."
+                                : "Revoke"}
+                            </button>
                           ) : (
-                            <span className="bg-[#5A626F] text-white px-3 py-2 rounded-lg text-md text-nowrap">
-                              {member.role.name}
+                            <span className="text-gray-400 text-sm text-nowrap">
+                              Cannot revoke self
                             </span>
                           )}
                         </td>
-                        {isSuperAdmin && (
-                          <td className="py-6 pr-4">
-                            {member.id !== user?.id ? (
-                              <button
-                                onClick={() => handleRevokeClick(member)}
-                                className="flex items-center gap-2 bg-[#EF4444] hover:bg-[#dc2626] text-white px-3 py-1 rounded-lg text-md transition-all cursor-pointer"
-                                disabled={
-                                  revokeRole.isPending &&
-                                  selectedUser?.id === member.id
-                                }
-                              >
-                                <span className="text-xl">
-                                  <MdOutlineCancel className="w-4 h-4" />
-                                </span>
-                                {revokeRole.isPending &&
-                                selectedUser?.id === member.id
-                                  ? "Revoking..."
-                                  : "Revoke"}
-                              </button>
-                            ) : (
-                              <span className="text-gray-400 text-sm text-nowrap">
-                                Cannot revoke self
-                              </span>
-                            )}
-                          </td>
-                        )}
-                      </tr>
-                    ))
+                      )}
+                    </tr>
+                  ))
                 )}
               </tbody>
             </table>
@@ -259,8 +266,11 @@ export default function TeamManagement() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center px-4 py-3 bg-[#F1F5F9] dark:bg-[#121C2D] rounded-b-xl gap-3">
               <span className="text-sm order-2 sm:order-1">
                 Showing {(currentPage - 1) * itemsPerPage + 1}-
-                {Math.min(currentPage * itemsPerPage, filteredTeamMembers.length)} from{" "}
-                {filteredTeamMembers.length} members
+                {Math.min(
+                  currentPage * itemsPerPage,
+                  filteredTeamMembers.length
+                )}{" "}
+                from {filteredTeamMembers.length} members
               </span>
               {totalMembersPages > 1 && (
                 <div className="flex items-center gap-1 order-1 sm:order-2">
@@ -289,7 +299,7 @@ export default function TeamManagement() {
                     {(() => {
                       const pages = [];
                       const maxVisiblePages = 5;
-                      
+
                       if (totalMembersPages <= maxVisiblePages) {
                         // Show all pages if total is small
                         for (let i = 1; i <= totalMembersPages; i++) {
@@ -310,8 +320,11 @@ export default function TeamManagement() {
                       } else {
                         // Smart truncation for many pages
                         const startPage = Math.max(1, currentPage - 2);
-                        const endPage = Math.min(totalMembersPages, currentPage + 2);
-                        
+                        const endPage = Math.min(
+                          totalMembersPages,
+                          currentPage + 2
+                        );
+
                         // First page
                         if (startPage > 1) {
                           pages.push(
@@ -329,13 +342,16 @@ export default function TeamManagement() {
                           );
                           if (startPage > 2) {
                             pages.push(
-                              <span key="start-ellipsis" className="px-2 text-gray-500">
+                              <span
+                                key="start-ellipsis"
+                                className="px-2 text-gray-500"
+                              >
                                 ...
                               </span>
                             );
                           }
                         }
-                        
+
                         // Current range
                         for (let i = startPage; i <= endPage; i++) {
                           pages.push(
@@ -352,12 +368,15 @@ export default function TeamManagement() {
                             </button>
                           );
                         }
-                        
+
                         // Last page
                         if (endPage < totalMembersPages) {
                           if (endPage < totalMembersPages - 1) {
                             pages.push(
-                              <span key="end-ellipsis" className="px-2 text-gray-500">
+                              <span
+                                key="end-ellipsis"
+                                className="px-2 text-gray-500"
+                              >
                                 ...
                               </span>
                             );
@@ -377,7 +396,7 @@ export default function TeamManagement() {
                           );
                         }
                       }
-                      
+
                       return pages;
                     })()}
                   </div>
@@ -389,7 +408,11 @@ export default function TeamManagement() {
                         ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
                         : "hover:bg-[#6A7282] text-black dark:text-white"
                     }`}
-                    onClick={() => setCurrentPage(Math.min(totalMembersPages, currentPage + 1))}
+                    onClick={() =>
+                      setCurrentPage(
+                        Math.min(totalMembersPages, currentPage + 1)
+                      )
+                    }
                     disabled={currentPage === totalMembersPages}
                   >
                     ›
@@ -440,71 +463,73 @@ export default function TeamManagement() {
                   </tr>
                 ) : (
                   paginatedInvitations.map((invitation: any) => (
-                      <tr
-                        key={invitation.id}
-                        className="border-t border-[#d8d9da] font-worksans text-xs sm:text-sm tracking-wider"
-                      >
-                        <td className="py-6 pr-4 text-[#121C2D] dark:text-white text-nowrap">
-                          {invitation.email}
-                        </td>
-                        <td className="py-6 pr-4">
-                          <span
-                            className={`px-3 py-2 rounded-lg text-md text-nowrap ${
-                              invitation.role.name.toLowerCase() === "admin"
-                                ? "bg-[#6A7282] text-white"
-                                : "bg-[#334154] text-white"
-                            }`}
-                          >
-                            {invitation.role.name}
-                          </span>
-                        </td>
-                        <td className="py-6 pr-4">
-                          <span
-                            className={`px-3 py-2 rounded-lg text-md text-nowrap ${
-                              invitation.isAccepted
-                                ? "bg-green-500 text-white"
-                                : "bg-yellow-500 text-white"
-                            }`}
-                          >
-                            {invitation.isAccepted ? "Accepted" : "Pending"}
-                          </span>
-                        </td>
-                        <td className="py-6 pr-4 text-nowrap text-[#121C2D] dark:text-white">
-                          {invitation.invitedBy.firstName}{" "}
-                          {invitation.invitedBy.lastName}
-                        </td>
-                        <td className="py-6 pr-4 text-nowrap text-[#121C2D] dark:text-white">
-                          {format(
-                            new Date(invitation.expiresAt),
-                            "MMM d, h:mm a"
-                          )}
-                        </td>
-                        <td className="py-6 pr-4">
-                          {permissions.canEditTeam ? (
-                            <button
-                              onClick={() =>
-                                handleDeleteInviteClick(invitation.id)
-                              }
-                              className="flex items-center gap-2 bg-[#EF4444] hover:bg-[#dc2626] text-white px-3 py-1 rounded-lg text-md transition-all cursor-pointer"
-                              disabled={
-                                deleteInvitation.isPending &&
-                                selectedInvitationId === invitation.id
-                              }
-                            >
-                              <span className="text-xl">
-                                <MdOutlineCancel className="w-4 h-4" />
-                              </span>
-                              {deleteInvitation.isPending &&
+                    <tr
+                      key={invitation.id}
+                      className="border-t border-[#d8d9da] font-worksans text-xs sm:text-sm tracking-wider"
+                    >
+                      <td className="py-6 pr-4 text-[#121C2D] dark:text-white text-nowrap">
+                        {invitation.email}
+                      </td>
+                      <td className="py-6 pr-4">
+                        <span
+                          className={`px-3 py-2 rounded-lg text-md text-nowrap ${
+                            invitation.role.name.toLowerCase() === "admin"
+                              ? "bg-[#6A7282] text-white"
+                              : "bg-[#334154] text-white"
+                          }`}
+                        >
+                          {invitation.role.name}
+                        </span>
+                      </td>
+                      <td className="py-6 pr-4">
+                        <span
+                          className={`px-3 py-2 rounded-lg text-md text-nowrap ${
+                            invitation.isAccepted
+                              ? "bg-green-500 text-white"
+                              : "bg-yellow-500 text-white"
+                          }`}
+                        >
+                          {invitation.isAccepted ? "Accepted" : "Pending"}
+                        </span>
+                      </td>
+                      <td className="py-6 pr-4 text-nowrap text-[#121C2D] dark:text-white">
+                        {invitation.invitedBy.firstName}{" "}
+                        {invitation.invitedBy.lastName}
+                      </td>
+                      <td className="py-6 pr-4 text-nowrap text-[#121C2D] dark:text-white">
+                        {format(
+                          new Date(invitation.expiresAt),
+                          "MMM d, h:mm a"
+                        )}
+                      </td>
+                      <td className="py-6 pr-4">
+                        {permissions.canEditTeam ? (
+                          <button
+                            onClick={() =>
+                              handleDeleteInviteClick(invitation.id)
+                            }
+                            className="flex items-center gap-2 bg-[#EF4444] hover:bg-[#dc2626] text-white px-3 py-1 rounded-lg text-md transition-all cursor-pointer"
+                            disabled={
+                              deleteInvitation.isPending &&
                               selectedInvitationId === invitation.id
-                                ? "Deleting..."
-                                : "Delete"}
-                            </button>
-                          ) : (
-                            <span className="text-gray-400 text-sm">View Only</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))
+                            }
+                          >
+                            <span className="text-xl">
+                              <MdOutlineCancel className="w-4 h-4" />
+                            </span>
+                            {deleteInvitation.isPending &&
+                            selectedInvitationId === invitation.id
+                              ? "Deleting..."
+                              : "Delete"}
+                          </button>
+                        ) : (
+                          <span className="text-gray-400 text-sm">
+                            View Only
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))
                 )}
               </tbody>
             </table>
@@ -514,8 +539,11 @@ export default function TeamManagement() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center px-4 py-3 bg-[#F1F5F9] dark:bg-[#121C2D] rounded-b-xl gap-3">
               <span className="text-sm order-2 sm:order-1">
                 Showing {(currentPage - 1) * itemsPerPage + 1}-
-                {Math.min(currentPage * itemsPerPage, filteredInvitations.length)} from{" "}
-                {filteredInvitations.length} invitations
+                {Math.min(
+                  currentPage * itemsPerPage,
+                  filteredInvitations.length
+                )}{" "}
+                from {filteredInvitations.length} invitations
               </span>
               {totalInvitationsPages > 1 && (
                 <div className="flex items-center gap-1 order-1 sm:order-2">
@@ -544,7 +572,7 @@ export default function TeamManagement() {
                     {(() => {
                       const pages = [];
                       const maxVisiblePages = 5;
-                      
+
                       if (totalInvitationsPages <= maxVisiblePages) {
                         // Show all pages if total is small
                         for (let i = 1; i <= totalInvitationsPages; i++) {
@@ -565,8 +593,11 @@ export default function TeamManagement() {
                       } else {
                         // Smart truncation for many pages
                         const startPage = Math.max(1, currentPage - 2);
-                        const endPage = Math.min(totalInvitationsPages, currentPage + 2);
-                        
+                        const endPage = Math.min(
+                          totalInvitationsPages,
+                          currentPage + 2
+                        );
+
                         // First page
                         if (startPage > 1) {
                           pages.push(
@@ -584,13 +615,16 @@ export default function TeamManagement() {
                           );
                           if (startPage > 2) {
                             pages.push(
-                              <span key="start-ellipsis" className="px-2 text-gray-500">
+                              <span
+                                key="start-ellipsis"
+                                className="px-2 text-gray-500"
+                              >
                                 ...
                               </span>
                             );
                           }
                         }
-                        
+
                         // Current range
                         for (let i = startPage; i <= endPage; i++) {
                           pages.push(
@@ -607,12 +641,15 @@ export default function TeamManagement() {
                             </button>
                           );
                         }
-                        
+
                         // Last page
                         if (endPage < totalInvitationsPages) {
                           if (endPage < totalInvitationsPages - 1) {
                             pages.push(
-                              <span key="end-ellipsis" className="px-2 text-gray-500">
+                              <span
+                                key="end-ellipsis"
+                                className="px-2 text-gray-500"
+                              >
                                 ...
                               </span>
                             );
@@ -625,14 +662,16 @@ export default function TeamManagement() {
                                   ? "bg-[#6A7282] text-white"
                                   : "hover:bg-[#6A7282]/20 text-black dark:text-white"
                               }`}
-                              onClick={() => setCurrentPage(totalInvitationsPages)}
+                              onClick={() =>
+                                setCurrentPage(totalInvitationsPages)
+                              }
                             >
                               {totalInvitationsPages}
                             </button>
                           );
                         }
                       }
-                      
+
                       return pages;
                     })()}
                   </div>
@@ -644,7 +683,11 @@ export default function TeamManagement() {
                         ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
                         : "hover:bg-[#FFF7ED] text-black dark:text-white"
                     }`}
-                    onClick={() => setCurrentPage(Math.min(totalInvitationsPages, currentPage + 1))}
+                    onClick={() =>
+                      setCurrentPage(
+                        Math.min(totalInvitationsPages, currentPage + 1)
+                      )
+                    }
                     disabled={currentPage === totalInvitationsPages}
                   >
                     ›

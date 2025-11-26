@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
-import * as Yup from "yup";
+import {
+  number as yupNumber,
+  object as yupObject,
+  string as yupString,
+} from "yup";
 import {
   Sheet,
   SheetContent,
@@ -45,13 +49,13 @@ interface FormValues {
   gameFile?: UploadedFile;
 }
 
-const validationSchema = Yup.object({
-  title: Yup.string().required("Title is required"),
-  description: Yup.string(),
-  config: Yup.number()
+const validationSchema = yupObject({
+  title: yupString().required("Title is required"),
+  description: yupString(),
+  config: yupNumber()
     .required("Config is required")
     .min(0, "Config must be a positive number"),
-  categoryId: Yup.string(),
+  categoryId: yupString(),
   // For editing, file uploads are completely optional - no validation needed
 });
 

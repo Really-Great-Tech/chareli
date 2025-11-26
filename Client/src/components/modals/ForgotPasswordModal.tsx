@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import type { FieldProps, FormikHelpers, FormikProps } from "formik";
-import * as Yup from "yup";
+import { object as yupObject, string as yupString } from "yup";
 import {
   useForgotPassword,
   useForgotPasswordPhone,
@@ -33,14 +33,14 @@ interface ForgotPasswordModalProps {
 }
 
 // Validation schemas
-const emailValidationSchema = Yup.object({
-  email: Yup.string()
+const emailValidationSchema = yupObject({
+  email: yupString()
     .email("Invalid email address")
     .required("Email is required"),
 });
 
-const phoneValidationSchema = Yup.object({
-  phoneNumber: Yup.string().required("Phone number is required"),
+const phoneValidationSchema = yupObject({
+  phoneNumber: yupString().required("Phone number is required"),
 });
 
 interface FormValues {

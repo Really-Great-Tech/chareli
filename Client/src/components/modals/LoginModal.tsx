@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import type { FieldProps, FormikHelpers } from "formik";
 import type { LoginCredentials } from "../../backend/types";
-import * as Yup from "yup";
+import { object as yupObject, string as yupString } from "yup";
 import { passwordSchema } from "../../validation/password";
 import { useAuth } from "../../context/AuthContext";
 import { toast } from "sonner";
@@ -59,15 +59,15 @@ interface LoginResponse {
   };
 }
 
-const emailValidationSchema = Yup.object({
-  email: Yup.string()
+const emailValidationSchema = yupObject({
+  email: yupString()
     .email("Invalid email address")
     .required("Email is required"),
   password: passwordSchema,
 });
 
-const phoneValidationSchema = Yup.object({
-  phoneNumber: Yup.string().required("Phone number is required"),
+const phoneValidationSchema = yupObject({
+  phoneNumber: yupString().required("Phone number is required"),
   password: passwordSchema,
 });
 

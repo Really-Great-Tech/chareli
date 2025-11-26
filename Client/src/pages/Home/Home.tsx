@@ -1,10 +1,32 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense, lazy } from "react";
 import { useSearchParams } from "react-router-dom";
-import AllGamesSection from "../../components/single/AllGamesSection";
-import PopularSection from "../../components/single/PopularSection";
-import { SignUpModal } from "../../components/modals/SignUpModal";
-import { LoginModal } from "../../components/modals/LoginModal";
 import { useAuth } from "../../context/AuthContext";
+
+const PopularSection = lazy(
+  () => import("../../components/single/PopularSection")
+);
+const AllGamesSection = lazy(
+  () => import("../../components/single/AllGamesSection")
+);
+const SignUpModal = lazy(() =>
+  import("../../components/modals/SignUpModal").then((module) => ({
+    default: module.SignUpModal,
+  }))
+);
+const LoginModal = lazy(() =>
+  import("../../components/modals/LoginModal").then((module) => ({
+    default: module.LoginModal,
+  }))
+);
+
+const SectionFallback = ({ title }: { title: string }) => (
+  <div className="p-4">
+    <div
+      className="h-48 animate-pulse rounded-[32px] bg-[#e2e8f0]/60 dark:bg-[#1f2937]/60"
+      aria-label={`${title} loading`}
+    />
+  </div>
+);
 
 function Home() {
   const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
@@ -48,21 +70,29 @@ function Home() {
           Play Free Online Arcade Games on Arcades Box
         </h1>
       </div>
-      <PopularSection
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-      />
-      <AllGamesSection searchQuery={searchQuery} />
-      <SignUpModal
-        open={isSignUpModalOpen}
-        onOpenChange={setIsSignUpModalOpen}
-        openLoginModal={handleOpenLoginModal}
-      />
-      <LoginModal
-        open={isLoginModalOpen}
-        onOpenChange={setIsLoginModalOpen}
-        openSignUpModal={handleOpenSignUpModal}
-      />
+      <Suspense fallback={<SectionFallback title="Popular games" />}>
+        <PopularSection
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+        />
+      </Suspense>
+      <Suspense fallback={<SectionFallback title="All games" />}>
+        <AllGamesSection searchQuery={searchQuery} />
+      </Suspense>
+      <Suspense fallback={null}>
+        <SignUpModal
+          open={isSignUpModalOpen}
+          onOpenChange={setIsSignUpModalOpen}
+          openLoginModal={handleOpenLoginModal}
+        />
+      </Suspense>
+      <Suspense fallback={null}>
+        <LoginModal
+          open={isLoginModalOpen}
+          onOpenChange={setIsLoginModalOpen}
+          openSignUpModal={handleOpenSignUpModal}
+        />
+      </Suspense>
     </div>
   );
 }

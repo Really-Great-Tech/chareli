@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useVerifyInvitation } from "../../backend/teams.service";

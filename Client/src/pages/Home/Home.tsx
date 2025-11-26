@@ -65,6 +65,7 @@ function Home() {
 
   return (
     <div className="font-dmmono">
+      <h1 className="sr-only">Play Free Online Arcade Games on Arcades Box</h1>
       <Suspense fallback={<SectionFallback title="Popular games" />}>
         <PopularSection
           searchQuery={searchQuery}

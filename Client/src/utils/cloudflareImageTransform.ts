@@ -98,9 +98,47 @@ export function transformImageUrl(
   }
 
   const transformParams = params.join(",");
+  console.log(imageUrl);
 
+  const normalizedZone = cloudflareZone.replace(/\/+$/, "");
 
-  return `https://${cloudflareZone}/cdn-cgi/image/${transformParams}/${imageUrl}`;
+  const zoneHost = (() => {
+    try {
+      const candidate = normalizedZone.match(/^https?:\/\//i)
+        ? normalizedZone
+        : `https://${normalizedZone}`;
+      return new URL(candidate).host;
+    } catch {
+      return null;
+    }
+  })();
+
+  const absoluteImageUrl = (() => {
+    try {
+      if (/^https?:\/\//i.test(imageUrl)) {
+        return new URL(imageUrl);
+      }
+      if (imageUrl.startsWith("//")) {
+        return new URL(`https:${imageUrl}`);
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  })();
+
+  let sanitizedImageUrl = imageUrl;
+
+  if (zoneHost && absoluteImageUrl && absoluteImageUrl.host === zoneHost) {
+    const pathWithParams = `${absoluteImageUrl.pathname}${absoluteImageUrl.search}${absoluteImageUrl.hash}`;
+    sanitizedImageUrl = pathWithParams.replace(/^\/+/, "");
+  } else if (!absoluteImageUrl) {
+    sanitizedImageUrl = imageUrl.replace(/^\/+/, "");
+  }
+
+  console.log(sanitizedImageUrl);
+
+  return `${normalizedZone}/cdn-cgi/image/${transformParams}/${sanitizedImageUrl}`;
 }
 
 /**
@@ -140,4 +178,3 @@ export const ImagePresets = {
     fit: "cover",
   }),
 };
-

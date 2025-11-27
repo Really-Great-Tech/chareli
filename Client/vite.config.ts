@@ -109,20 +109,7 @@ const resolveManualChunk = (id: string) => {
     return match.name;
   }
 
-  // Split remaining vendor code into smaller chunks based on package name
-  const nodeModulesPath = normalizedId.split("/node_modules/").pop();
-  if (nodeModulesPath) {
-    // Extract package name (handle scoped packages like @babel/runtime)
-    const packageName = nodeModulesPath.startsWith("@")
-      ? nodeModulesPath.split("/").slice(0, 2).join("/")
-      : nodeModulesPath.split("/")[0];
-
-    // Group into vendor-{first-letter} chunks to distribute the load
-    const firstChar = packageName.replace("@", "").charAt(0).toLowerCase();
-    return `vendor-${firstChar}`;
-  }
-
-  return "vendor-misc";
+  return "vendor";
 };
 
 // https://vite.dev/config/

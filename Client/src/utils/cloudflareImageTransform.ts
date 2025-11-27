@@ -54,7 +54,6 @@ export function transformImageUrl(
 ): string {
   // If no Cloudflare zone is provided, return original URL
   if (!cloudflareZone) {
-    console.log("imageUrl", imageUrl);
     return imageUrl;
   }
 
@@ -98,8 +97,6 @@ export function transformImageUrl(
   }
 
   const transformParams = params.join(",");
-  console.log(imageUrl);
-
   const normalizedZone = cloudflareZone.replace(/\/+$/, "");
 
   const zoneHost = (() => {
@@ -135,8 +132,6 @@ export function transformImageUrl(
   } else if (!absoluteImageUrl) {
     sanitizedImageUrl = imageUrl.replace(/^\/+/, "");
   }
-
-  console.log(sanitizedImageUrl);
 
   return `${normalizedZone}/cdn-cgi/image/${transformParams}/${sanitizedImageUrl}`;
 }

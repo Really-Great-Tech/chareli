@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
-import * as Yup from 'yup';
+import { object as yupObject } from 'yup';
 import { Input } from '../../components/ui/input';
 import { Button } from '../../components/ui/button';
 import { Label } from '../../components/ui/label';
@@ -15,7 +15,7 @@ interface ResetPasswordFormProps {
   onSuccess: () => void;
 }
 
-const validationSchema = Yup.object({
+const validationSchema = yupObject({
   password: passwordSchema,
   confirmPassword: confirmPasswordSchema
 });

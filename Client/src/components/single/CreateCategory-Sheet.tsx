@@ -14,7 +14,7 @@ import { useCreateCategory } from "../../backend/category.service";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
 import { Formik, Form, Field, ErrorMessage } from "formik";
-import * as Yup from "yup";
+import { object as yupObject, string as yupString } from "yup";
 
 interface CreateCategoryProps {
   open: boolean;
@@ -26,9 +26,9 @@ interface FormValues {
   description?: string;
 }
 
-const validationSchema = Yup.object({
-  name: Yup.string().required("Name is required").trim(),
-  description: Yup.string().trim(),
+const validationSchema = yupObject({
+  name: yupString().required("Name is required").trim(),
+  description: yupString().trim(),
 });
 
 export function CreateCategory({ open, onOpenChange }: CreateCategoryProps) {

@@ -1,54 +1,79 @@
-import { Routes, Route } from 'react-router-dom';
-import ErrorPage from '../pages/ErrorPage';
-import Home from '../pages/Home/Home';
-import About from '../pages/About/About';
-import { RegisterInvitationPage } from '../pages/RegisterInvitation';
-import MainLayout from '../layout/MainLayout';
-import GamePlay from '../pages/GamePlay/GamePlay';
-import Categories from '../pages/Categories/Categories';
-import { ResetPasswordPage } from '../pages/ResetPassword/ResetPasswordPage';
-import { ProtectedRoute } from './ProtectedRoute';
-import AdminLayout from '../layout/AdminLayout';
-import AdminHome from '../pages/Admin/Home/Home';
-import GameManagement from '../pages/Admin/Management/GameManagement';
-import UserManagement from '../pages/Admin/UserManagement/UserManagement';
-import Analytics from '../pages/Admin/Analytics/Analytics';
-import Configuration from '../pages/Admin/Configuration/Configuration';
-import ViewGame from '../pages/Admin/ViewGame';
-import GameCategories from '../pages/Admin/Category/GameCategories';
-import CategoryDetail from '../pages/Admin/Category/CategoryDetail';
-import UserManagementView from '../pages/Admin/UserMgtView';
-import TeamManagement from '../pages/Admin/Team/TeamManagement';
-import Settings from '../pages/Admin/Settings';
-import ViewProfile from '../pages/Admin/ViewProfile';
-import Terms from '../pages/TermsOfService/Terms';
-import Privacy from '../pages/PrivacyPolicy/Privacy';
+import { Suspense, lazy } from "react";
+import { Routes, Route } from "react-router-dom";
+import { ProtectedRoute } from "./ProtectedRoute";
 
+const ErrorPage = lazy(() => import("../pages/ErrorPage"));
+const Home = lazy(() => import("../pages/Home/Home"));
+const About = lazy(() => import("../pages/About/About"));
+const RegisterInvitationPage = lazy(() =>
+  import("../pages/RegisterInvitation").then((module) => ({
+    default: module.RegisterInvitationPage,
+  }))
+);
+const MainLayout = lazy(() => import("../layout/MainLayout"));
+const GamePlay = lazy(() => import("../pages/GamePlay/GamePlay"));
+const Categories = lazy(() => import("../pages/Categories/Categories"));
+const ResetPasswordPage = lazy(() =>
+  import("../pages/ResetPassword/ResetPasswordPage").then((module) => ({
+    default: module.ResetPasswordPage,
+  }))
+);
+const AdminLayout = lazy(() => import("../layout/AdminLayout"));
+const AdminHome = lazy(() => import("../pages/Admin/Home/Home"));
+const GameManagement = lazy(
+  () => import("../pages/Admin/Management/GameManagement")
+);
+const UserManagement = lazy(
+  () => import("../pages/Admin/UserManagement/UserManagement")
+);
+const Analytics = lazy(() => import("../pages/Admin/Analytics/Analytics"));
+const Configuration = lazy(
+  () => import("../pages/Admin/Configuration/Configuration")
+);
+const ViewGame = lazy(() => import("../pages/Admin/ViewGame"));
+const GameCategories = lazy(
+  () => import("../pages/Admin/Category/GameCategories")
+);
+const CategoryDetail = lazy(
+  () => import("../pages/Admin/Category/CategoryDetail")
+);
+const UserManagementView = lazy(() => import("../pages/Admin/UserMgtView"));
+const TeamManagement = lazy(() => import("../pages/Admin/Team/TeamManagement"));
+const Settings = lazy(() => import("../pages/Admin/Settings"));
+const ViewProfile = lazy(() => import("../pages/Admin/ViewProfile"));
+const Terms = lazy(() => import("../pages/TermsOfService/Terms"));
+const Privacy = lazy(() => import("../pages/PrivacyPolicy/Privacy"));
+
+const RouteFallback = () => (
+  <div className="flex min-h-screen items-center justify-center bg-[#0F1221] text-white">
+    <span className="text-lg font-dmmono">Loading...</span>
+  </div>
+);
 
 export const AppRoutes = () => {
   return (
-    <Routes>
-
-      <Route path="/">
-        <Route element={<MainLayout />}>
-
-          <Route index element={<Home />} />
-          <Route path="about" element={<About />} />
-          <Route path="categories" element={<Categories />} />
-          <Route path="gameplay/:gameId" element={<GamePlay />} />
-          <Route path="terms" element={<Terms />} />
-          <Route path="privacy" element={<Privacy />} />
-
-
-          <Route path="*" element={<ErrorPage />} />
+    <Suspense fallback={<RouteFallback />}>
+      <Routes>
+        <Route path="/">
+          <Route element={<MainLayout />}>
+            <Route index element={<Home />} />
+            <Route path="about" element={<About />} />
+            <Route path="categories" element={<Categories />} />
+            <Route path="gameplay/:gameId" element={<GamePlay />} />
+            <Route path="terms" element={<Terms />} />
+            <Route path="privacy" element={<Privacy />} />
+            <Route path="*" element={<ErrorPage />} />
+          </Route>
         </Route>
-      </Route>
 
         <Route path="reset-password">
           <Route path=":token" element={<ResetPasswordPage />} />
           <Route path="phone/:userId" element={<ResetPasswordPage />} />
         </Route>
-        <Route path="register-invitation/:token" element={<RegisterInvitationPage />} />
+        <Route
+          path="register-invitation/:token"
+          element={<RegisterInvitationPage />}
+        />
 
         <Route path="admin/" element={<ProtectedRoute requireAdmin={true} />}>
           <Route element={<AdminLayout />}>
@@ -67,16 +92,19 @@ export const AppRoutes = () => {
         </Route>
 
         {/* Config routes - require config access (excludes viewers) */}
-        <Route path="admin/" element={<ProtectedRoute requireAdmin={true} requireConfig={true} />}>
+        <Route
+          path="admin/"
+          element={<ProtectedRoute requireAdmin={true} requireConfig={true} />}
+        >
           <Route element={<AdminLayout />}>
             <Route path="config" element={<Configuration />} />
             <Route path="settings" element={<Settings />} />
           </Route>
         </Route>
 
-            <Route path="*" element={<ErrorPage />} />
-
-    </Routes>
+        <Route path="*" element={<ErrorPage />} />
+      </Routes>
+    </Suspense>
   );
 };
 

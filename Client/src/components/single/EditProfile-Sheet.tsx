@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { useAuth } from "../../context/AuthContext";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import type { FieldProps } from "formik";
-import * as Yup from "yup";
+import { object as yupObject, string as yupString } from "yup";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import "../../styles/phone-input.css";
@@ -30,19 +30,19 @@ interface EditProfileSheetProps {
   };
 }
 
-const validationSchema = Yup.object().shape({
-  firstName: Yup.string()
+const validationSchema = yupObject().shape({
+  firstName: yupString()
     .required("First name is required")
     .min(2, "First name must be at least 2 characters")
     .max(50, "First name must be less than 50 characters"),
-  lastName: Yup.string()
+  lastName: yupString()
     .required("Last name is required")
     .min(2, "Last name must be at least 2 characters")
     .max(50, "Last name must be less than 50 characters"),
-  email: Yup.string()
+  email: yupString()
     .email("Invalid email address")
     .required("Email is required"),
-  phone: Yup.string()
+  phone: yupString()
     .nullable()
     .matches(
       /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/,

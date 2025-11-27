@@ -16,7 +16,7 @@ import {
 } from "../../backend/category.service";
 import { toast } from "sonner";
 import { Formik, Form, Field, ErrorMessage } from "formik";
-import * as Yup from "yup";
+import { object as yupObject, string as yupString } from "yup";
 import { DeleteConfirmationModal } from "../modals/DeleteConfirmationModal";
 import { useQueryClient } from "@tanstack/react-query";
 import { BackendRoute } from "../../backend/constants";
@@ -32,9 +32,9 @@ interface FormValues {
   description?: string;
 }
 
-const validationSchema = Yup.object({
-  name: Yup.string().required("Name is required"),
-  description: Yup.string(),
+const validationSchema = yupObject({
+  name: yupString().required("Name is required"),
+  description: yupString(),
 });
 
 export function EditCategory({

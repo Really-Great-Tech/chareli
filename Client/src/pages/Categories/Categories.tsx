@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect } from "react";
-import { useCategories } from "../../backend/category.service";
-import { useGames } from "../../backend/games.service";
-import { useGameClickHandler } from "../../hooks/useGameClickHandler";
-import { LazyImage } from "../../components/ui/LazyImage";
-import GamesSkeleton from "../../components/single/GamesSkeleton";
-import type { Category } from "../../backend/types";
+import { useState, useEffect } from 'react';
+import { useCategories } from '../../backend/category.service';
+import { useGames } from '../../backend/games.service';
+import { useGameClickHandler } from '../../hooks/useGameClickHandler';
+import { LazyImage } from '../../components/ui/LazyImage';
+import GamesSkeleton from '../../components/single/GamesSkeleton';
+import type { Category } from '../../backend/types';
 
-import emptyGameImg from "../../assets/empty-game.png";
+import emptyGameImg from '../../assets/empty-game.png';
 
-const secondary = ["Recently Added", "Popular", "Recommended for you"];
+const secondary = ['Recently Added', 'Popular', 'Recommended for you'];
 
 export default function Categories() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -17,7 +17,9 @@ export default function Categories() {
     null
   );
   const [showMobileCategories, setShowMobileCategories] = useState(false);
-  const [screenSize, setScreenSize] = useState<'mobile' | 'tablet' | 'desktop'>('mobile');
+  const [screenSize, setScreenSize] = useState<'mobile' | 'tablet' | 'desktop'>(
+    'mobile'
+  );
 
   const {
     data: categoriesData,
@@ -31,15 +33,15 @@ export default function Categories() {
   } = useGames({
     categoryId: selectedCategory || undefined,
     filter: selectedSecondary
-      ? selectedSecondary === "Recently Added"
-        ? "recently_added"
-        : selectedSecondary === "Popular"
-        ? "popular"
-        : selectedSecondary === "Recommended for you"
-        ? "recommended"
+      ? selectedSecondary === 'Recently Added'
+        ? 'recently_added'
+        : selectedSecondary === 'Popular'
+        ? 'popular'
+        : selectedSecondary === 'Recommended for you'
+        ? 'recommended'
         : undefined
       : undefined,
-    status: "active",
+    status: 'active',
   });
 
   const categories = (categoriesData || []) as Category[];
@@ -85,22 +87,28 @@ export default function Categories() {
                   ? categories.find((cat) => cat.id === selectedCategory)?.name
                   : selectedSecondary
                   ? selectedSecondary
-                  : "All Categories"
+                  : 'All Categories'
               }
             >
-              <span className="font-semibold text-[#121C2D] dark:text-white truncate mr-2">
+              <h3 className="font-semibold text-[#121C2D] font-worksans dark:text-white truncate mr-2 m-0">
                 {selectedCategory
                   ? (() => {
-                      const categoryName = categories.find((cat) => cat.id === selectedCategory)?.name || "";
-                      return categoryName.length > 20 ? `${categoryName.substring(0, 20)}...` : categoryName;
+                      const categoryName =
+                        categories.find((cat) => cat.id === selectedCategory)
+                          ?.name || '';
+                      return categoryName.length > 20
+                        ? `${categoryName.substring(0, 20)}...`
+                        : categoryName;
                     })()
                   : selectedSecondary
-                  ? selectedSecondary.length > 20 ? `${selectedSecondary.substring(0, 20)}...` : selectedSecondary
-                  : "All Categories"}
-              </span>
+                  ? selectedSecondary.length > 20
+                    ? `${selectedSecondary.substring(0, 20)}...`
+                    : selectedSecondary
+                  : 'All Categories'}
+              </h3>
               <svg
                 className={`w-5 h-5 text-[#121C2D] dark:text-white transition-transform ${
-                  showMobileCategories ? "rotate-180" : ""
+                  showMobileCategories ? 'rotate-180' : ''
                 }`}
                 fill="none"
                 stroke="currentColor"
@@ -124,8 +132,8 @@ export default function Categories() {
                     className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition
                         ${
                           !selectedCategory && !selectedSecondary
-                            ? "bg-[#6A7282] text-white"
-                            : "text-[#121C2D] hover:bg-[#E5E7EB] hover:text-[#6A7282] dark:text-white dark:hover:bg-gray-800"
+                            ? 'bg-[#6A7282] text-white'
+                            : 'text-[#121C2D] hover:bg-[#E5E7EB] hover:text-[#6A7282] dark:text-white dark:hover:bg-gray-800'
                         }
                     `}
                     onClick={() => {
@@ -144,18 +152,19 @@ export default function Categories() {
 
                   {/* Primary Categories */}
                   {categories.map((cat) => {
-                    const truncatedName = cat.name.length > 25 
-                      ? `${cat.name.substring(0, 25)}...` 
-                      : cat.name;
-                    
+                    const truncatedName =
+                      cat.name.length > 25
+                        ? `${cat.name.substring(0, 25)}...`
+                        : cat.name;
+
                     return (
                       <button
                         key={cat.id}
                         className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition
                           ${
                             selectedCategory === cat.id
-                              ? "bg-[#6A7282] text-white"
-                              : "text-[#121C2D] hover:bg-[#E5E7EB] hover:text-[#6A7282] dark:text-white dark:hover:bg-gray-800"
+                              ? 'bg-[#6A7282] text-white'
+                              : 'text-[#121C2D] hover:bg-[#E5E7EB] hover:text-[#6A7282] dark:text-white dark:hover:bg-gray-800'
                           }
                         `}
                         onClick={() => {
@@ -165,9 +174,9 @@ export default function Categories() {
                         }}
                         title={cat.name.length > 25 ? cat.name : undefined}
                       >
-                        <span className="block truncate">
+                        <h4 className="block truncate m-0 font-worksans">
                           {truncatedName}
-                        </span>
+                        </h4>
                       </button>
                     );
                   })}
@@ -182,8 +191,8 @@ export default function Categories() {
                       className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition
                         ${
                           selectedSecondary === sec
-                            ? "bg-[#6A7282] text-white"
-                            : "text-[#121C2D] hover:bg-[#E5E7EB] hover:text-[#6A7282] dark:text-white dark:hover:bg-gray-800"
+                            ? 'bg-[#6A7282] text-white'
+                            : 'text-[#121C2D] hover:bg-[#E5E7EB] hover:text-[#6A7282] dark:text-white dark:hover:bg-gray-800'
                         }
                       `}
                       onClick={() => {
@@ -219,8 +228,8 @@ export default function Categories() {
                     className={`w-full flex items-center gap-2 px-4 py-2 text-lg rounded-lg font-bold tracking-widest cursor-pointer transition
                       ${
                         !selectedCategory && !selectedSecondary
-                          ? "bg-[#6A7282] text-white dark:text-white tracking-wider"
-                          : "bg-transparent text-[#121C2D] hover:bg-[#E5E7EB] hover:text-[#6A7282] dark:text-white dark:hover:text-[#6A7282] tracking-wider"
+                          ? 'bg-[#6A7282] text-white dark:text-white tracking-wider'
+                          : 'bg-transparent text-[#121C2D] hover:bg-[#E5E7EB] hover:text-[#6A7282] dark:text-white dark:hover:text-[#6A7282] tracking-wider'
                       }
                     `}
                     onClick={() => {
@@ -232,18 +241,19 @@ export default function Categories() {
                   </button>
                 </li>
                 {categories.map((cat) => {
-                  const truncatedName = cat.name.length > 16 
-                    ? `${cat.name.substring(0, 16)}...` 
-                    : cat.name;
-                  
+                  const truncatedName =
+                    cat.name.length > 16
+                      ? `${cat.name.substring(0, 16)}...`
+                      : cat.name;
+
                   return (
                     <li key={cat.id}>
                       <button
                         className={`w-full text-left text-lg px-4 py-2 rounded-lg font-semibold cursor-pointer transition relative group
                           ${
                             selectedCategory === cat.id
-                              ? "bg-[#6A7282] text-white shadow dark:text-white tracking-wider"
-                              : "text-[#121C2D] hover:bg-[#E5E7EB] hover:text-[#6A7282] dark:text-white tracking-wider dark:hover:text-[#6A7282]"
+                              ? 'bg-[#6A7282] text-white shadow dark:text-white tracking-wider'
+                              : 'text-[#121C2D] hover:bg-[#E5E7EB] hover:text-[#6A7282] dark:text-white tracking-wider dark:hover:text-[#6A7282]'
                           }
                         `}
                         onClick={() => {
@@ -252,9 +262,9 @@ export default function Categories() {
                         }}
                         title={cat.name.length > 16 ? cat.name : undefined}
                       >
-                        <span className="block truncate">
+                        <h3 className="block truncate m-0 font-worksans">
                           {truncatedName}
-                        </span>
+                        </h3>
                         {cat.name.length > 16 && (
                           <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10 shadow-lg">
                             {cat.name}
@@ -275,8 +285,8 @@ export default function Categories() {
                     <button
                       className={`w-full text-left text-lg px-4 py-2 rounded-lg font-semibold text-[#121C2D] hover:bg-[#E5E7EB] hover:text-[#6A7282] dark:text-white tracking-wider transition dark:hover:text-[#6A7282] cursor-pointer ${
                         selectedSecondary === sec
-                          ? "bg-[#6A7282] text-white"
-                          : ""
+                          ? 'bg-[#6A7282] text-white'
+                          : ''
                       }`}
                       onClick={() => {
                         setSelectedSecondary(sec);
@@ -309,12 +319,12 @@ export default function Categories() {
                   alt="No games"
                   className="w-40 h-40 lg:w-80 lg:h-80 object-contain"
                 />
-                No games found{" "}
+                No games found{' '}
                 {selectedCategory
-                  ? "in this category"
+                  ? 'in this category'
                   : selectedSecondary
-                  ? "for this filter"
-                  : ""}
+                  ? 'for this filter'
+                  : ''}
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 md:gap-6 auto-rows-[1fr] sm:auto-rows-[160px] md:auto-rows-[150px]">
@@ -338,29 +348,35 @@ export default function Categories() {
                     <div
                       key={game.id}
                       className="relative group cursor-pointer"
-                      style={{ 
-                        gridColumn: screenSize === 'mobile' ? `span ${colSpan}` : 'span 1',
-                        gridRow: screenSize === 'mobile' ? 'span 1' : `span ${rowSpan}`
+                      style={{
+                        gridColumn:
+                          screenSize === 'mobile'
+                            ? `span ${colSpan}`
+                            : 'span 1',
+                        gridRow:
+                          screenSize === 'mobile'
+                            ? 'span 1'
+                            : `span ${rowSpan}`,
                       }}
                       onClick={() => handleGameClick(game.id)}
                     >
                       <div className="relative h-full overflow-hidden rounded-[20px] transition-all duration-300 ease-in-out group-hover:shadow-[0_0px_20px_#6A7282,0_0px_10px_rgba(106,114,130,0.8)] aspect-square sm:aspect-auto">
-                      <div className="w-full h-full rounded-[16px] overflow-hidden">
-                        <LazyImage
-                          src={game.thumbnailFile?.s3Key}
-                          alt={game.title}
-                          className="w-full h-full object-fill"
-                          loadingClassName="rounded-[16px]"
-                          spinnerColor="#6A7282"
-                          rootMargin="50px"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent group-hover:opacity-100 transition-opacity duration-300 lg:opacity-0 lg:group-hover:opacity-100 rounded-[16px]">
-                          <span className="absolute bottom-2 left-2 md:bottom-3 md:left-4 text-white font-bold text-xs md:text-lg drop-shadow-lg">
-                            {game.title}
-                          </span>
+                        <div className="w-full h-full rounded-[16px] overflow-hidden">
+                          <LazyImage
+                            src={game.thumbnailFile?.s3Key}
+                            alt={game.title}
+                            className="w-full h-full object-fill"
+                            loadingClassName="rounded-[16px]"
+                            spinnerColor="#6A7282"
+                            rootMargin="50px"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent group-hover:opacity-100 transition-opacity duration-300 lg:opacity-0 lg:group-hover:opacity-100 rounded-[16px]">
+                            <h4 className="absolute font-worksans bottom-2 left-2 md:bottom-3 md:left-4 text-white font-bold text-xs md:text-lg drop-shadow-lg m-0">
+                              {game.title}
+                            </h4>
+                          </div>
                         </div>
                       </div>
-                    </div>
                     </div>
                   );
                 })}

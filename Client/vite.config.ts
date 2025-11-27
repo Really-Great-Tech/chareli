@@ -8,7 +8,7 @@ import { visualizer } from "rollup-plugin-visualizer";
 const manualChunkGroups = [
   {
     name: "framework",
-    patterns: ["react", "react-dom", "scheduler", "react/jsx-runtime"],
+    patterns: ["react-dom", "scheduler", "react-is"],
   },
   {
     name: "router",
@@ -99,9 +99,20 @@ const resolveManualChunk = (id: string) => {
     return null;
   }
 
+  // Handle core React package separately with exact matching
+  // to avoid matching react-select, react-redux, etc.
+  if (
+    normalizedId.includes("/node_modules/react/") ||
+    normalizedId.includes("/node_modules/react-dom/") ||
+    normalizedId.includes("/node_modules/scheduler/") ||
+    normalizedId.includes("/node_modules/react-is/")
+  ) {
+    return "framework";
+  }
+
   const match = manualChunkGroups.find(({ patterns }) =>
     patterns.some((pattern) =>
-      normalizedId.includes(`/node_modules/${pattern}`)
+      normalizedId.includes(`/node_modules/${pattern}/`)
     )
   );
 
@@ -144,15 +155,10 @@ export default defineConfig(({ mode }) => {
           },
         },
       },
-      minify: "terser",
-      terserOptions: {
-        compress: {
-          drop_console: true,
-          drop_debugger: true,
-        },
-        format: {
-          comments: false,
-        },
+      minify: "esbuild",
+      esbuildOptions: {
+        drop: ["console", "debugger"],
+        legalComments: "none",
       },
     },
   };

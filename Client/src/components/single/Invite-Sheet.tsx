@@ -15,15 +15,15 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import { useInviteTeamMember } from "../../backend/teams.service";
 import { useAuth } from "../../context/AuthContext";
 import { toast } from "sonner";
-import * as Yup from "yup";
+import { object as yupObject, string as yupString } from "yup";
 import type { InviteUserRequest } from "../../backend/teams.service";
 
 // Dynamic validation schema based on user role
-const createInviteSchema = (availableRoles: string[]) => Yup.object().shape({
-  email: Yup.string()
+const createInviteSchema = (availableRoles: string[]) => yupObject().shape({
+  email: yupString()
     .email("Invalid email format")
     .required("Email is required"),
-  role: Yup.string()
+  role: yupString()
     .oneOf(availableRoles, "Invalid role")
     .required("Role is required"),
 });

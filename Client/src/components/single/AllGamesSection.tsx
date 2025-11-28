@@ -1,24 +1,26 @@
-import { Card } from "../../components/ui/card";
-import { Button } from "../../components/ui/button";
-import { LazyImage } from "../../components/ui/LazyImage";
-import { useGames } from "../../backend/games.service";
-import { useCategories } from "../../backend/category.service";
-import { useGameClickHandler } from "../../hooks/useGameClickHandler";
-import { useState, useEffect, useRef } from "react";
-import GamesSkeleton from "./GamesSkeleton";
+import { Card } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
+import { LazyImage } from '../../components/ui/LazyImage';
+import { useGames } from '../../backend/games.service';
+import { useCategories } from '../../backend/category.service';
+import { useGameClickHandler } from '../../hooks/useGameClickHandler';
+import { useState, useEffect, useRef } from 'react';
+import GamesSkeleton from './GamesSkeleton';
 
-import emptyGameImg from "../../assets/empty-game.png";
+import emptyGameImg from '../../assets/empty-game.png';
 
 interface AllGamesSectionProps {
   searchQuery: string;
 }
 
 const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [screenSize, setScreenSize] = useState<'mobile' | 'tablet' | 'desktop'>('mobile');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [screenSize, setScreenSize] = useState<'mobile' | 'tablet' | 'desktop'>(
+    'mobile'
+  );
   const containerRef = useRef<HTMLDivElement>(null);
   const savedScrollPosition = useRef<number>(0);
-  
+
   const { data: categoriesData, isLoading: categoriesLoading } =
     useCategories();
   const {
@@ -27,25 +29,25 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
     error: gamesError,
   } = useGames({
     categoryId:
-      selectedCategory === "all"
+      selectedCategory === 'all'
         ? undefined
-        : selectedCategory === "recent"
+        : selectedCategory === 'recent'
         ? undefined
         : selectedCategory,
-    filter: selectedCategory === "recent" ? "recently_added" : undefined,
-    status: "active",
+    filter: selectedCategory === 'recent' ? 'recently_added' : undefined,
+    status: 'active',
     search: searchQuery || undefined,
   });
 
   // Combine static filters with dynamic categories
   const allCategories = [
-    { id: "all", name: "All Games", color: "#64748A" },
+    { id: 'all', name: 'All Games', color: '#64748A' },
     ...(categoriesData?.map((cat) => ({
       id: cat.id,
       name: cat.name,
-      color: "#94A3B7",
+      color: '#94A3B7',
     })) || []),
-    { id: "recent", name: "Recently Added", color: "#94A3B7" },
+    { id: 'recent', name: 'Recently Added', color: '#94A3B7' },
   ];
 
   const games: any = gamesData || [];
@@ -92,8 +94,11 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
           // Force scroll to a controlled position instead of auto-scroll
           if (savedScrollPosition.current > 0) {
             window.scrollTo({
-              top: Math.min(savedScrollPosition.current, document.documentElement.scrollTop),
-              behavior: 'instant'
+              top: Math.min(
+                savedScrollPosition.current,
+                document.documentElement.scrollTop
+              ),
+              behavior: 'instant',
             });
           }
         } else {
@@ -101,7 +106,7 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
           if (savedScrollPosition.current > 0) {
             window.scrollTo({
               top: savedScrollPosition.current,
-              behavior: 'smooth'
+              behavior: 'smooth',
             });
           }
         }
@@ -143,7 +148,9 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
   return (
     <div ref={containerRef} className="p-4">
       <div>
-        <h2 className="text-[#6A7282] dark:text-[#FEFEFE] text-3xl mb-4 font-worksans">All Games</h2>
+        <h2 className="text-[#6A7282] dark:text-[#FEFEFE] text-3xl mb-4 font-worksans">
+          All Games
+        </h2>
       </div>
       {/* filtering tabs */}
       <div className="relative mb-8">
@@ -152,25 +159,34 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
         ) : (
           <div className="relative">
             {/* Fade effect for left edge */}
-            <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white dark:from-[#0f1221] to-transparent z-10 pointer-events-none opacity-0 transition-opacity duration-300" id="left-fade"></div>
-            
+            <div
+              className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white dark:from-[#0f1221] to-transparent z-10 pointer-events-none opacity-0 transition-opacity duration-300"
+              id="left-fade"
+            ></div>
+
             {/* Fade effect for right edge */}
-            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white dark:from-[#0f1221] to-transparent z-10 pointer-events-none opacity-0 transition-opacity duration-300" id="right-fade"></div>
-            
+            <div
+              className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white dark:from-[#0f1221] to-transparent z-10 pointer-events-none opacity-0 transition-opacity duration-300"
+              id="right-fade"
+            ></div>
+
             {/* Scrollable container */}
-            <div 
+            <div
               className="flex gap-3 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
               onScroll={(e) => {
                 const container = e.currentTarget;
                 const leftFade = document.getElementById('left-fade');
                 const rightFade = document.getElementById('right-fade');
-                
+
                 if (leftFade && rightFade) {
                   // Show left fade if scrolled right
-                  leftFade.style.opacity = container.scrollLeft > 10 ? '1' : '0';
-                  
+                  leftFade.style.opacity =
+                    container.scrollLeft > 10 ? '1' : '0';
+
                   // Show right fade if not at the end
-                  const isAtEnd = container.scrollLeft >= container.scrollWidth - container.clientWidth - 10;
+                  const isAtEnd =
+                    container.scrollLeft >=
+                    container.scrollWidth - container.clientWidth - 10;
                   rightFade.style.opacity = isAtEnd ? '0' : '1';
                 }
               }}
@@ -180,10 +196,11 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
                   setTimeout(() => {
                     const leftFade = document.getElementById('left-fade');
                     const rightFade = document.getElementById('right-fade');
-                    
+
                     if (leftFade && rightFade) {
                       leftFade.style.opacity = el.scrollLeft > 10 ? '1' : '0';
-                      const isAtEnd = el.scrollLeft >= el.scrollWidth - el.clientWidth - 10;
+                      const isAtEnd =
+                        el.scrollLeft >= el.scrollWidth - el.clientWidth - 10;
                       rightFade.style.opacity = isAtEnd ? '0' : '1';
                     }
                   }, 100);
@@ -191,24 +208,27 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
               }}
             >
               {allCategories.map((category) => {
-                const truncatedName = category.name.length > 18 
-                  ? `${category.name.substring(0, 18)}...` 
-                  : category.name;
-                
+                const truncatedName =
+                  category.name.length > 18
+                    ? `${category.name.substring(0, 18)}...`
+                    : category.name;
+
                 return (
                   <Button
                     key={category.id}
                     className={`text-white cursor-pointer min-w-[120px] max-w-[200px] px-4 py-2 relative group flex-shrink-0 ${
                       selectedCategory === category.id
-                        ? "bg-[#64748A]"
-                        : "bg-[#94A3B8]"
+                        ? 'bg-[#64748A]'
+                        : 'bg-[#94A3B8]'
                     }`}
                     onClick={() => setSelectedCategory(category.id)}
-                    title={category.name.length > 18 ? category.name : undefined}
+                    title={
+                      category.name.length > 18 ? category.name : undefined
+                    }
                   >
-                    <span className="block truncate text-sm font-medium">
+                    <h3 className="block truncate text-sm font-medium m-0 font-worksans">
                       {truncatedName}
-                    </span>
+                    </h3>
                     {category.name.length > 18 && (
                       <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-20 shadow-lg">
                         {category.name}
@@ -238,13 +258,13 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
                 alt="No games"
                 className="w-80 h-80 object-contain"
               />
-              No games found for{" "}
-              {selectedCategory === "all"
-                ? "all categories"
-                : selectedCategory === "recent"
-                ? "recently added"
+              No games found for{' '}
+              {selectedCategory === 'all'
+                ? 'all categories'
+                : selectedCategory === 'recent'
+                ? 'recently added'
                 : allCategories.find((cat) => cat.id === selectedCategory)
-                    ?.name || "this category"}
+                    ?.name || 'this category'}
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 md:gap-6 auto-rows-[1fr] sm:auto-rows-[160px] md:auto-rows-[150px]">
@@ -268,9 +288,11 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
                   <div
                     key={game.id}
                     className="relative group cursor-pointer"
-                    style={{ 
-                      gridColumn: screenSize === 'mobile' ? `span ${colSpan}` : 'span 1',
-                      gridRow: screenSize === 'mobile' ? 'span 1' : `span ${rowSpan}`
+                    style={{
+                      gridColumn:
+                        screenSize === 'mobile' ? `span ${colSpan}` : 'span 1',
+                      gridRow:
+                        screenSize === 'mobile' ? 'span 1' : `span ${rowSpan}`,
                     }}
                     onClick={() => handleGameClick(game.id)}
                   >
@@ -285,11 +307,10 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
                           rootMargin="50px"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent group-hover:opacity-100 transition-opacity duration-300 lg:opacity-0 lg:group-hover:opacity-100 rounded-[16px]">
-                          <span className="absolute bottom-2 left-2 md:bottom-3 md:left-4 text-white font-semibold text-xs md:text-base drop-shadow-lg text-shadow-black/55 text-shadow-lg">
+                          <h4 className="absolute bottom-2 left-2 md:bottom-3 md:left-4 text-white font-semibold text-xs md:text-base drop-shadow-lg text-shadow-black/55 text-shadow-lg m-0 font-worksans">
                             {game.title}
-                          </span>
+                          </h4>
                         </div>
-
                       </div>
                     </div>
                   </div>

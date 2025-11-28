@@ -11,15 +11,18 @@ import {
 } from "../ui/sheet";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { toast } from "sonner";
-import * as Yup from "yup";
-import { useCreateSystemConfig, useSystemConfigByKey } from "../../backend/configuration.service";
+import { object as yupObject, string as yupString } from "yup";
+import {
+  useCreateSystemConfig,
+  useSystemConfigByKey,
+} from "../../backend/configuration.service";
 import { BackendRoute } from "../../backend/constants";
 import { useQueryClient } from "@tanstack/react-query";
 import { decodeHtmlEntities } from "../../utils/main";
 
-const validationSchema = Yup.object({
-  title: Yup.string().required("Title is required"),
-  subtitle: Yup.string().required("Subtitle is required"),
+const validationSchema = yupObject({
+  title: yupString().required("Title is required"),
+  subtitle: yupString().required("Subtitle is required"),
   // delay: Yup.number()
   //   .required("Delay is required")
   //   .min(0, "Delay must be positive")
@@ -30,12 +33,16 @@ const validationSchema = Yup.object({
 export function PopUpSheet({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
   const createConfig = useCreateSystemConfig();
-  const { data: popupConfig } = useSystemConfigByKey('popup');
+  const { data: popupConfig } = useSystemConfigByKey("popup");
 
   // Pre-fill form with current values (including defaults that users actually see)
   const initialValues = {
-    title: popupConfig?.value?.title ? decodeHtmlEntities(popupConfig.value.title) : "Time's Up!",
-    subtitle: popupConfig?.value?.subtitle ? decodeHtmlEntities(popupConfig.value.subtitle) : "Sign up to keep playing this game and unlock unlimited access to all games!",
+    title: popupConfig?.value?.title
+      ? decodeHtmlEntities(popupConfig.value.title)
+      : "Time's Up!",
+    subtitle: popupConfig?.value?.subtitle
+      ? decodeHtmlEntities(popupConfig.value.subtitle)
+      : "Sign up to keep playing this game and unlock unlimited access to all games!",
     delay: popupConfig?.value?.delay || 0,
     enabled: popupConfig?.value?.enabled || true,
   };
@@ -86,11 +93,12 @@ export function PopUpSheet({ children }: { children: React.ReactNode }) {
               {!hasCustomPopup && (
                 <div className="mx-2 sm:mx-4 mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded">
                   <p className="text-sm text-blue-800 dark:text-blue-200">
-                    📝 These are the current default values that users see. Modify them to customize your popup.
+                    📝 These are the current default values that users see.
+                    Modify them to customize your popup.
                   </p>
                 </div>
               )}
-              
+
               <div className="grid gap-4 px-2 sm:px-4 py-4">
                 {/* title */}
                 <div className="items-center gap-4">

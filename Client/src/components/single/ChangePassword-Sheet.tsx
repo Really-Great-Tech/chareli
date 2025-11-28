@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState } from "react";
 import { Formik, Form, Field } from "formik";
-import * as Yup from "yup";
+import { object as yupObject, string as yupString } from "yup";
 import {
   Sheet,
   SheetContent,
@@ -28,8 +28,8 @@ interface ChangePasswordValues {
   newPassword: string;
 }
 
-const validationSchema = Yup.object({
-  oldPassword: Yup.string().required("Old password is required"),
+const validationSchema = yupObject({
+  oldPassword: yupString().required("Old password is required"),
   newPassword: passwordSchema,
 });
 

@@ -24,6 +24,9 @@ export default function GamePlay() {
   const gameContainerRef = useRef<HTMLDivElement>(null);
   const gameStartTimeRef = useRef<Date | null>(null);
   const gameLoadStartTimeRef = useRef<Date | null>(null);
+  const updateEndTimeRef = useRef<((reason?: string) => Promise<void>) | null>(
+    null
+  );
 
   const handleOpenSignUpModal = () => {
     setIsSignUpModalOpen(true);
@@ -240,18 +243,25 @@ export default function GamePlay() {
     [game, updateAnalytics]
   );
 
+  // Store latest updateEndTime in ref to avoid dependency issues
+  updateEndTimeRef.current = updateEndTime;
+
   // Handle route changes
   useEffect(() => {
-    if (analyticsIdRef.current) {
-      updateEndTime("route_change");
+    if (analyticsIdRef.current && updateEndTimeRef.current) {
+      updateEndTimeRef.current("route_change");
     }
-  }, [location, updateEndTime]);
+  }, [location]);
 
   // Handle tab visibility and cleanup
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.hidden && analyticsIdRef.current) {
-        updateEndTime("tab_hidden");
+      if (
+        document.hidden &&
+        analyticsIdRef.current &&
+        updateEndTimeRef.current
+      ) {
+        updateEndTimeRef.current("tab_hidden");
       }
     };
 
@@ -307,8 +317,8 @@ export default function GamePlay() {
     window.addEventListener("beforeunload", handleBeforeUnload);
 
     return () => {
-      if (analyticsIdRef.current) {
-        updateEndTime("component_unmount");
+      if (analyticsIdRef.current && updateEndTimeRef.current) {
+        updateEndTimeRef.current("component_unmount");
       }
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("beforeunload", handleBeforeUnload);
@@ -318,7 +328,7 @@ export default function GamePlay() {
         iframe.src = "about:blank";
       }
     };
-  }, [updateEndTime, game]);
+  }, [game]);
 
   // Handle game loading progress
   const handleLoadProgress = (progress: number) => {
@@ -355,8 +365,8 @@ export default function GamePlay() {
               {/* Back button - always shown, visible above modal */}
               <button
                 onClick={() => {
-                  if (analyticsIdRef.current) {
-                    updateEndTime("back_button");
+                  if (analyticsIdRef.current && updateEndTimeRef.current) {
+                    updateEndTimeRef.current("back_button");
                   }
                   navigate(-1);
                 }}
@@ -485,8 +495,11 @@ export default function GamePlay() {
                     <button
                       className="text-white hover:text-orange-400 transition-colors"
                       onClick={() => {
-                        if (analyticsIdRef.current) {
-                          updateEndTime("close_button");
+                        if (
+                          analyticsIdRef.current &&
+                          updateEndTimeRef.current
+                        ) {
+                          updateEndTimeRef.current("close_button");
                         }
                         if (expanded) {
                           navigate(-1);

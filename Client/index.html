@@ -123,19 +123,29 @@
       }
     </script>
 
-    <!-- Google tag (gtag.js) -->
-    <script
-      async
-      src="https://www.googletagmanager.com/gtag/js?id=AW-17063551057"
-    ></script>
+    <!-- Google Ads Conversion Tag (gtag.js) - Conditionally Loaded -->
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        dataLayer.push(arguments);
-      }
-      gtag("js", new Date());
+      if (window.shouldLoadAnalytics) {
+        // Load Google Ads script dynamically
+        const adsScript = document.createElement("script");
+        adsScript.async = true;
+        adsScript.src =
+          "https://www.googletagmanager.com/gtag/js?id=AW-17063551057";
+        document.head.appendChild(adsScript);
 
-      gtag("config", "AW-17063551057");
+        // Reuse existing gtag function if available, otherwise create it
+        window.dataLayer = window.dataLayer || [];
+        if (typeof window.gtag === "undefined") {
+          window.gtag = function () {
+            dataLayer.push(arguments);
+          };
+        }
+
+        // Configure Google Ads conversion tag
+        gtag("config", "AW-17063551057");
+
+        console.log("[Analytics2] Google Ads conversion tag enabled");
+      }
     </script>
   </head>
 

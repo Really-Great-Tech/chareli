@@ -1868,7 +1868,7 @@ export const likeGame = async (
         where: { gameId: game.id },
       });
 
-      return res.status(200).json({
+      return void res.status(200).json({
         success: true,
         message: 'Game already liked',
         data: {
@@ -1955,7 +1955,7 @@ export const unlikeGame = async (
         where: { gameId: game.id },
       });
 
-      return res.status(200).json({
+      return void res.status(200).json({
         success: true,
         message: 'Game not liked',
         data: {

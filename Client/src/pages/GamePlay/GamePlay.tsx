@@ -12,6 +12,7 @@ import GameLoadingScreen from '../../components/single/GameLoadingScreen';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { trackGameplay } from '../../utils/analytics';
 import { useSystemConfigByKey } from '../../backend/configuration.service';
+import { useLikeGame, useUnlikeGame } from '../../backend/gameLikes.service';
 
 export default function GamePlay() {
   const { gameId } = useParams();
@@ -41,6 +42,46 @@ export default function GamePlay() {
   const { data: freeTimeConfig } = useSystemConfigByKey(
     'bulk_free_time_settings'
   );
+  const { mutate: likeGame, isPending: isLiking } = useLikeGame();
+  const { mutate: unlikeGame, isPending: isUnliking } = useUnlikeGame();
+  const [hasLiked, setHasLiked] = useState(false);
+
+  // Sync hasLiked state with game data
+  useEffect(() => {
+    if (game?.hasLiked !== undefined) {
+      setHasLiked(game.hasLiked);
+    }
+  }, [game?.hasLiked]);
+
+  // Handle like button click
+  const handleLikeClick = () => {
+    if (!isAuthenticated) {
+      // Show sign up modal for unauthenticated users
+      setIsSignUpModalOpen(true);
+      return;
+    }
+
+    if (!gameId) return;
+
+    // Optimistic update
+    setHasLiked(!hasLiked);
+
+    if (hasLiked) {
+      unlikeGame(gameId, {
+        onError: () => {
+          // Revert on error
+          setHasLiked(true);
+        },
+      });
+    } else {
+      likeGame(gameId, {
+        onError: () => {
+          // Revert on error
+          setHasLiked(false);
+        },
+      });
+    }
+  };
 
   // Auto-expand to fullscreen on mobile devices
   useEffect(() => {
@@ -462,14 +503,33 @@ export default function GamePlay() {
                 </h2>
                 <div className="flex items-center space-x-4">
                   {/* Like counter with thumbs up */}
-                  <div className="flex items-center space-x-2 bg-white/10 px-3 py-1.5 rounded-full border border-white/20 hover:bg-white/20 transition-all duration-200">
+                  <button
+                    onClick={handleLikeClick}
+                    disabled={isLiking || isUnliking}
+                    className={`flex items-center space-x-2 px-3 py-1.5 rounded-full border transition-all duration-200 cursor-pointer ${
+                      hasLiked
+                        ? 'bg-blue-500/30 border-blue-400/50 hover:bg-blue-500/40'
+                        : 'bg-white/10 border-white/20 hover:bg-white/20'
+                    } ${
+                      isLiking || isUnliking
+                        ? 'opacity-50 cursor-not-allowed'
+                        : ''
+                    }`}
+                    title={
+                      isAuthenticated
+                        ? hasLiked
+                          ? 'Unlike'
+                          : 'Like'
+                        : 'Sign in to like'
+                    }
+                  >
                     <span role="img" aria-label="thumbs up" className="text-lg">
                       👍
                     </span>
                     <span className="text-white text-sm font-medium font-worksans">
                       {game.likeCount?.toLocaleString() || '100'}
                     </span>
-                  </div>
+                  </button>
                   <div className="flex items-center space-x-3">
                     {/* Timer display for unauthenticated users */}
                     {!isAuthenticated &&

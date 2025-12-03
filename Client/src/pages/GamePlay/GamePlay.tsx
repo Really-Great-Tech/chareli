@@ -40,58 +40,80 @@ export default function GamePlay() {
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const { isAuthenticated } = useAuth();
   const { data: freeTimeConfig } = useSystemConfigByKey(
-    "bulk_free_time_settings"
+    'bulk_free_time_settings'
   );
   const { mutate: likeGame, isPending: isLiking } = useLikeGame();
   const { mutate: unlikeGame, isPending: isUnliking } = useUnlikeGame();
-  const [hasLiked, setHasLiked] = useState(game?.likeCount ?? 0);
+  const [hasLiked, setHasLiked] = useState(game?.hasLiked ?? false);
   const [likeCount, setLikeCount] = useState(game?.likeCount ?? 100);
   const [isAnimating, setIsAnimating] = useState(false);
 
-  // Sync hasLiked state with game data
+  // Load guest like state from localStorage
   useEffect(() => {
-    if (game?.hasLiked !== undefined) {
+    if (!isAuthenticated && gameId) {
+      const guestLikes = JSON.parse(localStorage.getItem('guestLikes') || '{}');
+      if (guestLikes[gameId]) {
+        setHasLiked(true);
+      }
+    }
+  }, [gameId, isAuthenticated]);
+
+  // Sync hasLiked state with game data for authenticated users
+  useEffect(() => {
+    if (isAuthenticated && game?.hasLiked !== undefined) {
       setHasLiked(game.hasLiked);
       setLikeCount(game.likeCount);
+    } else if (!isAuthenticated && game?.likeCount !== undefined) {
+      setLikeCount(game.likeCount);
     }
-  }, [game?.hasLiked, game?.likeCount]);
+  }, [game?.hasLiked, game?.likeCount, isAuthenticated]);
 
   // Handle like button click
   const handleLikeClick = () => {
-    if (!isAuthenticated) {
-      // Show sign up modal for unauthenticated users
-      setIsSignUpModalOpen(true);
-      return;
-    }
-
     if (!gameId) return;
 
     // Trigger animation
     setIsAnimating(true);
-    setTimeout(() => setIsAnimating(false), 400); // Animation duration
+    setTimeout(() => setIsAnimating(false), 400);
 
-    if (hasLiked) {
-      // Optimistic update
-      setHasLiked(false);
-      setLikeCount(likeCount - 1);
-      unlikeGame(gameId, {
-        onError: () => {
-          // Revert on error
-          setHasLiked(true);
-          setLikeCount(likeCount + 1);
-        },
-      });
+    if (isAuthenticated) {
+      // Authenticated user - use API
+      if (hasLiked) {
+        setHasLiked(false);
+        setLikeCount(likeCount - 1);
+        unlikeGame(gameId, {
+          onError: () => {
+            setHasLiked(true);
+            setLikeCount(likeCount + 1);
+          },
+        });
+      } else {
+        setHasLiked(true);
+        setLikeCount(likeCount + 1);
+        likeGame(gameId, {
+          onError: () => {
+            setHasLiked(false);
+            setLikeCount(likeCount - 1);
+          },
+        });
+      }
     } else {
-      // Optimistic update
-      setHasLiked(true);
-      setLikeCount(likeCount + 1);
-      likeGame(gameId, {
-        onError: () => {
-          // Revert on error
-          setHasLiked(false);
-          setLikeCount(likeCount - 1);
-        },
-      });
+      // Guest user - use localStorage
+      const guestLikes = JSON.parse(localStorage.getItem('guestLikes') || '{}');
+
+      if (hasLiked) {
+        // Unlike
+        delete guestLikes[gameId];
+        localStorage.setItem('guestLikes', JSON.stringify(guestLikes));
+        setHasLiked(false);
+        setLikeCount(likeCount - 1);
+      } else {
+        // Like
+        guestLikes[gameId] = true;
+        localStorage.setItem('guestLikes', JSON.stringify(guestLikes));
+        setHasLiked(true);
+        setLikeCount(likeCount + 1);
+      }
     }
   };
 
@@ -524,22 +546,22 @@ export default function GamePlay() {
                     title={
                       isAuthenticated
                         ? hasLiked
-                          ? "Unlike"
-                          : "Like"
-                        : "Sign in to like"
+                          ? 'Unlike'
+                          : 'Like'
+                        : 'Sign in to like'
                     }
                   >
                     <span
                       role="img"
                       aria-label="thumbs up"
                       className={`text-lg ${
-                        isAnimating ? "animate-scale-bounce" : ""
+                        isAnimating ? 'animate-scale-bounce' : ''
                       }`}
                       style={
                         !isAnimating
                           ? {
-                              transform: hasLiked ? "scale(1.1)" : "scale(1)",
-                              transition: "transform 2s ease-in-out",
+                              transform: hasLiked ? 'scale(1.1)' : 'scale(1)',
+                              transition: 'transform 2s ease-in-out',
                             }
                           : undefined
                       }

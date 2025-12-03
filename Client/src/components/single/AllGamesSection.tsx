@@ -303,7 +303,7 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
                       gridRow:
                         screenSize === 'mobile' ? 'span 1' : `span ${rowSpan}`,
                     }}
-                    onClick={() => handleGameClick(game.id)}
+                    onClick={() => handleGameClick(game.id, game.slug)}
                   >
                     <div className="relative h-full overflow-hidden rounded-[20px] transition-all duration-300 ease-in-out group-hover:shadow-[0_0px_20px_#64748A,0_0px_10px_rgba(100,116,138,0.8)] aspect-square sm:aspect-auto">
                       <div className="w-full h-full rounded-[16px] overflow-hidden">

@@ -7,13 +7,15 @@ interface UseGameClickHandlerOptions {
   trackingEnabled?: boolean;
 }
 
-export const useGameClickHandler = (options: UseGameClickHandlerOptions = {}) => {
+export const useGameClickHandler = (
+  options: UseGameClickHandlerOptions = {}
+) => {
   const navigate = useNavigate();
   const recordGameClick = useRecordGameClick();
   const { onSuccess, onError, trackingEnabled = true } = options;
 
-  const handleGameClick = async (gameId: string) => {
-    navigate(`/gameplay/${gameId}`);
+  const handleGameClick = async (gameId: string, gameSlug?: string) => {
+    navigate(`/gameplay/${gameSlug || gameId}`);
 
     if (trackingEnabled) {
       try {

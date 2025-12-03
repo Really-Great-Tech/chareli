@@ -68,6 +68,12 @@ export class Game {
   @Column({ type: 'int', default: 0 })
   config: number;
 
+  @Column({ type: 'int', default: 100 })
+  baseLikeCount: number;
+
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  lastLikeIncrement: Date;
+
   @ManyToOne(() => Category, (category) => category.games, {
     onDelete: 'SET NULL',
   })

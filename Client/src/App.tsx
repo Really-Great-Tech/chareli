@@ -40,6 +40,27 @@ const AnalyticsTracker = () => {
     if (typeof (window as any).fbq !== 'undefined') {
       (window as any).fbq('track', 'PageView');
     }
+
+    const officialDomain = import.meta.env.VITE_OFFICIAL_DOMAIN;
+
+    if (officialDomain) {
+      // Construct the authoritative URL
+      // We remove trailing slashes to be consistent
+      const path = location.pathname === '/' ? '' : location.pathname;
+      const canonicalUrl = `https://${officialDomain}${path}`;
+
+      // Find existing tag or create new one
+      let link = document.querySelector("link[rel='canonical']");
+
+      if (!link) {
+        link = document.createElement('link');
+        link.setAttribute('rel', 'canonical');
+        document.head.appendChild(link);
+      }
+
+      // Update the href
+      link.setAttribute('href', canonicalUrl);
+    }
   }, [location]);
 
   return null;

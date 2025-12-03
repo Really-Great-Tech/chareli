@@ -5,6 +5,7 @@ import { GamePositionHistory } from '../entities/GamePositionHistory';
 import { Category } from '../entities/Category';
 import { File } from '../entities/Files';
 import { Analytics } from '../entities/Analytics';
+import { GameLike } from '../entities/GameLike';
 import { SystemConfig } from '../entities/SystemConfig';
 import { ApiError } from '../middlewares/errorHandler';
 import { RoleType } from '../entities/Role';
@@ -27,6 +28,7 @@ const gamePositionHistoryRepository =
   AppDataSource.getRepository(GamePositionHistory);
 const categoryRepository = AppDataSource.getRepository(Category);
 const fileRepository = AppDataSource.getRepository(File);
+const gameLikeRepository = AppDataSource.getRepository(GameLike);
 
 // Helper function to get the maximum position
 const getMaxPosition = async (): Promise<number> => {
@@ -129,9 +131,10 @@ const assignPositionForNewGame = async (
 /**
  * Calculate current like count for a game based on days elapsed and deterministic random increments
  * @param game - The game object with baseLikeCount and lastLikeIncrement
- * @returns Current like count
+ * @param userLikesCount - Number of user likes for this game
+ * @returns Current like count (auto-increment + user likes)
  */
-const calculateLikeCount = (game: Game): number => {
+const calculateLikeCount = (game: Game, userLikesCount: number = 0): number => {
   const now = new Date();
   const lastIncrement = new Date(game.lastLikeIncrement);
 
@@ -141,30 +144,28 @@ const calculateLikeCount = (game: Game): number => {
     (now.getTime() - lastIncrement.getTime()) / msPerDay
   );
 
-  if (daysElapsed === 0) {
-    return game.baseLikeCount;
-  }
+  let autoIncrement = 0;
+  if (daysElapsed > 0) {
+    // Calculate total increment using deterministic random for each day
+    for (let day = 1; day <= daysElapsed; day++) {
+      // Create deterministic seed from gameId + date
+      const incrementDate = new Date(lastIncrement);
+      incrementDate.setDate(incrementDate.getDate() + day);
+      const dateStr = incrementDate.toISOString().split('T')[0]; // YYYY-MM-DD
+      const seed = game.id + dateStr;
 
-  // Calculate total increment using deterministic random for each day
-  let totalIncrement = 0;
-  for (let day = 1; day <= daysElapsed; day++) {
-    // Create deterministic seed from gameId + date
-    const incrementDate = new Date(lastIncrement);
-    incrementDate.setDate(incrementDate.getDate() + day);
-    const dateStr = incrementDate.toISOString().split('T')[0]; // YYYY-MM-DD
-    const seed = game.id + dateStr;
-
-    // Simple hash function for deterministic random (1, 2, or 3)
-    let hash = 0;
-    for (let i = 0; i < seed.length; i++) {
-      hash = (hash << 5) - hash + seed.charCodeAt(i);
-      hash = hash & hash; // Convert to 32bit integer
+      // Simple hash function for deterministic random (1, 2, or 3)
+      let hash = 0;
+      for (let i = 0; i < seed.length; i++) {
+        hash = (hash << 5) - hash + seed.charCodeAt(i);
+        hash = hash & hash; // Convert to 32bit integer
+      }
+      const increment = (Math.abs(hash) % 3) + 1; // 1, 2, or 3
+      autoIncrement += increment;
     }
-    const increment = (Math.abs(hash) % 3) + 1; // 1, 2, or 3
-    totalIncrement += increment;
   }
 
-  return game.baseLikeCount + totalIncrement;
+  return game.baseLikeCount + autoIncrement + userLikesCount;
 };
 
 /**
@@ -649,11 +650,30 @@ export const getGameById = async (
       });
     }
 
+    // Get user likes count for this game
+    const userLikesCount = await gameLikeRepository.count({
+      where: { gameId: game.id },
+    });
+
+    // Check if current user has liked this game (if authenticated)
+    let hasLiked = false;
+    if (req.user?.userId) {
+      const userLike = await gameLikeRepository.findOne({
+        where: {
+          userId: req.user.userId,
+          gameId: game.id,
+        },
+      });
+      hasLiked = !!userLike;
+    }
+
     res.status(200).json({
       success: true,
       data: {
         ...game,
-        likeCount: calculateLikeCount(game),
+        likeCount: calculateLikeCount(game, userLikesCount),
+        userLikesCount,
+        hasLiked,
         similarGames: similarGames,
       },
     });
@@ -1795,6 +1815,148 @@ export const bulkUpdateFreeTime = async (
     });
   } catch (error) {
     logger.error('Error in bulkUpdateFreeTime:', error);
+    next(error);
+  }
+};
+
+/**
+ * Like a game
+ */
+export const likeGame = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return next(
+        ApiError.unauthorized('You must be logged in to like a game')
+      );
+    }
+
+    // Check if identifier is UUID or slug
+    const isUUID =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        id
+      );
+
+    // Get game
+    const game = await gameRepository.findOne({
+      where: isUUID ? { id } : { slug: id },
+    });
+
+    if (!game) {
+      return next(
+        ApiError.notFound(`Game with ${isUUID ? 'id' : 'slug'} ${id} not found`)
+      );
+    }
+
+    // Check if user already liked this game
+    const existingLike = await gameLikeRepository.findOne({
+      where: {
+        userId,
+        gameId: game.id,
+      },
+    });
+
+    if (existingLike) {
+      return next(ApiError.badRequest('You have already liked this game'));
+    }
+
+    // Create like
+    const like = gameLikeRepository.create({
+      userId,
+      gameId: game.id,
+    });
+
+    await gameLikeRepository.save(like);
+
+    // Get updated counts
+    const userLikesCount = await gameLikeRepository.count({
+      where: { gameId: game.id },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Game liked successfully',
+      data: {
+        likeCount: calculateLikeCount(game, userLikesCount),
+        userLikesCount,
+        hasLiked: true,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Unlike a game
+ */
+export const unlikeGame = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return next(
+        ApiError.unauthorized('You must be logged in to unlike a game')
+      );
+    }
+
+    // Check if identifier is UUID or slug
+    const isUUID =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        id
+      );
+
+    // Get game
+    const game = await gameRepository.findOne({
+      where: isUUID ? { id } : { slug: id },
+    });
+
+    if (!game) {
+      return next(
+        ApiError.notFound(`Game with ${isUUID ? 'id' : 'slug'} ${id} not found`)
+      );
+    }
+
+    // Find and delete the like
+    const like = await gameLikeRepository.findOne({
+      where: {
+        userId,
+        gameId: game.id,
+      },
+    });
+
+    if (!like) {
+      return next(ApiError.badRequest('You have not liked this game'));
+    }
+
+    await gameLikeRepository.remove(like);
+
+    // Get updated counts
+    const userLikesCount = await gameLikeRepository.count({
+      where: { gameId: game.id },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Game unliked successfully',
+      data: {
+        likeCount: calculateLikeCount(game, userLikesCount),
+        userLikesCount,
+        hasLiked: false,
+      },
+    });
+  } catch (error) {
     next(error);
   }
 };

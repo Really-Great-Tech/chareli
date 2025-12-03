@@ -11,15 +11,15 @@ export class AddSlugToGames1764711038428 implements MigrationInterface {
     // Generate slugs for existing games
     await queryRunner.query(`
             UPDATE "games"
-            SET "slug" = LOWER(
+            SET "slug" = TRIM(BOTH '-' FROM LOWER(
                 REGEXP_REPLACE(
                     REGEXP_REPLACE(
-                        REGEXP_REPLACE(title, '[^a-zA-Z0-9\\s-]', '', 'g'),
-                        '\\s+', '-', 'g'
+                        REGEXP_REPLACE(title, '[^a-zA-Z0-9\\\\s-]', '', 'g'),
+                        '\\\\s+', '-', 'g'
                     ),
                     '-+', '-', 'g'
                 )
-            )
+            ))
         `);
 
     // Handle duplicate slugs by appending row number

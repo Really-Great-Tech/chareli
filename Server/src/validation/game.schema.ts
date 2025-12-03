@@ -15,47 +15,76 @@ export const createGameSchema = yup.object({
   categoryId: yup.string().uuid('Invalid category ID'),
   status: yup.string().oneOf(Object.values(GameStatus), 'Invalid game status'),
   config: yup.number().integer('Config must be an integer').default(0),
-  position: yup.number().integer('Position must be an integer').min(1, 'Position must be at least 1')
+  position: yup
+    .number()
+    .integer('Position must be an integer')
+    .min(1, 'Position must be at least 1'),
 });
 
 /**
  * Update game schema validation
  */
-export const updateGameSchema = yup.object({
-  title: yup.string().trim(),
-  description: yup.string().trim().nullable(),
-  thumbnailFileId: yup.string().uuid('Invalid thumbnail file ID'),
-  gameFileId: yup.string().uuid('Invalid game file ID'),
-  // Support for new presigned URL approach
-  thumbnailFileKey: yup.string(),
-  gameFileKey: yup.string(),
-  categoryId: yup.string().uuid('Invalid category ID'),
-  status: yup.string().oneOf(Object.values(GameStatus), 'Invalid game status'),
-  config: yup.number().integer('Config must be an integer'),
-  position: yup.number().integer('Position must be an integer').min(1, 'Position must be at least 1')
-}).test(
-  'at-least-one-field',
-  'At least one field must be provided',
-  (value) => {
-    return Object.keys(value).length > 0;
-  }
-);
+export const updateGameSchema = yup
+  .object({
+    title: yup.string().trim(),
+    description: yup.string().trim().nullable(),
+    thumbnailFileId: yup.string().uuid('Invalid thumbnail file ID'),
+    gameFileId: yup.string().uuid('Invalid game file ID'),
+    // Support for new presigned URL approach
+    thumbnailFileKey: yup.string(),
+    gameFileKey: yup.string(),
+    categoryId: yup.string().uuid('Invalid category ID'),
+    status: yup
+      .string()
+      .oneOf(Object.values(GameStatus), 'Invalid game status'),
+    config: yup.number().integer('Config must be an integer'),
+    position: yup
+      .number()
+      .integer('Position must be an integer')
+      .min(1, 'Position must be at least 1'),
+  })
+  .test(
+    'at-least-one-field',
+    'At least one field must be provided',
+    (value) => {
+      return Object.keys(value).length > 0;
+    }
+  );
 
 /**
  * Game ID param schema validation
+ * Accepts both UUID (for backward compatibility) and slug (for SEO-friendly URLs)
  */
 export const gameIdParamSchema = yup.object({
-  id: yup.string().uuid('Invalid game ID').required('Game ID is required')
+  id: yup
+    .string()
+    .required('Game ID or slug is required')
+    .test('is-uuid-or-slug', 'Invalid game ID or slug format', (value) => {
+      if (!value) return false;
+      // Check if it's a valid UUID
+      const uuidRegex =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      // Check if it's a valid slug (lowercase letters, numbers, and hyphens)
+      const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+      return uuidRegex.test(value) || slugRegex.test(value);
+    }),
 });
 
 /**
  * Query params schema validation
  */
 export const gameQuerySchema = yup.object({
-  page: yup.number().integer('Page must be an integer').min(1, 'Page must be at least 1'),
-  limit: yup.number().integer('Limit must be an integer').min(1, 'Limit must be at least 1').max(100, 'Limit must be at most 100'),
+  page: yup
+    .number()
+    .integer('Page must be an integer')
+    .min(1, 'Page must be at least 1'),
+  limit: yup
+    .number()
+    .integer('Limit must be an integer')
+    .min(1, 'Limit must be at least 1')
+    .max(100, 'Limit must be at most 100'),
   categoryId: yup.string().uuid('Invalid category ID'),
   status: yup.string().oneOf(Object.values(GameStatus), 'Invalid game status'),
   search: yup.string(),
-  createdById: yup.string().uuid('Invalid creator ID')
+  createdById: yup.string().uuid('Invalid creator ID'),
 });

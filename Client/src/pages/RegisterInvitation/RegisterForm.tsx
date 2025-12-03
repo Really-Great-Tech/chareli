@@ -1,17 +1,20 @@
-import { useState } from 'react';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
-import type { FieldProps } from 'formik';
-import * as Yup from 'yup';
-import { Input } from '../../components/ui/input';
-import { Button } from '../../components/ui/button';
-import { Label } from '../../components/ui/label';
-import { useRegisterFromInvitation } from '../../backend/teams.service';
-import { passwordSchema, confirmPasswordSchema } from '../../validation/password';
-import PhoneInput from 'react-phone-input-2';
-import 'react-phone-input-2/lib/style.css';
-import '../../styles/phone-input.css';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
-import { useUserCountry } from '../../hooks/useUserCountry';
+import { useState } from "react";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import type { FieldProps } from "formik";
+import { object as yupObject, string as yupString } from "yup";
+import { Input } from "../../components/ui/input";
+import { Button } from "../../components/ui/button";
+import { Label } from "../../components/ui/label";
+import { useRegisterFromInvitation } from "../../backend/teams.service";
+import {
+  passwordSchema,
+  confirmPasswordSchema,
+} from "../../validation/password";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
+import "../../styles/phone-input.css";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { useUserCountry } from "../../hooks/useUserCountry";
 
 interface RegisterFormProps {
   email: string;
@@ -19,12 +22,12 @@ interface RegisterFormProps {
   onSuccess: () => void;
 }
 
-const validationSchema = Yup.object({
-  firstName: Yup.string().trim().required('First name is required'),
-  lastName: Yup.string().trim().required('Last name is required'),
+const validationSchema = yupObject({
+  firstName: yupString().trim().required("First name is required"),
+  lastName: yupString().trim().required("Last name is required"),
   password: passwordSchema,
   confirmPassword: confirmPasswordSchema,
-  phoneNumber: Yup.string().required('Phone number is required')
+  phoneNumber: yupString().required("Phone number is required"),
 });
 
 interface FormValues {
@@ -40,19 +43,20 @@ const formatPhoneNumber = (value?: string) => (value ? `+${value}` : value);
 
 export function RegisterForm({ email, token, onSuccess }: RegisterFormProps) {
   const { mutate: register, isPending } = useRegisterFromInvitation();
-  const { countryCode } = useUserCountry()
+  const { countryCode } = useUserCountry();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
-  const toggleConfirmPasswordVisibility = () => setShowConfirmPassword(!showConfirmPassword);
+  const toggleConfirmPasswordVisibility = () =>
+    setShowConfirmPassword(!showConfirmPassword);
 
   const initialValues: FormValues = {
-    firstName: '',
-    lastName: '',
-    password: '',
-    confirmPassword: '',
-    phoneNumber: ''
+    firstName: "",
+    lastName: "",
+    password: "",
+    confirmPassword: "",
+    phoneNumber: "",
   };
 
   const handleSubmit = (values: FormValues) => {
@@ -61,11 +65,11 @@ export function RegisterForm({ email, token, onSuccess }: RegisterFormProps) {
         token,
         data: {
           ...values,
-          email
-        }
+          email,
+        },
       },
       {
-        onSuccess
+        onSuccess,
       }
     );
   };
@@ -129,29 +133,34 @@ export function RegisterForm({ email, token, onSuccess }: RegisterFormProps) {
                   <PhoneInput
                     country={countryCode}
                     value={field.value}
-                    onChange={(value) => form.setFieldValue('phoneNumber', formatPhoneNumber(value))}
-                  inputStyle={{
-                    width: "100%",
-                    height: "48px",
-                    backgroundColor: "#E2E8F0",
-                    border: "0",
-                    borderRadius: "0.375rem",
-                    fontFamily: "Dm Mono, cursive",
-                    fontSize: "11px",
-                  }}
+                    onChange={(value) =>
+                      form.setFieldValue(
+                        "phoneNumber",
+                        formatPhoneNumber(value)
+                      )
+                    }
+                    inputStyle={{
+                      width: "100%",
+                      height: "48px",
+                      backgroundColor: "#E2E8F0",
+                      border: "0",
+                      borderRadius: "0.375rem",
+                      fontFamily: "Dm Mono, cursive",
+                      fontSize: "11px",
+                    }}
                     containerClass="dark:bg-[#191c2b] z-[999]"
                     buttonStyle={{
                       backgroundColor: "#E2E8F0",
                       border: "0",
-                      borderRadius: "0.375rem 0 0 0.375rem"
+                      borderRadius: "0.375rem 0 0 0.375rem",
                     }}
                     dropdownStyle={{
                       backgroundColor: "#E2E8F0",
-                      color: "#000"
+                      color: "#000",
                     }}
                     searchStyle={{
                       backgroundColor: "#E2E8F0",
-                      color: "#000"
+                      color: "#000",
                     }}
                     enableAreaCodeStretch
                     autoFormat
@@ -179,11 +188,7 @@ export function RegisterForm({ email, token, onSuccess }: RegisterFormProps) {
                 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 z-10"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? (
-                  <FaEyeSlash size={15} />
-                ) : (
-                  <FaEye size={15} />
-                )}
+                {showPassword ? <FaEyeSlash size={15} /> : <FaEye size={15} />}
               </button>
               <Field
                 as={Input}
@@ -207,7 +212,9 @@ export function RegisterForm({ email, token, onSuccess }: RegisterFormProps) {
                 type="button"
                 onClick={toggleConfirmPasswordVisibility}
                 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 z-10"
-                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                aria-label={
+                  showConfirmPassword ? "Hide password" : "Show password"
+                }
               >
                 {showConfirmPassword ? (
                   <FaEyeSlash size={15} />
@@ -235,7 +242,9 @@ export function RegisterForm({ email, token, onSuccess }: RegisterFormProps) {
             className="w-full bg-[#6A7282] text-white hover:bg-[#5A626F] transition-colors"
             disabled={isSubmitting || isPending}
           >
-            {isSubmitting || isPending ? 'Creating Account...' : 'Create Account'}
+            {isSubmitting || isPending
+              ? "Creating Account..."
+              : "Create Account"}
           </Button>
         </Form>
       )}

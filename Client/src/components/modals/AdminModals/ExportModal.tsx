@@ -13,11 +13,11 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../ui/tabs";
 import { Card } from "../../ui/card";
 import { Download, FileSpreadsheet, FileJson, File } from "lucide-react";
-import * as XLSX from "xlsx";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import type { TDocumentDefinitions } from "pdfmake/interfaces";
 import type { FilterState } from "../../../backend/analytics.service";
+import { loadXlsx } from "../../../utils/loadXlsx";
 
 // We'll load pdfMake dynamically to avoid font loading issues
 let pdfMake: any;
@@ -162,7 +162,7 @@ const ExportModal = ({
     return summary;
   };
 
-  const handleExportCSV = () => {
+  const handleExportCSV = async () => {
     try {
       if (!data || data.length === 0) {
         toast.info("No data available to export.");
@@ -218,6 +218,9 @@ const ExportModal = ({
       csvHeader += `# Total Records: ${data.length}\n`;
       csvHeader += `#\n`;
 
+      // Load XLSX lazily to avoid bloating the main bundle
+      const XLSX = await loadXlsx();
+
       // Transform data to consistent format
       const transformedData = transformDataForExport(data);
       const worksheet = XLSX.utils.json_to_sheet(transformedData);
@@ -252,7 +255,7 @@ const ExportModal = ({
     }
   };
 
-  const handleExportXLS = () => {
+  const handleExportXLS = async () => {
     try {
       if (!data || data.length === 0) {
         toast.info("No data available to export.");
@@ -266,6 +269,8 @@ const ExportModal = ({
         "yyyy-MM-dd_HH-mm"
       )}.xlsx`;
       const filterSummary = generateFilterSummary();
+      // Lazily load XLSX only when needed
+      const XLSX = await loadXlsx();
       const workbook = XLSX.utils.book_new();
 
       // Calculate summary statistics

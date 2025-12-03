@@ -7,7 +7,11 @@ import { useSystemConfigByKey } from "../../backend/configuration.service";
 // import { toast } from "sonner";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import type { FormikHelpers, FieldProps } from "formik";
-import * as Yup from "yup";
+import {
+  boolean as yupBoolean,
+  object as yupObject,
+  string as yupString,
+} from "yup";
 import {
   passwordSchema,
   confirmPasswordSchema,
@@ -125,33 +129,33 @@ const getValidationSchema = (config?: { value?: { settings: any } }) => {
   const schema: any = {
     password: passwordSchema,
     confirmPassword: confirmPasswordSchema,
-    ageConfirm: Yup.boolean()
+    ageConfirm: yupBoolean()
       .oneOf([true], "You must be 18+ years")
       .required("You must be 18+ years"),
-    terms: Yup.boolean()
+    terms: yupBoolean()
       .oneOf([true], "You must accept the terms of use")
       .required("You must accept the terms of use"),
   };
 
   if (fields.showAll || fields.showEmail) {
-    schema.email = Yup.string()
+    schema.email = yupString()
       .email("Invalid email address")
       .required("Email is required");
   }
 
   if (fields.showAll || fields.showPhone) {
-    schema.phoneNumber = Yup.string().required("Phone number is required");
+    schema.phoneNumber = yupString().required("Phone number is required");
   }
 
   if (fields.firstName) {
-    schema.firstName = Yup.string().required("First name is required");
+    schema.firstName = yupString().required("First name is required");
   }
 
   if (fields.lastName) {
-    schema.lastName = Yup.string().required("Last name is required");
+    schema.lastName = yupString().required("Last name is required");
   }
 
-  return Yup.object(schema);
+  return yupObject(schema);
 };
 
 const getInitialValues = (config?: { value?: { settings: any } }) => {

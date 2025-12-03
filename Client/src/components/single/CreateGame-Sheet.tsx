@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useRef } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
-import * as Yup from "yup";
+import {
+  number as yupNumber,
+  object as yupObject,
+  string as yupString,
+} from "yup";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -40,22 +44,22 @@ interface FormValues {
 }
 
 // Validation schema
-const validationSchema = Yup.object({
-  title: Yup.string().required("Title is required").trim(),
-  description: Yup.string().trim().optional(),
-  config: Yup.number()
+const validationSchema = yupObject({
+  title: yupString().required("Title is required").trim(),
+  description: yupString().trim().optional(),
+  config: yupNumber()
     .required("Config is required")
     .min(0, "Config must be a positive number"),
-  categoryId: Yup.string(),
-  thumbnailFile: Yup.object().required("Thumbnail image is required").shape({
-    name: Yup.string().required(),
-    publicUrl: Yup.string().required(),
-    key: Yup.string().required(),
+  categoryId: yupString(),
+  thumbnailFile: yupObject().required("Thumbnail image is required").shape({
+    name: yupString().required(),
+    publicUrl: yupString().required(),
+    key: yupString().required(),
   }),
-  gameFile: Yup.object().required("Game file is required").shape({
-    name: Yup.string().required(),
-    publicUrl: Yup.string().required(),
-    key: Yup.string().required(),
+  gameFile: yupObject().required("Game file is required").shape({
+    name: yupString().required(),
+    publicUrl: yupString().required(),
+    key: yupString().required(),
   }),
 });
 

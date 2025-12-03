@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Formik, Form, Field, ErrorMessage } from "formik";
-import * as Yup from "yup";
+import { object as yupObject } from "yup";
 import {
   passwordSchema,
   confirmPasswordSchema,
@@ -16,7 +16,7 @@ import { Label } from "../../components/ui/label";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { LoginModal } from "../../components/modals/LoginModal";
 
-const validationSchema = Yup.object({
+const validationSchema = yupObject({
   password: passwordSchema,
   confirmPassword: confirmPasswordSchema,
 });

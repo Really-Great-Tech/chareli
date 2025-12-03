@@ -44,7 +44,7 @@ export default function GamePlay() {
   );
   const { mutate: likeGame, isPending: isLiking } = useLikeGame();
   const { mutate: unlikeGame, isPending: isUnliking } = useUnlikeGame();
-  const [hasLiked, setHasLiked] = useState(game?.likeCount ?? 0);
+  const [hasLiked, setHasLiked] = useState(game?.hasLiked ?? false);
   const [likeCount, setLikeCount] = useState(game?.likeCount ?? 100);
   const [isAnimating, setIsAnimating] = useState(false);
 

@@ -1,19 +1,27 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
+  Index,
+} from 'typeorm';
 import { Category } from './Category';
 import { User } from './User';
 import { File } from './Files';
 
-
 export enum GameStatus {
   ACTIVE = 'active',
-  DISABLED = 'disabled'
+  DISABLED = 'disabled',
 }
 
 export enum GameProcessingStatus {
-  PENDING = 'pending',      // ZIP processing queued
+  PENDING = 'pending', // ZIP processing queued
   PROCESSING = 'processing', // ZIP being extracted/uploaded
-  COMPLETED = 'completed',   // Ready to play
-  FAILED = 'failed'         // Processing failed
+  COMPLETED = 'completed', // Ready to play
+  FAILED = 'failed', // Processing failed
 }
 
 @Entity('games')
@@ -28,6 +36,10 @@ export class Game {
   @Column()
   title: string;
 
+  @Column({ unique: true })
+  @Index()
+  slug: string;
+
   @Column({ type: 'text', nullable: true })
   description: string;
 
@@ -41,7 +53,7 @@ export class Game {
   @Column({
     type: 'enum',
     enum: GameStatus,
-    default: GameStatus.ACTIVE
+    default: GameStatus.ACTIVE,
   })
   @Index()
   status: GameStatus;
@@ -56,7 +68,15 @@ export class Game {
   @Column({ type: 'int', default: 0 })
   config: number;
 
-  @ManyToOne(() => Category, category => category.games, { onDelete: 'SET NULL' })
+  @Column({ type: 'int', default: 100 })
+  baseLikeCount: number;
+
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  lastLikeIncrement: Date;
+
+  @ManyToOne(() => Category, (category) => category.games, {
+    onDelete: 'SET NULL',
+  })
   @JoinColumn({ name: 'categoryId' })
   category: Category;
 
@@ -79,7 +99,7 @@ export class Game {
   @Column({
     type: 'enum',
     enum: GameProcessingStatus,
-    default: GameProcessingStatus.COMPLETED
+    default: GameProcessingStatus.COMPLETED,
   })
   @Index()
   processingStatus: GameProcessingStatus;

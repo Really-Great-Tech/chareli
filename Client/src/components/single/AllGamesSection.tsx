@@ -4,7 +4,7 @@ import { LazyImage } from '../../components/ui/LazyImage';
 import { useGames } from '../../backend/games.service';
 import { useCategories } from '../../backend/category.service';
 import { useGameClickHandler } from '../../hooks/useGameClickHandler';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import GamesSkeleton from './GamesSkeleton';
 
 import emptyGameImg from '../../assets/empty-game.png';
@@ -40,15 +40,24 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
   });
 
   // Combine static filters with dynamic categories
-  const allCategories = [
-    { id: 'all', name: 'All Games', color: '#64748A' },
-    ...(categoriesData?.map((cat) => ({
-      id: cat.id,
-      name: cat.name,
-      color: '#94A3B7',
-    })) || []),
-    { id: 'recent', name: 'Recently Added', color: '#94A3B7' },
-  ];
+  const allCategories = useMemo(
+    () => [
+      { id: 'all', name: 'All Games', color: '#64748A' },
+      ...(categoriesData?.map((cat) => ({
+        id: cat.id,
+        name: cat.name,
+        color: '#94A3B7',
+      })) || []),
+      { id: 'recent', name: 'Recently Added', color: '#94A3B7' },
+    ],
+    [categoriesData]
+  );
+
+  // Compute section header based on selected category
+  const sectionHeader = useMemo(() => {
+    const category = allCategories.find((cat) => cat.id === selectedCategory);
+    return category?.name || 'All Games';
+  }, [selectedCategory, allCategories]);
 
   const games: any = gamesData || [];
   const { handleGameClick } = useGameClickHandler();
@@ -149,7 +158,7 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
     <div ref={containerRef} className="p-4">
       <div>
         <h2 className="text-[#6A7282] dark:text-[#FEFEFE] text-3xl mb-4 font-worksans">
-          All Games
+          {sectionHeader}
         </h2>
       </div>
       {/* filtering tabs */}
@@ -294,7 +303,7 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
                       gridRow:
                         screenSize === 'mobile' ? 'span 1' : `span ${rowSpan}`,
                     }}
-                    onClick={() => handleGameClick(game.id)}
+                    onClick={() => handleGameClick(game.id, game.slug)}
                   >
                     <div className="relative h-full overflow-hidden rounded-[20px] transition-all duration-300 ease-in-out group-hover:shadow-[0_0px_20px_#64748A,0_0px_10px_rgba(100,116,138,0.8)] aspect-square sm:aspect-auto">
                       <div className="w-full h-full rounded-[16px] overflow-hidden">

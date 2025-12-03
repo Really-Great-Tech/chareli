@@ -127,6 +127,47 @@ const assignPositionForNewGame = async (
 };
 
 /**
+ * Calculate current like count for a game based on days elapsed and deterministic random increments
+ * @param game - The game object with baseLikeCount and lastLikeIncrement
+ * @returns Current like count
+ */
+const calculateLikeCount = (game: Game): number => {
+  const now = new Date();
+  const lastIncrement = new Date(game.lastLikeIncrement);
+
+  // Calculate days elapsed since last increment
+  const msPerDay = 24 * 60 * 60 * 1000;
+  const daysElapsed = Math.floor(
+    (now.getTime() - lastIncrement.getTime()) / msPerDay
+  );
+
+  if (daysElapsed === 0) {
+    return game.baseLikeCount;
+  }
+
+  // Calculate total increment using deterministic random for each day
+  let totalIncrement = 0;
+  for (let day = 1; day <= daysElapsed; day++) {
+    // Create deterministic seed from gameId + date
+    const incrementDate = new Date(lastIncrement);
+    incrementDate.setDate(incrementDate.getDate() + day);
+    const dateStr = incrementDate.toISOString().split('T')[0]; // YYYY-MM-DD
+    const seed = game.id + dateStr;
+
+    // Simple hash function for deterministic random (1, 2, or 3)
+    let hash = 0;
+    for (let i = 0; i < seed.length; i++) {
+      hash = (hash << 5) - hash + seed.charCodeAt(i);
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    const increment = (Math.abs(hash) % 3) + 1; // 1, 2, or 3
+    totalIncrement += increment;
+  }
+
+  return game.baseLikeCount + totalIncrement;
+};
+
+/**
  * @swagger
  * /games:
  *   get:
@@ -612,6 +653,7 @@ export const getGameById = async (
       success: true,
       data: {
         ...game,
+        likeCount: calculateLikeCount(game),
         similarGames: similarGames,
       },
     });

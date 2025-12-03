@@ -1,24 +1,24 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { useAuth } from "../../context/AuthContext";
-import { LuExpand, LuX, LuChevronLeft } from "react-icons/lu";
-import KeepPlayingModal from "../../components/modals/KeepPlayingModal";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { useGameById } from "../../backend/games.service";
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import { LuExpand, LuX, LuChevronLeft } from 'react-icons/lu';
+import KeepPlayingModal from '../../components/modals/KeepPlayingModal';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useGameById } from '../../backend/games.service';
 import {
   useCreateAnalytics,
   useUpdateAnalytics,
-} from "../../backend/analytics.service";
-import GameLoadingScreen from "../../components/single/GameLoadingScreen";
-import { useIsMobile } from "../../hooks/useIsMobile";
-import { trackGameplay } from "../../utils/analytics";
-import { useSystemConfigByKey } from "../../backend/configuration.service";
+} from '../../backend/analytics.service';
+import GameLoadingScreen from '../../components/single/GameLoadingScreen';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { trackGameplay } from '../../utils/analytics';
+import { useSystemConfigByKey } from '../../backend/configuration.service';
 
 export default function GamePlay() {
   const { gameId } = useParams();
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
-  const { data: game, isLoading, error } = useGameById(gameId || "");
+  const { data: game, isLoading, error } = useGameById(gameId || '');
   const { mutate: createAnalytics } = useCreateAnalytics();
   const analyticsIdRef = useRef<string | null>(null);
   const gameContainerRef = useRef<HTMLDivElement>(null);
@@ -39,7 +39,7 @@ export default function GamePlay() {
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const { isAuthenticated } = useAuth();
   const { data: freeTimeConfig } = useSystemConfigByKey(
-    "bulk_free_time_settings"
+    'bulk_free_time_settings'
   );
 
   // Auto-expand to fullscreen on mobile devices
@@ -52,16 +52,16 @@ export default function GamePlay() {
   // Prevent body scroll on mobile fullscreen to fix viewport issues
   useEffect(() => {
     if (isMobile && expanded) {
-      document.body.style.overflow = "hidden";
-      document.body.style.touchAction = "none";
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
     } else {
-      document.body.style.overflow = "";
-      document.body.style.touchAction = "";
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
     }
 
     return () => {
-      document.body.style.overflow = "";
-      document.body.style.touchAction = "";
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
     };
   }, [isMobile, expanded]);
 
@@ -74,7 +74,7 @@ export default function GamePlay() {
     setTimeRemaining(null);
     gameLoadStartTimeRef.current = new Date();
 
-    if (typeof window !== "undefined") {
+    if (typeof window !== 'undefined') {
       window.scrollTo(0, 0);
     }
   }, [gameId]);
@@ -82,13 +82,13 @@ export default function GamePlay() {
   // Scroll management: Keep users at the top (main game area) when they arrive
   useEffect(() => {
     // Scroll to top when component mounts or gameId changes
-    window.scrollTo({ top: 0, behavior: "instant" });
+    window.scrollTo({ top: 0, behavior: 'instant' });
 
     // Also ensure the game container is visible
     if (gameContainerRef.current) {
       gameContainerRef.current.scrollIntoView({
-        behavior: "instant",
-        block: "start",
+        behavior: 'instant',
+        block: 'start',
       });
     }
   }, [gameId]);
@@ -96,8 +96,8 @@ export default function GamePlay() {
   // Prevent auto-scroll when page loads
   useEffect(() => {
     // Override any potential scroll restoration
-    if ("scrollRestoration" in history) {
-      history.scrollRestoration = "manual";
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
     }
 
     // Force scroll to top on initial load
@@ -105,8 +105,8 @@ export default function GamePlay() {
 
     return () => {
       // Restore scroll restoration when component unmounts
-      if ("scrollRestoration" in history) {
-        history.scrollRestoration = "auto";
+      if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'auto';
       }
     };
   }, []);
@@ -175,7 +175,7 @@ export default function GamePlay() {
       createAnalytics(
         {
           gameId: game.id,
-          activityType: "game_session",
+          activityType: 'game_session',
           startTime: new Date(),
         },
         {
@@ -234,7 +234,7 @@ export default function GamePlay() {
         analyticsIdRef.current = null;
         gameStartTimeRef.current = null;
       } catch (error) {
-        console.error("Failed to update analytics:", error);
+        console.error('Failed to update analytics:', error);
         // Clear ID even on error to prevent duplicate attempts
         analyticsIdRef.current = null;
         gameStartTimeRef.current = null;
@@ -249,7 +249,7 @@ export default function GamePlay() {
   // Handle route changes
   useEffect(() => {
     if (analyticsIdRef.current && updateEndTimeRef.current) {
-      updateEndTimeRef.current("route_change");
+      updateEndTimeRef.current('route_change');
     }
   }, [location]);
 
@@ -261,7 +261,7 @@ export default function GamePlay() {
         analyticsIdRef.current &&
         updateEndTimeRef.current
       ) {
-        updateEndTimeRef.current("tab_hidden");
+        updateEndTimeRef.current('tab_hidden');
       }
     };
 
@@ -281,31 +281,31 @@ export default function GamePlay() {
         // Note: gtag() is the recommended way for GA4, even on page unload
         const win = window as Window & {
           gtag?: (
-            command: "config" | "event" | "js" | "set",
+            command: 'config' | 'event' | 'js' | 'set',
             targetId: string | Date,
             config?: Record<string, unknown>
           ) => void;
           shouldLoadAnalytics?: boolean;
         };
 
-        if (typeof win.gtag !== "undefined" && win.shouldLoadAnalytics) {
+        if (typeof win.gtag !== 'undefined' && win.shouldLoadAnalytics) {
           try {
             // Track game exit event
             trackGameplay.gameExit(
               game.id,
               game.title,
               durationSeconds,
-              "page_unload"
+              'page_unload'
             );
           } catch (error) {
-            console.error("Failed to send analytics beacon:", error);
+            console.error('Failed to send analytics beacon:', error);
           }
         }
 
-        const baseURL = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
+        const baseURL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
         const url = `${baseURL}/api/analytics/${analyticsIdRef.current}/end`;
         const data = new Blob([JSON.stringify({ endTime })], {
-          type: "application/json",
+          type: 'application/json',
         });
         navigator.sendBeacon(url, data);
         analyticsIdRef.current = null;
@@ -313,19 +313,19 @@ export default function GamePlay() {
       }
     };
 
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener("beforeunload", handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
       if (analyticsIdRef.current && updateEndTimeRef.current) {
-        updateEndTimeRef.current("component_unmount");
+        updateEndTimeRef.current('component_unmount');
       }
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
 
-      const iframe = document.querySelector<HTMLIFrameElement>("#gameIframe");
+      const iframe = document.querySelector<HTMLIFrameElement>('#gameIframe');
       if (iframe) {
-        iframe.src = "about:blank";
+        iframe.src = 'about:blank';
       }
     };
   }, [game]);
@@ -344,21 +344,21 @@ export default function GamePlay() {
       ) : error ? (
         <div className="flex items-center justify-center h-[80vh]">
           <span className="text-xl text-red-500">
-            {error instanceof Error ? error.message : "Error loading game"}
+            {error instanceof Error ? error.message : 'Error loading game'}
           </span>
         </div>
       ) : game?.gameFile?.s3Key ? (
         <>
           <div
             ref={gameContainerRef}
-            className={expanded ? "fixed inset-0 z-40 bg-black" : "relative"}
-            style={!expanded ? { height: "calc(100vh - 64px)" } : undefined}
+            className={expanded ? 'fixed inset-0 z-40 bg-black' : 'relative'}
+            style={!expanded ? { height: 'calc(100vh - 64px)' } : undefined}
           >
             <div
               className={`relative ${
                 expanded
-                  ? "h-full w-full flex flex-col"
-                  : "w-full h-full flex flex-col"
+                  ? 'h-full w-full flex flex-col'
+                  : 'w-full h-full flex flex-col'
               } overflow-hidden`}
               // style={{ background: "#18181b" }}
             >
@@ -366,14 +366,14 @@ export default function GamePlay() {
               <button
                 onClick={() => {
                   if (analyticsIdRef.current && updateEndTimeRef.current) {
-                    updateEndTimeRef.current("back_button");
+                    updateEndTimeRef.current('back_button');
                   }
                   navigate(-1);
                 }}
                 className={`absolute top-4 left-4 flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-3 py-2 shadow-lg hover:bg-white transition-all ${
-                  isModalOpen ? "z-[80]" : "z-50"
+                  isModalOpen ? 'z-[80]' : 'z-50'
                 }`}
-                style={{ minHeight: "44px", minWidth: "60px" }}
+                style={{ minHeight: '44px', minWidth: '60px' }}
                 title="Go Back"
               >
                 <div className="bg-orange-600 rounded-full p-1.5">
@@ -395,10 +395,10 @@ export default function GamePlay() {
                   src={`${game.gameFile.s3Key}`}
                   className="w-full flex-1"
                   style={{
-                    display: "block",
+                    display: 'block',
                     // background: "transparent",
-                    border: "none",
-                    overflow: "hidden",
+                    border: 'none',
+                    overflow: 'hidden',
                   }}
                   sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
                   title={game.title}
@@ -444,15 +444,15 @@ export default function GamePlay() {
               {/* Control bar - always shown, styling changes based on expanded state */}
               <div
                 className={`flex items-center justify-between px-6 py-2 bg-[#7C2D12] border-t border-orange-400 z-50 ${
-                  !expanded ? "rounded-b-2xl" : ""
+                  !expanded ? 'rounded-b-2xl' : ''
                 }`}
                 style={
                   expanded
                     ? {
                         paddingBottom:
-                          "max(0.5rem, env(safe-area-inset-bottom))",
-                        paddingLeft: "max(1.5rem, env(safe-area-inset-left))",
-                        paddingRight: "max(1.5rem, env(safe-area-inset-right))",
+                          'max(0.5rem, env(safe-area-inset-bottom))',
+                        paddingLeft: 'max(1.5rem, env(safe-area-inset-left))',
+                        paddingRight: 'max(1.5rem, env(safe-area-inset-right))',
                       }
                     : undefined
                 }
@@ -461,12 +461,13 @@ export default function GamePlay() {
                   {game.title}
                 </h2>
                 <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2">
-                    <span role="img" aria-label="smile" className="text-xl">
-                      😍
+                  {/* Like counter with thumbs up */}
+                  <div className="flex items-center space-x-2 bg-white/10 px-3 py-1.5 rounded-full border border-white/20 hover:bg-white/20 transition-all duration-200">
+                    <span role="img" aria-label="thumbs up" className="text-lg">
+                      👍
                     </span>
-                    <span role="img" aria-label="smile" className="text-xl">
-                      🥲
+                    <span className="text-white text-sm font-medium font-worksans">
+                      {game.likeCount?.toLocaleString() || '100'}
                     </span>
                   </div>
                   <div className="flex items-center space-x-3">
@@ -478,7 +479,7 @@ export default function GamePlay() {
                           <span className="text-xs text-orange-300">⏱️</span>
                           <span className="text-white text-sm font-medium">
                             {Math.floor(timeRemaining / 60)}:
-                            {(timeRemaining % 60).toString().padStart(2, "0")}
+                            {(timeRemaining % 60).toString().padStart(2, '0')}
                           </span>
                         </div>
                       )}
@@ -487,7 +488,7 @@ export default function GamePlay() {
                       <button
                         className="text-white hover:text-orange-400 transition-colors"
                         onClick={() => setExpanded((e) => !e)}
-                        title={expanded ? "Exit Fullscreen" : "Expand"}
+                        title={expanded ? 'Exit Fullscreen' : 'Expand'}
                       >
                         <LuExpand className="w-5 h-5" />
                       </button>
@@ -499,12 +500,12 @@ export default function GamePlay() {
                           analyticsIdRef.current &&
                           updateEndTimeRef.current
                         ) {
-                          updateEndTimeRef.current("close_button");
+                          updateEndTimeRef.current('close_button');
                         }
                         if (expanded) {
                           navigate(-1);
                         } else {
-                          navigate("/");
+                          navigate('/');
                         }
                       }}
                       title="Close Game"

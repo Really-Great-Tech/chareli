@@ -1863,7 +1863,20 @@ export const likeGame = async (
     });
 
     if (existingLike) {
-      return next(ApiError.badRequest('You have already liked this game'));
+      // Already liked, just return current state (idempotent)
+      const userLikesCount = await gameLikeRepository.count({
+        where: { gameId: game.id },
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: 'Game already liked',
+        data: {
+          likeCount: calculateLikeCount(game, userLikesCount),
+          userLikesCount,
+          hasLiked: true,
+        },
+      });
     }
 
     // Create like
@@ -1937,7 +1950,20 @@ export const unlikeGame = async (
     });
 
     if (!like) {
-      return next(ApiError.badRequest('You have not liked this game'));
+      // Not liked, just return current state (idempotent)
+      const userLikesCount = await gameLikeRepository.count({
+        where: { gameId: game.id },
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: 'Game not liked',
+        data: {
+          likeCount: calculateLikeCount(game, userLikesCount),
+          userLikesCount,
+          hasLiked: false,
+        },
+      });
     }
 
     await gameLikeRepository.remove(like);

@@ -210,12 +210,8 @@ export const getAllGames = async (
 
     // Handle special filters
     if (filter === 'recently_added') {
-      // Get games from the last 7 days
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      queryBuilder.andWhere('game.createdAt >= :sevenDaysAgo', {
-        sevenDaysAgo,
-      });
+      // Get the last 10 games added, ordered by creation date
+      queryBuilder.orderBy('game.createdAt', 'DESC').limit(10);
     } else if (filter === 'popular') {
       const systemConfigRepository = AppDataSource.getRepository(SystemConfig);
       const popularConfig = await systemConfigRepository.findOne({

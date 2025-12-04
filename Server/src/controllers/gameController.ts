@@ -720,6 +720,7 @@ export const createGame = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
+  const requestStartTime = Date.now();
   // Start a transaction
   const queryRunner = AppDataSource.createQueryRunner();
   await queryRunner.connect();
@@ -878,9 +879,18 @@ export const createGame = async (
       savedGame.thumbnailFile.s3Key = storageService.getPublicUrl(s3Key);
     }
 
+    const apiResponseTime = Date.now() - requestStartTime;
+    logger.info(
+      `[PERF] Game creation API completed in ${apiResponseTime}ms - Game ID: ${game.id}, Title: "${title}"`
+    );
+
     res.status(201).json({
       success: true,
       data: savedGame,
+      _performance: {
+        apiResponseTime: `${apiResponseTime}ms`,
+        note: 'Background processing (thumbnail + ZIP) continues asynchronously',
+      },
     });
   } catch (error) {
     // Rollback transaction on error

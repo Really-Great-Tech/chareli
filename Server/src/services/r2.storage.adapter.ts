@@ -223,6 +223,7 @@ export class R2StorageAdapter implements IStorageService {
    * Uses S3 CopyObject for efficient server-side copy (80-90% faster than download/upload)
    */
   async moveFile(sourceKey: string, destinationKey: string): Promise<string> {
+    const startTime = Date.now();
     try {
       // First, get the source object metadata to preserve content type
       const headCommand = new HeadObjectCommand({
@@ -233,6 +234,7 @@ export class R2StorageAdapter implements IStorageService {
       const headResponse = await this.s3Client.send(headCommand);
       const contentType =
         headResponse.ContentType || 'application/octet-stream';
+      const fileSize = headResponse.ContentLength || 0;
 
       // Use CopyObject for efficient server-side copy (no data transfer through app)
       const copyCommand = new CopyObjectCommand({
@@ -248,12 +250,19 @@ export class R2StorageAdapter implements IStorageService {
       // Delete the source file after successful copy
       await this.deleteFile(sourceKey);
 
+      const duration = Date.now() - startTime;
       logger.info(
-        `Successfully moved file from ${sourceKey} to ${destinationKey} using server-side copy (content type: ${contentType})`
+        `[PERF] File move completed in ${duration}ms (${(
+          fileSize /
+          1024 /
+          1024
+        ).toFixed(2)}MB) - ${sourceKey} → ${destinationKey}`
       );
+
       return destinationKey;
     } catch (error) {
-      logger.error('Error moving file in R2:', {
+      const duration = Date.now() - startTime;
+      logger.error(`[PERF] File move failed after ${duration}ms:`, {
         error,
         sourceKey,
         destinationKey,

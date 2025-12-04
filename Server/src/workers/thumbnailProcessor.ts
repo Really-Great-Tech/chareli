@@ -18,6 +18,7 @@ async function processThumbnail(
   job: Job<ThumbnailProcessingJobData>
 ): Promise<void> {
   const { gameId, tempKey, permanentFolder } = job.data;
+  const startTime = Date.now();
 
   try {
     logger.info(`[THUMBNAIL WORKER] Processing thumbnail for game ${gameId}`);
@@ -27,10 +28,13 @@ async function processThumbnail(
     logger.info(
       `[THUMBNAIL WORKER] Moving thumbnail from ${tempKey} to permanent storage`
     );
+    const moveStartTime = Date.now();
     const permanentThumbnailKey = await moveFileToPermanentStorage(
       tempKey,
       permanentFolder
     );
+    const moveDuration = Date.now() - moveStartTime;
+    logger.info(`[PERF] Thumbnail move completed in ${moveDuration}ms`);
     await job.updateProgress(50);
 
     // Create thumbnail file record in the database
@@ -71,12 +75,14 @@ async function processThumbnail(
     }
 
     await job.updateProgress(100);
+    const totalDuration = Date.now() - startTime;
     logger.info(
-      `[THUMBNAIL WORKER] Successfully processed thumbnail for game ${gameId}`
+      `[PERF] Thumbnail processing completed in ${totalDuration}ms for game ${gameId}`
     );
   } catch (error) {
+    const totalDuration = Date.now() - startTime;
     logger.error(
-      `[THUMBNAIL WORKER] Error processing thumbnail for game ${gameId}:`,
+      `[PERF] Thumbnail processing failed after ${totalDuration}ms for game ${gameId}:`,
       error
     );
     throw error;

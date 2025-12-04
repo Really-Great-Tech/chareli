@@ -142,11 +142,15 @@ class QueueService {
 
     // Set up event handlers
     worker.on('completed', (job: any) => {
-      logger.info(`Job ${job.id} completed successfully`);
+      const duration = job.finishedOn ? job.finishedOn - job.processedOn : 0;
+      logger.info(
+        `[PERF] Job ${job.id} completed successfully in ${duration}ms`
+      );
     });
 
     worker.on('failed', (job: any, error: any) => {
-      logger.error(`Job ${job?.id} failed:`, error);
+      const duration = job.finishedOn ? job.finishedOn - job.processedOn : 0;
+      logger.error(`[PERF] Job ${job?.id} failed after ${duration}ms:`, error);
     });
 
     worker.on('progress', (job: any, progress: any) => {

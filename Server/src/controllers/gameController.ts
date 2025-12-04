@@ -253,7 +253,29 @@ export const getAllGames = async (
     // Handle special filters
     if (filter === 'recently_added') {
       // Get the last 10 games added, ordered by creation date
-      queryBuilder.orderBy('game.createdAt', 'DESC').limit(10);
+      queryBuilder
+        .andWhere('game.status = :status', { status: GameStatus.ACTIVE })
+        .orderBy('game.createdAt', 'DESC')
+        .limit(10);
+
+      const games = await queryBuilder.getMany();
+
+      // Transform game file and thumbnail URLs to direct storage URLs
+      games.forEach((game) => {
+        if (game.gameFile) {
+          const s3Key = game.gameFile.s3Key;
+          game.gameFile.s3Key = storageService.getPublicUrl(s3Key);
+        }
+        if (game.thumbnailFile) {
+          const s3Key = game.thumbnailFile.s3Key;
+          game.thumbnailFile.s3Key = storageService.getPublicUrl(s3Key);
+        }
+      });
+
+      res.status(200).json({
+        data: games,
+      });
+      return;
     } else if (filter === 'popular') {
       const systemConfigRepository = AppDataSource.getRepository(SystemConfig);
       const popularConfig = await systemConfigRepository.findOne({

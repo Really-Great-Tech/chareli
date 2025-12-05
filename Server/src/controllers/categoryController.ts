@@ -336,6 +336,9 @@ export const createCategory = async (
 
     await categoryRepository.save(category);
 
+    // Invalidate categories cache
+    await cacheInvalidationService.invalidateCategoryUpdate(category.id);
+
     res.status(201).json({
       success: true,
       data: category,
@@ -426,6 +429,9 @@ export const updateCategory = async (
 
     await categoryRepository.save(category);
 
+    // Invalidate categories cache
+    await cacheInvalidationService.invalidateCategoryUpdate(id);
+
     res.status(200).json({
       success: true,
       data: category,
@@ -500,6 +506,9 @@ export const deleteCategory = async (
     }
 
     await categoryRepository.remove(category);
+
+    // Invalidate categories cache
+    await cacheInvalidationService.invalidateCategoryUpdate(id);
 
     res.status(200).json({
       success: true,

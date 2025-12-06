@@ -33,7 +33,7 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
   onUploadError,
 }) => {
   const [uppy, setUppy] = useState<any>(null);
-  const [isUploading, setIsUploading] = useState(false);
+  // const [isUploading, setIsUploading] = useState(false);
 
   // Removed console.log - use React DevTools to debug state
 
@@ -117,7 +117,7 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
     // Handle upload start
     uppyInstance.on('upload', () => {
       logger.debug(`Upload started for ${fileType}`);
-      setIsUploading(true);
+      // setIsUploading(true);
       onUploadStart?.();
     });
 
@@ -126,7 +126,7 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
       if (!file) return;
 
       logger.debug(`Upload successful: ${file.name}`);
-      setIsUploading(false);
+      // setIsUploading(false);
 
       const uploadedFile: UploadedFile = {
         name: file.name || '',
@@ -142,14 +142,14 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
     uppyInstance.on('file-removed', (file: any) => {
       if (!file) return;
       logger.debug(`File removed: ${file.name}`);
-      setIsUploading(false);
+      // setIsUploading(false);
       onFileReplaced?.();
     });
 
     // Handle upload errors
     uppyInstance.on('upload-error', (file: any, error: any) => {
       console.error(`❌ Upload failed: ${file?.name}`, error);
-      setIsUploading(false);
+      // setIsUploading(false);
       onUploadError?.(error?.message || 'Upload failed');
     });
 
@@ -157,7 +157,7 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
     uppyInstance.on('complete', (result: any) => {
       const successfulCount = result?.successful?.length || 0;
       logger.debug(`Upload complete! Files: ${successfulCount}`);
-      setIsUploading(false);
+      // setIsUploading(false);
     });
 
     setUppy(uppyInstance);

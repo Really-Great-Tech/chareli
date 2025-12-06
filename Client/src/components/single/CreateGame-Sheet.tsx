@@ -154,7 +154,7 @@ export function CreateGameSheet({
   const [showProgress, setShowProgress] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState('');
-  const [createdGameId, setCreatedGameId] = useState<string | null>(null);
+  // const [createdGameId, setCreatedGameId] = useState<string | null>(null);
   const createGame = useCreateGame();
   const { data: categories } = useCategories();
   const queryClient = useQueryClient(); // Add query client for manual cache invalidation
@@ -192,7 +192,7 @@ export function CreateGameSheet({
 
       // Store the created game ID for potential status tracking
       if (newGameId) {
-        setCreatedGameId(newGameId);
+        // setCreatedGameId(newGameId);
       }
 
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -207,7 +207,7 @@ export function CreateGameSheet({
       setShowProgress(false);
       setProgress(0);
       setCurrentStep('');
-      setCreatedGameId(null);
+      // setCreatedGameId(null);
       setIsOpen(false);
       onOpenChange?.(false);
     } catch (error: any) {

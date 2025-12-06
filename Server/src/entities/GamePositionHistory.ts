@@ -1,7 +1,17 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, Index, Unique } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
+  Index,
+  Unique,
+} from 'typeorm';
 import { Game } from './Games';
 
-@Entity('game_position_history')
+@Entity('game_position_history', { schema: 'internal' })
 @Unique(['gameId', 'position'])
 export class GamePositionHistory {
   @PrimaryGeneratedColumn('uuid')

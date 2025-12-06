@@ -1,39 +1,44 @@
+import logger from '../utils/logger';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { backendService } from './api.service';
 import { BackendRoute } from './constants';
-import type { 
-  User, 
-  LoginCredentials, 
-  OtpVerification, 
-  AuthTokens, 
+import type {
+  User,
+  LoginCredentials,
+  OtpVerification,
+  AuthTokens,
   RegistrationData,
   ForgotPasswordData,
 } from './types';
 
-
 export const useLogin = () => {
   return useMutation({
     mutationFn: async (credentials: LoginCredentials) => {
-      const response = await backendService.post(BackendRoute.AUTH_LOGIN, credentials);
+      const response = await backendService.post(
+        BackendRoute.AUTH_LOGIN,
+        credentials
+      );
       return response;
     },
   });
 };
 
-
 export const useVerifyOtp = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (data: OtpVerification): Promise<AuthTokens> => {
-      const response = await backendService.post(BackendRoute.AUTH_VERIFY_OTP, data);
+      const response = await backendService.post(
+        BackendRoute.AUTH_VERIFY_OTP,
+        data
+      );
       return response as unknown as AuthTokens;
     },
     onSuccess: (data) => {
       // Store tokens
       localStorage.setItem('token', data.accessToken);
       localStorage.setItem('refreshToken', data.refreshToken);
-    
+
       queryClient.invalidateQueries({ queryKey: [BackendRoute.AUTH_ME] });
     },
   });
@@ -51,12 +56,20 @@ export const useVerifyResetOtp = () => {
 
 export const useRequestOtp = () => {
   return useMutation({
-    mutationFn: async ({ userId, otpType }: { userId: string; otpType: 'SMS' | 'EMAIL' | 'NONE' }) => {
-      return backendService.post(BackendRoute.AUTH_REQUEST_OTP, { userId, otpType });
+    mutationFn: async ({
+      userId,
+      otpType,
+    }: {
+      userId: string;
+      otpType: 'SMS' | 'EMAIL' | 'NONE';
+    }) => {
+      return backendService.post(BackendRoute.AUTH_REQUEST_OTP, {
+        userId,
+        otpType,
+      });
     },
   });
 };
-
 
 export const useCurrentUser = () => {
   return useQuery<User>({
@@ -70,7 +83,6 @@ export const useCurrentUser = () => {
   });
 };
 
-
 export const useRegister = () => {
   return useMutation({
     mutationFn: (userData: RegistrationData) => {
@@ -79,33 +91,33 @@ export const useRegister = () => {
   });
 };
 
-
 export const useRefreshToken = () => {
   return useMutation({
     mutationFn: async (refreshToken: string): Promise<AuthTokens> => {
-      const response = await backendService.post(BackendRoute.AUTH_REFRESH_TOKEN, { refreshToken });
+      const response = await backendService.post(
+        BackendRoute.AUTH_REFRESH_TOKEN,
+        { refreshToken }
+      );
       return response as unknown as AuthTokens;
     },
-  onSuccess: (data) => {
-    localStorage.setItem('token', data.accessToken);
-    localStorage.setItem('refreshToken', data.refreshToken);
-  },
+    onSuccess: (data) => {
+      localStorage.setItem('token', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
+    },
   });
 };
 
-
 export const useLogout = () => {
   const queryClient = useQueryClient();
-  
+
   return () => {
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
-    
+
     // Clear user from cache
     queryClient.invalidateQueries({ queryKey: [BackendRoute.AUTH_ME] });
   };
 };
-
 
 export const useForgotPassword = () => {
   return useMutation({
@@ -119,21 +131,25 @@ export const useForgotPassword = () => {
 export const useForgotPasswordPhone = () => {
   return useMutation({
     mutationFn: async (phoneNumber: string) => {
-      return backendService.post(BackendRoute.AUTH_FORGOT_PASSWORD + '/phone', { phoneNumber });
+      return backendService.post(BackendRoute.AUTH_FORGOT_PASSWORD + '/phone', {
+        phoneNumber,
+      });
     },
   });
 };
-
 
 export const useVerifyResetToken = () => {
   return useMutation({
     mutationFn: async (token: string) => {
       try {
-        const response = await backendService.get(`${BackendRoute.AUTH_RESET_PASSWORD}/${token}?_=${Date.now()}`);
-        console.log("Verify token response:", response);
-        return { success: true, message: "Token is valid" };
+        await backendService.get(
+          `${BackendRoute.AUTH_RESET_PASSWORD}/${token}?_=${Date.now()}`
+        );
+        // Token verification successful - don't log sensitive data
+        logger.debug('Token verification successful');
+        return { success: true, message: 'Token is valid' };
       } catch (error) {
-        console.error("Error verifying token:", error);
+        logger.error('Token verification failed');
         throw error;
       }
     },
@@ -141,16 +157,32 @@ export const useVerifyResetToken = () => {
   });
 };
 
-
 export const useResetPassword = () => {
   return useMutation({
-    mutationFn: async ({ token, userId, password, confirmPassword }: { token?: string; userId?: string; password: string; confirmPassword: string }) => {
+    mutationFn: async ({
+      token,
+      userId,
+      password,
+      confirmPassword,
+    }: {
+      token?: string;
+      userId?: string;
+      password: string;
+      confirmPassword: string;
+    }) => {
       if (token) {
         // Email flow - use token in URL
-        return backendService.post(`${BackendRoute.AUTH_RESET_PASSWORD}/${token}`, { password, confirmPassword });
+        return backendService.post(
+          `${BackendRoute.AUTH_RESET_PASSWORD}/${token}`,
+          { password, confirmPassword }
+        );
       } else {
         // Phone flow - use userId in body
-        return backendService.post(BackendRoute.AUTH_RESET_PASSWORD, { userId, password, confirmPassword });
+        return backendService.post(BackendRoute.AUTH_RESET_PASSWORD, {
+          userId,
+          password,
+          confirmPassword,
+        });
       }
     },
   });

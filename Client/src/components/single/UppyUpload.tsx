@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import Uppy from '@uppy/core';
 import AwsS3 from '@uppy/aws-s3';
 import { Dashboard } from '@uppy/react';
@@ -33,6 +33,11 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
   onUploadError,
 }) => {
   const [uppy, setUppy] = useState<any>(null);
+
+  // Memoize accept array to prevent re-initialization on every render
+  // We use the joined string as dependency to avoid issues with new array references
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const stableAccept = useMemo(() => accept, [accept?.join(',')]);
   // const [isUploading, setIsUploading] = useState(false);
 
   // Removed console.log - use React DevTools to debug state
@@ -42,7 +47,7 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
     const uppyInstance = new Uppy({
       id: `uppy-${fileType}-${Date.now()}`, // Make ID unique to prevent conflicts
       restrictions: {
-        allowedFileTypes: accept,
+        allowedFileTypes: stableAccept,
         maxFileSize:
           maxFileSize ||
           (fileType === 'thumbnail' ? 10 * 1024 * 1024 : Infinity),
@@ -168,7 +173,15 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
         uppyInstance.destroy();
       }
     };
-  }, []); // Remove dependencies to prevent re-initialization
+  }, [
+    fileType,
+    stableAccept,
+    maxFileSize,
+    onFileUploaded,
+    onFileReplaced,
+    onUploadStart,
+    onUploadError,
+  ]);
 
   if (!uppy) {
     return <div>Loading uploader...</div>;

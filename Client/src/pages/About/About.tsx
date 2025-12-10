@@ -30,7 +30,7 @@ const About: React.FC = () => {
       <div className="flex-grow space-y-6 md:space-y-8 w-full px-4 sm:px-8 md:px-16 lg:px-24 pt-6 md:pt-10 mb-16 md:mb-32 max-w-6xl mx-auto">
         <section className="bg-[#334154] p-4 sm:p-6 rounded-lg dark:bg-[#334154]">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#FFFFFF] dark:text-[#FFFFFF] text-center font-dmmono">
-            About us
+            About us more
           </h1>
           <p className="mt-3 md:mt-4 text-[#FFFFFF] dark:text-[#FFFFFF] text-justify font-worksans text-[12px] sm:text-[14px] md:text-[16px] tracking-wider leading-relaxed whitespace-pre-line">
             {aboutText}

@@ -164,7 +164,7 @@ jobs:
         with:
           images: 476199653856.dkr.ecr.eu-central-1.amazonaws.com/arcadesbox-server-development-v1
           tags: |
-            type=ref,event=head
+            type=ref,event=branch
             type=sha
 
       - name: Build and Push Backend Docker Image

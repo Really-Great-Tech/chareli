@@ -21,8 +21,30 @@ env:
   CONTAINER_NAME: ${{ vars.ECS_CONTAINER_NAME }}
 
 jobs:
-  build-and-test:
-    name: Build & Test Application
+  detect-changes:
+    name: Detect Changed Files
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Check for changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'Server/**'
+              - '.github/workflows/**'
+            frontend:
+              - 'Client/**'
+              - '.github/workflows/**'
+  build-and-test-backend:
+    name: Build & Test Backend
+    if: needs.detect-changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     environment: ${{ github.ref_name == 'release' && 'production' || github.ref_name == 'dev' && 'development' || github.ref_name == 'main' && 'staging' || 'development' }}
     strategy:
@@ -56,6 +78,19 @@ jobs:
         continue-on-error: true
 
       # --- Frontend (Client) ---
+  build-and-test-frontend:
+    name: Build & Test Frontend
+    needs: detect-changes
+    if: needs.detect-changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    environment: "${{ github.ref_name == 'release' && 'production' || github.ref_name == 'dev' && 'development' || github.ref_name == 'main' && 'staging' || 'development' }}"
+    strategy:
+      matrix:
+        node-version: ["22.x"]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
       - name: Setup Node.js for Frontend
         uses: actions/setup-node@v4
         with:
@@ -95,10 +130,13 @@ jobs:
 
   deploy-backend:
     name: Deploy Backend to ECS
-    needs: build-and-test
+    needs: [detect-changes, build-and-test-backend]
     runs-on: ubuntu-latest
     environment: ${{ github.ref_name == 'release' && 'production' || github.ref_name == 'dev' && 'development' || github.ref_name == 'main' && 'staging' || 'development' }}
-    if: github.event_name == 'push' && github.ref == 'refs/heads/release'
+    if: |
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/release' &&
+      needs.detect-changes.outputs.backend == 'true'
 
     steps:
       - name: Checkout Code
@@ -164,10 +202,13 @@ jobs:
 
   deploy-frontend:
     name: Deploy Frontend to Cloudflare Pages
-    needs: build-and-test
+    needs: [detect-changes, build-and-test-frontend]
     runs-on: ubuntu-latest
     environment: ${{ github.ref_name == 'release' && 'production' || github.ref_name == 'dev' && 'development' || github.ref_name == 'main' && 'staging' || 'development' }}
-    if: github.event_name == 'push' && github.ref == 'refs/heads/release'
+    if: |
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/release' &&
+      needs.detect-changes.outputs.frontend == 'true'
 
     steps:
       - name: Download Frontend Build Artifact
@@ -186,7 +227,8 @@ jobs:
 
   notify-discord:
     name: Notify Discord
-    needs: [build-and-test, deploy-frontend, deploy-backend]
+    needs:
+      [detect-changes, build-and-test-backend, deploy-frontend, deploy-backend]
     environment: ${{ github.ref_name == 'release' && 'production' || github.ref_name == 'dev' && 'development' || github.ref_name == 'main' && 'staging' || 'development' }}
     runs-on: ubuntu-latest
     permissions:
@@ -197,11 +239,29 @@ jobs:
       - name: Generate Build Status
         id: build-status
         run: |
-          if [[ "${{ needs.build-and-test.result }}" == "success" ]]; then
-            echo "build_msg=:white_check_mark: Build & Test PASSED" >> $GITHUB_OUTPUT
+          backend_result="${{ needs.build-and-test-backend.result }}"
+          frontend_result="${{ needs.build-and-test-frontend.result }}"
+          backend_changed="${{ needs.detect-changes.outputs.backend }}"
+          frontend_changed="${{ needs.detect-changes.outputs.frontend }}"
+
+          # Backend status
+          if [[ "$backend_changed" == "false" ]]; then
+            echo "backend_build_msg=⏭️ Backend build SKIPPED (no changes)" >> $GITHUB_OUTPUT
+          elif [[ "$backend_result" == "success" ]]; then
+            echo "backend_build_msg=✅ Backend build & test PASSED" >> $GITHUB_OUTPUT
           else
-            echo "build_msg=:x: Build & Test FAILED" >> $GITHUB_OUTPUT
+            echo "backend_build_msg=❌ Backend build & test FAILED" >> $GITHUB_OUTPUT
           fi
+
+          # Frontend status
+          if [[ "$frontend_changed" == "false" ]]; then
+            echo "frontend_build_msg=⏭️ Frontend build SKIPPED (no changes)" >> $GITHUB_OUTPUT
+          elif [[ "$frontend_result" == "success" ]]; then
+            echo "frontend_build_msg=✅ Frontend build & test PASSED" >> $GITHUB_OUTPUT
+          else
+            echo "frontend_build_msg=❌ Frontend build & test FAILED" >> $GITHUB_OUTPUT
+          fi
+
       - name: Generate Backend Deploy Status
         id: backend-status
         run: |

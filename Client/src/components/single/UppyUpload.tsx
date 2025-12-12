@@ -53,63 +53,92 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
     });
 
     // Compress images before upload (only for thumbnails)
+    // Using addPreProcessor to ensure compression completes before upload starts
     if (fileType === "thumbnail") {
-      uppyInstance.on("file-added", async (file: any) => {
-        // Check if it's an image file
-        if (file.type && file.type.startsWith("image/")) {
-          try {
-            const originalSize = file.size;
-            console.log(
-              `🖼️ Compressing image: ${file.name} (${(
-                originalSize /
-                1024 /
-                1024
-              ).toFixed(2)} MB)`
-            );
+      uppyInstance.addPreProcessor(async (fileIDs: string[]) => {
+        for (const fileID of fileIDs) {
+          const file = uppyInstance.getFile(fileID);
+          if (!file) continue;
 
-            // Compression options
-            const options = {
-              maxSizeMB: 1,
-              maxWidthOrHeight: 1920,
-              useWebWorker: true, 
-              fileType: file.type, 
-              initialQuality: 0.85,
-            };
+          // Check if it's an image file
+          if (file.type && file.type.startsWith("image/")) {
+            try {
+              const originalSize = file.size;
+              if (!originalSize) {
+                console.warn("File size is unknown, skipping compression");
+                continue;
+              }
 
-            const originalFile = file.data instanceof File ? file.data : file;
+              console.log(
+                `🖼️ Compressing image: ${file.name} (${(
+                  originalSize /
+                  1024 /
+                  1024
+                ).toFixed(2)} MB)`
+              );
 
-            const compressedBlob = await imageCompression(
-              originalFile,
-              options
-            );
+              // Get the original file - ensure it's a File object
+              let originalFile: File;
+              if (file.data instanceof File) {
+                originalFile = file.data;
+              } else if (file instanceof File) {
+                originalFile = file;
+              } else {
+                console.warn(
+                  "File data is not a File object, skipping compression"
+                );
+                continue;
+              }
 
-            const compressedFile = new File([compressedBlob], file.name, {
-              type: file.type,
-              lastModified: Date.now(),
-            });
+              // Compression options
+              const options = {
+                maxSizeMB: 1,
+                maxWidthOrHeight: 1920,
+                useWebWorker: true,
+                fileType: file.type || "image/jpeg",
+                initialQuality: 0.85,
+              };
 
-            file.data = compressedFile;
-            file.size = compressedFile.size;
+              const compressedBlob = await imageCompression(
+                originalFile,
+                options
+              );
 
-            const compressedSize = compressedFile.size;
-            const compressionRatio = (
-              (1 - compressedSize / originalSize) *
-              100
-            ).toFixed(1);
+              const compressedFile = new File(
+                [compressedBlob],
+                file.name || "compressed-image",
+                {
+                  type: file.type || "image/jpeg",
+                  lastModified: Date.now(),
+                }
+              );
 
-            console.log(`Image compressed: ${file.name}`);
-            console.log(
-              `   Original: ${(originalSize / 1024 / 1024).toFixed(2)} MB`
-            );
-            console.log(
-              `   Compressed: ${(compressedSize / 1024 / 1024).toFixed(2)} MB`
-            );
-            console.log(`   Reduction: ${compressionRatio}%`);
-          } catch (error: any) {
-            console.error("Error compressing image:", error);
-            console.warn(
-              "Continuing with original file due to compression error"
-            );
+              // Update the file in Uppy with the compressed version
+              uppyInstance.setFileState(fileID, {
+                data: compressedFile,
+                size: compressedFile.size,
+              });
+
+              const compressedSize = compressedFile.size;
+              const compressionRatio = (
+                (1 - compressedSize / originalSize) *
+                100
+              ).toFixed(1);
+
+              console.log(`✅ Image compressed: ${file.name}`);
+              console.log(
+                `   Original: ${(originalSize / 1024 / 1024).toFixed(2)} MB`
+              );
+              console.log(
+                `   Compressed: ${(compressedSize / 1024 / 1024).toFixed(2)} MB`
+              );
+              console.log(`   Reduction: ${compressionRatio}%`);
+            } catch (error: any) {
+              console.error("Error compressing image:", error);
+              console.warn(
+                "Continuing with original file due to compression error"
+              );
+            }
           }
         }
       });

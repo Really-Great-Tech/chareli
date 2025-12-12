@@ -94,9 +94,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          # cache: "npm"
-          cache-dependency-path: Client/package-lock.json
 
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: ./Client/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('Server/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Clean node_modules
+        working-directory: ./Client
+        run: rm -rf node_modules
       - name: Install Frontend Dependencies
         working-directory: ./Client
         run: npm ci

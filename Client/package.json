@@ -103,7 +103,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
-    "happy-dom": "^17.6.3",
+    "happy-dom": "^20.0.11",
     "rollup-plugin-visualizer": "^6.0.5",
     "terser": "^5.44.1",
     "tw-animate-css": "^1.2.9",

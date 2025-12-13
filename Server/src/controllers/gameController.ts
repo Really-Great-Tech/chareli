@@ -5,7 +5,6 @@ import { GamePositionHistory } from '../entities/GamePositionHistory';
 import { Category } from '../entities/Category';
 import { File } from '../entities/Files';
 import { Analytics } from '../entities/Analytics';
-import { GameLike } from '../entities/GameLike';
 import { SystemConfig } from '../entities/SystemConfig';
 import { ApiError } from '../middlewares/errorHandler';
 import { RoleType } from '../entities/Role';
@@ -21,6 +20,7 @@ import config from '../config/config';
 import path from 'path';
 import { moveFileToPermanentStorage } from '../utils/fileUtils';
 import { generateUniqueSlug } from '../utils/slugify';
+import { multipartUploadHelpers } from '../utils/multipartUpload';
 // import { processImage } from '../services/file.service';
 
 const gameRepository = AppDataSource.getRepository(Game);
@@ -28,7 +28,6 @@ const gamePositionHistoryRepository =
   AppDataSource.getRepository(GamePositionHistory);
 const categoryRepository = AppDataSource.getRepository(Category);
 const fileRepository = AppDataSource.getRepository(File);
-const gameLikeRepository = AppDataSource.getRepository(GameLike);
 
 // Helper function to get the maximum position
 const getMaxPosition = async (): Promise<number> => {
@@ -126,46 +125,6 @@ const assignPositionForNewGame = async (
     const maxPosition = await getMaxPosition();
     return maxPosition + 1;
   }
-};
-
-/**
- * Calculate current like count for a game based on days elapsed and deterministic random increments
- * @param game - The game object with baseLikeCount and lastLikeIncrement
- * @param userLikesCount - Number of user likes for this game
- * @returns Current like count (auto-increment + user likes)
- */
-const calculateLikeCount = (game: Game, userLikesCount: number = 0): number => {
-  const now = new Date();
-  const lastIncrement = new Date(game.lastLikeIncrement);
-
-  // Calculate days elapsed since last increment
-  const msPerDay = 24 * 60 * 60 * 1000;
-  const daysElapsed = Math.floor(
-    (now.getTime() - lastIncrement.getTime()) / msPerDay
-  );
-
-  let autoIncrement = 0;
-  if (daysElapsed > 0) {
-    // Calculate total increment using deterministic random for each day
-    for (let day = 1; day <= daysElapsed; day++) {
-      // Create deterministic seed from gameId + date
-      const incrementDate = new Date(lastIncrement);
-      incrementDate.setDate(incrementDate.getDate() + day);
-      const dateStr = incrementDate.toISOString().split('T')[0]; // YYYY-MM-DD
-      const seed = game.id + dateStr;
-
-      // Simple hash function for deterministic random (1, 2, or 3)
-      let hash = 0;
-      for (let i = 0; i < seed.length; i++) {
-        hash = (hash << 5) - hash + seed.charCodeAt(i);
-        hash = hash & hash; // Convert to 32bit integer
-      }
-      const increment = (Math.abs(hash) % 3) + 1; // 1, 2, or 3
-      autoIncrement += increment;
-    }
-  }
-
-  return game.baseLikeCount + autoIncrement + userLikesCount;
 };
 
 /**
@@ -668,30 +627,10 @@ export const getGameById = async (
       });
     }
 
-    // Get user likes count for this game
-    const userLikesCount = await gameLikeRepository.count({
-      where: { gameId: game.id },
-    });
-
-    // Check if current user has liked this game (if authenticated)
-    let hasLiked = false;
-    if (req.user?.userId) {
-      const userLike = await gameLikeRepository.findOne({
-        where: {
-          userId: req.user.userId,
-          gameId: game.id,
-        },
-      });
-      hasLiked = !!userLike;
-    }
-
     res.status(200).json({
       success: true,
       data: {
         ...game,
-        likeCount: calculateLikeCount(game, userLikesCount),
-        userLikesCount,
-        hasLiked,
         similarGames: similarGames,
       },
     });
@@ -781,6 +720,7 @@ export const createGame = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
+  const requestStartTime = Date.now();
   // Start a transaction
   const queryRunner = AppDataSource.createQueryRunner();
   await queryRunner.connect();
@@ -846,37 +786,6 @@ export const createGame = async (
       finalCategoryId = await getDefaultCategoryId(queryRunner);
     }
 
-    // Move thumbnail to permanent storage using utility function (synchronous)
-    logger.info('Moving thumbnail to permanent storage...');
-    const thumbnailStartTime = performance.now();
-    const permanentThumbnailKey = await moveFileToPermanentStorage(
-      thumbnailFileKey,
-      'thumbnails'
-    );
-    const thumbnailEndTime = performance.now();
-    const thumbnailDuration = thumbnailEndTime - thumbnailStartTime;
-    logger.info(`✅ [THUMBNAIL TIMING] Thumbnail processing completed`, {
-      gameId: title, // Using title as gameId not created yet
-      durationMs: thumbnailDuration.toFixed(2),
-      durationSec: (thumbnailDuration / 1000).toFixed(2),
-      sourceKey: thumbnailFileKey,
-      destinationKey: permanentThumbnailKey,
-    });
-    console.log(
-      `⏱️ [THUMBNAIL TIMING] Completed in ${(thumbnailDuration / 1000).toFixed(
-        2
-      )}s`
-    );
-
-    // Create thumbnail file record in the database using transaction
-    logger.info('Creating thumbnail file record in the database...');
-    const thumbnailFileRecord = fileRepository.create({
-      s3Key: permanentThumbnailKey,
-      type: 'thumbnail',
-    });
-
-    await queryRunner.manager.save(thumbnailFileRecord);
-
     // Assign position for the new game
     logger.info('Assigning position for new game...');
     const assignedPosition = await assignPositionForNewGame(
@@ -888,13 +797,13 @@ export const createGame = async (
     logger.info('Generating unique slug from title...');
     const slug = await generateUniqueSlug(title);
 
-    // Create new game with pending processing status and disabled status (no gameFileId yet)
+    // Create new game with pending processing status and disabled status (no thumbnailFileId yet)
     logger.info('Creating game record with pending processing status...');
     const game = gameRepository.create({
       title,
       slug,
       description,
-      thumbnailFileId: thumbnailFileRecord.id,
+      thumbnailFileId: undefined, // Will be set by background worker
       gameFileId: undefined, // Will be set by background worker
       categoryId: finalCategoryId,
       status: GameStatus.DISABLED, // Always start as disabled until processing completes
@@ -914,13 +823,20 @@ export const createGame = async (
       queryRunner
     );
 
+    // Queue background job for thumbnail processing
+    logger.info('Queuing background job for thumbnail processing...');
+    await queueService.addThumbnailProcessingJob({
+      gameId: game.id,
+      tempKey: thumbnailFileKey,
+      permanentFolder: 'thumbnails',
+    });
+
     // Queue background job for ZIP processing
     logger.info('Queuing background job for ZIP processing...');
     console.log('🚀 [CREATE GAME] Queuing job for game:', {
       gameId: game.id,
       title,
       gameFileKey,
-      thumbnailFileKey: permanentThumbnailKey,
     });
 
     const job = await queueService.addGameZipProcessingJob({
@@ -938,13 +854,7 @@ export const createGame = async (
       jobId: job.id,
     });
 
-    // Clean up temporary thumbnail file (game file will be cleaned up by worker)
-    logger.info('Cleaning up temporary thumbnail file...');
-    try {
-      await storageService.deleteFile(thumbnailFileKey);
-    } catch (cleanupError) {
-      logger.warn('Failed to clean up temporary thumbnail file:', cleanupError);
-    }
+    // Note: Cleanup of temporary files will be handled by background workers
 
     // Commit transaction
     await queryRunner.commitTransaction();
@@ -969,9 +879,18 @@ export const createGame = async (
       savedGame.thumbnailFile.s3Key = storageService.getPublicUrl(s3Key);
     }
 
+    const apiResponseTime = Date.now() - requestStartTime;
+    logger.info(
+      `[PERF] Game creation API completed in ${apiResponseTime}ms - Game ID: ${game.id}, Title: "${title}"`
+    );
+
     res.status(201).json({
       success: true,
       data: savedGame,
+      _performance: {
+        apiResponseTime: `${apiResponseTime}ms`,
+        note: 'Background processing (thumbnail + ZIP) continues asynchronously',
+      },
     });
   } catch (error) {
     // Rollback transaction on error
@@ -1853,8 +1772,157 @@ export const bulkUpdateFreeTime = async (
 };
 
 /**
- * Like a game
+ * Create a multipart upload
  */
+export const createMultipartUpload = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { filename, contentType, fileType } = req.body;
+
+    if (!filename || !fileType) {
+      return next(ApiError.badRequest('Filename and fileType are required'));
+    }
+
+    // Validate fileType
+    if (!['thumbnail', 'game'].includes(fileType)) {
+      return next(
+        ApiError.badRequest('FileType must be either "thumbnail" or "game"')
+      );
+    }
+
+    // Generate unique path
+    const timestamp = Date.now();
+    const gameId = uuidv4();
+    const folder = fileType === 'thumbnail' ? 'temp-thumbnails' : 'temp-games';
+    const key = `${folder}/${gameId}-${timestamp}/${filename}`;
+
+    logger.info(`Creating multipart upload for: ${key}`);
+
+    const result = await multipartUploadHelpers.createMultipartUpload(
+      key,
+      contentType || 'application/octet-stream'
+    );
+
+    res.status(200).json({
+      success: true,
+      data: {
+        uploadId: result.uploadId,
+        key: result.key,
+      },
+    });
+  } catch (error) {
+    logger.error('Error creating multipart upload:', error);
+    next(error);
+  }
+};
+
+/**
+ * Get presigned URL for uploading a part
+ */
+export const getMultipartUploadPartUrl = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { key, uploadId, partNumber } = req.body;
+
+    if (!key || !uploadId || !partNumber) {
+      return next(
+        ApiError.badRequest('Key, uploadId, and partNumber are required')
+      );
+    }
+
+    const url = await multipartUploadHelpers.getPresignedUrlForPart(
+      key,
+      uploadId,
+      parseInt(partNumber)
+    );
+
+    res.status(200).json({
+      success: true,
+      data: {
+        url,
+      },
+    });
+  } catch (error) {
+    logger.error('Error getting multipart upload part URL:', error);
+    next(error);
+  }
+};
+
+/**
+ * Complete a multipart upload
+ */
+export const completeMultipartUpload = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { key, uploadId, parts } = req.body;
+
+    if (!key || !uploadId || !parts || !Array.isArray(parts)) {
+      return next(
+        ApiError.badRequest('Key, uploadId, and parts array are required')
+      );
+    }
+
+    logger.info(`Completing multipart upload for: ${key}`);
+
+    const result = await multipartUploadHelpers.completeMultipartUpload(
+      key,
+      uploadId,
+      parts
+    );
+
+    const publicUrl = storageService.getPublicUrl(key);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        location: result.location,
+        key: result.key,
+        publicUrl,
+      },
+    });
+  } catch (error) {
+    logger.error('Error completing multipart upload:', error);
+    next(error);
+  }
+};
+
+/**
+ * Abort a multipart upload
+ */
+export const abortMultipartUpload = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { key, uploadId } = req.body;
+
+    if (!key || !uploadId) {
+      return next(ApiError.badRequest('Key and uploadId are required'));
+    }
+
+    logger.info(`Aborting multipart upload for: ${key}`);
+
+    await multipartUploadHelpers.abortMultipartUpload(key, uploadId);
+
+    res.status(200).json({
+      success: true,
+      message: 'Multipart upload aborted successfully',
+    });
+  } catch (error) {
+    logger.error('Error aborting multipart upload:', error);
+    next(error);
+  }
+};
 export const likeGame = async (
   req: Request,
   res: Response,

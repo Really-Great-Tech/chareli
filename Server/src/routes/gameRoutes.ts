@@ -14,6 +14,10 @@ import {
   bulkUpdateFreeTime,
   likeGame,
   unlikeGame,
+  createMultipartUpload,
+  getMultipartUploadPartUrl,
+  completeMultipartUpload,
+  abortMultipartUpload,
 } from '../controllers/gameController';
 import {
   authenticate,
@@ -67,6 +71,13 @@ router.use(authenticate);
 router.use(isAdmin);
 
 router.post('/presigned-url', generatePresignedUrl);
+
+// Multipart upload routes
+router.post('/multipart/create', createMultipartUpload);
+router.post('/multipart/part-url', getMultipartUploadPartUrl);
+router.post('/multipart/complete', completeMultipartUpload);
+router.post('/multipart/abort', abortMultipartUpload);
+
 router.post('/bulk-update-free-time', bulkUpdateFreeTime);
 router.post('/', uploadGameFiles, createGame);
 router.put(

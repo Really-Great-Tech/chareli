@@ -94,6 +94,9 @@ interface Config {
     password?: string;
     db?: number;
   };
+  logging: {
+    format: 'json' | 'pretty';
+  };
 }
 
 function getEnv(key: string, defaultValue?: string): string {
@@ -213,6 +216,9 @@ const config: Config = {
     port: parseInt(process.env.REDIS_PORT || '6379', 10),
     password: process.env.REDIS_PASSWORD,
     db: parseInt(process.env.REDIS_DB || '0', 10),
+  },
+  logging: {
+    format: (process.env.LOG_FORMAT || 'pretty') as 'json' | 'pretty',
   },
 };
 

@@ -38,6 +38,13 @@ const consoleFormat = winston.format.combine(
   )
 );
 
+// Define JSON format for console (when LOG_FORMAT=json)
+const jsonConsoleFormat = winston.format.combine(
+  winston.format.timestamp(),
+  winston.format.errors({ stack: true }),
+  winston.format.json()
+);
+
 // Define the format for file output
 const fileFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
@@ -47,22 +54,25 @@ const fileFormat = winston.format.combine(
 // Define the log directory
 const logDir = 'logs';
 
+// Determine console format based on LOG_FORMAT env variable
+const isJsonFormat = config.logging.format === 'json';
+
 // Create the logger instance
 const logger = winston.createLogger({
   level: level(),
   levels,
   transports: [
-    // Console transport for all environments
+    // Console transport with conditional format
     new winston.transports.Console({
-      format: consoleFormat,
+      format: isJsonFormat ? jsonConsoleFormat : consoleFormat,
     }),
-    
+
     // File transport for all logs
     new winston.transports.File({
       filename: path.join(logDir, 'all.log'),
       format: fileFormat,
     }),
-    
+
     // File transport for error logs
     new winston.transports.File({
       filename: path.join(logDir, 'error.log'),

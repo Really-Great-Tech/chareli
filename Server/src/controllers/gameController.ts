@@ -848,9 +848,24 @@ export const createGame = async (
 
     // Move thumbnail to permanent storage using utility function (synchronous)
     logger.info('Moving thumbnail to permanent storage...');
+    const thumbnailStartTime = performance.now();
     const permanentThumbnailKey = await moveFileToPermanentStorage(
       thumbnailFileKey,
       'thumbnails'
+    );
+    const thumbnailEndTime = performance.now();
+    const thumbnailDuration = thumbnailEndTime - thumbnailStartTime;
+    logger.info(`✅ [THUMBNAIL TIMING] Thumbnail processing completed`, {
+      gameId: title, // Using title as gameId not created yet
+      durationMs: thumbnailDuration.toFixed(2),
+      durationSec: (thumbnailDuration / 1000).toFixed(2),
+      sourceKey: thumbnailFileKey,
+      destinationKey: permanentThumbnailKey,
+    });
+    console.log(
+      `⏱️ [THUMBNAIL TIMING] Completed in ${(thumbnailDuration / 1000).toFixed(
+        2
+      )}s`
     );
 
     // Create thumbnail file record in the database using transaction

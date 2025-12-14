@@ -36,7 +36,6 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
   onUploadError,
 }) => {
   const [uppy, setUppy] = useState<any>(null);
-  const [_isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     // Initialize Uppy
@@ -386,14 +385,15 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
         ? uppyInstance.getFile(data.fileIDs[0])
         : null;
       const uploadStrategy =
-        file && file.size >= MULTIPART_THRESHOLD ? 'MULTIPART' : 'SINGLE-PART';
+        file && file.size && file.size >= MULTIPART_THRESHOLD
+          ? 'MULTIPART'
+          : 'SINGLE-PART';
       console.log(
         `🚀 Starting ${uploadStrategy} upload for ${fileType}, ` +
           `file size: ${
-            file ? (file.size / 1024 / 1024).toFixed(2) : 'unknown'
+            file && file.size ? (file.size / 1024 / 1024).toFixed(2) : 'unknown'
           }MB`
       );
-      setIsUploading(true);
       onUploadStart?.();
 
       // Store upload start time for performance tracking
@@ -419,7 +419,6 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
             2
           )} MB/s`
       );
-      setIsUploading(false);
 
       const uploadedFile: UploadedFile = {
         name: file.name || '',
@@ -435,14 +434,12 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
     uppyInstance.on('file-removed', (file: any) => {
       if (!file) return;
       console.log(`🗑️ File removed: ${file.name}`);
-      setIsUploading(false);
       onFileReplaced?.();
     });
 
     // Handle upload errors
     uppyInstance.on('upload-error', (file: any, error: any) => {
       console.error(`❌ Upload failed: ${file?.name}`, error);
-      setIsUploading(false);
       onUploadError?.(error?.message || 'Upload failed');
     });
 
@@ -450,7 +447,6 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
     uppyInstance.on('complete', (result: any) => {
       const successfulCount = result?.successful?.length || 0;
       console.log(`🎉 Upload complete! Files: ${successfulCount}`);
-      setIsUploading(false);
     });
 
     setUppy(uppyInstance);

@@ -1,11 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useState } from "react";
-import Uppy from "@uppy/core";
-import AwsS3 from "@uppy/aws-s3";
-import { Dashboard } from "@uppy/react";
-import imageCompression from "browser-image-compression";
-import "@uppy/core/dist/style.min.css";
-import "@uppy/dashboard/dist/style.min.css";
+import React, { useEffect, useState } from 'react';
+import Uppy from '@uppy/core';
+import AwsS3 from '@uppy/aws-s3';
+import { Dashboard } from '@uppy/react';
+import imageCompression from 'browser-image-compression';
+import '@uppy/core/dist/style.min.css';
+import '@uppy/dashboard/dist/style.min.css';
+
+// AWS recommends multipart upload for files >= 100MB
+const MULTIPART_THRESHOLD = 100 * 1024 * 1024; // 100MB in bytes
+const MULTIPART_CHUNK_SIZE = 10 * 1024 * 1024; // 10MB chunks
 
 interface UploadedFile {
   name: string;
@@ -16,7 +20,7 @@ interface UploadedFile {
 interface UppyUploadProps {
   onFileUploaded: (file: UploadedFile) => void;
   onFileReplaced?: () => void;
-  fileType: "thumbnail" | "game";
+  fileType: 'thumbnail' | 'game';
   accept?: string[];
   maxFileSize?: number;
   onUploadStart?: () => void;
@@ -27,7 +31,7 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
   onFileUploaded,
   onFileReplaced,
   fileType,
-  accept = ["*"],
+  accept = ['*'],
   maxFileSize,
   onUploadStart,
   onUploadError,
@@ -45,7 +49,7 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
         allowedFileTypes: accept,
         maxFileSize:
           maxFileSize ||
-          (fileType === "thumbnail" ? 10 * 1024 * 1024 : Infinity),
+          (fileType === 'thumbnail' ? 10 * 1024 * 1024 : Infinity),
         maxNumberOfFiles: 1,
       },
       allowMultipleUploads: false,
@@ -54,18 +58,18 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
 
     // Compress images before upload (only for thumbnails)
     // Using addPreProcessor to ensure compression completes before upload starts
-    if (fileType === "thumbnail") {
+    if (fileType === 'thumbnail') {
       uppyInstance.addPreProcessor(async (fileIDs: string[]) => {
         for (const fileID of fileIDs) {
           const file = uppyInstance.getFile(fileID);
           if (!file) continue;
 
           // Check if it's an image file
-          if (file.type && file.type.startsWith("image/")) {
+          if (file.type && file.type.startsWith('image/')) {
             try {
               const originalSize = file.size;
               if (!originalSize) {
-                console.warn("File size is unknown, skipping compression");
+                console.warn('File size is unknown, skipping compression');
                 continue;
               }
 
@@ -85,7 +89,7 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
                 originalFile = file;
               } else {
                 console.warn(
-                  "File data is not a File object, skipping compression"
+                  'File data is not a File object, skipping compression'
                 );
                 continue;
               }
@@ -95,7 +99,7 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
                 maxSizeMB: 1,
                 maxWidthOrHeight: 1920,
                 useWebWorker: true,
-                fileType: file.type || "image/jpeg",
+                fileType: file.type || 'image/jpeg',
                 initialQuality: 0.85,
               };
 
@@ -106,9 +110,9 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
 
               const compressedFile = new File(
                 [compressedBlob],
-                file.name || "compressed-image",
+                file.name || 'compressed-image',
                 {
-                  type: file.type || "image/jpeg",
+                  type: file.type || 'image/jpeg',
                   lastModified: Date.now(),
                 }
               );
@@ -134,9 +138,9 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
               );
               console.log(`   Reduction: ${compressionRatio}%`);
             } catch (error: any) {
-              console.error("Error compressing image:", error);
+              console.error('Error compressing image:', error);
               console.warn(
-                "Continuing with original file due to compression error"
+                'Continuing with original file due to compression error'
               );
             }
           }
@@ -145,45 +149,211 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
     }
 
     uppyInstance.use(AwsS3, {
-      getUploadParameters: async (file: any) => {
-        try {
-          console.log(
-            `🔄 Getting presigned URL for: ${file.name}, fileType: ${fileType}`
+      // Enable multipart upload for files >= 100MB
+      shouldUseMultipart: (file: any) => {
+        const useMultipart = file.size >= MULTIPART_THRESHOLD;
+        console.log(
+          `📊 File size: ${(file.size / 1024 / 1024).toFixed(2)}MB, ` +
+            `Using ${useMultipart ? 'MULTIPART' : 'SINGLE-PART'} upload`
+        );
+        return useMultipart;
+      },
+
+      // Multipart upload configuration
+      createMultipartUpload: async (file: any) => {
+        const uploadStartTime = Date.now();
+        console.log(
+          `🚀 [MULTIPART] Initializing multipart upload for: ${file.name}`
+        );
+
+        const token = localStorage.getItem('token');
+        const baseURL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
+
+        const response = await fetch(`${baseURL}/api/games/multipart/create`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            filename: file.name,
+            contentType: file.type || 'application/octet-stream',
+            fileType,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Failed to create multipart upload: ${errorText}`);
+        }
+
+        const result = await response.json();
+        console.log(
+          `✅ [MULTIPART] Created upload ID: ${result.data.uploadId}, ` +
+            `key: ${result.data.key}, ` +
+            `initialization took ${Date.now() - uploadStartTime}ms`
+        );
+
+        // Store metadata for success callback
+        file.meta.publicUrl = result.data.publicUrl;
+        file.meta.key = result.data.key;
+
+        return {
+          uploadId: result.data.uploadId,
+          key: result.data.key,
+        };
+      },
+
+      prepareUploadParts: async (file: any, partData: any) => {
+        const { uploadId, key, parts } = partData;
+        const token = localStorage.getItem('token');
+        const baseURL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
+
+        console.log(
+          `🔗 [MULTIPART] Preparing ${parts.length} upload parts for ${file.name}`
+        );
+
+        const presignedUrls: Record<number, string> = {};
+
+        for (const part of parts) {
+          const response = await fetch(
+            `${baseURL}/api/games/multipart/part-url`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                key,
+                uploadId,
+                partNumber: part.number,
+              }),
+            }
           );
 
-          const token = localStorage.getItem("token");
-          console.log("🔑 Token exists:", !!token);
+          if (!response.ok) {
+            throw new Error(`Failed to get part URL for part ${part.number}`);
+          }
 
-          const baseURL =
-            import.meta.env.VITE_API_URL ?? "http://localhost:5000";
-          const response = await fetch(`${baseURL}/api/games/presigned-url`, {
-            method: "POST",
+          const result = await response.json();
+          presignedUrls[part.number] = result.data.url;
+        }
+
+        console.log(`✅ [MULTIPART] Prepared ${parts.length} presigned URLs`);
+        return { presignedUrls };
+      },
+
+      completeMultipartUpload: async (
+        file: any,
+        { uploadId, key, parts }: any
+      ) => {
+        const completeStartTime = Date.now();
+        console.log(
+          `🏁 [MULTIPART] Completing upload for ${file.name} with ${parts.length} parts`
+        );
+
+        const token = localStorage.getItem('token');
+        const baseURL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
+
+        const response = await fetch(
+          `${baseURL}/api/games/multipart/complete`,
+          {
+            method: 'POST',
             headers: {
-              "Content-Type": "application/json",
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              key,
+              uploadId,
+              parts: parts.map((part: any) => ({
+                PartNumber: part.PartNumber,
+                ETag: part.ETag,
+              })),
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Failed to complete multipart upload: ${errorText}`);
+        }
+
+        const result = await response.json();
+        console.log(
+          `✅ [MULTIPART] Upload completed successfully, ` +
+            `completion took ${Date.now() - completeStartTime}ms`
+        );
+
+        // Store public URL for success callback
+        file.meta.publicUrl = result.data.publicUrl;
+        file.meta.key = result.data.key;
+
+        return result.data;
+      },
+
+      abortMultipartUpload: async (file: any, { uploadId, key }: any) => {
+        console.log(`❌ [MULTIPART] Aborting upload for ${file.name}`);
+
+        const token = localStorage.getItem('token');
+        const baseURL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
+
+        await fetch(`${baseURL}/api/games/multipart/abort`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ key, uploadId }),
+        });
+
+        console.log(`✅ [MULTIPART] Abort completed`);
+      },
+
+      // Single-part upload configuration (fallback for files < 100MB)
+      getUploadParameters: async (file: any) => {
+        const uploadStartTime = Date.now();
+        try {
+          console.log(
+            `🔄 [SINGLE-PART] Getting presigned URL for: ${file.name}, fileType: ${fileType}`
+          );
+
+          const token = localStorage.getItem('token');
+          const baseURL =
+            import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
+          const response = await fetch(`${baseURL}/api/games/presigned-url`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
               Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({
               filename: file.name,
-              contentType: file.type || "application/octet-stream",
+              contentType: file.type || 'application/octet-stream',
               fileType,
             }),
           });
 
-          console.log("📡 Response status:", response.status);
+          console.log('📡 Response status:', response.status);
 
           if (!response.ok) {
             const errorText = await response.text();
-            console.error("❌ Response error:", errorText);
+            console.error('❌ Response error:', errorText);
             throw new Error(
               `HTTP error! status: ${response.status}, message: ${errorText}`
             );
           }
 
           const result = await response.json();
-          console.log("📦 Response data:", result);
+          console.log(
+            `✅ [SINGLE-PART] Got presigned URL, took ${
+              Date.now() - uploadStartTime
+            }ms`
+          );
 
           if (!result.success) {
-            throw new Error(result.message || "Failed to get presigned URL");
+            throw new Error(result.message || 'Failed to get presigned URL');
           }
 
           const { uploadUrl, publicUrl, key } = result.data;
@@ -192,50 +362,80 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
           file.meta.publicUrl = publicUrl;
           file.meta.key = key;
 
-          console.log(`✅ Got presigned URL for: ${file.name}, key: ${key}`);
-
           return {
-            method: "PUT",
+            method: 'PUT',
             url: uploadUrl,
             fields: {},
             headers: {
-              "Content-Type": file.type || "application/octet-stream",
+              'Content-Type': file.type || 'application/octet-stream',
             },
           };
         } catch (error: any) {
-          console.error("❌ Error fetching presigned URL:", error);
-          onUploadError?.(error.message || "Failed to get upload URL");
+          console.error('❌ Error fetching presigned URL:', error);
+          onUploadError?.(error.message || 'Failed to get upload URL');
           throw error;
         }
       },
+
+      // Multipart upload options
+      limit: 4, // Upload 4 parts in parallel
+      retryDelays: [0, 1000, 3000, 5000], // Retry delays in ms
+      companionHeaders: {},
     } as any);
 
     // Handle upload start
-    uppyInstance.on("upload", () => {
-      console.log(`🚀 Starting upload for ${fileType}`);
+    uppyInstance.on('upload', (data: any) => {
+      const file = data?.fileIDs?.[0]
+        ? uppyInstance.getFile(data.fileIDs[0])
+        : null;
+      const uploadStrategy =
+        file && file.size >= MULTIPART_THRESHOLD ? 'MULTIPART' : 'SINGLE-PART';
+      console.log(
+        `🚀 Starting ${uploadStrategy} upload for ${fileType}, ` +
+          `file size: ${
+            file ? (file.size / 1024 / 1024).toFixed(2) : 'unknown'
+          }MB`
+      );
       setIsUploading(true);
       onUploadStart?.();
+
+      // Store upload start time for performance tracking
+      if (file) {
+        file.meta.uploadStartTime = Date.now();
+      }
     });
 
     // Handle successful uploads
-    uppyInstance.on("upload-success", (file: any) => {
+    uppyInstance.on('upload-success', (file: any) => {
       if (!file) return;
 
-      console.log(`✅ Upload successful: ${file.name}`, file.meta);
+      const uploadTime = file.meta?.uploadStartTime
+        ? Date.now() - file.meta.uploadStartTime
+        : 0;
+      const uploadStrategy =
+        file.size >= MULTIPART_THRESHOLD ? 'MULTIPART' : 'SINGLE-PART';
+
+      console.log(
+        `✅ ${uploadStrategy} upload successful: ${file.name}, ` +
+          `duration: ${(uploadTime / 1000).toFixed(2)}s, ` +
+          `speed: ${(file.size / 1024 / 1024 / (uploadTime / 1000)).toFixed(
+            2
+          )} MB/s`
+      );
       setIsUploading(false);
 
       const uploadedFile: UploadedFile = {
-        name: file.name || "",
-        publicUrl: file.meta?.publicUrl || "",
-        key: file.meta?.key || "",
+        name: file.name || '',
+        publicUrl: file.meta?.publicUrl || '',
+        key: file.meta?.key || '',
       };
 
-      console.log("📤 Calling onFileUploaded with:", uploadedFile);
+      console.log('📤 Calling onFileUploaded with:', uploadedFile);
       onFileUploaded(uploadedFile);
     });
 
     // Handle file removal (for replacement functionality)
-    uppyInstance.on("file-removed", (file: any) => {
+    uppyInstance.on('file-removed', (file: any) => {
       if (!file) return;
       console.log(`🗑️ File removed: ${file.name}`);
       setIsUploading(false);
@@ -243,14 +443,14 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
     });
 
     // Handle upload errors
-    uppyInstance.on("upload-error", (file: any, error: any) => {
+    uppyInstance.on('upload-error', (file: any, error: any) => {
       console.error(`❌ Upload failed: ${file?.name}`, error);
       setIsUploading(false);
-      onUploadError?.(error?.message || "Upload failed");
+      onUploadError?.(error?.message || 'Upload failed');
     });
 
     // Handle complete uploads
-    uppyInstance.on("complete", (result: any) => {
+    uppyInstance.on('complete', (result: any) => {
       const successfulCount = result?.successful?.length || 0;
       console.log(`🎉 Upload complete! Files: ${successfulCount}`);
       setIsUploading(false);
@@ -276,12 +476,12 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
         <Dashboard
           uppy={uppy}
           width="100%"
-          height={fileType === "thumbnail" ? 220 : 200}
+          height={fileType === 'thumbnail' ? 220 : 200}
           proudlyDisplayPoweredByUppy={false}
           note={
-            fileType === "thumbnail"
-              ? "Drag & drop your game thumbnail or click to browse"
-              : "Drag & drop your game ZIP file or click to browse"
+            fileType === 'thumbnail'
+              ? 'Drag & drop your game thumbnail or click to browse'
+              : 'Drag & drop your game ZIP file or click to browse'
           }
           showProgressDetails={true}
           theme="light"
@@ -303,46 +503,46 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
             position: relative !important;
             overflow: hidden !important;
           }
-          
+
           .uppy-upload-container .uppy-Dashboard:hover {
             border-color: #6A7282 !important;
             background: linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 100%) !important;
             transform: translateY(-1px) !important;
             box-shadow: 0 8px 25px rgba(106, 114, 130, 0.15) !important;
           }
-          
+
           .uppy-upload-container .uppy-Dashboard.uppy-Dashboard--isDraggingOver {
             border-color: #6A7282 !important;
             background: linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 100%) !important;
             transform: scale(1.02) !important;
             box-shadow: 0 12px 35px rgba(106, 114, 130, 0.25) !important;
           }
-          
+
           .uppy-upload-container .uppy-Dashboard-inner {
             background-color: transparent !important;
             padding: 20px !important;
             min-height: 180px !important;
           }
-          
+
           .uppy-upload-container .uppy-Dashboard-AddFiles {
             border: none !important;
             background: none !important;
           }
-          
+
           .uppy-upload-container .uppy-Dashboard-AddFiles-title {
             color: #374151 !important;
             font-size: 16px !important;
             font-weight: 600 !important;
             margin-bottom: 8px !important;
           }
-          
+
           .uppy-upload-container .uppy-Dashboard-dropFilesHereHint {
             color: #6B7280 !important;
             font-size: 14px !important;
             font-weight: 400 !important;
             margin-bottom: 12px !important;
           }
-          
+
           .uppy-upload-container .uppy-Dashboard-browse {
             color: #6A7282 !important;
             font-weight: 600 !important;
@@ -353,53 +553,53 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
             transition: all 0.2s ease !important;
             display: inline-block !important;
           }
-          
+
           .uppy-upload-container .uppy-Dashboard-browse:hover {
             color: #FFFFFF !important;
             background: #6A7282 !important;
             transform: translateY(-1px) !important;
             box-shadow: 0 4px 12px rgba(106, 114, 130, 0.3) !important;
           }
-          
+
           .uppy-upload-container .uppy-Dashboard-note {
             color: #9CA3AF !important;
             font-size: 12px !important;
             margin-top: 8px !important;
             font-style: italic !important;
           }
-          
+
           /* Dark mode styles */
           .dark .uppy-upload-container .uppy-Dashboard {
             background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%) !important;
             border-color: #475569 !important;
           }
-          
+
           .dark .uppy-upload-container .uppy-Dashboard:hover {
             border-color: #6A7282 !important;
             background: linear-gradient(135deg, #475569 0%, #334155 100%) !important;
           }
-          
+
           .dark .uppy-upload-container .uppy-Dashboard.uppy-Dashboard--isDraggingOver {
             border-color: #6A7282 !important;
             background: linear-gradient(135deg, #475569 0%, #334155 100%) !important;
           }
-          
+
           .dark .uppy-upload-container .uppy-Dashboard-AddFiles-title {
             color: #F9FAFB !important;
           }
-          
+
           .dark .uppy-upload-container .uppy-Dashboard-dropFilesHereHint {
             color: #D1D5DB !important;
           }
-          
+
           .dark .uppy-upload-container .uppy-Dashboard-note {
             color: #9CA3AF !important;
           }
-          
+
           .dark .uppy-upload-container .uppy-Dashboard-browse {
             background: rgba(106, 114, 130, 0.2) !important;
           }
-          
+
           /* Progress bar styling */
           .uppy-upload-container .uppy-ProgressBar {
             background-color: #E5E7EB !important;
@@ -408,13 +608,13 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
             overflow: hidden !important;
             margin-top: 12px !important;
           }
-          
+
           .uppy-upload-container .uppy-ProgressBar-inner {
             background: linear-gradient(90deg, #6A7282 0%, #5A626F 100%) !important;
             border-radius: 8px !important;
             transition: width 0.3s ease !important;
           }
-          
+
           /* File item styling */
           .uppy-upload-container .uppy-Dashboard-Item {
             border-radius: 8px !important;
@@ -423,28 +623,28 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
             margin: 8px 0 !important;
             transition: all 0.2s ease !important;
           }
-          
+
           .uppy-upload-container .uppy-Dashboard-Item:hover {
             transform: translateY(-1px) !important;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
           }
-          
+
           .dark .uppy-upload-container .uppy-Dashboard-Item {
             border-color: #374151 !important;
             background: linear-gradient(135deg, #1F2937 0%, #111827 100%) !important;
           }
-          
+
           /* Animation for upload success */
           @keyframes uploadSuccess {
             0% { transform: scale(1); }
             50% { transform: scale(1.05); }
             100% { transform: scale(1); }
           }
-          
+
           .uppy-upload-container .uppy-Dashboard-Item--success {
             animation: uploadSuccess 0.6s ease !important;
           }
-          
+
           /* File preview styling */
           .uppy-upload-container .uppy-Dashboard-Item-preview {
             width: 80px !important;
@@ -453,20 +653,20 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
             overflow: hidden !important;
             flex-shrink: 0 !important;
           }
-          
+
           .uppy-upload-container .uppy-Dashboard-Item-previewImg {
             width: 100% !important;
             height: 100% !important;
             object-fit: cover !important;
             border-radius: 6px !important;
           }
-          
+
           .uppy-upload-container .uppy-Dashboard-Item-fileInfo {
             flex: 1 !important;
             padding-left: 12px !important;
             min-width: 0 !important;
           }
-          
+
           .uppy-upload-container .uppy-Dashboard-Item-name {
             font-size: 14px !important;
             font-weight: 600 !important;
@@ -474,54 +674,54 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
             margin-bottom: 4px !important;
             word-break: break-word !important;
           }
-          
+
           .uppy-upload-container .uppy-Dashboard-Item-status {
             font-size: 12px !important;
             color: #6B7280 !important;
           }
-          
+
           .dark .uppy-upload-container .uppy-Dashboard-Item-name {
             color: #F9FAFB !important;
           }
-          
+
           .dark .uppy-upload-container .uppy-Dashboard-Item-status {
             color: #D1D5DB !important;
           }
-          
+
           /* Ensure files list has proper spacing */
           .uppy-upload-container .uppy-Dashboard-files {
             margin-top: 16px !important;
             max-height: 200px !important;
             overflow-y: auto !important;
           }
-          
+
           /* Custom scrollbar for files list */
           .uppy-upload-container .uppy-Dashboard-files::-webkit-scrollbar {
             width: 6px !important;
           }
-          
+
           .uppy-upload-container .uppy-Dashboard-files::-webkit-scrollbar-track {
             background: #F3F4F6 !important;
             border-radius: 3px !important;
           }
-          
+
           .uppy-upload-container .uppy-Dashboard-files::-webkit-scrollbar-thumb {
             background: #D1D5DB !important;
             border-radius: 3px !important;
           }
-          
+
           .uppy-upload-container .uppy-Dashboard-files::-webkit-scrollbar-thumb:hover {
             background: #9CA3AF !important;
           }
-          
+
           .dark .uppy-upload-container .uppy-Dashboard-files::-webkit-scrollbar-track {
             background: #374151 !important;
           }
-          
+
           .dark .uppy-upload-container .uppy-Dashboard-files::-webkit-scrollbar-thumb {
             background: #6B7280 !important;
           }
-          
+
           .dark .uppy-upload-container .uppy-Dashboard-files::-webkit-scrollbar-thumb:hover {
             background: #9CA3AF !important;
           }

@@ -16,6 +16,9 @@ import {
   getMultipartUploadPartUrl,
   completeMultipartUpload,
   abortMultipartUpload,
+  likeGame,
+  unlikeGame,
+
 } from '../controllers/gameController';
 import {
   authenticate,
@@ -50,6 +53,20 @@ router.get(
   validateParams(gameIdParamSchema),
   getGameById
 );
+// Like/unlike routes (authenticated users only)
+router.post(
+  '/:id/like',
+  authenticate,
+  validateParams(gameIdParamSchema),
+  likeGame
+);
+router.delete(
+  '/:id/like',
+  authenticate,
+  validateParams(gameIdParamSchema),
+  unlikeGame
+);
+
 
 router.use(authenticate);
 router.use(isAdmin);

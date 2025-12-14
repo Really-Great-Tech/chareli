@@ -153,6 +153,18 @@ h6 {
   /* Chrome, Safari and Opera */
 }
 
+@keyframes scaleBounce {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.4);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 @keyframes shimmer {
   0% {
     background-position: -1000px 0;
@@ -161,6 +173,10 @@ h6 {
   100% {
     background-position: 1000px 0;
   }
+}
+
+.animate-scale-bounce {
+  animation: scaleBounce 0.3s ease-in-out;
 }
 
 .animate-shimmer {

@@ -1,8 +1,19 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, Index, BeforeInsert, BeforeUpdate } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
+  Index,
+  BeforeInsert,
+  BeforeUpdate,
+} from 'typeorm';
 import { User } from './User';
 import { Game } from './Games';
 
-@Entity('analytics')
+@Entity('analytics', { schema: 'internal' })
 @Index(['userId', 'activityType'])
 @Index(['gameId', 'startTime'])
 @Index(['userId', 'startTime'])
@@ -59,7 +70,9 @@ export class Analytics {
   calculateDuration() {
     if (this.startTime && this.endTime) {
       // Calculate duration in seconds only if both startTime and endTime are present
-      this.duration = Math.floor((this.endTime.getTime() - this.startTime.getTime()) / 1000);
+      this.duration = Math.floor(
+        (this.endTime.getTime() - this.startTime.getTime()) / 1000
+      );
     } else {
       // Set duration to null if either startTime or endTime is missing
       this.duration = null;

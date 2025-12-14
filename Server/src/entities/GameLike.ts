@@ -3,19 +3,29 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  UpdateDateColumn,
   ManyToOne,
   JoinColumn,
   Index,
   Unique,
 } from 'typeorm';
 import { Game } from './Games';
+import { User } from './User';
 
-@Entity('game_position_history', { schema: 'internal' })
-@Unique(['gameId', 'position'])
-export class GamePositionHistory {
+@Entity('game_likes')
+@Unique(['userId', 'gameId']) // One like per user per game
+@Index(['gameId']) // For counting likes per game
+@Index(['userId', 'gameId'])
+export class GameLike {
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  @Column()
+  @Index()
+  userId: string;
+
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'userId' })
+  user: User;
 
   @Column()
   @Index()
@@ -25,18 +35,6 @@ export class GamePositionHistory {
   @JoinColumn({ name: 'gameId' })
   game: Game;
 
-  @Column({ type: 'int' })
-  @Index()
-  position: number;
-
-  @Column({ type: 'int', default: 0 })
-  @Index()
-  clickCount: number;
-
   @CreateDateColumn()
-  @Index()
   createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
 }

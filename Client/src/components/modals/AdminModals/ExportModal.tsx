@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from "react";
-import { Button } from "../../ui/button";
+import { useState } from 'react';
+import { Button } from '../../ui/button';
 import {
   Dialog,
   DialogContent,
@@ -9,15 +9,15 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../../ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../ui/tabs";
-import { Card } from "../../ui/card";
-import { Download, FileSpreadsheet, FileJson, File } from "lucide-react";
-import { format } from "date-fns";
-import { toast } from "sonner";
-import type { TDocumentDefinitions } from "pdfmake/interfaces";
-import type { FilterState } from "../../../backend/analytics.service";
-import { loadXlsx } from "../../../utils/loadXlsx";
+} from '../../ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs';
+import { Card } from '../../ui/card';
+import { Download, FileSpreadsheet, FileJson, File } from 'lucide-react';
+import { format } from 'date-fns';
+import { toast } from 'sonner';
+import type { TDocumentDefinitions } from 'pdfmake/interfaces';
+import type { FilterState } from '../../../backend/analytics.service';
+import { loadXlsx } from '../../../utils/loadXlsx';
 
 // We'll load pdfMake dynamically to avoid font loading issues
 let pdfMake: any;
@@ -32,7 +32,7 @@ interface ExportModalProps {
 const ExportModal = ({
   data,
   filters,
-  title = "Export Data",
+  title = 'Export Data',
   description = "Choose the format you'd like to export your data",
 }: ExportModalProps) => {
   const [open, setOpen] = useState(false);
@@ -40,21 +40,23 @@ const ExportModal = ({
   // Transform raw data to consistent export format
   const transformDataForExport = (rawData: any[]) => {
     return rawData.map((user) => ({
-      Name: `${user.firstName || ""} ${user.lastName || ""}`.trim(),
-      Email: user.email || "-",
-      Phone: user.phoneNumber || "-",
-      Country: user.country || "-",
-      "IP Address": user.registrationIpAddress || "-",
-      "Device Type": user.lastKnownDeviceType || "-",
-      "Registration Date": user.createdAt ? format(new Date(user.createdAt), "dd/MM/yyyy") : "-",
-      "Games Played": user.analytics?.totalGamesPlayed || 0,
-      "Time Played (minutes)": user.analytics?.totalTimePlayed 
-        ? Math.floor(user.analytics.totalTimePlayed / 60) 
+      Name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+      Email: user.email || '-',
+      Phone: user.phoneNumber || '-',
+      Country: user.country || '-',
+      'IP Address': user.registrationIpAddress || '-',
+      'Device Type': user.lastKnownDeviceType || '-',
+      'Registration Date': user.createdAt
+        ? format(new Date(user.createdAt), 'dd/MM/yyyy')
+        : '-',
+      'Games Played': user.analytics?.totalGamesPlayed || 0,
+      'Time Played (minutes)': user.analytics?.totalTimePlayed
+        ? Math.floor(user.analytics.totalTimePlayed / 60)
         : 0,
       Sessions: user.analytics?.totalSessionCount || 0,
-      "Last Login": user.lastLoggedIn 
-        ? format(new Date(user.lastLoggedIn), "dd/MM/yyyy HH:mm")
-        : "Never logged in",
+      'Last Login': user.lastLoggedIn
+        ? format(new Date(user.lastLoggedIn), 'dd/MM/yyyy HH:mm')
+        : 'Never logged in',
     }));
   };
 
@@ -69,22 +71,22 @@ const ExportModal = ({
       filters.registrationDates.endDate
     ) {
       const startDate = filters.registrationDates.startDate
-        ? format(new Date(filters.registrationDates.startDate), "MMM dd, yyyy")
-        : "Beginning";
+        ? format(new Date(filters.registrationDates.startDate), 'MMM dd, yyyy')
+        : 'Beginning';
       const endDate = filters.registrationDates.endDate
-        ? format(new Date(filters.registrationDates.endDate), "MMM dd, yyyy")
-        : "Present";
+        ? format(new Date(filters.registrationDates.endDate), 'MMM dd, yyyy')
+        : 'Present';
       summary.push(`Registration Date: ${startDate} to ${endDate}`);
     }
 
     // Last Login Date Range
     if (filters.lastLoginDates.startDate || filters.lastLoginDates.endDate) {
       const startDate = filters.lastLoginDates.startDate
-        ? format(new Date(filters.lastLoginDates.startDate), "MMM dd, yyyy")
-        : "Beginning";
+        ? format(new Date(filters.lastLoginDates.startDate), 'MMM dd, yyyy')
+        : 'Beginning';
       const endDate = filters.lastLoginDates.endDate
-        ? format(new Date(filters.lastLoginDates.endDate), "MMM dd, yyyy")
-        : "Present";
+        ? format(new Date(filters.lastLoginDates.endDate), 'MMM dd, yyyy')
+        : 'Present';
       summary.push(`Last Login Date: ${startDate} to ${endDate}`);
     }
 
@@ -98,36 +100,36 @@ const ExportModal = ({
       const min =
         filters.timePlayed.min > 0
           ? `${filters.timePlayed.min} minutes`
-          : "0 minutes";
+          : '0 minutes';
       const max =
         filters.timePlayed.max > 0
           ? `${filters.timePlayed.max} minutes`
-          : "unlimited";
+          : 'unlimited';
       summary.push(`Time Played: ${min} to ${max}`);
     }
 
     // Game Title
     if (filters.gameTitle && filters.gameTitle.length > 0) {
-      summary.push(`Game Title: ${filters.gameTitle.join(", ")}`);
+      summary.push(`Game Title: ${filters.gameTitle.join(', ')}`);
     }
 
     // Game Category
     if (filters.gameCategory && filters.gameCategory.length > 0) {
-      summary.push(`Game Category: ${filters.gameCategory.join(", ")}`);
+      summary.push(`Game Category: ${filters.gameCategory.join(', ')}`);
     }
 
     // Country
     if (filters.country && filters.country.length > 0) {
-      summary.push(`Country: ${filters.country.join(", ")}`);
+      summary.push(`Country: ${filters.country.join(', ')}`);
     }
 
     // Age Group
     if (filters.ageGroup) {
       const ageGroupLabel =
-        filters.ageGroup === "adults"
-          ? "Adults (18+)"
-          : filters.ageGroup === "minors"
-          ? "Minors (Under 18)"
+        filters.ageGroup === 'adults'
+          ? 'Adults (18+)'
+          : filters.ageGroup === 'minors'
+          ? 'Minors (Under 18)'
           : filters.ageGroup;
       summary.push(`Age Group: ${ageGroupLabel}`);
     }
@@ -135,27 +137,27 @@ const ExportModal = ({
     // Sort By
     if (filters.sortBy) {
       const sortByLabel =
-        filters.sortBy === "createdAt"
-          ? "Registration Date"
-          : filters.sortBy === "firstName"
-          ? "First Name"
-          : filters.sortBy === "lastName"
-          ? "Last Name"
-          : filters.sortBy === "email"
-          ? "Email"
-          : filters.sortBy === "lastLoggedIn"
-          ? "Last Login"
-          : filters.sortBy === "lastSeen"
-          ? "Last Seen"
-          : filters.sortBy === "country"
-          ? "Country"
-          : filters.sortBy === "timePlayed"
-          ? "Time Played"
-          : filters.sortBy === "sessionCount"
-          ? "Session Count"
+        filters.sortBy === 'createdAt'
+          ? 'Registration Date'
+          : filters.sortBy === 'firstName'
+          ? 'First Name'
+          : filters.sortBy === 'lastName'
+          ? 'Last Name'
+          : filters.sortBy === 'email'
+          ? 'Email'
+          : filters.sortBy === 'lastLoggedIn'
+          ? 'Last Login'
+          : filters.sortBy === 'lastSeen'
+          ? 'Last Seen'
+          : filters.sortBy === 'country'
+          ? 'Country'
+          : filters.sortBy === 'timePlayed'
+          ? 'Time Played'
+          : filters.sortBy === 'sessionCount'
+          ? 'Session Count'
           : filters.sortBy;
       const sortOrderLabel =
-        filters.sortOrder === "desc" ? "Newest First" : "Oldest First";
+        filters.sortOrder === 'desc' ? 'Newest First' : 'Oldest First';
       summary.push(`Sort By: ${sortByLabel} (${sortOrderLabel})`);
     }
 
@@ -165,11 +167,11 @@ const ExportModal = ({
   const handleExportCSV = async () => {
     try {
       if (!data || data.length === 0) {
-        toast.info("No data available to export.");
+        toast.info('No data available to export.');
         return;
       }
 
-      const loadingToast = toast.loading("Exporting data as CSV...");
+      const loadingToast = toast.loading('Exporting data as CSV...');
 
       const filterSummary = generateFilterSummary();
 
@@ -228,14 +230,14 @@ const ExportModal = ({
       const finalCsvData = csvHeader + csvData;
 
       const blob = new Blob([finalCsvData], {
-        type: "text/csv;charset=utf-8;",
+        type: 'text/csv;charset=utf-8;',
       });
       const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
+      const link = document.createElement('a');
       link.href = url;
       link.download = `user_management_${format(
         new Date(),
-        "yyyy-MM-dd_HH-mm"
+        'yyyy-MM-dd_HH-mm'
       )}.csv`;
 
       document.body.appendChild(link);
@@ -244,12 +246,12 @@ const ExportModal = ({
       URL.revokeObjectURL(url);
 
       toast.dismiss(loadingToast);
-      toast.success("CSV file exported successfully");
+      toast.success('CSV file exported successfully');
       setOpen(false);
     } catch (error) {
       toast.error(
         `Failed to export CSV file: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? error.message : 'Unknown error'
         }`
       );
     }
@@ -258,15 +260,15 @@ const ExportModal = ({
   const handleExportXLS = async () => {
     try {
       if (!data || data.length === 0) {
-        toast.info("No data available to export.");
+        toast.info('No data available to export.');
         return;
       }
 
-      const loadingToast = toast.loading("Exporting data as XLS...");
+      const loadingToast = toast.loading('Exporting data as XLS...');
 
       const filename = `user_management_${format(
         new Date(),
-        "yyyy-MM-dd_HH-mm"
+        'yyyy-MM-dd_HH-mm'
       )}.xlsx`;
       const filterSummary = generateFilterSummary();
       // Lazily load XLSX only when needed
@@ -290,46 +292,46 @@ const ExportModal = ({
 
       // Create Summary Statistics sheet
       const filterData = [
-        { Field: "Export Type", Value: "User Management" },
+        { Field: 'Export Type', Value: 'User Management' },
         {
-          Field: "Generated",
+          Field: 'Generated',
           Value: format(new Date(), "MMMM dd, yyyy 'at' HH:mm"),
         },
-        { Field: "", Value: "" }, // Empty row
-        { Field: "Summary Statistics", Value: "" },
-        { Field: "Total Users", Value: totalUsers },
-        { Field: "Active Users", Value: activeUsers },
-        { Field: "Total Sessions", Value: totalSessions },
-        { Field: "Total Games Played", Value: totalGamesPlayed },
-        { Field: "Average Sessions per User", Value: avgSessionsPerUser },
-        { Field: "Total Records", Value: data.length },
-        { Field: "", Value: "" }, // Empty row
+        { Field: '', Value: '' }, // Empty row
+        { Field: 'Summary Statistics', Value: '' },
+        { Field: 'Total Users', Value: totalUsers },
+        { Field: 'Active Users', Value: activeUsers },
+        { Field: 'Total Sessions', Value: totalSessions },
+        { Field: 'Total Games Played', Value: totalGamesPlayed },
+        { Field: 'Average Sessions per User', Value: avgSessionsPerUser },
+        { Field: 'Total Records', Value: data.length },
+        { Field: '', Value: '' }, // Empty row
       ];
 
       if (filterSummary.length > 0) {
-        filterData.push({ Field: "Applied Filters", Value: "" });
+        filterData.push({ Field: 'Applied Filters', Value: '' });
         filterSummary.forEach((filter) => {
-          const [key, value] = filter.split(": ");
+          const [key, value] = filter.split(': ');
           filterData.push({ Field: key, Value: value });
         });
       } else {
-        filterData.push({ Field: "Applied Filters", Value: "None (All data)" });
+        filterData.push({ Field: 'Applied Filters', Value: 'None (All data)' });
       }
 
       const filterSheet = XLSX.utils.json_to_sheet(filterData);
-      XLSX.utils.book_append_sheet(workbook, filterSheet, "Filter Summary");
+      XLSX.utils.book_append_sheet(workbook, filterSheet, 'Filter Summary');
 
       // Create Data sheet with transformed data
       const transformedData = transformDataForExport(data);
       const dataSheet = XLSX.utils.json_to_sheet(transformedData);
-      XLSX.utils.book_append_sheet(workbook, dataSheet, "User Data");
+      XLSX.utils.book_append_sheet(workbook, dataSheet, 'User Data');
 
-      const xlsData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+      const xlsData = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
       const blob = new Blob([xlsData], {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       });
       const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
+      const link = document.createElement('a');
 
       link.href = url;
       link.download = filename;
@@ -340,12 +342,12 @@ const ExportModal = ({
       URL.revokeObjectURL(url);
 
       toast.dismiss(loadingToast);
-      toast.success("XLS file exported successfully");
+      toast.success('XLS file exported successfully');
       setOpen(false);
     } catch (error) {
       toast.error(
         `Failed to export XLS file: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? error.message : 'Unknown error'
         }`
       );
     }
@@ -354,15 +356,15 @@ const ExportModal = ({
   const handleExportJSON = () => {
     try {
       if (!data || data.length === 0) {
-        toast.info("No data available to export.");
+        toast.info('No data available to export.');
         return;
       }
 
-      const loadingToast = toast.loading("Exporting data as JSON...");
+      const loadingToast = toast.loading('Exporting data as JSON...');
 
       const filename = `user_management_${format(
         new Date(),
-        "yyyy-MM-dd_HH-mm"
+        'yyyy-MM-dd_HH-mm'
       )}.json`;
       const filterSummary = generateFilterSummary();
 
@@ -372,9 +374,9 @@ const ExportModal = ({
       // Create structured JSON with metadata
       const exportData = {
         exportMetadata: {
-          exportType: "User Management",
+          exportType: 'User Management',
           generatedAt: new Date().toISOString(),
-          generatedBy: "User Management Export System",
+          generatedBy: 'User Management Export System',
           totalRecords: data.length,
           appliedFilters: filters
             ? {
@@ -409,15 +411,15 @@ const ExportModal = ({
               }
             : null,
           filterSummary:
-            filterSummary.length > 0 ? filterSummary : ["None (All data)"],
+            filterSummary.length > 0 ? filterSummary : ['None (All data)'],
         },
         data: transformedData,
       };
 
       const jsonString = JSON.stringify(exportData, null, 2);
-      const blob = new Blob([jsonString], { type: "application/json" });
+      const blob = new Blob([jsonString], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
+      const link = document.createElement('a');
 
       link.href = url;
       link.download = filename;
@@ -428,12 +430,12 @@ const ExportModal = ({
       URL.revokeObjectURL(url);
 
       toast.dismiss(loadingToast);
-      toast.success("JSON file exported successfully");
+      toast.success('JSON file exported successfully');
       setOpen(false);
     } catch (error) {
       toast.error(
         `Failed to export JSON file: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? error.message : 'Unknown error'
         }`
       );
     }
@@ -442,58 +444,66 @@ const ExportModal = ({
   const handleExportPDF = async () => {
     try {
       if (!data || data.length === 0) {
-        toast.info("No data available to export.");
+        toast.info('No data available to export.');
         return;
       }
 
-      const loadingToast = toast.loading("Generating PDF report...");
+      const loadingToast = toast.loading('Generating PDF report...');
 
       // Dynamically import pdfMake and fonts
       if (!pdfMake) {
-        pdfMake = (await import("pdfmake/build/pdfmake")).default;
-        const pdfFonts = await import("pdfmake/build/vfs_fonts");
+        pdfMake = (await import('pdfmake/build/pdfmake')).default;
+        const pdfFonts = await import('pdfmake/build/vfs_fonts');
         pdfMake.vfs = (pdfFonts as any).vfs;
       }
 
       // Transform data for the table
       const tableBody = data.map((user) => [
         {
-          text: `${user.firstName || ""} ${user.lastName || ""}`,
-          alignment: "left",
+          text: `${user.firstName || ''} ${user.lastName || ''}`,
+          alignment: 'left',
           margin: [4, 2],
         },
-        { text: user.email || "-", alignment: "left", margin: [4, 2] },
-        { text: user.phoneNumber || "-", alignment: "left", margin: [4, 2] },
-        { text: user.country || "-", alignment: "left", margin: [4, 2] },
-        { text: user.registrationIpAddress || "-", alignment: "left", margin: [4, 2] },
-        { text: user.lastKnownDeviceType || "-", alignment: "left", margin: [4, 2] },
+        { text: user.email || '-', alignment: 'left', margin: [4, 2] },
+        { text: user.phoneNumber || '-', alignment: 'left', margin: [4, 2] },
+        { text: user.country || '-', alignment: 'left', margin: [4, 2] },
         {
-          text: format(new Date(user.createdAt), "dd/MM/yy"),
-          alignment: "center",
+          text: user.registrationIpAddress || '-',
+          alignment: 'left',
+          margin: [4, 2],
+        },
+        {
+          text: user.lastKnownDeviceType || '-',
+          alignment: 'left',
+          margin: [4, 2],
+        },
+        {
+          text: format(new Date(user.createdAt), 'dd/MM/yy'),
+          alignment: 'center',
           margin: [4, 2],
         },
         {
           text: user.analytics?.totalGamesPlayed || 0,
-          alignment: "center",
+          alignment: 'center',
           margin: [4, 2],
         },
         {
           text: user.analytics?.totalTimePlayed
-            ? Math.floor(user.analytics.totalTimePlayed / 60) + "m"
-            : "0m",
-          alignment: "center",
+            ? Math.floor(user.analytics.totalTimePlayed / 60) + 'm'
+            : '0m',
+          alignment: 'center',
           margin: [4, 2],
         },
         {
           text: user.analytics?.totalSessionCount || 0,
-          alignment: "center",
+          alignment: 'center',
           margin: [4, 2],
         },
         {
           text: user.lastLoggedIn
-            ? format(new Date(user.lastLoggedIn), "dd/MM/yy")
-            : "Never",
-          alignment: "center",
+            ? format(new Date(user.lastLoggedIn), 'dd/MM/yy')
+            : 'Never',
+          alignment: 'center',
           margin: [4, 2],
         },
       ]);
@@ -518,12 +528,12 @@ const ExportModal = ({
       const docDefinition: TDocumentDefinitions = {
         pageSize: { width: 842, height: 595 },
         pageMargins: [40, 40, 40, 40],
-        pageOrientation: "landscape",
+        pageOrientation: 'landscape',
         content: [
           {
-            text: "User Management Statistics Report",
-            style: "header",
-            alignment: "center",
+            text: 'User Management Statistics Report',
+            style: 'header',
+            alignment: 'center',
             margin: [0, 0, 0, 20] as [number, number, number, number],
           },
           {
@@ -531,15 +541,15 @@ const ExportModal = ({
               new Date(),
               "MMMM dd, yyyy 'at' HH:mm"
             )}`,
-            alignment: "center",
+            alignment: 'center',
             margin: [0, 0, 0, 20] as [number, number, number, number],
           },
           // Applied Filters Section
           ...(filterSummary.length > 0
             ? [
                 {
-                  text: "Applied Filters",
-                  style: "subheader",
+                  text: 'Applied Filters',
+                  style: 'subheader',
                   margin: [0, 0, 0, 10] as [number, number, number, number],
                 },
                 {
@@ -549,35 +559,35 @@ const ExportModal = ({
               ]
             : [
                 {
-                  text: "Applied Filters: None (All data)",
-                  style: "subheader",
+                  text: 'Applied Filters: None (All data)',
+                  style: 'subheader',
                   margin: [0, 0, 0, 20] as [number, number, number, number],
                 },
               ]),
           {
-            text: "Summary Statistics",
-            style: "subheader",
+            text: 'Summary Statistics',
+            style: 'subheader',
             margin: [0, 0, 0, 10] as [number, number, number, number],
           },
           {
             columns: [
               {
-                width: "auto",
+                width: 'auto',
                 text: [
-                  { text: "Total Users: ", bold: true },
+                  { text: 'Total Users: ', bold: true },
                   `${totalUsers}\n`,
-                  { text: "Active Users: ", bold: true },
+                  { text: 'Active Users: ', bold: true },
                   `${activeUsers}\n`,
-                  { text: "Total Sessions: ", bold: true },
+                  { text: 'Total Sessions: ', bold: true },
                   `${totalSessions}\n`,
                 ],
               },
               {
-                width: "auto",
+                width: 'auto',
                 text: [
-                  { text: "Total Games Played: ", bold: true },
+                  { text: 'Total Games Played: ', bold: true },
                   `${totalGamesPlayed}\n`,
-                  { text: "Avg Sessions/User: ", bold: true },
+                  { text: 'Avg Sessions/User: ', bold: true },
                   `${avgSessionsPerUser}\n`,
                 ],
               },
@@ -585,8 +595,8 @@ const ExportModal = ({
             margin: [0, 0, 0, 20] as [number, number, number, number],
           },
           {
-            text: "Detailed User Data",
-            style: "subheader",
+            text: 'Detailed User Data',
+            style: 'subheader',
             margin: [0, 0, 0, 10] as [number, number, number, number],
           },
           {
@@ -596,72 +606,72 @@ const ExportModal = ({
               body: [
                 [
                   {
-                    text: "Name",
-                    style: "tableHeader",
-                    alignment: "left",
+                    text: 'Name',
+                    style: 'tableHeader',
+                    alignment: 'left',
                     margin: [4, 2],
                   },
                   {
-                    text: "Email",
-                    style: "tableHeader",
-                    alignment: "left",
+                    text: 'Email',
+                    style: 'tableHeader',
+                    alignment: 'left',
                     margin: [4, 2],
                   },
                   {
-                    text: "Phone",
-                    style: "tableHeader",
-                    alignment: "left",
+                    text: 'Phone',
+                    style: 'tableHeader',
+                    alignment: 'left',
                     margin: [4, 2],
                   },
                   {
-                    text: "Country",
-                    style: "tableHeader",
-                    alignment: "left",
+                    text: 'Country',
+                    style: 'tableHeader',
+                    alignment: 'left',
                     margin: [4, 2],
                   },
                   {
-                    text: "IP Address",
-                    style: "tableHeader",
-                    alignment: "left",
+                    text: 'IP Address',
+                    style: 'tableHeader',
+                    alignment: 'left',
                     margin: [4, 2],
                   },
                   {
-                    text: "Device Type",
-                    style: "tableHeader",
-                    alignment: "left",
+                    text: 'Device Type',
+                    style: 'tableHeader',
+                    alignment: 'left',
                     margin: [4, 2],
                   },
                   {
-                    text: "Reg. Date",
-                    style: "tableHeader",
-                    alignment: "center",
+                    text: 'Reg. Date',
+                    style: 'tableHeader',
+                    alignment: 'center',
                     margin: [4, 2],
                   },
                   {
-                    text: "Games",
-                    style: "tableHeader",
-                    alignment: "center",
+                    text: 'Games',
+                    style: 'tableHeader',
+                    alignment: 'center',
                     margin: [4, 2],
                   },
                   {
-                    text: "Time",
-                    style: "tableHeader",
-                    alignment: "center",
+                    text: 'Time',
+                    style: 'tableHeader',
+                    alignment: 'center',
                     margin: [4, 2],
                   },
                   {
-                    text: "Sessions",
-                    style: "tableHeader",
-                    alignment: "center",
+                    text: 'Sessions',
+                    style: 'tableHeader',
+                    alignment: 'center',
                     margin: [4, 2],
                   },
                   {
-                    text: "Last Login",
-                    style: "tableHeader",
-                    alignment: "center",
+                    text: 'Last Login',
+                    style: 'tableHeader',
+                    alignment: 'center',
                     margin: [4, 2],
                   },
-                ],
+                ] as any,
                 ...tableBody,
               ],
             },
@@ -671,7 +681,7 @@ const ExportModal = ({
           header: {
             fontSize: 18,
             bold: true,
-            color: "#6A7282",
+            color: '#6A7282',
           },
           subheader: {
             fontSize: 14,
@@ -680,7 +690,7 @@ const ExportModal = ({
           },
           tableHeader: {
             bold: true,
-            fillColor: "#F3F4F6",
+            fillColor: '#F3F4F6',
             fontSize: 11,
           },
         },
@@ -695,11 +705,11 @@ const ExportModal = ({
       // Get the PDF as a blob
       pdfDoc.getBlob((blob: any) => {
         const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
+        const link = document.createElement('a');
         link.href = url;
         link.download = `user_management_${format(
           new Date(),
-          "yyyy-MM-dd_HH-mm"
+          'yyyy-MM-dd_HH-mm'
         )}.pdf`;
         document.body.appendChild(link);
         link.click();
@@ -707,13 +717,13 @@ const ExportModal = ({
         URL.revokeObjectURL(url);
 
         toast.dismiss(loadingToast);
-        toast.success("PDF report generated successfully");
+        toast.success('PDF report generated successfully');
         setOpen(false);
       });
     } catch (error) {
       toast.error(
         `Failed to generate PDF report: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? error.message : 'Unknown error'
         }`
       );
     }

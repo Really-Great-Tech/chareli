@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useState } from 'react';
-import Uppy from '@uppy/core';
-import AwsS3 from '@uppy/aws-s3';
-import { Dashboard } from '@uppy/react';
-import '@uppy/core/dist/style.min.css';
-import '@uppy/dashboard/dist/style.min.css';
+import React, { useEffect, useState } from "react";
+import Uppy from "@uppy/core";
+import AwsS3 from "@uppy/aws-s3";
+import { Dashboard } from "@uppy/react";
+import imageCompression from "browser-image-compression";
+import "@uppy/core/dist/style.min.css";
+import "@uppy/dashboard/dist/style.min.css";
 
 interface UploadedFile {
   name: string;
@@ -15,7 +16,7 @@ interface UploadedFile {
 interface UppyUploadProps {
   onFileUploaded: (file: UploadedFile) => void;
   onFileReplaced?: () => void;
-  fileType: 'thumbnail' | 'game';
+  fileType: "thumbnail" | "game";
   accept?: string[];
   maxFileSize?: number;
   onUploadStart?: () => void;
@@ -26,15 +27,15 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
   onFileUploaded,
   onFileReplaced,
   fileType,
-  accept = ['*'],
+  accept = ["*"],
   maxFileSize,
   onUploadStart,
-  onUploadError
+  onUploadError,
 }) => {
   const [uppy, setUppy] = useState<any>(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  console.log(isUploading)
+  console.log(isUploading);
 
   useEffect(() => {
     // Initialize Uppy
@@ -42,98 +43,199 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
       id: `uppy-${fileType}-${Date.now()}`, // Make ID unique to prevent conflicts
       restrictions: {
         allowedFileTypes: accept,
-        maxFileSize: maxFileSize || (fileType === 'thumbnail' ? 10 * 1024 * 1024 : Infinity),
+        maxFileSize:
+          maxFileSize ||
+          (fileType === "thumbnail" ? 10 * 1024 * 1024 : Infinity),
         maxNumberOfFiles: 1,
       },
       allowMultipleUploads: false,
       debug: true, // Enable debug mode
-    }).use(AwsS3, {
+    });
+
+    // Compress images before upload (only for thumbnails)
+    // Using addPreProcessor to ensure compression completes before upload starts
+    if (fileType === "thumbnail") {
+      uppyInstance.addPreProcessor(async (fileIDs: string[]) => {
+        for (const fileID of fileIDs) {
+          const file = uppyInstance.getFile(fileID);
+          if (!file) continue;
+
+          // Check if it's an image file
+          if (file.type && file.type.startsWith("image/")) {
+            try {
+              const originalSize = file.size;
+              if (!originalSize) {
+                console.warn("File size is unknown, skipping compression");
+                continue;
+              }
+
+              console.log(
+                `🖼️ Compressing image: ${file.name} (${(
+                  originalSize /
+                  1024 /
+                  1024
+                ).toFixed(2)} MB)`
+              );
+
+              // Get the original file - ensure it's a File object
+              let originalFile: File;
+              if (file.data instanceof File) {
+                originalFile = file.data;
+              } else if (file instanceof File) {
+                originalFile = file;
+              } else {
+                console.warn(
+                  "File data is not a File object, skipping compression"
+                );
+                continue;
+              }
+
+              // Compression options
+              const options = {
+                maxSizeMB: 1,
+                maxWidthOrHeight: 1920,
+                useWebWorker: true,
+                fileType: file.type || "image/jpeg",
+                initialQuality: 0.85,
+              };
+
+              const compressedBlob = await imageCompression(
+                originalFile,
+                options
+              );
+
+              const compressedFile = new File(
+                [compressedBlob],
+                file.name || "compressed-image",
+                {
+                  type: file.type || "image/jpeg",
+                  lastModified: Date.now(),
+                }
+              );
+
+              // Update the file in Uppy with the compressed version
+              uppyInstance.setFileState(fileID, {
+                data: compressedFile,
+                size: compressedFile.size,
+              });
+
+              const compressedSize = compressedFile.size;
+              const compressionRatio = (
+                (1 - compressedSize / originalSize) *
+                100
+              ).toFixed(1);
+
+              console.log(`✅ Image compressed: ${file.name}`);
+              console.log(
+                `   Original: ${(originalSize / 1024 / 1024).toFixed(2)} MB`
+              );
+              console.log(
+                `   Compressed: ${(compressedSize / 1024 / 1024).toFixed(2)} MB`
+              );
+              console.log(`   Reduction: ${compressionRatio}%`);
+            } catch (error: any) {
+              console.error("Error compressing image:", error);
+              console.warn(
+                "Continuing with original file due to compression error"
+              );
+            }
+          }
+        }
+      });
+    }
+
+    uppyInstance.use(AwsS3, {
       getUploadParameters: async (file: any) => {
         try {
-          console.log(`🔄 Getting presigned URL for: ${file.name}, fileType: ${fileType}`);
-          
-          const token = localStorage.getItem('token');
-          console.log('🔑 Token exists:', !!token);
-          
-          const baseURL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
+          console.log(
+            `🔄 Getting presigned URL for: ${file.name}, fileType: ${fileType}`
+          );
+
+          const token = localStorage.getItem("token");
+          console.log("🔑 Token exists:", !!token);
+
+          const baseURL =
+            import.meta.env.VITE_API_URL ?? "http://localhost:5000";
           const response = await fetch(`${baseURL}/api/games/presigned-url`, {
-            method: 'POST',
-            headers: { 
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({
               filename: file.name,
-              contentType: file.type || 'application/octet-stream',
-              fileType
+              contentType: file.type || "application/octet-stream",
+              fileType,
             }),
           });
-          
-          console.log('📡 Response status:', response.status);
-          
+
+          console.log("📡 Response status:", response.status);
+
           if (!response.ok) {
             const errorText = await response.text();
-            console.error('❌ Response error:', errorText);
-            throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+            console.error("❌ Response error:", errorText);
+            throw new Error(
+              `HTTP error! status: ${response.status}, message: ${errorText}`
+            );
           }
-          
+
           const result = await response.json();
-          console.log('📦 Response data:', result);
-          
+          console.log("📦 Response data:", result);
+
           if (!result.success) {
-            throw new Error(result.message || 'Failed to get presigned URL');
+            throw new Error(result.message || "Failed to get presigned URL");
           }
-          
+
           const { uploadUrl, publicUrl, key } = result.data;
-          
+
           // Store metadata for success callback
           file.meta.publicUrl = publicUrl;
           file.meta.key = key;
-          
+
           console.log(`✅ Got presigned URL for: ${file.name}, key: ${key}`);
-          
+
           return {
-            method: 'PUT',
+            method: "PUT",
             url: uploadUrl,
             fields: {},
             headers: {
-              'Content-Type': file.type || 'application/octet-stream'
-            }
+              "Content-Type": file.type || "application/octet-stream",
+            },
           };
         } catch (error: any) {
-          console.error('❌ Error fetching presigned URL:', error);
-          onUploadError?.(error.message || 'Failed to get upload URL');
+          console.error("❌ Error fetching presigned URL:", error);
+          onUploadError?.(error.message || "Failed to get upload URL");
           throw error;
         }
       },
     } as any);
 
     // Handle upload start
-    uppyInstance.on('upload', () => {
+    uppyInstance.on("upload", () => {
       console.log(`🚀 Starting upload for ${fileType}`);
       setIsUploading(true);
       onUploadStart?.();
     });
 
     // Handle successful uploads
-    uppyInstance.on('upload-success', (file: any) => {
+    uppyInstance.on("upload-success", (file: any) => {
       if (!file) return;
-      
+
       console.log(`✅ Upload successful: ${file.name}`, file.meta);
       setIsUploading(false);
-      
+
       const uploadedFile: UploadedFile = {
-        name: file.name || '',
-        publicUrl: file.meta?.publicUrl || '',
-        key: file.meta?.key || ''
+        name: file.name || "",
+        publicUrl: file.meta?.publicUrl || "",
+        key: file.meta?.key || "",
       };
 
-      console.log('📤 Calling onFileUploaded with:', uploadedFile);
+      console.log("📤 Calling onFileUploaded with:", uploadedFile);
       onFileUploaded(uploadedFile);
     });
 
     // Handle file removal (for replacement functionality)
-    uppyInstance.on('file-removed', (file: any) => {
+    uppyInstance.on("file-removed", (file: any) => {
       if (!file) return;
       console.log(`🗑️ File removed: ${file.name}`);
       setIsUploading(false);
@@ -141,14 +243,14 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
     });
 
     // Handle upload errors
-    uppyInstance.on('upload-error', (file: any, error: any) => {
+    uppyInstance.on("upload-error", (file: any, error: any) => {
       console.error(`❌ Upload failed: ${file?.name}`, error);
       setIsUploading(false);
-      onUploadError?.(error?.message || 'Upload failed');
+      onUploadError?.(error?.message || "Upload failed");
     });
 
     // Handle complete uploads
-    uppyInstance.on('complete', (result: any) => {
+    uppyInstance.on("complete", (result: any) => {
       const successfulCount = result?.successful?.length || 0;
       console.log(`🎉 Upload complete! Files: ${successfulCount}`);
       setIsUploading(false);
@@ -174,22 +276,24 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
         <Dashboard
           uppy={uppy}
           width="100%"
-          height={fileType === 'thumbnail' ? 220 : 200}
+          height={fileType === "thumbnail" ? 220 : 200}
           proudlyDisplayPoweredByUppy={false}
-          note={fileType === 'thumbnail' 
-            ? 'Drag & drop your game thumbnail or click to browse' 
-            : 'Drag & drop your game ZIP file or click to browse'
+          note={
+            fileType === "thumbnail"
+              ? "Drag & drop your game thumbnail or click to browse"
+              : "Drag & drop your game ZIP file or click to browse"
           }
           showProgressDetails={true}
           theme="light"
         />
-        
+
         {/* Gradient overlay for better visual appeal */}
         <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-orange-50/30 to-amber-50/30 dark:from-orange-900/10 dark:to-amber-900/10 rounded-lg"></div>
       </div>
-      
-      <style dangerouslySetInnerHTML={{
-        __html: `
+
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
           .uppy-upload-container .uppy-Dashboard {
             border-radius: 12px !important;
             border: 2px dashed #D1D5DB !important;
@@ -421,8 +525,9 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
           .dark .uppy-upload-container .uppy-Dashboard-files::-webkit-scrollbar-thumb:hover {
             background: #9CA3AF !important;
           }
-        `
-      }} />
+        `,
+        }}
+      />
     </div>
   );
 };

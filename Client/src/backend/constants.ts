@@ -65,4 +65,8 @@ export const BackendRoute = {
   SYSTEM_CONFIG: '/api/system-configs',
   SYSTEM_CONFIG_FORMATTED: '/api/system-configs/formatted',
   SYSTEM_CONFIG_BY_KEY: '/api/system-configs/:key',
+
+  // Game Likes Routes
+  GAME_LIKE: '/api/games/:gameId/like',
+  GAME_UNLIKE: '/api/games/:gameId/like',
 } as const;

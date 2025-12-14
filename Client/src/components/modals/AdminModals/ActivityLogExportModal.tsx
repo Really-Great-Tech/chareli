@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from "react";
-import { Button } from "../../ui/button";
+import { useState } from 'react';
+import { Button } from '../../ui/button';
 import {
   Dialog,
   DialogContent,
@@ -9,15 +9,15 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../../ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../ui/tabs";
-import { Card } from "../../ui/card";
-import { Download, FileSpreadsheet, FileJson, File } from "lucide-react";
-import { format } from "date-fns";
-import { toast } from "sonner";
-import type { TDocumentDefinitions } from "pdfmake/interfaces";
-import type { ActivityLogFilterState } from "../../../backend/analytics.service";
-import { loadXlsx } from "../../../utils/loadXlsx";
+} from '../../ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs';
+import { Card } from '../../ui/card';
+import { Download, FileSpreadsheet, FileJson, File } from 'lucide-react';
+import { format } from 'date-fns';
+import { toast } from 'sonner';
+import type { TDocumentDefinitions } from 'pdfmake/interfaces';
+import type { ActivityLogFilterState } from '../../../backend/analytics.service';
+import { loadXlsx } from '../../../utils/loadXlsx';
 
 // We'll load pdfMake dynamically to avoid font loading issues
 let pdfMake: any;
@@ -43,7 +43,7 @@ interface ActivityLogExportModalProps {
 const ActivityLogExportModal = ({
   data,
   filters,
-  title = "Export Activity Log",
+  title = 'Export Activity Log',
   description = "Choose the format you'd like to export your activity log data",
 }: ActivityLogExportModalProps) => {
   const [open, setOpen] = useState(false);
@@ -60,7 +60,7 @@ const ActivityLogExportModal = ({
 
     // Game Title
     if (filters.gameTitle && filters.gameTitle.length > 0) {
-      summary.push(`Game Title: ${filters.gameTitle.join(", ")}`);
+      summary.push(`Game Title: ${filters.gameTitle.join(', ')}`);
     }
 
     // Activity Type
@@ -71,15 +71,15 @@ const ActivityLogExportModal = ({
     // Sort By
     if (filters.sortBy) {
       const sortByLabel =
-        filters.sortBy === "createdAt"
-          ? "Registration Date"
-          : filters.sortBy === "name"
-          ? "Name"
-          : filters.sortBy === "email"
-          ? "Email"
+        filters.sortBy === 'createdAt'
+          ? 'Registration Date'
+          : filters.sortBy === 'name'
+          ? 'Name'
+          : filters.sortBy === 'email'
+          ? 'Email'
           : filters.sortBy;
       const sortOrderLabel =
-        filters.sortOrder === "desc" ? "Newest First" : "Oldest First";
+        filters.sortOrder === 'desc' ? 'Newest First' : 'Oldest First';
       summary.push(`Sort By: ${sortByLabel} (${sortOrderLabel})`);
     }
 
@@ -88,32 +88,32 @@ const ActivityLogExportModal = ({
 
   const formatActivityDataForExport = (activities: ActivityLogData[]) => {
     return activities.map((activity) => ({
-      Name: activity.name?.trim() || "-",
-      "User Status": activity.userStatus || "Offline",
-      Activity: activity.activity || "-",
-      "Last Game Played": activity.lastGamePlayed || "-",
-      "Start Time": activity.startTime
-        ? format(new Date(activity.startTime), "HH:mm")
-        : "-",
-      "End Time": activity.endTime
-        ? format(new Date(activity.endTime), "HH:mm")
-        : "-",
-      "Last Session Time": activity.lastSessionDuration
+      Name: activity.name?.trim() || '-',
+      'User Status': activity.userStatus || 'Offline',
+      Activity: activity.activity || '-',
+      'Last Game Played': activity.lastGamePlayed || '-',
+      'Start Time': activity.startTime
+        ? format(new Date(activity.startTime), 'HH:mm')
+        : '-',
+      'End Time': activity.endTime
+        ? format(new Date(activity.endTime), 'HH:mm')
+        : '-',
+      'Last Session Time': activity.lastSessionDuration
         ? `${Math.floor(activity.lastSessionDuration / 60)}m ${
             activity.lastSessionDuration % 60
           }s`
-        : "-",
+        : '-',
     }));
   };
 
   const handleExportCSV = async () => {
     try {
       if (!data || data.length === 0) {
-        toast.info("No activity log data available to export.");
+        toast.info('No activity log data available to export.');
         return;
       }
 
-      const loadingToast = toast.loading("Exporting activity log as CSV...");
+      const loadingToast = toast.loading('Exporting activity log as CSV...');
 
       const formattedData = formatActivityDataForExport(data);
       const filterSummary = generateFilterSummary();
@@ -145,14 +145,14 @@ const ActivityLogExportModal = ({
       const finalCsvData = csvHeader + csvData;
 
       const blob = new Blob([finalCsvData], {
-        type: "text/csv;charset=utf-8;",
+        type: 'text/csv;charset=utf-8;',
       });
       const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
+      const link = document.createElement('a');
       link.href = url;
       link.download = `user_activity_log_${format(
         new Date(),
-        "yyyy-MM-dd_HH-mm"
+        'yyyy-MM-dd_HH-mm'
       )}.csv`;
 
       document.body.appendChild(link);
@@ -161,12 +161,12 @@ const ActivityLogExportModal = ({
       URL.revokeObjectURL(url);
 
       toast.dismiss(loadingToast);
-      toast.success("CSV file exported successfully");
+      toast.success('CSV file exported successfully');
       setOpen(false);
     } catch (error) {
       toast.error(
         `Failed to export CSV file: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? error.message : 'Unknown error'
         }`
       );
     }
@@ -175,15 +175,15 @@ const ActivityLogExportModal = ({
   const handleExportXLS = async () => {
     try {
       if (!data || data.length === 0) {
-        toast.info("No activity log data available to export.");
+        toast.info('No activity log data available to export.');
         return;
       }
 
-      const loadingToast = toast.loading("Exporting activity log as XLS...");
+      const loadingToast = toast.loading('Exporting activity log as XLS...');
 
       const filename = `user_activity_log_${format(
         new Date(),
-        "yyyy-MM-dd_HH-mm"
+        'yyyy-MM-dd_HH-mm'
       )}.xlsx`;
       const formattedData = formatActivityDataForExport(data);
       const filterSummary = generateFilterSummary();
@@ -192,38 +192,38 @@ const ActivityLogExportModal = ({
 
       // Create Filter Summary sheet
       const filterData = [
-        { Field: "Export Type", Value: "Activity Log" },
+        { Field: 'Export Type', Value: 'Activity Log' },
         {
-          Field: "Generated",
+          Field: 'Generated',
           Value: format(new Date(), "MMMM dd, yyyy 'at' HH:mm"),
         },
-        { Field: "Total Records", Value: data.length },
-        { Field: "", Value: "" }, // Empty row
+        { Field: 'Total Records', Value: data.length },
+        { Field: '', Value: '' }, // Empty row
       ];
 
       if (filterSummary.length > 0) {
-        filterData.push({ Field: "Applied Filters", Value: "" });
+        filterData.push({ Field: 'Applied Filters', Value: '' });
         filterSummary.forEach((filter) => {
-          const [key, value] = filter.split(": ");
+          const [key, value] = filter.split(': ');
           filterData.push({ Field: key, Value: value });
         });
       } else {
-        filterData.push({ Field: "Applied Filters", Value: "None (All data)" });
+        filterData.push({ Field: 'Applied Filters', Value: 'None (All data)' });
       }
 
       const filterSheet = XLSX.utils.json_to_sheet(filterData);
-      XLSX.utils.book_append_sheet(workbook, filterSheet, "Filter Summary");
+      XLSX.utils.book_append_sheet(workbook, filterSheet, 'Filter Summary');
 
       // Create Data sheet
       const dataSheet = XLSX.utils.json_to_sheet(formattedData);
-      XLSX.utils.book_append_sheet(workbook, dataSheet, "Activity Log");
+      XLSX.utils.book_append_sheet(workbook, dataSheet, 'Activity Log');
 
-      const xlsData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+      const xlsData = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
       const blob = new Blob([xlsData], {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       });
       const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
+      const link = document.createElement('a');
 
       link.href = url;
       link.download = filename;
@@ -234,12 +234,12 @@ const ActivityLogExportModal = ({
       URL.revokeObjectURL(url);
 
       toast.dismiss(loadingToast);
-      toast.success("XLS file exported successfully");
+      toast.success('XLS file exported successfully');
       setOpen(false);
     } catch (error) {
       toast.error(
         `Failed to export XLS file: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? error.message : 'Unknown error'
         }`
       );
     }
@@ -248,15 +248,15 @@ const ActivityLogExportModal = ({
   const handleExportJSON = () => {
     try {
       if (!data || data.length === 0) {
-        toast.info("No activity log data available to export.");
+        toast.info('No activity log data available to export.');
         return;
       }
 
-      const loadingToast = toast.loading("Exporting activity log as JSON...");
+      const loadingToast = toast.loading('Exporting activity log as JSON...');
 
       const filename = `user_activity_log_${format(
         new Date(),
-        "yyyy-MM-dd_HH-mm"
+        'yyyy-MM-dd_HH-mm'
       )}.json`;
       const formattedData = formatActivityDataForExport(data);
       const filterSummary = generateFilterSummary();
@@ -264,9 +264,9 @@ const ActivityLogExportModal = ({
       // Create structured JSON with metadata
       const exportData = {
         exportMetadata: {
-          exportType: "Activity Log",
+          exportType: 'Activity Log',
           generatedAt: new Date().toISOString(),
-          generatedBy: "Activity Log Export System",
+          generatedBy: 'Activity Log Export System',
           totalRecords: data.length,
           appliedFilters: filters
             ? {
@@ -281,15 +281,15 @@ const ActivityLogExportModal = ({
               }
             : null,
           filterSummary:
-            filterSummary.length > 0 ? filterSummary : ["None (All data)"],
+            filterSummary.length > 0 ? filterSummary : ['None (All data)'],
         },
         data: formattedData,
       };
 
       const jsonString = JSON.stringify(exportData, null, 2);
-      const blob = new Blob([jsonString], { type: "application/json" });
+      const blob = new Blob([jsonString], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
+      const link = document.createElement('a');
 
       link.href = url;
       link.download = filename;
@@ -300,12 +300,12 @@ const ActivityLogExportModal = ({
       URL.revokeObjectURL(url);
 
       toast.dismiss(loadingToast);
-      toast.success("JSON file exported successfully");
+      toast.success('JSON file exported successfully');
       setOpen(false);
     } catch (error) {
       toast.error(
         `Failed to export JSON file: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? error.message : 'Unknown error'
         }`
       );
     }
@@ -314,18 +314,18 @@ const ActivityLogExportModal = ({
   const handleExportPDF = async () => {
     try {
       if (!data || data.length === 0) {
-        toast.info("No activity log data available to export.");
+        toast.info('No activity log data available to export.');
         return;
       }
 
       const loadingToast = toast.loading(
-        "Generating activity log PDF report..."
+        'Generating activity log PDF report...'
       );
 
       // Dynamically import pdfMake and fonts
       if (!pdfMake) {
-        pdfMake = (await import("pdfmake/build/pdfmake")).default;
-        const pdfFonts = await import("pdfmake/build/vfs_fonts");
+        pdfMake = (await import('pdfmake/build/pdfmake')).default;
+        const pdfFonts = await import('pdfmake/build/vfs_fonts');
         pdfMake.vfs = (pdfFonts as any).vfs;
       }
 
@@ -334,24 +334,24 @@ const ActivityLogExportModal = ({
 
       // Transform formatted data for PDF table
       const tableBody = formattedData.map((activity) => [
-        { text: activity.Name, alignment: "left", margin: [4, 2] },
+        { text: activity.Name, alignment: 'left', margin: [4, 2] },
         {
-          text: activity["User Status"],
-          alignment: "center",
+          text: activity['User Status'],
+          alignment: 'center',
           margin: [4, 2],
-          color: activity["User Status"] === "Online" ? "#4BA366" : "#E74C3C",
+          color: activity['User Status'] === 'Online' ? '#4BA366' : '#E74C3C',
         },
-        { text: activity.Activity, alignment: "left", margin: [4, 2] },
+        { text: activity.Activity, alignment: 'left', margin: [4, 2] },
         {
-          text: activity["Last Game Played"],
-          alignment: "left",
+          text: activity['Last Game Played'],
+          alignment: 'left',
           margin: [4, 2],
         },
-        { text: activity["Start Time"], alignment: "center", margin: [4, 2] },
-        { text: activity["End Time"], alignment: "center", margin: [4, 2] },
+        { text: activity['Start Time'], alignment: 'center', margin: [4, 2] },
+        { text: activity['End Time'], alignment: 'center', margin: [4, 2] },
         {
-          text: activity["Last Session Time"],
-          alignment: "center",
+          text: activity['Last Session Time'],
+          alignment: 'center',
           margin: [4, 2],
         },
       ]);
@@ -359,7 +359,7 @@ const ActivityLogExportModal = ({
       // Calculate summary statistics
       const totalActivities = data.length;
       const onlineUsers = data.filter(
-        (activity) => activity.userStatus === "Online"
+        (activity) => activity.userStatus === 'Online'
       ).length;
       const offlineUsers = totalActivities - onlineUsers;
 
@@ -368,12 +368,12 @@ const ActivityLogExportModal = ({
       const docDefinition: TDocumentDefinitions = {
         pageSize: { width: 842, height: 595 },
         pageMargins: [40, 40, 40, 40],
-        pageOrientation: "landscape",
+        pageOrientation: 'landscape',
         content: [
           {
-            text: "User Activity Log Report",
-            style: "header",
-            alignment: "center",
+            text: 'User Activity Log Report',
+            style: 'header',
+            alignment: 'center',
             margin: [0, 0, 0, 20] as [number, number, number, number],
           },
           {
@@ -381,15 +381,15 @@ const ActivityLogExportModal = ({
               new Date(),
               "MMMM dd, yyyy 'at' HH:mm"
             )}`,
-            alignment: "center",
+            alignment: 'center',
             margin: [0, 0, 0, 20] as [number, number, number, number],
           },
           // Applied Filters Section
           ...(filterSummary.length > 0
             ? [
                 {
-                  text: "Applied Filters",
-                  style: "subheader",
+                  text: 'Applied Filters',
+                  style: 'subheader',
                   margin: [0, 0, 0, 10] as [number, number, number, number],
                 },
                 {
@@ -399,30 +399,30 @@ const ActivityLogExportModal = ({
               ]
             : [
                 {
-                  text: "Applied Filters: None (All data)",
-                  style: "subheader",
+                  text: 'Applied Filters: None (All data)',
+                  style: 'subheader',
                   margin: [0, 0, 0, 20] as [number, number, number, number],
                 },
               ]),
           {
-            text: "Activity Summary",
-            style: "subheader",
+            text: 'Activity Summary',
+            style: 'subheader',
             margin: [0, 0, 0, 10] as [number, number, number, number],
           },
           {
             text: [
-              { text: "Total Activities: ", bold: true },
+              { text: 'Total Activities: ', bold: true },
               `${totalActivities}\n`,
-              { text: "Online Users: ", bold: true },
+              { text: 'Online Users: ', bold: true },
               `${onlineUsers}\n`,
-              { text: "Offline Users: ", bold: true },
+              { text: 'Offline Users: ', bold: true },
               `${offlineUsers}\n`,
             ],
             margin: [0, 0, 0, 20] as [number, number, number, number],
           },
           {
-            text: "Detailed Activity Log",
-            style: "subheader",
+            text: 'Detailed Activity Log',
+            style: 'subheader',
             margin: [0, 0, 0, 10] as [number, number, number, number],
           },
           {
@@ -432,48 +432,48 @@ const ActivityLogExportModal = ({
               body: [
                 [
                   {
-                    text: "Name",
-                    style: "tableHeader",
-                    alignment: "left",
+                    text: 'Name',
+                    style: 'tableHeader',
+                    alignment: 'left',
                     margin: [4, 2],
                   },
                   {
-                    text: "Status",
-                    style: "tableHeader",
-                    alignment: "center",
+                    text: 'Status',
+                    style: 'tableHeader',
+                    alignment: 'center',
                     margin: [4, 2],
                   },
                   {
-                    text: "Activity",
-                    style: "tableHeader",
-                    alignment: "left",
+                    text: 'Activity',
+                    style: 'tableHeader',
+                    alignment: 'left',
                     margin: [4, 2],
                   },
                   {
-                    text: "Last Game Played",
-                    style: "tableHeader",
-                    alignment: "left",
+                    text: 'Last Game Played',
+                    style: 'tableHeader',
+                    alignment: 'left',
                     margin: [4, 2],
                   },
                   {
-                    text: "Start Time",
-                    style: "tableHeader",
-                    alignment: "center",
+                    text: 'Start Time',
+                    style: 'tableHeader',
+                    alignment: 'center',
                     margin: [4, 2],
                   },
                   {
-                    text: "End Time",
-                    style: "tableHeader",
-                    alignment: "center",
+                    text: 'End Time',
+                    style: 'tableHeader',
+                    alignment: 'center',
                     margin: [4, 2],
                   },
                   {
-                    text: "Last Session Time",
-                    style: "tableHeader",
-                    alignment: "center",
+                    text: 'Last Session Time',
+                    style: 'tableHeader',
+                    alignment: 'center',
                     margin: [4, 2],
                   },
-                ],
+                ] as any,
                 ...tableBody,
               ],
             },
@@ -483,7 +483,7 @@ const ActivityLogExportModal = ({
           header: {
             fontSize: 18,
             bold: true,
-            color: "#6A7282",
+            color: '#6A7282',
           },
           subheader: {
             fontSize: 14,
@@ -492,7 +492,7 @@ const ActivityLogExportModal = ({
           },
           tableHeader: {
             bold: true,
-            fillColor: "#F3F4F6",
+            fillColor: '#F3F4F6',
             fontSize: 11,
           },
         },
@@ -507,11 +507,11 @@ const ActivityLogExportModal = ({
       // Get the PDF as a blob
       pdfDoc.getBlob((blob: any) => {
         const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
+        const link = document.createElement('a');
         link.href = url;
         link.download = `user_activity_log_${format(
           new Date(),
-          "yyyy-MM-dd_HH-mm"
+          'yyyy-MM-dd_HH-mm'
         )}.pdf`;
         document.body.appendChild(link);
         link.click();
@@ -519,13 +519,13 @@ const ActivityLogExportModal = ({
         URL.revokeObjectURL(url);
 
         toast.dismiss(loadingToast);
-        toast.success("PDF report generated successfully");
+        toast.success('PDF report generated successfully');
         setOpen(false);
       });
     } catch (error) {
       toast.error(
         `Failed to generate PDF report: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? error.message : 'Unknown error'
         }`
       );
     }

@@ -6,6 +6,14 @@ import { Dashboard } from '@uppy/react';
 import logger from '../../utils/logger';
 import '@uppy/core/dist/style.min.css';
 import '@uppy/dashboard/dist/style.min.css';
+import React, { useEffect, useState } from "react";
+import Uppy from "@uppy/core";
+import AwsS3 from "@uppy/aws-s3";
+import { Dashboard } from "@uppy/react";
+import imageCompression from "browser-image-compression";
+import "@uppy/core/dist/style.min.css";
+import "@uppy/dashboard/dist/style.min.css";
+
 
 interface UploadedFile {
   name: string;
@@ -16,7 +24,7 @@ interface UploadedFile {
 interface UppyUploadProps {
   onFileUploaded: (file: UploadedFile) => void;
   onFileReplaced?: () => void;
-  fileType: 'thumbnail' | 'game';
+  fileType: "thumbnail" | "game";
   accept?: string[];
   maxFileSize?: number;
   onUploadStart?: () => void;
@@ -27,7 +35,7 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
   onFileUploaded,
   onFileReplaced,
   fileType,
-  accept = ['*'],
+  accept = ["*"],
   maxFileSize,
   onUploadStart,
   onUploadError,
@@ -39,8 +47,6 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const stableAccept = useMemo(() => accept, [accept?.join(',')]);
   // const [isUploading, setIsUploading] = useState(false);
-
-  // Removed console.log - use React DevTools to debug state
 
   useEffect(() => {
     // Initialize Uppy
@@ -55,7 +61,101 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
       },
       allowMultipleUploads: false,
       debug: true, // Enable debug mode
-    }).use(AwsS3, {
+    });
+
+    // Compress images before upload (only for thumbnails)
+    // Using addPreProcessor to ensure compression completes before upload starts
+    if (fileType === "thumbnail") {
+      uppyInstance.addPreProcessor(async (fileIDs: string[]) => {
+        for (const fileID of fileIDs) {
+          const file = uppyInstance.getFile(fileID);
+          if (!file) continue;
+
+          // Check if it's an image file
+          if (file.type && file.type.startsWith("image/")) {
+            try {
+              const originalSize = file.size;
+              if (!originalSize) {
+                console.warn("File size is unknown, skipping compression");
+                continue;
+              }
+
+              console.log(
+                `🖼️ Compressing image: ${file.name} (${(
+                  originalSize /
+                  1024 /
+                  1024
+                ).toFixed(2)} MB)`
+              );
+
+              // Get the original file - ensure it's a File object
+              let originalFile: File;
+              if (file.data instanceof File) {
+                originalFile = file.data;
+              } else if (file instanceof File) {
+                originalFile = file;
+              } else {
+                console.warn(
+                  "File data is not a File object, skipping compression"
+                );
+                continue;
+              }
+
+              // Compression options
+              const options = {
+                maxSizeMB: 1,
+                maxWidthOrHeight: 1920,
+                useWebWorker: true,
+                fileType: file.type || "image/jpeg",
+                initialQuality: 0.85,
+              };
+
+              const compressedBlob = await imageCompression(
+                originalFile,
+                options
+              );
+
+              const compressedFile = new File(
+                [compressedBlob],
+                file.name || "compressed-image",
+                {
+                  type: file.type || "image/jpeg",
+                  lastModified: Date.now(),
+                }
+              );
+
+              // Update the file in Uppy with the compressed version
+              uppyInstance.setFileState(fileID, {
+                data: compressedFile,
+                size: compressedFile.size,
+              });
+
+              const compressedSize = compressedFile.size;
+              const compressionRatio = (
+                (1 - compressedSize / originalSize) *
+                100
+              ).toFixed(1);
+
+              console.log(`✅ Image compressed: ${file.name}`);
+              console.log(
+                `   Original: ${(originalSize / 1024 / 1024).toFixed(2)} MB`
+              );
+              console.log(
+                `   Compressed: ${(compressedSize / 1024 / 1024).toFixed(2)} MB`
+              );
+              console.log(`   Reduction: ${compressionRatio}%`);
+            } catch (error: any) {
+              console.error("Error compressing image:", error);
+              console.warn(
+                "Continuing with original file due to compression error"
+              );
+            }
+          }
+        }
+      });
+    }
+
+    uppyInstance.use(AwsS3, {
       getUploadParameters: async (file: any) => {
         try {
           logger.debug(`Getting presigned URL for file: ${file.name}`);
@@ -69,6 +169,7 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+
               Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({
@@ -89,10 +190,9 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
           }
 
           const result = await response.json();
-          // Don't log response data - contains sensitive presigned URLs
 
           if (!result.success) {
-            throw new Error(result.message || 'Failed to get presigned URL');
+            throw new Error(result.message || "Failed to get presigned URL");
           }
 
           const { uploadUrl, publicUrl, key } = result.data;
@@ -104,7 +204,7 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
           logger.debug(`Presigned URL obtained for: ${file.name}`);
 
           return {
-            method: 'PUT',
+            method: "PUT",
             url: uploadUrl,
             fields: {},
             headers: {
@@ -127,7 +227,7 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
     });
 
     // Handle successful uploads
-    uppyInstance.on('upload-success', (file: any) => {
+    uppyInstance.on("upload-success", (file: any) => {
       if (!file) return;
 
       logger.debug(`Upload successful: ${file.name}`);
@@ -144,7 +244,7 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
     });
 
     // Handle file removal (for replacement functionality)
-    uppyInstance.on('file-removed', (file: any) => {
+    uppyInstance.on("file-removed", (file: any) => {
       if (!file) return;
       logger.debug(`File removed: ${file.name}`);
       // setIsUploading(false);
@@ -152,14 +252,14 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
     });
 
     // Handle upload errors
-    uppyInstance.on('upload-error', (file: any, error: any) => {
+    uppyInstance.on("upload-error", (file: any, error: any) => {
       console.error(`❌ Upload failed: ${file?.name}`, error);
       // setIsUploading(false);
       onUploadError?.(error?.message || 'Upload failed');
     });
 
     // Handle complete uploads
-    uppyInstance.on('complete', (result: any) => {
+    uppyInstance.on("complete", (result: any) => {
       const successfulCount = result?.successful?.length || 0;
       logger.debug(`Upload complete! Files: ${successfulCount}`);
       // setIsUploading(false);
@@ -193,7 +293,7 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
         <Dashboard
           uppy={uppy}
           width="100%"
-          height={fileType === 'thumbnail' ? 220 : 200}
+          height={fileType === "thumbnail" ? 220 : 200}
           proudlyDisplayPoweredByUppy={false}
           note={
             fileType === 'thumbnail'

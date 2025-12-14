@@ -173,12 +173,14 @@ export default function GameManagement() {
 
   // Enhanced status rendering function
   const renderGameStatus = (game: any) => {
+    let pendingProgress = 0;
+    let progress = 0;
     // Show processing status if game is being processed
     if (game.processingStatus && game.processingStatus !== 'completed') {
       switch (game.processingStatus) {
         case 'pending':
           // Get progress from global storage
-          const pendingProgress = getGameProgress(game.id) || 0;
+          pendingProgress = getGameProgress(game.id) || 0;
           
           // If there's progress, show it like processing
           if (pendingProgress > 0) {
@@ -209,7 +211,7 @@ export default function GameManagement() {
           
         case 'processing':
           // Get progress from global storage
-          const progress = getGameProgress(game.id) || 0;
+          progress = getGameProgress(game.id) || 0;
           return (
             <div className="flex flex-col gap-1 min-w-[120px]">
               <span className="inline-flex items-center gap-2 p-1 rounded bg-blue-500 text-white tracking-wider text-nowrap">

@@ -21,6 +21,8 @@ import config from '../config/config';
 import path from 'path';
 import { moveFileToPermanentStorage } from '../utils/fileUtils';
 import { generateUniqueSlug } from '../utils/slugify';
+import { cacheService } from '../services/cache.service';
+import { cacheInvalidationService } from '../services/cache-invalidation.service';
 import { multipartUploadHelpers } from '../utils/multipartUpload';
 // import { processImage } from '../services/file.service';
 
@@ -244,6 +246,24 @@ export const getAllGames = async (
     const pageNumber = parseInt(page as string, 10);
     const limitNumber = limit ? parseInt(limit as string, 10) : undefined;
 
+    // Try cache for standard list queries (not special filters)
+    if (!filter && cacheService.isEnabled()) {
+      const filterKey = [status, categoryId, search, createdById]
+        .filter(Boolean)
+        .join(':');
+      const cached = await cacheService.getGamesList(
+        pageNumber,
+        limitNumber || 10,
+        filterKey
+      );
+
+      if (cached) {
+        logger.debug(`Cache hit for games list page ${pageNumber}`);
+        res.status(200).json(cached);
+        return;
+      }
+    }
+
     let queryBuilder = gameRepository
       .createQueryBuilder('game')
       .leftJoinAndSelect('game.category', 'category')
@@ -253,6 +273,15 @@ export const getAllGames = async (
 
     // Handle special filters
     if (filter === 'recently_added') {
+      // Try cache first
+      const cacheKey = 'filter:recently_added';
+      const cached = await cacheService.getGamesList(1, 10, cacheKey);
+      if (cached) {
+        logger.debug('Cache hit for recently_added filter');
+        res.status(200).json(cached);
+        return;
+      }
+
       // Get the last 10 games added, ordered by creation date
       queryBuilder
         .andWhere('game.status = :status', { status: GameStatus.ACTIVE })
@@ -273,11 +302,24 @@ export const getAllGames = async (
         }
       });
 
-      res.status(200).json({
-        data: games,
-      });
+      const responseData = { data: games };
+
+      // Cache for 2 minutes (120s)
+      await cacheService.setGamesList(1, 10, responseData, cacheKey, 120);
+      logger.debug('Cached recently_added filter');
+
+      res.status(200).json(responseData);
       return;
     } else if (filter === 'popular') {
+      // Try cache first for popular filter
+      const cacheKey = 'filter:popular';
+      const cached = await cacheService.getGamesList(1, 20, cacheKey);
+      if (cached) {
+        logger.debug('Cache hit for popular filter');
+        res.status(200).json(cached);
+        return;
+      }
+
       const systemConfigRepository = AppDataSource.getRepository(SystemConfig);
       const popularConfig = await systemConfigRepository.findOne({
         where: { key: 'popular_games_settings' },
@@ -322,15 +364,19 @@ export const getAllGames = async (
             }
           });
 
-          res.status(200).json({
-            data: orderedGames,
-          });
+          const responseData = { data: orderedGames };
+
+          // Cache for 5 minutes (300s) - manual selection changes infrequently
+          await cacheService.setGamesList(1, 20, responseData, cacheKey, 300);
+          logger.debug('Cached popular filter (manual mode)');
+
+          res.status(200).json(responseData);
           return;
         } else {
           // Manual mode with no games selected - return empty array
-          res.status(200).json({
-            data: [],
-          });
+          const responseData = { data: [] };
+          await cacheService.setGamesList(1, 20, responseData, cacheKey, 300);
+          res.status(200).json(responseData);
           return;
         }
       } else {
@@ -537,9 +583,25 @@ export const getAllGames = async (
 
     const totalPages = limitNumber ? Math.ceil(total / limitNumber) : 1;
 
-    res.status(200).json({
+    const responseData = {
       data: games,
-    });
+    };
+
+    // Cache the response for standard queries (not special filters)
+    if (!filter && cacheService.isEnabled()) {
+      const filterKey = [status, categoryId, search, createdById]
+        .filter(Boolean)
+        .join(':');
+      await cacheService.setGamesList(
+        pageNumber,
+        limitNumber || 10,
+        responseData,
+        filterKey
+      );
+      logger.debug(`Cached games list page ${pageNumber}`);
+    }
+
+    res.status(200).json(responseData);
   } catch (error) {
     next(error);
   }
@@ -612,6 +674,17 @@ export const getGameById = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
+
+    // Try cache first
+    const cached = await cacheService.getGameById(id);
+    if (cached) {
+      logger.debug(`Cache hit for game ${id}`);
+      void res.status(200).json({
+        success: true,
+        data: cached,
+      });
+      return;
+    }
 
     // Check if identifier is a UUID or slug
     const isUUID =
@@ -686,15 +759,21 @@ export const getGameById = async (
       hasLiked = !!userLike;
     }
 
+    // Prepare response data
+    const responseData = {
+      ...game,
+      likeCount: calculateLikeCount(game, userLikesCount),
+      userLikesCount,
+      hasLiked,
+      similarGames: similarGames,
+    };
+
+    // Cache the response for future requests
+    await cacheService.setGameById(id, responseData);
+
     res.status(200).json({
       success: true,
-      data: {
-        ...game,
-        likeCount: calculateLikeCount(game, userLikesCount),
-        userLikesCount,
-        hasLiked,
-        similarGames: similarGames,
-      },
+      data: responseData,
     });
   } catch (error) {
     next(error);
@@ -971,6 +1050,12 @@ export const createGame = async (
       const s3Key = savedGame.thumbnailFile.s3Key;
       savedGame.thumbnailFile.s3Key = storageService.getPublicUrl(s3Key);
     }
+
+    // Invalidate caches after game creation
+    await cacheInvalidationService.invalidateGameCreation(
+      savedGame.id,
+      savedGame.categoryId
+    );
 
     const apiResponseTime = Date.now() - requestStartTime;
     logger.info(
@@ -1336,6 +1421,12 @@ export const updateGame = async (
       updatedGame.thumbnailFile.s3Key = storageService.getPublicUrl(s3Key);
     }
 
+    // Invalidate caches after game update
+    await cacheInvalidationService.invalidateGameUpdate(
+      updatedGame.id,
+      updatedGame.categoryId
+    );
+
     res.status(200).json({
       success: true,
       data: updatedGame,
@@ -1418,7 +1509,11 @@ export const deleteGame = async (
       }
     }
 
+    // Delete the game
     await gameRepository.remove(game);
+
+    // Invalidate caches after game deletion
+    await cacheInvalidationService.invalidateGameDeletion(id, game.categoryId);
 
     res.status(200).json({
       success: true,

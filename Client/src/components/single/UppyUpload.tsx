@@ -4,9 +4,12 @@ import Uppy from '@uppy/core';
 import AwsS3 from '@uppy/aws-s3';
 import { Dashboard } from '@uppy/react';
 import imageCompression from 'browser-image-compression';
-import logger from '../../utils/logger';
 import '@uppy/core/dist/style.min.css';
 import '@uppy/dashboard/dist/style.min.css';
+import logger from '../../utils/logger';
+
+// AWS recommends multipart upload for files >= 100MB
+const MULTIPART_THRESHOLD = 100 * 1024 * 1024; // 100MB in bytes
 
 interface UploadedFile {
   name: string;
@@ -34,7 +37,6 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
   onUploadError,
 }) => {
   const [uppy, setUppy] = useState<any>(null);
-
   // Memoize accept array to prevent re-initialization on every render
   // We use the joined string as dependency to avoid issues with new array references
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -149,7 +151,171 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
     }
 
     uppyInstance.use(AwsS3, {
+      // Enable multipart upload for files >= 100MB
+      shouldUseMultipart: (file: any) => {
+        const useMultipart = file.size >= MULTIPART_THRESHOLD;
+        console.log(
+          `📊 File size: ${(file.size / 1024 / 1024).toFixed(2)}MB, ` +
+            `Using ${useMultipart ? 'MULTIPART' : 'SINGLE-PART'} upload`
+        );
+        return useMultipart;
+      },
+
+      // Multipart upload configuration
+      createMultipartUpload: async (file: any) => {
+        const uploadStartTime = Date.now();
+        console.log(
+          `🚀 [MULTIPART] Initializing multipart upload for: ${file.name}`
+        );
+
+        const token = localStorage.getItem('token');
+        const baseURL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
+
+        const response = await fetch(`${baseURL}/api/games/multipart/create`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            filename: file.name,
+            contentType: file.type || 'application/octet-stream',
+            fileType,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Failed to create multipart upload: ${errorText}`);
+        }
+
+        const result = await response.json();
+        console.log(
+          `✅ [MULTIPART] Created upload ID: ${result.data.uploadId}, ` +
+            `key: ${result.data.key}, ` +
+            `initialization took ${Date.now() - uploadStartTime}ms`
+        );
+
+        // Store metadata for success callback
+        file.meta.publicUrl = result.data.publicUrl;
+        file.meta.key = result.data.key;
+
+        return {
+          uploadId: result.data.uploadId,
+          key: result.data.key,
+        };
+      },
+
+      prepareUploadParts: async (file: any, partData: any) => {
+        const { uploadId, key, parts } = partData;
+        const token = localStorage.getItem('token');
+        const baseURL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
+
+        console.log(
+          `🔗 [MULTIPART] Preparing ${parts.length} upload parts for ${file.name}`
+        );
+
+        const presignedUrls: Record<number, string> = {};
+
+        for (const part of parts) {
+          const response = await fetch(
+            `${baseURL}/api/games/multipart/part-url`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                key,
+                uploadId,
+                partNumber: part.number,
+              }),
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error(`Failed to get part URL for part ${part.number}`);
+          }
+
+          const result = await response.json();
+          presignedUrls[part.number] = result.data.url;
+        }
+
+        console.log(`✅ [MULTIPART] Prepared ${parts.length} presigned URLs`);
+        return { presignedUrls };
+      },
+
+      completeMultipartUpload: async (
+        file: any,
+        { uploadId, key, parts }: any
+      ) => {
+        const completeStartTime = Date.now();
+        console.log(
+          `🏁 [MULTIPART] Completing upload for ${file.name} with ${parts.length} parts`
+        );
+
+        const token = localStorage.getItem('token');
+        const baseURL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
+
+        const response = await fetch(
+          `${baseURL}/api/games/multipart/complete`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              key,
+              uploadId,
+              parts: parts.map((part: any) => ({
+                PartNumber: part.PartNumber,
+                ETag: part.ETag,
+              })),
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Failed to complete multipart upload: ${errorText}`);
+        }
+
+        const result = await response.json();
+        console.log(
+          `✅ [MULTIPART] Upload completed successfully, ` +
+            `completion took ${Date.now() - completeStartTime}ms`
+        );
+
+        // Store public URL for success callback
+        file.meta.publicUrl = result.data.publicUrl;
+        file.meta.key = result.data.key;
+
+        return result.data;
+      },
+
+      abortMultipartUpload: async (file: any, { uploadId, key }: any) => {
+        console.log(`❌ [MULTIPART] Aborting upload for ${file.name}`);
+
+        const token = localStorage.getItem('token');
+        const baseURL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
+
+        await fetch(`${baseURL}/api/games/multipart/abort`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ key, uploadId }),
+        });
+
+        console.log(`✅ [MULTIPART] Abort completed`);
+      },
+
+      // Single-part upload configuration (fallback for files < 100MB)
       getUploadParameters: async (file: any) => {
+        const uploadStartTime = Date.now();
         try {
           logger.debug(`Getting presigned URL for file: ${file.name}`);
 
@@ -162,7 +328,6 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-
               Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({
@@ -183,6 +348,12 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
           }
 
           const result = await response.json();
+          
+          logger.debug(
+            `✅ [SINGLE-PART] Got presigned URL, took ${
+              Date.now() - uploadStartTime
+            }ms`
+          );
 
           if (!result.success) {
             throw new Error(result.message || 'Failed to get presigned URL');
@@ -210,29 +381,62 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
           throw error;
         }
       },
+
+      // Multipart upload options
+      limit: 4, // Upload 4 parts in parallel
+      retryDelays: [0, 1000, 3000, 5000], // Retry delays in ms
+      companionHeaders: {},
     } as any);
 
     // Handle upload start
-    uppyInstance.on('upload', () => {
+    uppyInstance.on('upload', (data: any) => {
       logger.debug(`Upload started for ${fileType}`);
       // setIsUploading(true);
+      const file = data?.fileIDs?.[0]
+        ? uppyInstance.getFile(data.fileIDs[0])
+        : null;
+      const uploadStrategy =
+        file && file.size && file.size >= MULTIPART_THRESHOLD
+          ? 'MULTIPART'
+          : 'SINGLE-PART';
+      logger.debug(
+        `🚀 Starting ${uploadStrategy} upload for ${fileType}, ` +
+          `file size: ${
+            file && file.size ? (file.size / 1024 / 1024).toFixed(2) : 'unknown'
+          }MB`
+      );
       onUploadStart?.();
+
+      // Store upload start time for performance tracking
+      if (file) {
+        file.meta.uploadStartTime = Date.now();
+      }
     });
 
     // Handle successful uploads
     uppyInstance.on('upload-success', (file: any) => {
       if (!file) return;
 
-      logger.debug(`Upload successful: ${file.name}`);
-      // setIsUploading(false);
 
+      const uploadTime = file.meta?.uploadStartTime
+        ? Date.now() - file.meta.uploadStartTime
+        : 0;
+      const uploadStrategy =
+        file.size >= MULTIPART_THRESHOLD ? 'MULTIPART' : 'SINGLE-PART';
+
+      logger.debug(
+        `✅ ${uploadStrategy} upload successful: ${file.name}, ` +
+          `duration: ${(uploadTime / 1000).toFixed(2)}s, ` +
+          `speed: ${(file.size / 1024 / 1024 / (uploadTime / 1000)).toFixed(
+            2
+          )} MB/s`
+      );
+      
       const uploadedFile: UploadedFile = {
         name: file.name || '',
         publicUrl: file.meta?.publicUrl || '',
         key: file.meta?.key || '',
       };
-
-      // Don't log uploaded file details - contains S3 keys
       onFileUploaded(uploadedFile);
     });
 
@@ -266,15 +470,8 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
         uppyInstance.destroy();
       }
     };
-  }, [
-    fileType,
-    stableAccept,
-    maxFileSize,
-    onFileUploaded,
-    onFileReplaced,
-    onUploadStart,
-    onUploadError,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Remove dependencies to prevent re-initialization
 
   if (!uppy) {
     return <div>Loading uploader...</div>;

@@ -457,6 +457,7 @@ export const UppyUpload: React.FC<UppyUploadProps> = ({
         uppyInstance.destroy();
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Remove dependencies to prevent re-initialization
 
   if (!uppy) {

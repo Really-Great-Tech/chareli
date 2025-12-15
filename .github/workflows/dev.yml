@@ -130,6 +130,7 @@ jobs:
           VITE_GAMES_CDN_URL: ${{ vars.VITE_GAMES_CDN_URL}}
           VITE_OFFICIAL_DOMAIN: ${{ vars.VITE_OFFICIAL_DOMAIN }}
           VITE_PAGES_DEV_DOMAIN: ${{ vars.VITE_PAGES_DEV_DOMAIN }}
+          VITE_ENABLE_CACHE_DASHBOARD: "true"
         run: npm run build
 
       - name: Archive Frontend Build

@@ -12,10 +12,15 @@ import { toast } from 'sonner';
 import { AlertCircle, Database, RefreshCw, Server, Trash2 } from 'lucide-react';
 import { usePermissions } from '../../../hooks/usePermissions';
 
-// Check if environment is development or test
-const isDevelopmentOrTest = () => {
+// Check if cache dashboard is enabled (via environment variable)
+const isCacheDashboardEnabled = () => {
+  // Check if explicitly enabled via environment variable
+  const enabledViaEnv = import.meta.env.VITE_ENABLE_CACHE_DASHBOARD === 'true';
+  // Also enable for local development
   const mode = import.meta.env.MODE;
-  return mode === 'development' || mode === 'test';
+  const isLocalDev = mode === 'development' || mode === 'test';
+
+  return enabledViaEnv || isLocalDev;
 };
 
 export default function CacheDashboard() {
@@ -27,8 +32,8 @@ export default function CacheDashboard() {
 
   const [showClearAllConfirm, setShowClearAllConfirm] = useState(false);
 
-  // Access control: superadmin only and dev/test environment only
-  if (!permissions.isSuperAdmin || !isDevelopmentOrTest()) {
+  // Access control: superadmin only and cache dashboard must be enabled
+  if (!permissions.isSuperAdmin || !isCacheDashboardEnabled()) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <Card className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 p-8">
@@ -40,7 +45,7 @@ export default function CacheDashboard() {
             <p className="text-red-700 dark:text-red-300 max-w-md">
               {!permissions.isSuperAdmin
                 ? 'This dashboard is only accessible to superadmin users.'
-                : 'Cache dashboard is only available in development or test environments.'}
+                : 'Cache dashboard is not enabled in this environment.'}
             </p>
           </div>
         </Card>

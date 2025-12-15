@@ -58,10 +58,15 @@ const allMenuItems = [
   },
 ];
 
-// Check if environment is development or test
-const isDevelopmentOrTest = () => {
+// Check if cache dashboard is enabled (via environment variable)
+const isCacheDashboardEnabled = () => {
+  // Check if explicitly enabled via environment variable
+  const enabledViaEnv = import.meta.env.VITE_ENABLE_CACHE_DASHBOARD === 'true';
+  // Also enable for local development
   const mode = import.meta.env.MODE;
-  return mode === 'development' || mode === 'test';
+  const isLocalDev = mode === 'development' || mode === 'test';
+
+  return enabledViaEnv || isLocalDev;
 };
 
 const AdminLayout: React.FC = () => {
@@ -79,8 +84,8 @@ const AdminLayout: React.FC = () => {
     return true;
   });
 
-  // Add Cache Dashboard for superadmin in dev/test environments only
-  if (permissions.canAccessCacheDashboard && isDevelopmentOrTest()) {
+  // Add Cache Dashboard for superadmin when enabled
+  if (permissions.canAccessCacheDashboard && isCacheDashboardEnabled()) {
     menuItems.push({
       title: 'Cache Dashboard',
       icon: <Database size={20} />,

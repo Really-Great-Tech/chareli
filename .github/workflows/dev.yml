@@ -125,6 +125,7 @@ jobs:
       - name: Build Frontend
         working-directory: ./Client
         env:
+          MODE: development
           VITE_API_URL: ${{ vars.VITE_API_URL}}
           VITE_GAMES_CDN_URL: ${{ vars.VITE_GAMES_CDN_URL}}
           VITE_OFFICIAL_DOMAIN: ${{ vars.VITE_OFFICIAL_DOMAIN }}

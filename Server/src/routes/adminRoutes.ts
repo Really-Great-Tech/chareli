@@ -4,6 +4,7 @@ import { authenticate, isAdmin } from '../middlewares/authMiddleware';
 import {
   getDashboardAnalytics,
   getGamesWithAnalytics,
+  getUsersWithAnalytics,
   getGameAnalyticsById,
   getUserAnalyticsById,
   getGamesPopularityMetrics,
@@ -57,6 +58,32 @@ router.get('/games-popularity', getGamesPopularityMetrics);
  *         description: Games with analytics retrieved successfully
  */
 router.get('/games-analytics', getGamesWithAnalytics);
+
+/**
+ * @swagger
+ * /admin/users-analytics:
+ *   get:
+ *     summary: Get all users with their analytics
+ *     tags: [Admin - Dashboard]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *         description: Field to sort by (e.g., createdAt, lastLoggedIn)
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *         description: Sort order
+ *     responses:
+ *       200:
+ *         description: Users with analytics retrieved successfully
+ */
+router.get('/users-analytics', getUsersWithAnalytics);
 
 /**
  * @swagger

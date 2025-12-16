@@ -63,3 +63,10 @@ repomix.config.json
 envup.sh
 **/envup.sh
 Server/results.txt
+
+# k6 Load Testing
+Server/k6/.env.k6
+Server/k6/reports/
+Server/k6/*.json
+Server/k6/*.html
+Server/k6/*.csv

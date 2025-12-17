@@ -35,24 +35,44 @@ export const options = {
 
 // Setup: Get admin auth token
 export function setup() {
-  const baseUrl = config.baseUrl;
+  const payload = {
+    email: config.adminCredentials.email,
+    password: config.adminCredentials.password,
+  };
 
-  const adminToken = authenticate(
-    baseUrl,
-    config.adminCredentials.email,
-    config.adminCredentials.password
+  const response = http.post(
+    `${config.baseUrl}/auth/login`,
+    JSON.stringify(payload),
+    { headers: { 'Content-Type': 'application/json' } }
   );
 
-  if (!adminToken) {
+  if (response.status !== 200) {
+    console.error(
+      `Authentication failed for ${config.adminCredentials.email}: ${response.status} - ${response.body}`
+    );
     throw new Error('Failed to authenticate as admin');
   }
 
-  return { adminToken };
+  const body = parseBody(response);
+
+  // Check for tokens in nested structure: data.tokens.accessToken
+  const accessToken =
+    body?.data?.tokens?.accessToken || body?.data?.accessToken;
+
+  if (!accessToken) {
+    console.error(
+      `Authentication failed for ${config.adminCredentials.email}: No access token in response - ${response.body}`
+    );
+    throw new Error('Failed to authenticate as admin');
+  }
+
+  return accessToken;
 }
 
 export default function (data) {
   const baseUrl = config.baseUrl;
-  const { adminToken } = data;
+  // The setup function now returns the token directly, not an object
+  const adminToken = data;
 
   if (!adminToken) {
     console.error('No admin token available, skipping admin tests');

@@ -145,34 +145,22 @@ export default function () {
   }
 
   // Step 3: Bypass OTP for Load Testing (Simulate OTP Completion)
-  // In load testing, we can't receive real OTPs, so we directly update the user
+  // In load testing, we can't receive real OTPs, so we use test endpoint to mark first login complete
   if (hasOtpRequired && userId) {
     group('3. Bypass OTP - Mark First Login Complete', () => {
-      // Use admin endpoint to mark first login as complete
-      // This simulates what would happen after successful OTP verification
-      const bypassPayload = {
-        userId: userId,
-        hasCompletedFirstLogin: true,
-      };
-
       const bypassResponse = http.patch(
-        `${baseUrl}/admin/users/${userId}`,
-        JSON.stringify(bypassPayload),
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${config.adminToken || ''}`,
-          },
-        }
+        `${baseUrl}/test/users/${userId}/complete-first-login`,
+        null,
+        { headers: { 'Content-Type': 'application/json' } }
       );
 
       const bypassSuccess = check(bypassResponse, {
-        'OTP bypass successful': (r) => r.status === 200 || r.status === 204,
+        'OTP bypass successful': (r) => r.status === 200,
       });
 
-      if (!bypassSuccess && !config.adminToken) {
+      if (!bypassSuccess) {
         console.warn(
-          'OTP bypass failed - set ADMIN_TOKEN in .env.k6 for full test flow'
+          `OTP bypass failed for user ${userId}: ${bypassResponse.status} - ${bypassResponse.body}`
         );
       }
 

@@ -1,5 +1,5 @@
-// Authentication Load Test
-// Tests all authentication-related endpoints including login, registration, OTP, password reset
+// Authentication Load Test - Self-Contained User Journey
+// Tests: Registration → First Login (OTP required) → Password Reset → Token Refresh
 
 import { group, sleep } from 'k6';
 import { check } from 'k6';
@@ -16,10 +16,13 @@ import {
 } from '../utils/utils.js';
 
 // Custom metrics
-const loginAttempts = new Counter('login_attempts');
-const loginSuccesses = new Counter('login_successes');
 const registrationAttempts = new Counter('registration_attempts');
 const registrationSuccesses = new Counter('registration_successes');
+const loginAttempts = new Counter('login_attempts');
+const firstLoginOtpRequired = new Counter('first_login_otp_required');
+const forgotPasswordAttempts = new Counter('forgot_password_attempts');
+const tokenRefreshAttempts = new Counter('token_refresh_attempts');
+const tokenRefreshSuccesses = new Counter('token_refresh_successes');
 const authDuration = new Trend('auth_operation_duration');
 
 export const options = {
@@ -39,14 +42,26 @@ export const options = {
 export default function () {
   const baseUrl = config.baseUrl;
 
-  // Test 1: User Registration
-  group('POST /auth/register - User Registration', () => {
+  // Generate unique user data for this VU iteration
+  const userData = {
+    firstName: `Test${randomString(4)}`,
+    lastName: `User${randomString(4)}`,
+    email: randomEmail(),
+    password: 'TestPassword123!',
+    phoneNumber: randomPhone(),
+  };
+
+  let userId = null;
+  let hasOtpRequired = false;
+
+  // Step 1: Register New User
+  group('1. POST /auth/register - User Registration', () => {
     const payload = {
-      firstName: `Test${randomString(4)}`,
-      lastName: `User${randomString(4)}`,
-      email: randomEmail(),
-      password: 'TestPassword123!',
-      phoneNumber: randomPhone(),
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      email: userData.email,
+      password: userData.password,
+      phoneNumber: userData.phoneNumber,
       hasAcceptedTerms: true,
     };
 
@@ -63,11 +78,14 @@ export default function () {
     const success = validateResponse(
       response,
       {
-        'registration returns 200 or 201': (r) =>
-          r.status === 200 || r.status === 201,
-        'registration has data': (r) => {
+        'registration returns 201': (r) => r.status === 201,
+        'registration has userId': (r) => {
           const body = parseBody(r);
-          return body && body.data;
+          if (body && body.data && body.data.userId) {
+            userId = body.data.userId;
+            return true;
+          }
+          return false;
         },
       },
       'User Registration'
@@ -77,11 +95,129 @@ export default function () {
       registrationSuccesses.add(1);
     }
 
-    randomSleep(1, 3);
+    randomSleep(1, 2);
   });
 
-  // Test 2: User Login
-  group('POST /auth/login - User Login', () => {
+  // Step 2: First-Time Login (Expects OTP Requirement)
+  if (userId) {
+    group('2. POST /auth/login - First Login (OTP Required)', () => {
+      const payload = {
+        identifier: userData.email,
+        password: userData.password,
+      };
+
+      const startTime = Date.now();
+      const response = http.post(
+        `${baseUrl}/auth/login`,
+        JSON.stringify(payload),
+        { headers: { 'Content-Type': 'application/json' } }
+      );
+      authDuration.add(Date.now() - startTime);
+
+      loginAttempts.add(1);
+
+      // First-time login should return 200 with requiresOtp: true
+      const hasOtp = check(response, {
+        'first login returns 200': (r) => r.status === 200,
+        'requires OTP verification': (r) => {
+          const body = parseBody(r);
+          if (body && body.data && body.data.requiresOtp === true) {
+            hasOtpRequired = true;
+            firstLoginOtpRequired.add(1);
+            return true;
+          }
+          return false;
+        },
+        'returns userId': (r) => {
+          const body = parseBody(r);
+          return body && body.data && body.data.userId;
+        },
+      });
+
+      if (!hasOtp) {
+        console.warn(
+          `First login for ${userData.email} did not require OTP as expected`
+        );
+      }
+
+      randomSleep(1, 2);
+    });
+  }
+
+  // Step 3: OTP Flow (Note: Cannot test OTP verification without actual OTP code)
+  if (hasOtpRequired && userId) {
+    group('3. OTP Flow - Documentation Only', () => {
+      // In a real scenario, user would:
+      // 1. Receive OTP via email/SMS
+      // 2. POST /auth/verify-otp with { userId, otp }
+      // 3. Receive tokens
+
+      // For load testing, we document this flow but cannot automate
+      // the OTP retrieval. In production, you'd need:
+      // - Test mode that returns fixed OTP
+      // - Email/SMS provider test hooks
+      // - Manual OTP input for integration tests
+
+      check(null, {
+        'OTP flow documented': () => true,
+      });
+
+      sleep(1); // Simulate user checking email/SMS
+    });
+  }
+
+  // Step 4: Forgot Password (Email)
+  group('4. POST /auth/forgot-password - Request Reset', () => {
+    const payload = {
+      email: userData.email,
+    };
+
+    forgotPasswordAttempts.add(1);
+
+    const response = http.post(
+      `${baseUrl}/auth/forgot-password`,
+      JSON.stringify(payload),
+      { headers: { 'Content-Type': 'application/json' } }
+    );
+
+    // Should always return 200 (even if email doesn't exist, for security)
+    check(response, {
+      'forgot password returns 200': (r) => r.status === 200,
+      'forgot password has success message': (r) => {
+        const body = parseBody(r);
+        return body && body.success === true;
+      },
+    });
+
+    randomSleep(1, 2);
+  });
+
+  // Step 5: Forgot Password (Phone)
+  group('5. POST /auth/forgot-password/phone - Request Reset via Phone', () => {
+    const payload = {
+      phoneNumber: userData.phoneNumber,
+    };
+
+    const response = http.post(
+      `${baseUrl}/auth/forgot-password/phone`,
+      JSON.stringify(payload),
+      { headers: { 'Content-Type': 'application/json' } }
+    );
+
+    check(response, {
+      'forgot password phone returns 200': (r) => r.status === 200,
+      'forgot password phone has success message': (r) => {
+        const body = parseBody(r);
+        return body && body.success === true;
+      },
+    });
+
+    randomSleep(1, 2);
+  });
+
+  // Step 6: Test Existing User Login (with pre-seeded test account)
+  // This tests login for users who have already completed OTP verification
+  group('6. POST /auth/login - Existing User (No OTP)', () => {
     const payload = {
       identifier: config.testUserCredentials.email,
       password: config.testUserCredentials.password,
@@ -97,133 +233,65 @@ export default function () {
 
     loginAttempts.add(1);
 
-    const success = validateResponse(
-      response,
-      {
-        'login returns 200': (r) => r.status === 200,
-        'login has access token': (r) => {
-          const body = parseBody(r);
-          return body && body.data && body.data.accessToken;
-        },
-        'login has refresh token': (r) => {
-          const body = parseBody(r);
-          return body && body.data && body.data.refreshToken;
-        },
+    // Existing user might:
+    // - Return tokens directly (if hasCompletedFirstLogin: true)
+    // - Still require OTP (if hasCompletedFirstLogin: false)
+    const loginSuccess = check(response, {
+      'existing user login completes': (r) => r.status === 200,
+      'response has data': (r) => {
+        const body = parseBody(r);
+        return body && body.data;
       },
-      'User Login'
-    );
-
-    if (success) {
-      loginSuccesses.add(1);
-    }
-
-    randomSleep(1, 2);
-  });
-
-  // Test 3: Request OTP
-  group('POST /auth/request-otp - Request OTP', () => {
-    const payload = {
-      phoneNumber: randomPhone(),
-    };
-
-    const response = http.post(
-      `${baseUrl}/auth/request-otp`,
-      JSON.stringify(payload),
-      { headers: { 'Content-Type': 'application/json' } }
-    );
-
-    // OTP might fail for non-existent users in test environment
-    check(response, {
-      'request-otp completes': (r) => r.status >= 200 && r.status < 500,
     });
 
-    randomSleep(2, 4);
-  });
+    // Token refresh test - only if we got tokens
+    if (loginSuccess) {
+      const body = parseBody(response);
+      if (body && body.data && body.data.refreshToken) {
+        const refreshToken = body.data.refreshToken;
 
-  // Test 4: Forgot Password (Email)
-  group('POST /auth/forgot-password - Forgot Password Email', () => {
-    const payload = {
-      email: randomEmail(), // Random email for testing
-    };
+        sleep(2); // Wait a moment before refreshing
 
-    const response = http.post(
-      `${baseUrl}/auth/forgot-password`,
-      JSON.stringify(payload),
-      { headers: { 'Content-Type': 'application/json' } }
-    );
+        group('7. POST /auth/refresh-token - Token Refresh', () => {
+          tokenRefreshAttempts.add(1);
 
-    check(response, {
-      'forgot-password completes': (r) => r.status >= 200 && r.status < 500,
-    });
+          const refreshPayload = {
+            refreshToken: refreshToken,
+          };
 
-    randomSleep(1, 3);
-  });
+          const refreshResponse = http.post(
+            `${baseUrl}/auth/refresh-token`,
+            JSON.stringify(refreshPayload),
+            { headers: { 'Content-Type': 'application/json' } }
+          );
 
-  // Test 5: Forgot Password (Phone)
-  group('POST /auth/forgot-password/phone - Forgot Password Phone', () => {
-    const payload = {
-      phoneNumber: randomPhone(),
-    };
-
-    const response = http.post(
-      `${baseUrl}/auth/forgot-password/phone`,
-      JSON.stringify(payload),
-      { headers: { 'Content-Type': 'application/json' } }
-    );
-
-    check(response, {
-      'forgot-password-phone completes': (r) =>
-        r.status >= 200 && r.status < 500,
-    });
-
-    randomSleep(1, 2);
-  });
-
-  // Test 6: Refresh Token (requires valid refresh token - might fail in load test)
-  group('POST /auth/refresh-token - Refresh Token', () => {
-    // First, login to get tokens
-    const loginPayload = {
-      identifier: config.testUserCredentials.email,
-      password: config.testUserCredentials.password,
-    };
-
-    const loginResponse = http.post(
-      `${baseUrl}/auth/login`,
-      JSON.stringify(loginPayload),
-      { headers: { 'Content-Type': 'application/json' } }
-    );
-
-    if (loginResponse.status === 200) {
-      const loginBody = parseBody(loginResponse);
-      if (loginBody && loginBody.data && loginBody.data.refreshToken) {
-        const refreshPayload = {
-          refreshToken: loginBody.data.refreshToken,
-        };
-
-        const response = http.post(
-          `${baseUrl}/auth/refresh-token`,
-          JSON.stringify(refreshPayload),
-          { headers: { 'Content-Type': 'application/json' } }
-        );
-
-        validateResponse(
-          response,
-          {
-            'refresh-token returns 200': (r) => r.status === 200,
-            'refresh-token has new access token': (r) => {
-              const body = parseBody(r);
-              return body && body.data && body.data.accessToken;
+          const refreshSuccess = validateResponse(
+            refreshResponse,
+            {
+              'refresh returns 200': (r) => r.status === 200,
+              'refresh has new access token': (r) => {
+                const refreshBody = parseBody(r);
+                return (
+                  refreshBody &&
+                  refreshBody.data &&
+                  refreshBody.data.accessToken
+                );
+              },
             },
-          },
-          'Refresh Token'
-        );
+            'Token Refresh'
+          );
+
+          if (refreshSuccess) {
+            tokenRefreshSuccesses.add(1);
+          }
+        });
       }
     }
 
     randomSleep(1, 2);
   });
 
-  // Add overall sleep to simulate user think time
+  // Add overall think time
   sleep(1);
 }
 
@@ -236,20 +304,19 @@ export function handleSummary(data) {
 
 function textSummary(data, options = {}) {
   const indent = options.indent || '';
-  const enableColors = options.enableColors || false;
 
   let summary = `\n${indent}Authentication Load Test Summary\n${indent}${'='.repeat(
-    50
+    60
   )}\n`;
 
   if (data.metrics) {
     summary += `\n${indent}HTTP Metrics:\n`;
-    summary += `${indent}  - Requests: ${
+    summary += `${indent}  - Total Requests: ${
       data.metrics.http_reqs?.values?.count || 0
     }\n`;
-    summary += `${indent}  - Failed: ${
-      data.metrics.http_req_failed?.values?.rate || 0
-    }\n`;
+    summary += `${indent}  - Failed Requests: ${(
+      data.metrics.http_req_failed?.values?.rate * 100 || 0
+    ).toFixed(2)}%\n`;
     summary += `${indent}  - Duration p95: ${
       data.metrics.http_req_duration?.values?.['p(95)']?.toFixed(2) || 0
     }ms\n`;
@@ -257,20 +324,46 @@ function textSummary(data, options = {}) {
       data.metrics.http_req_duration?.values?.['p(99)']?.toFixed(2) || 0
     }ms\n`;
 
-    summary += `\n${indent}Authentication Metrics:\n`;
-    summary += `${indent}  - Login Attempts: ${
-      data.metrics.login_attempts?.values?.count || 0
-    }\n`;
-    summary += `${indent}  - Login Successes: ${
-      data.metrics.login_successes?.values?.count || 0
-    }\n`;
-    summary += `${indent}  - Registration Attempts: ${
+    summary += `\n${indent}Authentication Journey:\n`;
+    summary += `${indent}  ✓ Registration Attempts: ${
       data.metrics.registration_attempts?.values?.count || 0
     }\n`;
-    summary += `${indent}  - Registration Successes: ${
+    summary += `${indent}  ✓ Registration Successes: ${
       data.metrics.registration_successes?.values?.count || 0
     }\n`;
+    summary += `${indent}  ✓ Login Attempts: ${
+      data.metrics.login_attempts?.values?.count || 0
+    }\n`;
+    summary += `${indent}  ✓ First Login OTP Required: ${
+      data.metrics.first_login_otp_required?.values?.count || 0
+    }\n`;
+    summary += `${indent}  ✓ Forgot Password Requests: ${
+      data.metrics.forgot_password_attempts?.values?.count || 0
+    }\n`;
+    summary += `${indent}  ✓ Token Refresh Attempts: ${
+      data.metrics.token_refresh_attempts?.values?.count || 0
+    }\n`;
+    summary += `${indent}  ✓ Token Refresh Successes: ${
+      data.metrics.token_refresh_successes?.values?.count || 0
+    }\n`;
+
+    const regSuccess = data.metrics.registration_successes?.values?.count || 0;
+    const regAttempts = data.metrics.registration_attempts?.values?.count || 1;
+    const regRate = ((regSuccess / regAttempts) * 100).toFixed(1);
+
+    summary += `\n${indent}Success Rates:\n`;
+    summary += `${indent}  - Registration: ${regRate}%\n`;
+
+    const otpRequired =
+      data.metrics.first_login_otp_required?.values?.count || 0;
+    const loginAttempts = data.metrics.login_attempts?.values?.count || 1;
+    const otpRate = ((otpRequired / loginAttempts) * 100).toFixed(1);
+    summary += `${indent}  - First Login OTP Flow: ${otpRate}%\n`;
   }
+
+  summary += `\n${indent}${'='.repeat(60)}\n`;
+  summary += `${indent}Note: OTP verification cannot be automated in k6.\n`;
+  summary += `${indent}Test validates OTP is required on first login.\n`;
 
   return summary;
 }

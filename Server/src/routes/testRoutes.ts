@@ -14,7 +14,7 @@ if (process.env.NODE_ENV !== 'production') {
    */
   router.patch(
     '/users/:userId/complete-first-login',
-    async (req: Request, res: Response) => {
+    async (req: Request, res: Response): Promise<void> => {
       try {
         const { userId } = req.params;
 
@@ -22,10 +22,11 @@ if (process.env.NODE_ENV !== 'production') {
         const user = await userRepository.findOne({ where: { id: userId } });
 
         if (!user) {
-          return res.status(404).json({
+          res.status(404).json({
             success: false,
             message: 'User not found',
           });
+          return;
         }
 
         // Update user to mark first login as complete
@@ -53,15 +54,16 @@ if (process.env.NODE_ENV !== 'production') {
    */
   router.post(
     '/users/batch-complete-first-login',
-    async (req: Request, res: Response) => {
+    async (req: Request, res: Response): Promise<void> => {
       try {
         const { userIds } = req.body;
 
         if (!Array.isArray(userIds) || userIds.length === 0) {
-          return res.status(400).json({
+          res.status(400).json({
             success: false,
             message: 'userIds must be a non-empty array',
           });
+          return;
         }
 
         const userRepository = AppDataSource.getRepository(User);

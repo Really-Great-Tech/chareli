@@ -1,6 +1,11 @@
 import { Router } from 'express';
 import { cacheService } from '../services/cache.service';
-import { authenticate, isAdmin } from '../middlewares/authMiddleware';
+import {
+  authenticate,
+  isAdmin,
+  isSuperAdmin,
+} from '../middlewares/authMiddleware';
+import { adminLimiter } from '../middlewares/rateLimitMiddleware';
 import {
   getDashboardAnalytics,
   getGamesWithAnalytics,
@@ -14,8 +19,10 @@ import {
 
 const router = Router();
 
-// Apply authentication and admin role requirement to all routes
+// All admin routes require authentication and admin role
 router.use(authenticate, isAdmin);
+// Apply admin rate limiting
+router.use(adminLimiter);
 
 /**
  * @swagger

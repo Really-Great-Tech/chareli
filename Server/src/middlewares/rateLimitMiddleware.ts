@@ -65,22 +65,126 @@ export const apiLimiter = rateLimit({
  */
 export const createUserLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 10, // 10 requests per IP per hour
+  max: 10, // 10 user creations per IP per hour
   standardHeaders: true,
   legacyHeaders: false,
   store: new RedisStore({
     // @ts-expect-error - Known issue with ioredis types
     sendCommand: (...args: string[]) => redisService.getClient().call(...args),
-    prefix: 'rl:user:',
+    prefix: 'rl:create-user:',
   }),
   handler: (_req: Request, _res: Response) => {
     throw new ApiError(
       429,
-      'Too many user creation attempts, please try again later'
+      'Too many user creation requests, please try again later'
     );
   },
   skip: (req) => {
-    // Skip rate limiting if Redis is down (graceful degradation)
+    return (
+      !redisService.getClient().status ||
+      redisService.getClient().status !== 'ready'
+    );
+  },
+});
+
+/**
+ * Upload limiter - prevent file upload abuse
+ */
+export const uploadLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: new RedisStore({
+    // @ts-expect-error - Known issue with ioredis types
+    sendCommand: (...args: string[]) => redisService.getClient().call(...args),
+    prefix: 'rl:upload:',
+  }),
+  handler: (_req: Request, _res: Response) => {
+    throw new ApiError(
+      429,
+      'Too many upload requests, please try again in 5 minutes'
+    );
+  },
+  skip: (req) => {
+    return (
+      !redisService.getClient().status ||
+      redisService.getClient().status !== 'ready'
+    );
+  },
+});
+
+/**
+ * Like limiter - prevent like/unlike spam
+ */
+export const likeLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: new RedisStore({
+    // @ts-expect-error - Known issue with ioredis types
+    sendCommand: (...args: string[]) => redisService.getClient().call(...args),
+    prefix: 'rl:like:',
+  }),
+  handler: (_req: Request, _res: Response) => {
+    throw new ApiError(
+      429,
+      'Too many like requests, please try again in a minute'
+    );
+  },
+  skip: (req) => {
+    return (
+      !redisService.getClient().status ||
+      redisService.getClient().status !== 'ready'
+    );
+  },
+});
+
+/**
+ * Analytics limiter - allow high volume tracking
+ */
+export const analyticsLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: new RedisStore({
+    // @ts-expect-error - Known issue with ioredis types
+    sendCommand: (...args: string[]) => redisService.getClient().call(...args),
+    prefix: 'rl:analytics:',
+  }),
+  handler: (_req: Request, _res: Response) => {
+    throw new ApiError(
+      429,
+      'Analytics rate limit exceeded, please try again shortly'
+    );
+  },
+  skip: (req) => {
+    return (
+      !redisService.getClient().status ||
+      redisService.getClient().status !== 'ready'
+    );
+  },
+});
+
+/**
+ * Admin limiter - higher limits for admin operations
+ */
+export const adminLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: new RedisStore({
+    // @ts-expect-error - Known issue with ioredis types
+    sendCommand: (...args: string[]) => redisService.getClient().call(...args),
+    prefix: 'rl:admin:',
+  }),
+  handler: (_req: Request, _res: Response) => {
+    throw new ApiError(429, 'Admin rate limit exceeded, please slow down');
+  },
+  skip: (req) => {
     return (
       !redisService.getClient().status ||
       redisService.getClient().status !== 'ready'

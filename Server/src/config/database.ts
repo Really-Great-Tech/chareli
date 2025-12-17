@@ -14,6 +14,13 @@ export const AppDataSource = new DataSource({
   entities: [path.join(__dirname, '../entities/**/*.{ts,js}')],
   migrations: [path.join(__dirname, '../migrations/**/*.{ts,js}')],
   subscribers: [path.join(__dirname, '../subscribers/**/*.{ts,js}')],
+  extra: {
+    // Optimized for Supabase transaction pooler (port 6543)
+    // Lower max connections since pooler handles actual DB connections
+    max: 15, // Maximum pool size
+    connectionTimeoutMillis: 30000, // 30s connection timeout
+    statement_timeout: 60000, // 60s statement timeout
+  },
 });
 
 export const initializeDatabase = async (): Promise<void> => {

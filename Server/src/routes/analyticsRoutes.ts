@@ -5,16 +5,21 @@ import {
   getAnalyticsById,
   updateAnalytics,
   deleteAnalytics,
-  updateAnalyticsEndTime
+  updateAnalyticsEndTime,
 } from '../controllers/analyticsController';
 import { authenticate, isAdmin } from '../middlewares/authMiddleware';
-import { validateBody, validateParams, validateQuery } from '../middlewares/validationMiddleware';
+import {
+  validateBody,
+  validateParams,
+  validateQuery,
+} from '../middlewares/validationMiddleware';
 import {
   createAnalyticsSchema,
   updateAnalyticsSchema,
   analyticsQuerySchema,
-  analyticsIdParamSchema
+  analyticsIdParamSchema,
 } from '../validation/analytics.schema';
+import { paginationMiddleware } from '../middlewares/pagination.middleware';
 
 const router = Router();
 
@@ -25,19 +30,43 @@ router.use(authenticate);
 router.post('/', validateBody(createAnalyticsSchema), createAnalytics);
 
 // Get all analytics entries - admin only
-router.get('/', isAdmin, validateQuery(analyticsQuerySchema), getAllAnalytics);
-
+router.get(
+  '/',
+  isAdmin,
+  paginationMiddleware({ defaultLimit: 50, maxLimit: 100 }),
+  validateQuery(analyticsQuerySchema),
+  getAllAnalytics
+);
 
 // Get analytics entry by ID - admin only
-router.get('/:id', isAdmin, validateParams(analyticsIdParamSchema), getAnalyticsById);
+router.get(
+  '/:id',
+  isAdmin,
+  validateParams(analyticsIdParamSchema),
+  getAnalyticsById
+);
 
 // Update analytics entry - admin only
-router.put('/:id', validateParams(analyticsIdParamSchema), validateBody(updateAnalyticsSchema), updateAnalytics);
+router.put(
+  '/:id',
+  validateParams(analyticsIdParamSchema),
+  validateBody(updateAnalyticsSchema),
+  updateAnalytics
+);
 
 // Delete analytics entry - admin only
 // Update analytics end time - accessible by all authenticated users
-router.post('/:id/end', validateParams(analyticsIdParamSchema), updateAnalyticsEndTime);
+router.post(
+  '/:id/end',
+  validateParams(analyticsIdParamSchema),
+  updateAnalyticsEndTime
+);
 
-router.delete('/:id', isAdmin, validateParams(analyticsIdParamSchema), deleteAnalytics);
+router.delete(
+  '/:id',
+  isAdmin,
+  validateParams(analyticsIdParamSchema),
+  deleteAnalytics
+);
 
 export default router;

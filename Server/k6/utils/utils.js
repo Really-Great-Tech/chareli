@@ -46,7 +46,11 @@ export function authenticate(baseUrl, email, password) {
     'login has token': (r) => {
       try {
         const body = JSON.parse(r.body);
-        return body.data && body.data.accessToken;
+        // Support both old (data.accessToken) and new (data.tokens.accessToken) structures
+        return (
+          (body.data && body.data.accessToken) ||
+          (body.data && body.data.tokens && body.data.tokens.accessToken)
+        );
       } catch {
         return false;
       }
@@ -65,7 +69,8 @@ export function authenticate(baseUrl, email, password) {
 
   try {
     const body = JSON.parse(response.body);
-    const token = body.data.accessToken;
+    // Try new structure first, fall back to old structure
+    const token = body.data.tokens?.accessToken || body.data.accessToken;
     authTokens[cacheKey] = token;
     return token;
   } catch (e) {

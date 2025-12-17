@@ -41,11 +41,10 @@ export default function () {
   // Test 1: User Registration
   group('POST /auth/register - User Registration', () => {
     const payload = {
-      email: randomEmail(),
-      password: 'TestPassword123!',
-      username: `user_${randomString(8)}`,
       firstName: `Test${randomString(4)}`,
       lastName: `User${randomString(4)}`,
+      email: randomEmail(),
+      password: 'TestPassword123!',
       phoneNumber: randomPhone(),
       hasAcceptedTerms: true,
     };

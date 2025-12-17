@@ -20,6 +20,7 @@ import {
   analyticsIdParamSchema,
 } from '../validation/analytics.schema';
 import { paginationMiddleware } from '../middlewares/pagination.middleware';
+import { analyticsLimiter } from '../middlewares/rateLimitMiddleware';
 
 const router = Router();
 
@@ -27,7 +28,12 @@ const router = Router();
 router.use(authenticate);
 
 // Create analytics entry - accessible by all authenticated users
-router.post('/', validateBody(createAnalyticsSchema), createAnalytics);
+router.post(
+  '/',
+  analyticsLimiter,
+  validateBody(createAnalyticsSchema),
+  createAnalytics
+);
 
 // Get all analytics entries - admin only
 router.get(

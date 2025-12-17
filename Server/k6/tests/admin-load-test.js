@@ -2,6 +2,7 @@
 // Tests admin-only endpoints including analytics, user management, and cache operations
 
 import { group, sleep } from 'k6';
+import http from 'k6/http';
 import { Counter, Trend } from 'k6/metrics';
 import { config, getScenario } from '../k6-config.js';
 import {

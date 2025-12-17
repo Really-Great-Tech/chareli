@@ -7,7 +7,7 @@ import { File } from '../entities/Files';
 import { Analytics } from '../entities/Analytics';
 import { GameLike } from '../entities/GameLike';
 import { GameLikeCache } from '../entities/GameLikeCache';
-import { System Config } from '../entities/SystemConfig';
+import { SystemConfig } from '../entities/SystemConfig';
 import { ApiError } from '../middlewares/errorHandler';
 import { RoleType } from '../entities/Role';
 import { Not, In } from 'typeorm';

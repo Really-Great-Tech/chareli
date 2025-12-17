@@ -25,7 +25,7 @@ export class AddAnonymousAnalytics1734462000000 implements MigrationInterface {
     // Add composite index for session-based queries
     await queryRunner.query(`
       CREATE INDEX "idx_analytics_session_activity_time"
-      ON "internal"."analytics" ("session_id", "activity_type", "start_time" DESC)
+      ON "internal"."analytics" ("session_id", "activityType", "startTime" DESC)
     `);
   }
 

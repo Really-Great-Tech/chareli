@@ -27,7 +27,7 @@ export function authenticate(baseUrl, email, password) {
   }
 
   const loginPayload = JSON.stringify({
-    email: email,
+    identifier: email, // API expects 'identifier' field
     password: password,
   });
 

@@ -187,7 +187,7 @@ export default function (data) {
   group('POST /games/presigned-url - Generate Presigned URL', () => {
     const payload = {
       filename: `test-game-${Date.now()}.zip`,
-      fileType: 'application/zip',
+      fileType: 'game', // Must be 'game' or 'thumbnail'
     };
 
     const response = authenticatedPost(
@@ -215,7 +215,7 @@ export default function (data) {
   group('POST /games/multipart/create - Create Multipart Upload', () => {
     const payload = {
       filename: `large-game-${Date.now()}.zip`,
-      fileType: 'application/zip',
+      fileType: 'game', // Must be 'game' or 'thumbnail'
     };
 
     const response = authenticatedPost(

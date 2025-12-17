@@ -207,6 +207,31 @@ jobs:
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
 
+      - name: Warm Redis Cache
+        run: |
+          echo "🔥 Warming Redis cache after deployment..."
+
+          # Get the task ARN of the running task
+          TASK_ARN=$(aws ecs list-tasks \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --service-name ${{ env.ECS_SERVICE }} \
+            --desired-status RUNNING \
+            --query 'taskArns[0]' \
+            --output text)
+
+          echo "Running warm-cache on task: $TASK_ARN"
+
+          # Execute warm-cache command on the running container
+          aws ecs execute-command \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --task $TASK_ARN \
+            --container ${{ env.CONTAINER_NAME }} \
+            --interactive \
+            --command "npm run warm-cache" || echo "⚠️ Cache warming failed (non-critical)"
+
+          echo "✅ Cache warming completed"
+        continue-on-error: true
+
   deploy-frontend:
     name: Deploy Frontend to Cloudflare Pages
     needs: [detect-changes, build-and-test-frontend]

@@ -6,7 +6,8 @@ import { Category } from '../entities/Category';
 import { File } from '../entities/Files';
 import { Analytics } from '../entities/Analytics';
 import { GameLike } from '../entities/GameLike';
-import { SystemConfig } from '../entities/SystemConfig';
+import { GameLikeCache } from '../entities/GameLikeCache';
+import { System Config } from '../entities/SystemConfig';
 import { ApiError } from '../middlewares/errorHandler';
 import { RoleType } from '../entities/Role';
 import { Not, In } from 'typeorm';
@@ -740,28 +741,34 @@ export const getGameById = async (
       });
     }
 
-    // Get user likes count for this game
-    const userLikesCount = await gameLikeRepository.count({
+    // Get cached like count (avoid CPU-intensive calculation)
+    const gameLikeCacheRepository = AppDataSource.getRepository(GameLikeCache);
+    let likeCount = 0;
+    const cacheEntry = await gameLikeCacheRepository.findOne({
       where: { gameId: game.id },
     });
+
+    if (cacheEntry) {
+      likeCount = cacheEntry.cachedLikeCount;
+    } else {
+      // Fallback to calculation if no cache (shouldn't happen after cron runs)
+      const userLikesCount = await gameLikeRepository.count({
+        where: { gameId: game.id },
+      });
+      likeCount = calculateLikeCount(game, userLikesCount);
+    }
 
     // Check if current user has liked this game (if authenticated)
     let hasLiked = false;
     if (req.user?.userId) {
-      const userLike = await gameLikeRepository.findOne({
-        where: {
-          userId: req.user.userId,
-          gameId: game.id,
-        },
-      });
-      hasLiked = !!userLike;
+      // Check Redis first (fast), fallback to DB
+      hasLiked = await redisService.hasUserLikedGame(req.user.userId, game.id);
     }
 
     // Prepare response data
     const responseData = {
       ...game,
-      likeCount: calculateLikeCount(game, userLikesCount),
-      userLikesCount,
+      likeCount,
       hasLiked,
       similarGames: similarGames,
     };

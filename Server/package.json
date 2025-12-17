@@ -17,7 +17,8 @@
     "test:coverage": "jest --coverage --runInBand",
     "test:verbose": "jest --verbose --runInBand",
     "test:debug": "jest --detectOpenHandles --verbose --runInBand",
-    "test:ci": "jest --runInBand --forceExit --detectOpenHandles"
+    "test:ci": "jest --runInBand --forceExit --detectOpenHandles",
+    "warm-cache": "ts-node src/scripts/warmCache.ts"
   },
   "keywords": [],
   "author": "",

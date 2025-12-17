@@ -37,7 +37,7 @@ export const options = {
 // Setup: Get admin auth token
 export function setup() {
   const payload = {
-    email: config.adminCredentials.email,
+    identifier: config.adminCredentials.email,
     password: config.adminCredentials.password,
   };
 

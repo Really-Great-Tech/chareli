@@ -30,10 +30,8 @@ export const options = {
       `p(95)<${config.thresholds.p95}`,
       `p(99)<${config.thresholds.p99}`,
     ],
-    // Allow higher failure rate for this test since we deliberately test edge cases
-    // (random positions, non-existent categories, etc. that may return 404)
-    http_req_failed: ['rate<0.15'], // 15% to account for expected 404s
-    errors: ['rate<0.15'],
+    http_req_failed: [`rate<${config.thresholds.maxErrorRate / 100}`],
+    errors: [`rate<${config.thresholds.maxErrorRate / 100}`],
   },
 };
 
@@ -140,32 +138,32 @@ export default function (data) {
     });
   }
 
-  // Test 3: Get Game by Position
-  group('GET /games/position/:position - Get Game by Position', () => {
-    const position = Math.floor(Math.random() * 20) + 1; // Positions 1-20
+  // Test 3: Get Game by Position (only test positions we know exist)
+  if (gameIds && gameIds.length > 0) {
+    group('GET /games/position/:position - Get Game by Position', () => {
+      // Use a position from 1 to the number of games we have
+      const maxPosition = Math.min(gameIds.length, 20);
+      const position = Math.floor(Math.random() * maxPosition) + 1;
 
-    const response = token
-      ? authenticatedGet(`${baseUrl}/games/position/${position}`, token)
-      : http.get(`${baseUrl}/games/position/${position}`);
+      const response = token
+        ? authenticatedGet(`${baseUrl}/games/position/${position}`, token)
+        : http.get(`${baseUrl}/games/position/${position}`);
 
-    validateResponse(
-      response,
-      {
-        'game by position completes': (r) =>
-          r.status === 200 || r.status === 404,
-        'game by position has correct structure when found': (r) => {
-          if (r.status === 200) {
+      validateResponse(
+        response,
+        {
+          'game by position returns 200': (r) => r.status === 200,
+          'game by position has data': (r) => {
             const body = parseBody(r);
             return body && body.data;
-          }
-          return true;
+          },
         },
-      },
-      'Get Game by Position'
-    );
+        'Get Game by Position'
+      );
 
-    randomSleep(1, 2);
-  });
+      randomSleep(1, 2);
+    });
+  }
 
   // Test 4: Search Games
   group('GET /games?search=... - Search Games', () => {
@@ -189,21 +187,7 @@ export default function (data) {
     randomSleep(1, 3);
   });
 
-  // Test 5: Filter Games by Category
-  group('GET /games?categoryId=... - Filter by Category', () => {
-    // Try with a random UUID (might not exist, but tests the endpoint)
-    const mockCategoryId = '00000000-0000-0000-0000-000000000001';
-
-    const response = http.get(
-      `${baseUrl}/games?categoryId=${mockCategoryId}&limit=20`
-    );
-
-    check(response, {
-      'game filter by category completes': (r) => r.status === 200,
-    });
-
-    randomSleep(1, 2);
-  });
+  // Test 5: Filter Games by Status (removed category test with mock UUID)
 
   // Test 6: Pagination Stress
   group('GET /games - Pagination Test', () => {

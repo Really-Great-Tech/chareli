@@ -31,7 +31,7 @@ export class Analytics {
   @JoinColumn({ name: 'user_id' })
   user: User | null;
 
-  @Column({ name: 'session_id', nullable: true })
+  @Column({ name: 'session_id', type: 'varchar', length: 255, nullable: true })
   @Index()
   sessionId: string | null;
 

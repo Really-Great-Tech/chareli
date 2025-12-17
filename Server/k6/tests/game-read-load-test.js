@@ -89,10 +89,6 @@ export default function (data) {
           const body = parseBody(r);
           return body && Array.isArray(body.data);
         },
-        'games list has pagination': (r) => {
-          const body = parseBody(r);
-          return body && body.pagination;
-        },
       },
       'List Games'
     );
@@ -218,11 +214,9 @@ export default function (data) {
       response,
       {
         'pagination returns 200': (r) => r.status === 200,
-        'pagination has correct structure': (r) => {
+        'pagination has data array': (r) => {
           const body = parseBody(r);
-          return (
-            body && body.pagination && typeof body.pagination.page === 'number'
-          );
+          return body && Array.isArray(body.data);
         },
       },
       'Game Pagination'

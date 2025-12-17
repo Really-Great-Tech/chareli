@@ -10,41 +10,49 @@ const analyticsRepository = AppDataSource.getRepository(Analytics);
  * Worker processor for analytics processing jobs
  * Writes analytics data to database asynchronously
  */
-export const processAnalyticsJob = async (
+export async function processAnalyticsJob(
   job: Job<AnalyticsProcessingJobData>
-): Promise<void> => {
-  const { userId, gameId, activityType, startTime, endTime, sessionCount } =
-    job.data;
+): Promise<void> {
+  const {
+    userId,
+    sessionId,
+    gameId,
+    activityType,
+    startTime,
+    endTime,
+    sessionCount,
+  } = job.data;
 
   try {
     logger.debug(
-      `[Analytics Worker] Processing analytics job ${job.id} for user ${userId}`
+      `[Analytics Worker] Processing analytics job ${job.id} for ${
+        userId ? `user ${userId}` : `session ${sessionId}`
+      }`
     );
 
+    // Validate that at least one identifier is present
+    if (!userId && !sessionId) {
+      throw new Error('Either userId or sessionId must be provided');
+    }
+
     // Create analytics entry
-    const analytics = new Analytics();
-    analytics.userId = userId;
-
-    if (gameId) {
-      analytics.gameId = gameId;
-    }
-
-    analytics.activityType = activityType;
-    analytics.startTime = startTime ? new Date(startTime) : null;
-
-    if (endTime) {
-      analytics.endTime = new Date(endTime);
-    }
-
-    if (sessionCount !== undefined) {
-      analytics.sessionCount = sessionCount;
-    }
+    const analytics = analyticsRepository.create({
+      userId,
+      sessionId,
+      gameId,
+      activityType,
+      startTime: startTime ? new Date(startTime) : undefined,
+      endTime: endTime ? new Date(endTime) : undefined,
+      sessionCount: sessionCount || 1,
+    });
 
     // Save to database
-    await analyticsRepository.save(analytics);
+    const saved = await analyticsRepository.save(analytics);
 
     logger.debug(
-      `[Analytics Worker] Successfully saved analytics ${analytics.id} for user ${userId}`
+      `[Analytics Worker] Successfully saved analytics ${saved.id} for ${
+        userId ? `user ${userId}` : `session ${sessionId}`
+      }`
     );
   } catch (error) {
     logger.error(
@@ -53,4 +61,4 @@ export const processAnalyticsJob = async (
     );
     throw error; // Re-throw to trigger retry
   }
-};
+}

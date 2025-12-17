@@ -24,7 +24,8 @@ export interface ThumbnailProcessingJobData {
 }
 
 export interface AnalyticsProcessingJobData {
-  userId: string;
+  userId: string | null;
+  sessionId: string | null;
   gameId?: string | null;
   activityType: string;
   startTime: Date;

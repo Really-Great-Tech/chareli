@@ -59,18 +59,29 @@ export const createAnalytics = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { gameId, activityType, startTime, endTime, sessionCount } = req.body;
+    const {
+      gameId,
+      activityType,
+      startTime,
+      endTime,
+      sessionCount,
+      sessionId,
+    } = req.body;
 
-    // Get user ID from authenticated user
-    if (!req.user || !req.user.userId) {
-      return next(ApiError.unauthorized('User not authenticated'));
+    // Get user ID from authenticated user (if logged in)
+    const userId = req.user?.userId || null;
+
+    // Require either userId or sessionId
+    if (!userId && !sessionId) {
+      return next(
+        ApiError.badRequest('Either authentication or sessionId is required')
+      );
     }
 
-    const userId = req.user.userId;
-
-    // Enqueue analytics processing job instead of synchronous write
+    // Enqueue analytics processing job
     await queueService.addAnalyticsProcessingJob({
       userId,
+      sessionId: sessionId || null,
       gameId: gameId || null,
       activityType,
       startTime: new Date(startTime),

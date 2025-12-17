@@ -7,7 +7,11 @@ import {
   deleteAnalytics,
   updateAnalyticsEndTime,
 } from '../controllers/analyticsController';
-import { authenticate, isAdmin } from '../middlewares/authMiddleware';
+import {
+  authenticate,
+  isAdmin,
+  optionalAuthenticate,
+} from '../middlewares/authMiddleware';
 import {
   validateBody,
   validateParams,
@@ -24,16 +28,17 @@ import { analyticsLimiter } from '../middlewares/rateLimitMiddleware';
 
 const router = Router();
 
-// All analytics routes require authentication
-router.use(authenticate);
-
-// Create analytics entry - accessible by all authenticated users
+// Create analytics entry - accessible by all (logged-in and anonymous)
 router.post(
   '/',
+  optionalAuthenticate,
   analyticsLimiter,
   validateBody(createAnalyticsSchema),
   createAnalytics
 );
+
+// All other analytics routes require authentication
+router.use(authenticate);
 
 // Get all analytics entries - admin only
 router.get(

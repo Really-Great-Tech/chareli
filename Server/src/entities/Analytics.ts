@@ -23,13 +23,17 @@ export class Analytics {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'user_id' })
+  @Column({ name: 'user_id', nullable: true })
   @Index()
-  userId: string;
+  userId: string | null;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user: User | null;
+
+  @Column({ name: 'session_id', type: 'varchar', length: 255, nullable: true })
+  @Index()
+  sessionId: string | null;
 
   @Column({ name: 'game_id', nullable: true })
   @Index()

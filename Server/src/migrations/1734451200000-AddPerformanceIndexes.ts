@@ -13,7 +13,7 @@ export class AddPerformanceIndexes1734451200000 implements MigrationInterface {
     // Games composite index for recently added filter (status, createdAt)
     await queryRunner.query(`
       CREATE INDEX IF NOT EXISTS "idx_games_status_created"
-      ON "games" ("status", "created_at" DESC)
+      ON "games" ("status", "createdAt" DESC)
       WHERE status = 'active'
     `);
 

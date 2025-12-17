@@ -7,7 +7,7 @@ export class AddPerformanceIndexes1734451200000 implements MigrationInterface {
     // Analytics composite index for dashboard queries (userId, activityType, startTime)
     await queryRunner.query(`
       CREATE INDEX IF NOT EXISTS "idx_analytics_user_activity_time"
-      ON "internal"."analytics" ("user_id", "activity_type", "start_time" DESC)
+      ON "internal"."analytics" ("user_id", "activityType", "startTime" DESC)
     `);
 
     // Games composite index for recently added filter (status, createdAt)

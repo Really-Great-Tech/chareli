@@ -19,6 +19,9 @@ export const config = {
     password: __ENV.TEST_USER_PASSWORD || 'TestPassword123!',
   },
 
+  // Admin token for load test operations (e.g., OTP bypass)
+  adminToken: __ENV.ADMIN_TOKEN || '',
+
   // Load test configuration
   testMode: __ENV.TEST_MODE || 'load',
 

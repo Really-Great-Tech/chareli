@@ -144,30 +144,125 @@ export default function () {
     });
   }
 
-  // Step 3: OTP Flow (Note: Cannot test OTP verification without actual OTP code)
+  // Step 3: Bypass OTP for Load Testing (Simulate OTP Completion)
+  // In load testing, we can't receive real OTPs, so we directly update the user
   if (hasOtpRequired && userId) {
-    group('3. OTP Flow - Documentation Only', () => {
-      // In a real scenario, user would:
-      // 1. Receive OTP via email/SMS
-      // 2. POST /auth/verify-otp with { userId, otp }
-      // 3. Receive tokens
+    group('3. Bypass OTP - Mark First Login Complete', () => {
+      // Use admin endpoint to mark first login as complete
+      // This simulates what would happen after successful OTP verification
+      const bypassPayload = {
+        userId: userId,
+        hasCompletedFirstLogin: true,
+      };
 
-      // For load testing, we document this flow but cannot automate
-      // the OTP retrieval. In production, you'd need:
-      // - Test mode that returns fixed OTP
-      // - Email/SMS provider test hooks
-      // - Manual OTP input for integration tests
+      const bypassResponse = http.patch(
+        `${baseUrl}/admin/users/${userId}`,
+        JSON.stringify(bypassPayload),
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${config.adminToken || ''}`,
+          },
+        }
+      );
 
-      check(null, {
-        'OTP flow documented': () => true,
+      const bypassSuccess = check(bypassResponse, {
+        'OTP bypass successful': (r) => r.status === 200 || r.status === 204,
       });
 
-      sleep(1); // Simulate user checking email/SMS
+      if (!bypassSuccess && !config.adminToken) {
+        console.warn(
+          'OTP bypass failed - set ADMIN_TOKEN in .env.k6 for full test flow'
+        );
+      }
+
+      sleep(1);
     });
   }
 
-  // Step 4: Forgot Password (Email)
-  group('4. POST /auth/forgot-password - Request Reset', () => {
+  // Step 4: Second Login (Should Return Tokens Now)
+  if (hasOtpRequired && userId) {
+    group('4. POST /auth/login - Second Login (Get Tokens)', () => {
+      const payload = {
+        identifier: userData.email,
+        password: userData.password,
+      };
+
+      const startTime = Date.now();
+      const response = http.post(
+        `${baseUrl}/auth/login`,
+        JSON.stringify(payload),
+        { headers: { 'Content-Type': 'application/json' } }
+      );
+      authDuration.add(Date.now() - startTime);
+
+      loginAttempts.add(1);
+
+      const loginSuccess = validateResponse(
+        response,
+        {
+          'second login returns 200': (r) => r.status === 200,
+          'has access token': (r) => {
+            const body = parseBody(r);
+            return body && body.data && body.data.accessToken;
+          },
+          'has refresh token': (r) => {
+            const body = parseBody(r);
+            return body && body.data && body.data.refreshToken;
+          },
+        },
+        'Second Login After OTP'
+      );
+
+      // Test token refresh if we got tokens
+      if (loginSuccess) {
+        const body = parseBody(response);
+        if (body && body.data && body.data.refreshToken) {
+          const refreshToken = body.data.refreshToken;
+
+          sleep(2); // Wait before refresh
+
+          group('4b. POST /auth/refresh-token - Refresh New User Token', () => {
+            tokenRefreshAttempts.add(1);
+
+            const refreshPayload = {
+              refreshToken: refreshToken,
+            };
+
+            const refreshResponse = http.post(
+              `${baseUrl}/auth/refresh-token`,
+              JSON.stringify(refreshPayload),
+              { headers: { 'Content-Type': 'application/json' } }
+            );
+
+            const refreshSuccess = validateResponse(
+              refreshResponse,
+              {
+                'refresh returns 200': (r) => r.status === 200,
+                'refresh has new access token': (r) => {
+                  const refreshBody = parseBody(r);
+                  return (
+                    refreshBody &&
+                    refreshBody.data &&
+                    refreshBody.data.accessToken
+                  );
+                },
+              },
+              'Token Refresh (New User)'
+            );
+
+            if (refreshSuccess) {
+              tokenRefreshSuccesses.add(1);
+            }
+          });
+        }
+      }
+      randomSleep(1, 2);
+    });
+  }
+
+  // Step 6: Forgot Password (Email)
+  group('6. POST /auth/forgot-password - Request Reset', () => {
     const payload = {
       email: userData.email,
     };
@@ -192,8 +287,8 @@ export default function () {
     randomSleep(1, 2);
   });
 
-  // Step 5: Forgot Password (Phone)
-  group('5. POST /auth/forgot-password/phone - Request Reset via Phone', () => {
+  // Step 7: Forgot Password (Phone)
+  group('7. POST /auth/forgot-password/phone - Request Reset via Phone', () => {
     const payload = {
       phoneNumber: userData.phoneNumber,
     };
@@ -215,9 +310,9 @@ export default function () {
     randomSleep(1, 2);
   });
 
-  // Step 6: Test Existing User Login (with pre-seeded test account)
+  // Step 8: Test Existing User Login (with pre-seeded test account)
   // This tests login for users who have already completed OTP verification
-  group('6. POST /auth/login - Existing User (No OTP)', () => {
+  group('8. POST /auth/login - Existing User (No OTP)', () => {
     const payload = {
       identifier: config.testUserCredentials.email,
       password: config.testUserCredentials.password,
@@ -252,39 +347,42 @@ export default function () {
 
         sleep(2); // Wait a moment before refreshing
 
-        group('7. POST /auth/refresh-token - Token Refresh', () => {
-          tokenRefreshAttempts.add(1);
+        group(
+          '9. POST /auth/refresh-token - Token Refresh (Existing User)',
+          () => {
+            tokenRefreshAttempts.add(1);
 
-          const refreshPayload = {
-            refreshToken: refreshToken,
-          };
+            const refreshPayload = {
+              refreshToken: refreshToken,
+            };
 
-          const refreshResponse = http.post(
-            `${baseUrl}/auth/refresh-token`,
-            JSON.stringify(refreshPayload),
-            { headers: { 'Content-Type': 'application/json' } }
-          );
+            const refreshResponse = http.post(
+              `${baseUrl}/auth/refresh-token`,
+              JSON.stringify(refreshPayload),
+              { headers: { 'Content-Type': 'application/json' } }
+            );
 
-          const refreshSuccess = validateResponse(
-            refreshResponse,
-            {
-              'refresh returns 200': (r) => r.status === 200,
-              'refresh has new access token': (r) => {
-                const refreshBody = parseBody(r);
-                return (
-                  refreshBody &&
-                  refreshBody.data &&
-                  refreshBody.data.accessToken
-                );
+            const refreshSuccess = validateResponse(
+              refreshResponse,
+              {
+                'refresh returns 200': (r) => r.status === 200,
+                'refresh has new access token': (r) => {
+                  const refreshBody = parseBody(r);
+                  return (
+                    refreshBody &&
+                    refreshBody.data &&
+                    refreshBody.data.accessToken
+                  );
+                },
               },
-            },
-            'Token Refresh'
-          );
+              'Token Refresh'
+            );
 
-          if (refreshSuccess) {
-            tokenRefreshSuccesses.add(1);
+            if (refreshSuccess) {
+              tokenRefreshSuccesses.add(1);
+            }
           }
-        });
+        );
       }
     }
 

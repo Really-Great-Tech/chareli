@@ -30,8 +30,10 @@ export const options = {
       `p(95)<${config.thresholds.p95}`,
       `p(99)<${config.thresholds.p99}`,
     ],
-    http_req_failed: [`rate<${config.thresholds.maxErrorRate / 100}`],
-    errors: [`rate<${config.thresholds.maxErrorRate / 100}`],
+    // Allow higher failure rate for this test since we deliberately test edge cases
+    // (random positions, non-existent categories, etc. that may return 404)
+    http_req_failed: ['rate<0.15'], // 15% to account for expected 404s
+    errors: ['rate<0.15'],
   },
 };
 

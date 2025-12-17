@@ -4,11 +4,11 @@ import * as yup from 'yup';
  * Validation schema for creating analytics entry
  */
 export const createAnalyticsSchema = yup.object({
-  gameId: yup.string().uuid().required(),
-  activityType: yup.string().required(),
-  startTime: yup.date().required(),
-  endTime: yup.date().nullable(),
-  sessionCount: yup.number().integer().min(1).default(1)
+  gameId: yup.string().uuid('Invalid game ID').nullable().optional(), // Optional for non-game activities
+  activityType: yup.string().required('Activity type is required'),
+  startTime: yup.date().required('Start time is required'),
+  endTime: yup.date().optional(),
+  sessionCount: yup.number().integer().min(1).optional(),
 });
 
 /**
@@ -16,7 +16,7 @@ export const createAnalyticsSchema = yup.object({
  */
 export const updateAnalyticsSchema = yup.object({
   endTime: yup.date().nullable(),
-  sessionCount: yup.number().integer().min(1)
+  sessionCount: yup.number().integer().min(1),
 });
 
 /**
@@ -29,12 +29,12 @@ export const analyticsQuerySchema = yup.object({
   startDate: yup.date(),
   endDate: yup.date(),
   page: yup.number().integer().min(1).default(1),
-  limit: yup.number().integer().min(1).max(100).default(10)
+  limit: yup.number().integer().min(1).max(100).default(10),
 });
 
 /**
  * Validation schema for analytics ID parameter
  */
 export const analyticsIdParamSchema = yup.object({
-  id: yup.string().uuid().required()
+  id: yup.string().uuid().required(),
 });

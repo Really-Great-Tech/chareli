@@ -4,6 +4,7 @@ import { Analytics } from '../entities/Analytics';
 import { ApiError } from '../middlewares/errorHandler';
 import { Between, FindOptionsWhere } from 'typeorm';
 import { cacheService } from '../services/cache.service';
+import { queueService } from '../services/queue.service';
 import logger from '../utils/logger';
 
 const analyticsRepository = AppDataSource.getRepository(Analytics);
@@ -67,31 +68,20 @@ export const createAnalytics = async (
 
     const userId = req.user.userId;
 
-    // Create a new analytics instance
-    const analytics = new Analytics();
-    analytics.userId = userId;
+    // Enqueue analytics processing job instead of synchronous write
+    await queueService.addAnalyticsProcessingJob({
+      userId,
+      gameId: gameId || null,
+      activityType,
+      startTime: new Date(startTime),
+      endTime: endTime ? new Date(endTime) : undefined,
+      sessionCount,
+    });
 
-    // Only set gameId if provided (optional for login/signup activities)
-    if (gameId) {
-      analytics.gameId = gameId;
-    }
-
-    analytics.activityType = activityType;
-    analytics.startTime = new Date(startTime);
-
-    if (endTime) {
-      analytics.endTime = new Date(endTime);
-    }
-
-    if (sessionCount) {
-      analytics.sessionCount = sessionCount;
-    }
-
-    await analyticsRepository.save(analytics);
-
-    res.status(201).json({
+    // Return 202 Accepted immediately (job queued)
+    res.status(202).json({
       success: true,
-      data: analytics,
+      message: 'Analytics event queued for processing',
     });
   } catch (error) {
     next(error);

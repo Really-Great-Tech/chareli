@@ -6,6 +6,8 @@ import logger from '../utils/logger';
 export enum JobType {
   GAME_ZIP_PROCESSING = 'game-zip-processing',
   THUMBNAIL_PROCESSING = 'thumbnail-processing',
+  ANALYTICS_PROCESSING = 'analytics-processing',
+  LIKE_PROCESSING = 'like-processing',
 }
 
 // Job data interfaces
@@ -19,6 +21,21 @@ export interface ThumbnailProcessingJobData {
   gameId: string;
   tempKey: string;
   permanentFolder: string;
+}
+
+export interface AnalyticsProcessingJobData {
+  userId: string;
+  gameId?: string | null;
+  activityType: string;
+  startTime: Date;
+  endTime?: Date;
+  sessionCount?: number;
+}
+
+export interface LikeProcessingJobData {
+  userId: string;
+  gameId: string;
+  action: 'like' | 'unlike';
 }
 
 class QueueService {
@@ -72,6 +89,38 @@ class QueueService {
 
     this.queues.set(JobType.THUMBNAIL_PROCESSING, thumbnailProcessingQueue);
 
+    // Create analytics processing queue
+    const analyticsProcessingQueue = new Queue(JobType.ANALYTICS_PROCESSING, {
+      connection: redisConfig,
+      defaultJobOptions: {
+        removeOnComplete: 100, // Keep last 100 completed jobs
+        removeOnFail: 200, // Keep last 200 failed jobs for debugging
+        attempts: 3, // Retry failed analytics writes
+        backoff: {
+          type: 'exponential',
+          delay: 1000,
+        },
+      },
+    });
+
+    this.queues.set(JobType.ANALYTICS_PROCESSING, analyticsProcessingQueue);
+
+    // Create like processing queue
+    const likeProcessingQueue = new Queue(JobType.LIKE_PROCESSING, {
+      connection: redisConfig,
+      defaultJobOptions: {
+        removeOnComplete: 100,
+        removeOnFail: 200,
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 1000,
+        },
+      },
+    });
+
+    this.queues.set(JobType.LIKE_PROCESSING, likeProcessingQueue);
+
     logger.info('Job queues initialized');
   }
 
@@ -117,6 +166,52 @@ class QueueService {
 
     logger.info(
       `Added thumbnail processing job for game ${data.gameId} with job ID: ${job.id}`
+    );
+    return job;
+  }
+
+  async addAnalyticsProcessingJob(
+    data: AnalyticsProcessingJobData,
+    options?: {
+      delay?: number;
+      priority?: number;
+    }
+  ): Promise<Job<AnalyticsProcessingJobData>> {
+    const queue = this.queues.get(JobType.ANALYTICS_PROCESSING);
+    if (!queue) {
+      throw new Error('Analytics processing queue not found');
+    }
+
+    const job = await queue.add('process-analytics', data, {
+      ...options,
+      jobId: `analytics-${data.userId}-${Date.now()}`,
+    });
+
+    logger.debug(
+      `Added analytics processing job for user ${data.userId} with job ID: ${job.id}`
+    );
+    return job;
+  }
+
+  async addLikeProcessingJob(
+    data: LikeProcessingJobData,
+    options?: {
+      delay?: number;
+      priority?: number;
+    }
+  ): Promise<Job<LikeProcessingJobData>> {
+    const queue = this.queues.get(JobType.LIKE_PROCESSING);
+    if (!queue) {
+      throw new Error('Like processing queue not found');
+    }
+
+    const job = await queue.add('process-like', data, {
+      ...options,
+      jobId: `like-${data.gameId}-${data.userId}-${Date.now()}`,
+    });
+
+    logger.debug(
+      `Added like processing job for game ${data.gameId} with job ID: ${job.id}`
     );
     return job;
   }

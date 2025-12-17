@@ -74,17 +74,14 @@ export const gameIdParamSchema = yup.object({
  * Query params schema validation
  */
 export const gameQuerySchema = yup.object({
-  page: yup
-    .number()
-    .integer('Page must be an integer')
-    .min(1, 'Page must be at least 1'),
-  limit: yup
-    .number()
-    .integer('Limit must be an integer')
-    .min(1, 'Limit must be at least 1')
-    .max(100, 'Limit must be at most 100'),
-  categoryId: yup.string().uuid('Invalid category ID'),
-  status: yup.string().oneOf(Object.values(GameStatus), 'Invalid game status'),
-  search: yup.string(),
-  createdById: yup.string().uuid('Invalid creator ID'),
+  page: yup.number().integer().min(1).optional(),
+  limit: yup.number().integer().min(1).optional(), // Removed max validation - pagination middleware handles capping
+  categoryId: yup.string().uuid().optional(),
+  status: yup.string().oneOf(['active', 'disabled']).optional(),
+  search: yup.string().optional(),
+  createdById: yup.string().uuid().optional(),
+  filter: yup
+    .string()
+    .oneOf(['popular', 'recently_added', 'recommended'])
+    .optional(),
 });

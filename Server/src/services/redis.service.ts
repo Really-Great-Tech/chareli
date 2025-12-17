@@ -401,6 +401,75 @@ class RedisService {
 
     return result ?? -1;
   }
+
+  // ============= LIKE TRACKING METHODS =============
+
+  /**
+   * Add a like for a user on a game (store in Redis set)
+   */
+  async setGameLike(userId: string, gameId: string): Promise<void> {
+    await this.executeWithTimeout(async () => {
+      const key = `game:${gameId}:likes`;
+      await this.redis.sadd(key, userId);
+    }, 'setGameLike');
+  }
+
+  /**
+   * Remove a like for a user on a game
+   */
+  async removeGameLike(userId: string, gameId: string): Promise<void> {
+    await this.executeWithTimeout(async () => {
+      const key = `game:${gameId}:likes`;
+      await this.redis.srem(key, userId);
+    }, 'removeGameLike');
+  }
+
+  /**
+   * Check if a user has liked a game
+   */
+  async hasUserLikedGame(userId: string, gameId: string): Promise<boolean> {
+    const result = await this.executeWithTimeout(async () => {
+      const key = `game:${gameId}:likes`;
+      return await this.redis.sismember(key, userId);
+    }, 'hasUserLikedGame');
+
+    return result === 1;
+  }
+
+  /**
+   * Get all game IDs a user has liked
+   */
+  async getUserLikes(userId: string): Promise<string[]> {
+    const result = await this.executeWithTimeout(async () => {
+      const keys = await this.redis.keys(`game:*:likes`);
+      const likedGames: string[] = [];
+
+      for (const key of keys) {
+        const isMember = await this.redis.sismember(key, userId);
+        if (isMember) {
+          // Extract gameId from key format: game:gameId:likes
+          const gameId = key.split(':')[1];
+          likedGames.push(gameId);
+        }
+      }
+
+      return likedGames;
+    }, 'getUserLikes');
+
+    return result ?? [];
+  }
+
+  /**
+   * Get the count of likes for a game
+   */
+  async getGameLikeCount(gameId: string): Promise<number> {
+    const result = await this.executeWithTimeout(async () => {
+      const key = `game:${gameId}:likes`;
+      return await this.redis.scard(key);
+    }, 'getGameLikeCount');
+
+    return result ?? 0;
+  }
 }
 
 export const redisService = new RedisService();

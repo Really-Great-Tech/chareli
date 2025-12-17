@@ -6,7 +6,8 @@ import { Category } from '../entities/Category';
 import { File } from '../entities/Files';
 import { Analytics } from '../entities/Analytics';
 import { GameLike } from '../entities/GameLike';
-import { SystemConfig } from '../entities/SystemConfig';
+import { GameLikeCache } from '../entities/GameLikeCache';
+import { System Config } from '../entities/SystemConfig';
 import { ApiError } from '../middlewares/errorHandler';
 import { RoleType } from '../entities/Role';
 import { Not, In } from 'typeorm';
@@ -23,6 +24,7 @@ import { moveFileToPermanentStorage } from '../utils/fileUtils';
 import { generateUniqueSlug } from '../utils/slugify';
 import { cacheService } from '../services/cache.service';
 import { cacheInvalidationService } from '../services/cache-invalidation.service';
+import { redisService } from '../services/redis.service';
 import { multipartUploadHelpers } from '../utils/multipartUpload';
 // import { processImage } from '../services/file.service';
 
@@ -233,18 +235,11 @@ export const getAllGames = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const {
-      page = 1,
-      limit,
-      categoryId,
-      status,
-      search,
-      createdById,
-      filter,
-    } = req.query;
+    const { categoryId, status, search, createdById, filter } = req.query;
 
-    const pageNumber = parseInt(page as string, 10);
-    const limitNumber = limit ? parseInt(limit as string, 10) : undefined;
+    // Get pagination from middleware (with enforced limits)
+    const pageNumber = req.pagination?.page || 1;
+    const limitNumber = req.pagination?.limit || 20;
 
     // Try cache for standard list queries (not special filters)
     if (!filter && cacheService.isEnabled()) {
@@ -253,7 +248,7 @@ export const getAllGames = async (
         .join(':');
       const cached = await cacheService.getGamesList(
         pageNumber,
-        limitNumber || 10,
+        limitNumber,
         filterKey
       );
 
@@ -558,10 +553,8 @@ export const getAllGames = async (
     // Get total count for pagination
     const total = await queryBuilder.getCount();
 
-    // Apply pagination and order by position
-    if (limitNumber) {
-      queryBuilder.skip((pageNumber - 1) * limitNumber).take(limitNumber);
-    }
+    // Apply pagination (middleware ensures limitNumber is always set)
+    queryBuilder.skip((pageNumber - 1) * limitNumber).take(limitNumber);
 
     queryBuilder
       .orderBy('game.position', 'ASC')
@@ -581,10 +574,16 @@ export const getAllGames = async (
       }
     });
 
-    const totalPages = limitNumber ? Math.ceil(total / limitNumber) : 1;
+    const totalPages = Math.ceil(total / limitNumber);
 
     const responseData = {
       data: games,
+      pagination: {
+        page: pageNumber,
+        limit: limitNumber,
+        total,
+        totalPages,
+      },
     };
 
     // Cache the response for standard queries (not special filters)
@@ -594,7 +593,7 @@ export const getAllGames = async (
         .join(':');
       await cacheService.setGamesList(
         pageNumber,
-        limitNumber || 10,
+        limitNumber,
         responseData,
         filterKey
       );
@@ -742,28 +741,34 @@ export const getGameById = async (
       });
     }
 
-    // Get user likes count for this game
-    const userLikesCount = await gameLikeRepository.count({
+    // Get cached like count (avoid CPU-intensive calculation)
+    const gameLikeCacheRepository = AppDataSource.getRepository(GameLikeCache);
+    let likeCount = 0;
+    const cacheEntry = await gameLikeCacheRepository.findOne({
       where: { gameId: game.id },
     });
+
+    if (cacheEntry) {
+      likeCount = cacheEntry.cachedLikeCount;
+    } else {
+      // Fallback to calculation if no cache (shouldn't happen after cron runs)
+      const userLikesCount = await gameLikeRepository.count({
+        where: { gameId: game.id },
+      });
+      likeCount = calculateLikeCount(game, userLikesCount);
+    }
 
     // Check if current user has liked this game (if authenticated)
     let hasLiked = false;
     if (req.user?.userId) {
-      const userLike = await gameLikeRepository.findOne({
-        where: {
-          userId: req.user.userId,
-          gameId: game.id,
-        },
-      });
-      hasLiked = !!userLike;
+      // Check Redis first (fast), fallback to DB
+      hasLiked = await redisService.hasUserLikedGame(req.user.userId, game.id);
     }
 
     // Prepare response data
     const responseData = {
       ...game,
-      likeCount: calculateLikeCount(game, userLikesCount),
-      userLikesCount,
+      likeCount,
       hasLiked,
       similarGames: similarGames,
     };
@@ -926,7 +931,6 @@ export const createGame = async (
       // Auto-assign default "General" category if no category provided
       finalCategoryId = await getDefaultCategoryId(queryRunner);
     }
-
 
     // Move thumbnail to permanent storage using utility function (synchronous)
     logger.info('Moving thumbnail to permanent storage...');
@@ -1960,7 +1964,7 @@ export const bulkUpdateFreeTime = async (
 };
 
 /**
- * Like a game
+ * Like a game (async with Redis)
  */
 export const likeGame = async (
   req: Request,
@@ -1994,50 +1998,24 @@ export const likeGame = async (
       );
     }
 
-    // Check if user already liked this game
-    const existingLike = await gameLikeRepository.findOne({
-      where: {
-        userId,
-        gameId: game.id,
-      },
-    });
+    // Update Redis immediately (fast response)
+    await redisService.setGameLike(userId, game.id);
 
-    if (existingLike) {
-      // Already liked, just return current state (idempotent)
-      const userLikesCount = await gameLikeRepository.count({
-        where: { gameId: game.id },
-      });
-
-      return void res.status(200).json({
-        success: true,
-        message: 'Game already liked',
-        data: {
-          likeCount: calculateLikeCount(game, userLikesCount),
-          userLikesCount,
-          hasLiked: true,
-        },
-      });
-    }
-
-    // Create like
-    const like = gameLikeRepository.create({
+    // Queue DB sync job (async)
+    await queueService.addLikeProcessingJob({
       userId,
       gameId: game.id,
+      action: 'like',
     });
 
-    await gameLikeRepository.save(like);
-
-    // Get updated counts
-    const userLikesCount = await gameLikeRepository.count({
-      where: { gameId: game.id },
-    });
+    // Get like count from Redis
+    const likeCount = await redisService.getGameLikeCount(game.id);
 
     res.status(200).json({
       success: true,
       message: 'Game liked successfully',
       data: {
-        likeCount: calculateLikeCount(game, userLikesCount),
-        userLikesCount,
+        likeCount,
         hasLiked: true,
       },
     });
@@ -2047,7 +2025,7 @@ export const likeGame = async (
 };
 
 /**
- * Unlike a game
+ * Unlike a game (async with Redis)
  */
 export const unlikeGame = async (
   req: Request,
@@ -2081,44 +2059,24 @@ export const unlikeGame = async (
       );
     }
 
-    // Find and delete the like
-    const like = await gameLikeRepository.findOne({
-      where: {
-        userId,
-        gameId: game.id,
-      },
+    // Update Redis immediately (fast response)
+    await redisService.removeGameLike(userId, game.id);
+
+    // Queue DB sync job (async)
+    await queueService.addLikeProcessingJob({
+      userId,
+      gameId: game.id,
+      action: 'unlike',
     });
 
-    if (!like) {
-      // Not liked, just return current state (idempotent)
-      const userLikesCount = await gameLikeRepository.count({
-        where: { gameId: game.id },
-      });
-
-      return void res.status(200).json({
-        success: true,
-        message: 'Game not liked',
-        data: {
-          likeCount: calculateLikeCount(game, userLikesCount),
-          userLikesCount,
-          hasLiked: false,
-        },
-      });
-    }
-
-    await gameLikeRepository.remove(like);
-
-    // Get updated counts
-    const userLikesCount = await gameLikeRepository.count({
-      where: { gameId: game.id },
-    });
+    // Get like count from Redis
+    const likeCount = await redisService.getGameLikeCount(game.id);
 
     res.status(200).json({
       success: true,
       message: 'Game unliked successfully',
       data: {
-        likeCount: calculateLikeCount(game, userLikesCount),
-        userLikesCount,
+        likeCount,
         hasLiked: false,
       },
     });

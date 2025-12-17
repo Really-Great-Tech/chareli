@@ -18,7 +18,6 @@ import {
   abortMultipartUpload,
   likeGame,
   unlikeGame,
-
 } from '../controllers/gameController';
 import {
   authenticate,
@@ -36,6 +35,7 @@ import {
   gameIdParamSchema,
   gameQuerySchema,
 } from '../validation';
+import { paginationMiddleware } from '../middlewares/pagination.middleware';
 
 const router = Router();
 
@@ -43,6 +43,7 @@ const router = Router();
 router.get(
   '/',
   optionalAuthenticate,
+  paginationMiddleware({ defaultLimit: 20, maxLimit: 100 }),
   validateQuery(gameQuerySchema),
   getAllGames
 );
@@ -66,7 +67,6 @@ router.delete(
   validateParams(gameIdParamSchema),
   unlikeGame
 );
-
 
 router.use(authenticate);
 router.use(isAdmin);

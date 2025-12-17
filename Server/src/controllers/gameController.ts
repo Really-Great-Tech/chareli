@@ -233,18 +233,11 @@ export const getAllGames = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const {
-      page = 1,
-      limit,
-      categoryId,
-      status,
-      search,
-      createdById,
-      filter,
-    } = req.query;
+    const { categoryId, status, search, createdById, filter } = req.query;
 
-    const pageNumber = parseInt(page as string, 10);
-    const limitNumber = limit ? parseInt(limit as string, 10) : undefined;
+    // Get pagination from middleware (with enforced limits)
+    const pageNumber = req.pagination?.page || 1;
+    const limitNumber = req.pagination?.limit || 20;
 
     // Try cache for standard list queries (not special filters)
     if (!filter && cacheService.isEnabled()) {
@@ -253,7 +246,7 @@ export const getAllGames = async (
         .join(':');
       const cached = await cacheService.getGamesList(
         pageNumber,
-        limitNumber || 10,
+        limitNumber,
         filterKey
       );
 
@@ -558,10 +551,8 @@ export const getAllGames = async (
     // Get total count for pagination
     const total = await queryBuilder.getCount();
 
-    // Apply pagination and order by position
-    if (limitNumber) {
-      queryBuilder.skip((pageNumber - 1) * limitNumber).take(limitNumber);
-    }
+    // Apply pagination (middleware ensures limitNumber is always set)
+    queryBuilder.skip((pageNumber - 1) * limitNumber).take(limitNumber);
 
     queryBuilder
       .orderBy('game.position', 'ASC')
@@ -581,10 +572,16 @@ export const getAllGames = async (
       }
     });
 
-    const totalPages = limitNumber ? Math.ceil(total / limitNumber) : 1;
+    const totalPages = Math.ceil(total / limitNumber);
 
     const responseData = {
       data: games,
+      pagination: {
+        page: pageNumber,
+        limit: limitNumber,
+        total,
+        totalPages,
+      },
     };
 
     // Cache the response for standard queries (not special filters)
@@ -594,7 +591,7 @@ export const getAllGames = async (
         .join(':');
       await cacheService.setGamesList(
         pageNumber,
-        limitNumber || 10,
+        limitNumber,
         responseData,
         filterKey
       );
@@ -926,7 +923,6 @@ export const createGame = async (
       // Auto-assign default "General" category if no category provided
       finalCategoryId = await getDefaultCategoryId(queryRunner);
     }
-
 
     // Move thumbnail to permanent storage using utility function (synchronous)
     logger.info('Moving thumbnail to permanent storage...');

@@ -10,6 +10,7 @@ import { initializeScheduledJobs } from './jobs';
 import { redisService } from './services/redis.service';
 import { initializeGameZipWorker } from './workers/gameZipProcessor';
 import { initializeThumbnailWorker } from './workers/thumbnailProcessor';
+import { initializeAnalyticsWorker } from './workers/analyticsProcessor';
 import { createServer } from 'http';
 import { websocketService } from './services/websocket.service';
 
@@ -34,6 +35,7 @@ async function initializeBackgroundServices(): Promise<void> {
     logger.info('Initializing background workers...');
     initializeGameZipWorker();
     initializeThumbnailWorker();
+    initializeAnalyticsWorker(); // NEW: Process analytics asynchronously
     logger.info('Background workers initialized successfully');
 
     // Verify worker is properly connected

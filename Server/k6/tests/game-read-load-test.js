@@ -81,6 +81,8 @@ export default function (data) {
 
     gameListRequests.add(1);
 
+    const hasPaginationParam = param.includes('limit=');
+
     validateResponse(
       response,
       {
@@ -89,6 +91,13 @@ export default function (data) {
           const body = parseBody(r);
           return body && Array.isArray(body.data);
         },
+        // Only check for pagination when limit parameter is used
+        ...(hasPaginationParam && {
+          'games list has pagination when limited': (r) => {
+            const body = parseBody(r);
+            return body && body.pagination;
+          },
+        }),
       },
       'List Games'
     );

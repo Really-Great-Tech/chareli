@@ -19,6 +19,7 @@ import {
 const loginAttempts = new Counter('login_attempts');
 const loginSuccesses = new Counter('login_successes');
 const registrationAttempts = new Counter('registration_attempts');
+const registrationSuccesses = new Counter('registration_successes');
 const authDuration = new Trend('auth_operation_duration');
 
 export const options = {
@@ -265,6 +266,9 @@ function textSummary(data, options = {}) {
     }\n`;
     summary += `${indent}  - Registration Attempts: ${
       data.metrics.registration_attempts?.values?.count || 0
+    }\n`;
+    summary += `${indent}  - Registration Successes: ${
+      data.metrics.registration_successes?.values?.count || 0
     }\n`;
   }
 

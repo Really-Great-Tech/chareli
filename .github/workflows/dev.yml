@@ -18,7 +18,6 @@ env:
   CONTAINER_NAME: ${{ vars.ECS_CONTAINER_NAME }}
 
 jobs:
-  # Detect which parts of the codebase changed
   detect-changes:
     name: Detect Changed Files
     runs-on: ubuntu-latest

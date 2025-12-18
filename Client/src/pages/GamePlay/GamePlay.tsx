@@ -13,6 +13,7 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { trackGameplay } from '../../utils/analytics';
 import { useSystemConfigByKey } from '../../backend/configuration.service';
 import { useLikeGame, useUnlikeGame } from '../../backend/gameLikes.service';
+import { getVisitorSessionId } from '../../utils/sessionUtils';
 
 export default function GamePlay() {
   const { gameId } = useParams();
@@ -243,7 +244,7 @@ export default function GamePlay() {
 
   // Create analytics record when game starts
   useEffect(() => {
-    if (game && isAuthenticated) {
+    if (game) {
       const startTime = new Date();
       gameStartTimeRef.current = startTime;
 
@@ -252,6 +253,7 @@ export default function GamePlay() {
           gameId: game.id,
           activityType: 'game_session',
           startTime: new Date(),
+          ...(!isAuthenticated && { sessionId: getVisitorSessionId() }),
         },
         {
           onSuccess: (response) => {
@@ -263,7 +265,7 @@ export default function GamePlay() {
       // Track game start in Google Analytics
       trackGameplay.gameStart(game.id, game.title);
     }
-  }, [game, isAuthenticated, createAnalytics]);
+  }, [game, createAnalytics]);
 
   const location = useLocation();
   const { mutate: updateAnalytics } = useUpdateAnalytics();

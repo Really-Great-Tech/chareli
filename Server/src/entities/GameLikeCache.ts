@@ -12,7 +12,7 @@ import {
  * Stores pre-calculated like counts for games
  * Updated daily by cron job to avoid CPU-intensive calculations
  */
-@Entity('game_like_cache')
+@Entity('game_like_cache', { schema: 'internal' })
 @Index(['gameId'], { unique: true })
 export class GameLikeCache {
   @PrimaryGeneratedColumn('uuid')

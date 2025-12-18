@@ -55,7 +55,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # --- Backend (Server) ---
+      # --- Backend (Server Prod) ---
       - name: Setup Node.js for Backend
         uses: actions/setup-node@v4
         with:

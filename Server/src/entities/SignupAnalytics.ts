@@ -1,6 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  Index,
+} from 'typeorm';
 
-@Entity('signup_analytics')
+@Entity('signup_analytics', { schema: 'internal' })
 export class SignupAnalytics {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -18,11 +24,11 @@ export class SignupAnalytics {
 
   @Column({ nullable: true })
   @Index()
-  deviceType: string;  // 'mobile', 'tablet', 'desktop'
+  deviceType: string; // 'mobile', 'tablet', 'desktop'
 
   @Column()
   @Index()
-  type: string;  // Type of signup form that was clicked
+  type: string; // Type of signup form that was clicked
 
   @CreateDateColumn()
   @Index()

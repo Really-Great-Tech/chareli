@@ -70,6 +70,21 @@ export const getAllCategories = async (
     const pageNumber = parseInt(page as string, 10);
     const limitNumber = parseInt(limit as string, 10);
 
+    // Try cache first (categories change infrequently)
+    if (cacheService.isEnabled()) {
+      const cached = await cacheService.getCategoriesList(
+        pageNumber,
+        limitNumber,
+        search as string | undefined
+      );
+
+      if (cached) {
+        logger.debug(`Cache hit: categories list page ${pageNumber}`);
+        res.status(200).json(cached);
+        return;
+      }
+    }
+
     const queryBuilder = categoryRepository.createQueryBuilder('category');
 
     // Apply search filter if provided
@@ -90,7 +105,7 @@ export const getAllCategories = async (
 
     const categories = await queryBuilder.getMany();
 
-    res.status(200).json({
+    const responseData = {
       success: true,
       count: categories.length,
       total,
@@ -98,7 +113,21 @@ export const getAllCategories = async (
       limit: limitNumber,
       totalPages: Math.ceil(total / limitNumber),
       data: categories,
-    });
+    };
+
+    // Cache the response (30 minutes TTL - categories rarely change)
+    if (cacheService.isEnabled()) {
+      await cacheService.setCategoriesList(
+        responseData,
+        pageNumber,
+        limitNumber,
+        search as string | undefined,
+        1800 // 30 minutes
+      );
+      logger.debug(`Cached categories list page ${pageNumber}`);
+    }
+
+    res.status(200).json(responseData);
   } catch (error) {
     next(error);
   }

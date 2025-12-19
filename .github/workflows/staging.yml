@@ -41,6 +41,7 @@ jobs:
               - '.github/workflows/**'
   build-and-test-backend:
     name: Build & Test Backend
+    needs: detect-changes
     if: needs.detect-changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     environment: ${{ github.ref_name == 'release' && 'production' || github.ref_name == 'dev' && 'development' || github.ref_name == 'main' && 'staging' || 'development' }}

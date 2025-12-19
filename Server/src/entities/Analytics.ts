@@ -1,8 +1,19 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, Index, BeforeInsert, BeforeUpdate } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
+  Index,
+  BeforeInsert,
+  BeforeUpdate,
+} from 'typeorm';
 import { User } from './User';
 import { Game } from './Games';
 
-@Entity('analytics')
+@Entity('analytics', { schema: 'internal' })
 @Index(['userId', 'activityType'])
 @Index(['gameId', 'startTime'])
 @Index(['userId', 'startTime'])
@@ -12,13 +23,17 @@ export class Analytics {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'user_id' })
+  @Column({ name: 'user_id', nullable: true })
   @Index()
-  userId: string;
+  userId: string | null;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user: User | null;
+
+  @Column({ name: 'session_id', type: 'varchar', length: 255, nullable: true })
+  @Index()
+  sessionId: string | null;
 
   @Column({ name: 'game_id', nullable: true })
   @Index()
@@ -59,7 +74,9 @@ export class Analytics {
   calculateDuration() {
     if (this.startTime && this.endTime) {
       // Calculate duration in seconds only if both startTime and endTime are present
-      this.duration = Math.floor((this.endTime.getTime() - this.startTime.getTime()) / 1000);
+      this.duration = Math.floor(
+        (this.endTime.getTime() - this.startTime.getTime()) / 1000
+      );
     } else {
       // Set duration to null if either startTime or endTime is missing
       this.duration = null;

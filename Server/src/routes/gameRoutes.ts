@@ -12,6 +12,10 @@ import {
   getGameProcessingStatus,
   retryGameProcessing,
   bulkUpdateFreeTime,
+  createMultipartUpload,
+  getMultipartUploadPartUrl,
+  completeMultipartUpload,
+  abortMultipartUpload,
   likeGame,
   unlikeGame,
 } from '../controllers/gameController';
@@ -31,6 +35,8 @@ import {
   gameIdParamSchema,
   gameQuerySchema,
 } from '../validation';
+import { paginationMiddleware } from '../middlewares/pagination.middleware';
+import { likeLimiter, uploadLimiter } from '../middlewares/rateLimitMiddleware';
 
 const router = Router();
 
@@ -38,6 +44,7 @@ const router = Router();
 router.get(
   '/',
   optionalAuthenticate,
+  paginationMiddleware({ defaultLimit: 20, maxLimit: 100 }),
   validateQuery(gameQuerySchema),
   getAllGames
 );
@@ -48,17 +55,18 @@ router.get(
   validateParams(gameIdParamSchema),
   getGameById
 );
-
 // Like/unlike routes (authenticated users only)
 router.post(
   '/:id/like',
   authenticate,
+  likeLimiter,
   validateParams(gameIdParamSchema),
   likeGame
 );
 router.delete(
   '/:id/like',
   authenticate,
+  likeLimiter,
   validateParams(gameIdParamSchema),
   unlikeGame
 );
@@ -66,7 +74,14 @@ router.delete(
 router.use(authenticate);
 router.use(isAdmin);
 
-router.post('/presigned-url', generatePresignedUrl);
+router.post('/presigned-url', uploadLimiter, generatePresignedUrl);
+
+// Multipart upload routes
+router.post('/multipart/create', uploadLimiter, createMultipartUpload);
+router.post('/multipart/part-url', uploadLimiter, getMultipartUploadPartUrl);
+router.post('/multipart/complete', uploadLimiter, completeMultipartUpload);
+router.post('/multipart/abort', uploadLimiter, abortMultipartUpload);
+
 router.post('/bulk-update-free-time', bulkUpdateFreeTime);
 router.post('/', uploadGameFiles, createGame);
 router.put(

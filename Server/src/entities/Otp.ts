@@ -1,13 +1,21 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { User } from './User';
 
 export enum OtpType {
   EMAIL = 'EMAIL',
   SMS = 'SMS',
-  NONE = 'NONE'
+  NONE = 'NONE',
 }
 
-@Entity('otps')
+@Entity('otps', { schema: 'internal' })
 export class Otp {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -28,7 +36,7 @@ export class Otp {
   @Column({
     type: 'enum',
     enum: OtpType,
-    default: OtpType.SMS
+    default: OtpType.SMS,
   })
   type: OtpType;
 

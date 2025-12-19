@@ -4,7 +4,10 @@ import logger from '../utils/logger';
 
 // Job types
 export enum JobType {
-  GAME_ZIP_PROCESSING = 'game-zip-processing'
+  GAME_ZIP_PROCESSING = 'game-zip-processing',
+  THUMBNAIL_PROCESSING = 'thumbnail-processing',
+  ANALYTICS_PROCESSING = 'analytics-processing',
+  LIKE_PROCESSING = 'like-processing',
 }
 
 // Job data interfaces
@@ -12,6 +15,28 @@ export interface GameZipProcessingJobData {
   gameId: string;
   gameFileKey: string; // temp storage key for ZIP file
   userId?: string;
+}
+
+export interface ThumbnailProcessingJobData {
+  gameId: string;
+  tempKey: string;
+  permanentFolder: string;
+}
+
+export interface AnalyticsProcessingJobData {
+  userId: string | null;
+  sessionId: string | null;
+  gameId?: string | null;
+  activityType: string;
+  startTime: Date;
+  endTime?: Date;
+  sessionCount?: number;
+}
+
+export interface LikeProcessingJobData {
+  userId: string;
+  gameId: string;
+  action: 'like' | 'unlike';
 }
 
 class QueueService {
@@ -49,6 +74,54 @@ class QueueService {
 
     this.queues.set(JobType.GAME_ZIP_PROCESSING, gameProcessingQueue);
 
+    // Create thumbnail processing queue
+    const thumbnailProcessingQueue = new Queue(JobType.THUMBNAIL_PROCESSING, {
+      connection: redisConfig,
+      defaultJobOptions: {
+        removeOnComplete: 10,
+        removeOnFail: 50,
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 1000,
+        },
+      },
+    });
+
+    this.queues.set(JobType.THUMBNAIL_PROCESSING, thumbnailProcessingQueue);
+
+    // Create analytics processing queue
+    const analyticsProcessingQueue = new Queue(JobType.ANALYTICS_PROCESSING, {
+      connection: redisConfig,
+      defaultJobOptions: {
+        removeOnComplete: 100, // Keep last 100 completed jobs
+        removeOnFail: 200, // Keep last 200 failed jobs for debugging
+        attempts: 3, // Retry failed analytics writes
+        backoff: {
+          type: 'exponential',
+          delay: 1000,
+        },
+      },
+    });
+
+    this.queues.set(JobType.ANALYTICS_PROCESSING, analyticsProcessingQueue);
+
+    // Create like processing queue
+    const likeProcessingQueue = new Queue(JobType.LIKE_PROCESSING, {
+      connection: redisConfig,
+      defaultJobOptions: {
+        removeOnComplete: 100,
+        removeOnFail: 200,
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 1000,
+        },
+      },
+    });
+
+    this.queues.set(JobType.LIKE_PROCESSING, likeProcessingQueue);
+
     logger.info('Job queues initialized');
   }
 
@@ -64,16 +137,83 @@ class QueueService {
       throw new Error('Game ZIP processing queue not found');
     }
 
-    const job = await queue.add(
-      'process-game-zip',
-      data,
-      {
-        ...options,
-        jobId: `game-${data.gameId}-${Date.now()}`,
-      }
-    );
+    const job = await queue.add('process-game-zip', data, {
+      ...options,
+      jobId: `game-${data.gameId}-${Date.now()}`,
+    });
 
-    logger.info(`Added game ZIP processing job for game ${data.gameId} with job ID: ${job.id}`);
+    logger.info(
+      `Added game ZIP processing job for game ${data.gameId} with job ID: ${job.id}`
+    );
+    return job;
+  }
+
+  async addThumbnailProcessingJob(
+    data: ThumbnailProcessingJobData,
+    options?: {
+      delay?: number;
+      priority?: number;
+    }
+  ): Promise<Job<ThumbnailProcessingJobData>> {
+    const queue = this.queues.get(JobType.THUMBNAIL_PROCESSING);
+    if (!queue) {
+      throw new Error('Thumbnail processing queue not found');
+    }
+
+    const job = await queue.add('process-thumbnail', data, {
+      ...options,
+      jobId: `thumbnail-${data.gameId}-${Date.now()}`,
+    });
+
+    logger.info(
+      `Added thumbnail processing job for game ${data.gameId} with job ID: ${job.id}`
+    );
+    return job;
+  }
+
+  async addAnalyticsProcessingJob(
+    data: AnalyticsProcessingJobData,
+    options?: {
+      delay?: number;
+      priority?: number;
+    }
+  ): Promise<Job<AnalyticsProcessingJobData>> {
+    const queue = this.queues.get(JobType.ANALYTICS_PROCESSING);
+    if (!queue) {
+      throw new Error('Analytics processing queue not found');
+    }
+
+    const job = await queue.add('process-analytics', data, {
+      ...options,
+      jobId: `analytics-${data.userId}-${Date.now()}`,
+    });
+
+    logger.debug(
+      `Added analytics processing job for user ${data.userId} with job ID: ${job.id}`
+    );
+    return job;
+  }
+
+  async addLikeProcessingJob(
+    data: LikeProcessingJobData,
+    options?: {
+      delay?: number;
+      priority?: number;
+    }
+  ): Promise<Job<LikeProcessingJobData>> {
+    const queue = this.queues.get(JobType.LIKE_PROCESSING);
+    if (!queue) {
+      throw new Error('Like processing queue not found');
+    }
+
+    const job = await queue.add('process-like', data, {
+      ...options,
+      jobId: `like-${data.gameId}-${data.userId}-${Date.now()}`,
+    });
+
+    logger.debug(
+      `Added like processing job for game ${data.gameId} with job ID: ${job.id}`
+    );
     return job;
   }
 
@@ -93,16 +233,20 @@ class QueueService {
 
     const worker = new Worker(queueName, processor, {
       connection: redisConfig,
-      concurrency: 1, // Reduce concurrency to avoid overload
+      concurrency: 3, // Process 3 jobs simultaneously for better throughput
     });
 
     // Set up event handlers
     worker.on('completed', (job: any) => {
-      logger.info(`Job ${job.id} completed successfully`);
+      const duration = job.finishedOn ? job.finishedOn - job.processedOn : 0;
+      logger.info(
+        `[PERF] Job ${job.id} completed successfully in ${duration}ms`
+      );
     });
 
     worker.on('failed', (job: any, error: any) => {
-      logger.error(`Job ${job?.id} failed:`, error);
+      const duration = job.finishedOn ? job.finishedOn - job.processedOn : 0;
+      logger.error(`[PERF] Job ${job?.id} failed after ${duration}ms:`, error);
     });
 
     worker.on('progress', (job: any, progress: any) => {
@@ -123,7 +267,10 @@ class QueueService {
     return worker;
   }
 
-  async getJobStatus(jobId: string, queueName: string): Promise<{
+  async getJobStatus(
+    jobId: string,
+    queueName: string
+  ): Promise<{
     status: string;
     progress?: number;
     error?: string;
@@ -165,7 +312,7 @@ class QueueService {
 
   async closeAllQueues(): Promise<void> {
     logger.info('Closing all queues and workers...');
-    
+
     const closePromises: Promise<void>[] = [];
 
     // Close all workers

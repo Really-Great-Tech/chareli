@@ -6,6 +6,7 @@ import { Category } from '../entities/Category';
 import { File } from '../entities/Files';
 import { Analytics } from '../entities/Analytics';
 import { GameLike } from '../entities/GameLike';
+import { GameLikeCache } from '../entities/GameLikeCache';
 import { SystemConfig } from '../entities/SystemConfig';
 import { ApiError } from '../middlewares/errorHandler';
 import { RoleType } from '../entities/Role';
@@ -21,6 +22,10 @@ import config from '../config/config';
 import path from 'path';
 import { moveFileToPermanentStorage } from '../utils/fileUtils';
 import { generateUniqueSlug } from '../utils/slugify';
+import { cacheService } from '../services/cache.service';
+import { cacheInvalidationService } from '../services/cache-invalidation.service';
+import { redisService } from '../services/redis.service';
+import { multipartUploadHelpers } from '../utils/multipartUpload';
 // import { processImage } from '../services/file.service';
 
 const gameRepository = AppDataSource.getRepository(Game);
@@ -230,18 +235,29 @@ export const getAllGames = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const {
-      page = 1,
-      limit,
-      categoryId,
-      status,
-      search,
-      createdById,
-      filter,
-    } = req.query;
+    const { categoryId, status, search, createdById, filter } = req.query;
 
-    const pageNumber = parseInt(page as string, 10);
-    const limitNumber = limit ? parseInt(limit as string, 10) : undefined;
+    // Get pagination from middleware (with enforced limits)
+    const pageNumber = req.pagination?.page || 1;
+    const limitNumber = req.pagination?.limit || 20;
+
+    // Try cache for standard list queries (not special filters)
+    if (!filter && cacheService.isEnabled()) {
+      const filterKey = [status, categoryId, search, createdById]
+        .filter(Boolean)
+        .join(':');
+      const cached = await cacheService.getGamesList(
+        pageNumber,
+        limitNumber,
+        filterKey
+      );
+
+      if (cached) {
+        logger.debug(`Cache hit for games list page ${pageNumber}`);
+        res.status(200).json(cached);
+        return;
+      }
+    }
 
     let queryBuilder = gameRepository
       .createQueryBuilder('game')
@@ -252,6 +268,15 @@ export const getAllGames = async (
 
     // Handle special filters
     if (filter === 'recently_added') {
+      // Try cache first
+      const cacheKey = 'filter:recently_added';
+      const cached = await cacheService.getGamesList(1, 10, cacheKey);
+      if (cached) {
+        logger.debug('Cache hit for recently_added filter');
+        res.status(200).json(cached);
+        return;
+      }
+
       // Get the last 10 games added, ordered by creation date
       queryBuilder
         .andWhere('game.status = :status', { status: GameStatus.ACTIVE })
@@ -272,11 +297,24 @@ export const getAllGames = async (
         }
       });
 
-      res.status(200).json({
-        data: games,
-      });
+      const responseData = { data: games };
+
+      // Cache for 2 minutes (120s)
+      await cacheService.setGamesList(1, 10, responseData, cacheKey, 120);
+      logger.debug('Cached recently_added filter');
+
+      res.status(200).json(responseData);
       return;
     } else if (filter === 'popular') {
+      // Try cache first for popular filter
+      const cacheKey = 'filter:popular';
+      const cached = await cacheService.getGamesList(1, 20, cacheKey);
+      if (cached) {
+        logger.debug('Cache hit for popular filter');
+        res.status(200).json(cached);
+        return;
+      }
+
       const systemConfigRepository = AppDataSource.getRepository(SystemConfig);
       const popularConfig = await systemConfigRepository.findOne({
         where: { key: 'popular_games_settings' },
@@ -321,15 +359,19 @@ export const getAllGames = async (
             }
           });
 
-          res.status(200).json({
-            data: orderedGames,
-          });
+          const responseData = { data: orderedGames };
+
+          // Cache for 5 minutes (300s) - manual selection changes infrequently
+          await cacheService.setGamesList(1, 20, responseData, cacheKey, 300);
+          logger.debug('Cached popular filter (manual mode)');
+
+          res.status(200).json(responseData);
           return;
         } else {
           // Manual mode with no games selected - return empty array
-          res.status(200).json({
-            data: [],
-          });
+          const responseData = { data: [] };
+          await cacheService.setGamesList(1, 20, responseData, cacheKey, 300);
+          res.status(200).json(responseData);
           return;
         }
       } else {
@@ -511,10 +553,8 @@ export const getAllGames = async (
     // Get total count for pagination
     const total = await queryBuilder.getCount();
 
-    // Apply pagination and order by position
-    if (limitNumber) {
-      queryBuilder.skip((pageNumber - 1) * limitNumber).take(limitNumber);
-    }
+    // Apply pagination (middleware ensures limitNumber is always set)
+    queryBuilder.skip((pageNumber - 1) * limitNumber).take(limitNumber);
 
     queryBuilder
       .orderBy('game.position', 'ASC')
@@ -534,11 +574,33 @@ export const getAllGames = async (
       }
     });
 
-    const totalPages = limitNumber ? Math.ceil(total / limitNumber) : 1;
+    const totalPages = Math.ceil(total / limitNumber);
 
-    res.status(200).json({
+    const responseData = {
       data: games,
-    });
+      pagination: {
+        page: pageNumber,
+        limit: limitNumber,
+        total,
+        totalPages,
+      },
+    };
+
+    // Cache the response for standard queries (not special filters)
+    if (!filter && cacheService.isEnabled()) {
+      const filterKey = [status, categoryId, search, createdById]
+        .filter(Boolean)
+        .join(':');
+      await cacheService.setGamesList(
+        pageNumber,
+        limitNumber,
+        responseData,
+        filterKey
+      );
+      logger.debug(`Cached games list page ${pageNumber}`);
+    }
+
+    res.status(200).json(responseData);
   } catch (error) {
     next(error);
   }
@@ -612,6 +674,17 @@ export const getGameById = async (
   try {
     const { id } = req.params;
 
+    // Try cache first
+    const cached = await cacheService.getGameById(id);
+    if (cached) {
+      logger.debug(`Cache hit for game ${id}`);
+      void res.status(200).json({
+        success: true,
+        data: cached,
+      });
+      return;
+    }
+
     // Check if identifier is a UUID or slug
     const isUUID =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
@@ -668,32 +741,44 @@ export const getGameById = async (
       });
     }
 
-    // Get user likes count for this game
-    const userLikesCount = await gameLikeRepository.count({
+    // Get cached like count (avoid CPU-intensive calculation)
+    const gameLikeCacheRepository = AppDataSource.getRepository(GameLikeCache);
+    let likeCount = 0;
+    const cacheEntry = await gameLikeCacheRepository.findOne({
       where: { gameId: game.id },
     });
+
+    if (cacheEntry) {
+      likeCount = cacheEntry.cachedLikeCount;
+    } else {
+      // Fallback to calculation if no cache (shouldn't happen after cron runs)
+      const userLikesCount = await gameLikeRepository.count({
+        where: { gameId: game.id },
+      });
+      likeCount = calculateLikeCount(game, userLikesCount);
+    }
 
     // Check if current user has liked this game (if authenticated)
     let hasLiked = false;
     if (req.user?.userId) {
-      const userLike = await gameLikeRepository.findOne({
-        where: {
-          userId: req.user.userId,
-          gameId: game.id,
-        },
-      });
-      hasLiked = !!userLike;
+      // Check Redis first (fast), fallback to DB
+      hasLiked = await redisService.hasUserLikedGame(req.user.userId, game.id);
     }
+
+    // Prepare response data
+    const responseData = {
+      ...game,
+      likeCount,
+      hasLiked,
+      similarGames: similarGames,
+    };
+
+    // Cache the response for future requests
+    await cacheService.setGameById(id, responseData);
 
     res.status(200).json({
       success: true,
-      data: {
-        ...game,
-        likeCount: calculateLikeCount(game, userLikesCount),
-        userLikesCount,
-        hasLiked,
-        similarGames: similarGames,
-      },
+      data: responseData,
     });
   } catch (error) {
     next(error);
@@ -781,6 +866,7 @@ export const createGame = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
+  const requestStartTime = Date.now();
   // Start a transaction
   const queryRunner = AppDataSource.createQueryRunner();
   await queryRunner.connect();
@@ -848,9 +934,24 @@ export const createGame = async (
 
     // Move thumbnail to permanent storage using utility function (synchronous)
     logger.info('Moving thumbnail to permanent storage...');
+    const thumbnailStartTime = performance.now();
     const permanentThumbnailKey = await moveFileToPermanentStorage(
       thumbnailFileKey,
       'thumbnails'
+    );
+    const thumbnailEndTime = performance.now();
+    const thumbnailDuration = thumbnailEndTime - thumbnailStartTime;
+    logger.info(`✅ [THUMBNAIL TIMING] Thumbnail processing completed`, {
+      gameId: title, // Using title as gameId not created yet
+      durationMs: thumbnailDuration.toFixed(2),
+      durationSec: (thumbnailDuration / 1000).toFixed(2),
+      sourceKey: thumbnailFileKey,
+      destinationKey: permanentThumbnailKey,
+    });
+    console.log(
+      `⏱️ [THUMBNAIL TIMING] Completed in ${(thumbnailDuration / 1000).toFixed(
+        2
+      )}s`
     );
 
     // Create thumbnail file record in the database using transaction
@@ -861,7 +962,6 @@ export const createGame = async (
     });
 
     await queryRunner.manager.save(thumbnailFileRecord);
-
     // Assign position for the new game
     logger.info('Assigning position for new game...');
     const assignedPosition = await assignPositionForNewGame(
@@ -873,13 +973,13 @@ export const createGame = async (
     logger.info('Generating unique slug from title...');
     const slug = await generateUniqueSlug(title);
 
-    // Create new game with pending processing status and disabled status (no gameFileId yet)
+    // Create new game with pending processing status and disabled status (no thumbnailFileId yet)
     logger.info('Creating game record with pending processing status...');
     const game = gameRepository.create({
       title,
       slug,
       description,
-      thumbnailFileId: thumbnailFileRecord.id,
+      thumbnailFileId: undefined, // Will be set by background worker
       gameFileId: undefined, // Will be set by background worker
       categoryId: finalCategoryId,
       status: GameStatus.DISABLED, // Always start as disabled until processing completes
@@ -899,13 +999,20 @@ export const createGame = async (
       queryRunner
     );
 
+    // Queue background job for thumbnail processing
+    logger.info('Queuing background job for thumbnail processing...');
+    await queueService.addThumbnailProcessingJob({
+      gameId: game.id,
+      tempKey: thumbnailFileKey,
+      permanentFolder: 'thumbnails',
+    });
+
     // Queue background job for ZIP processing
     logger.info('Queuing background job for ZIP processing...');
     console.log('🚀 [CREATE GAME] Queuing job for game:', {
       gameId: game.id,
       title,
       gameFileKey,
-      thumbnailFileKey: permanentThumbnailKey,
     });
 
     const job = await queueService.addGameZipProcessingJob({
@@ -923,13 +1030,7 @@ export const createGame = async (
       jobId: job.id,
     });
 
-    // Clean up temporary thumbnail file (game file will be cleaned up by worker)
-    logger.info('Cleaning up temporary thumbnail file...');
-    try {
-      await storageService.deleteFile(thumbnailFileKey);
-    } catch (cleanupError) {
-      logger.warn('Failed to clean up temporary thumbnail file:', cleanupError);
-    }
+    // Note: Cleanup of temporary files will be handled by background workers
 
     // Commit transaction
     await queryRunner.commitTransaction();
@@ -954,9 +1055,24 @@ export const createGame = async (
       savedGame.thumbnailFile.s3Key = storageService.getPublicUrl(s3Key);
     }
 
+    // Invalidate caches after game creation
+    await cacheInvalidationService.invalidateGameCreation(
+      savedGame.id,
+      savedGame.categoryId
+    );
+
+    const apiResponseTime = Date.now() - requestStartTime;
+    logger.info(
+      `[PERF] Game creation API completed in ${apiResponseTime}ms - Game ID: ${game.id}, Title: "${title}"`
+    );
+
     res.status(201).json({
       success: true,
       data: savedGame,
+      _performance: {
+        apiResponseTime: `${apiResponseTime}ms`,
+        note: 'Background processing (thumbnail + ZIP) continues asynchronously',
+      },
     });
   } catch (error) {
     // Rollback transaction on error
@@ -1309,6 +1425,12 @@ export const updateGame = async (
       updatedGame.thumbnailFile.s3Key = storageService.getPublicUrl(s3Key);
     }
 
+    // Invalidate caches after game update
+    await cacheInvalidationService.invalidateGameUpdate(
+      updatedGame.id,
+      updatedGame.categoryId
+    );
+
     res.status(200).json({
       success: true,
       data: updatedGame,
@@ -1391,7 +1513,11 @@ export const deleteGame = async (
       }
     }
 
+    // Delete the game
     await gameRepository.remove(game);
+
+    // Invalidate caches after game deletion
+    await cacheInvalidationService.invalidateGameDeletion(id, game.categoryId);
 
     res.status(200).json({
       success: true,
@@ -1838,7 +1964,7 @@ export const bulkUpdateFreeTime = async (
 };
 
 /**
- * Like a game
+ * Like a game (async with Redis)
  */
 export const likeGame = async (
   req: Request,
@@ -1872,50 +1998,24 @@ export const likeGame = async (
       );
     }
 
-    // Check if user already liked this game
-    const existingLike = await gameLikeRepository.findOne({
-      where: {
-        userId,
-        gameId: game.id,
-      },
-    });
+    // Update Redis immediately (fast response)
+    await redisService.setGameLike(userId, game.id);
 
-    if (existingLike) {
-      // Already liked, just return current state (idempotent)
-      const userLikesCount = await gameLikeRepository.count({
-        where: { gameId: game.id },
-      });
-
-      return void res.status(200).json({
-        success: true,
-        message: 'Game already liked',
-        data: {
-          likeCount: calculateLikeCount(game, userLikesCount),
-          userLikesCount,
-          hasLiked: true,
-        },
-      });
-    }
-
-    // Create like
-    const like = gameLikeRepository.create({
+    // Queue DB sync job (async)
+    await queueService.addLikeProcessingJob({
       userId,
       gameId: game.id,
+      action: 'like',
     });
 
-    await gameLikeRepository.save(like);
-
-    // Get updated counts
-    const userLikesCount = await gameLikeRepository.count({
-      where: { gameId: game.id },
-    });
+    // Get like count from Redis
+    const likeCount = await redisService.getGameLikeCount(game.id);
 
     res.status(200).json({
       success: true,
       message: 'Game liked successfully',
       data: {
-        likeCount: calculateLikeCount(game, userLikesCount),
-        userLikesCount,
+        likeCount,
         hasLiked: true,
       },
     });
@@ -1925,7 +2025,7 @@ export const likeGame = async (
 };
 
 /**
- * Unlike a game
+ * Unlike a game (async with Redis)
  */
 export const unlikeGame = async (
   req: Request,
@@ -1959,48 +2059,181 @@ export const unlikeGame = async (
       );
     }
 
-    // Find and delete the like
-    const like = await gameLikeRepository.findOne({
-      where: {
-        userId,
-        gameId: game.id,
-      },
+    // Update Redis immediately (fast response)
+    await redisService.removeGameLike(userId, game.id);
+
+    // Queue DB sync job (async)
+    await queueService.addLikeProcessingJob({
+      userId,
+      gameId: game.id,
+      action: 'unlike',
     });
 
-    if (!like) {
-      // Not liked, just return current state (idempotent)
-      const userLikesCount = await gameLikeRepository.count({
-        where: { gameId: game.id },
-      });
-
-      return void res.status(200).json({
-        success: true,
-        message: 'Game not liked',
-        data: {
-          likeCount: calculateLikeCount(game, userLikesCount),
-          userLikesCount,
-          hasLiked: false,
-        },
-      });
-    }
-
-    await gameLikeRepository.remove(like);
-
-    // Get updated counts
-    const userLikesCount = await gameLikeRepository.count({
-      where: { gameId: game.id },
-    });
+    // Get like count from Redis
+    const likeCount = await redisService.getGameLikeCount(game.id);
 
     res.status(200).json({
       success: true,
       message: 'Game unliked successfully',
       data: {
-        likeCount: calculateLikeCount(game, userLikesCount),
-        userLikesCount,
+        likeCount,
         hasLiked: false,
       },
     });
   } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Create a multipart upload
+ */
+export const createMultipartUpload = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { filename, contentType, fileType } = req.body;
+
+    if (!filename || !fileType) {
+      return next(ApiError.badRequest('Filename and fileType are required'));
+    }
+
+    // Validate fileType
+    if (!['thumbnail', 'game'].includes(fileType)) {
+      return next(
+        ApiError.badRequest('FileType must be either "thumbnail" or "game"')
+      );
+    }
+
+    // Generate unique path
+    const timestamp = Date.now();
+    const gameId = uuidv4();
+    const folder = fileType === 'thumbnail' ? 'temp-thumbnails' : 'temp-games';
+    const key = `${folder}/${gameId}-${timestamp}/${filename}`;
+
+    logger.info(`Creating multipart upload for: ${key}`);
+
+    const result = await multipartUploadHelpers.createMultipartUpload(
+      key,
+      contentType || 'application/octet-stream'
+    );
+
+    res.status(200).json({
+      success: true,
+      data: {
+        uploadId: result.uploadId,
+        key: result.key,
+      },
+    });
+  } catch (error) {
+    logger.error('Error creating multipart upload:', error);
+    next(error);
+  }
+};
+
+/**
+ * Get presigned URL for uploading a part
+ */
+export const getMultipartUploadPartUrl = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { key, uploadId, partNumber } = req.body;
+
+    if (!key || !uploadId || !partNumber) {
+      return next(
+        ApiError.badRequest('Key, uploadId, and partNumber are required')
+      );
+    }
+
+    const url = await multipartUploadHelpers.getPresignedUrlForPart(
+      key,
+      uploadId,
+      parseInt(partNumber)
+    );
+
+    res.status(200).json({
+      success: true,
+      data: {
+        url,
+      },
+    });
+  } catch (error) {
+    logger.error('Error getting multipart upload part URL:', error);
+    next(error);
+  }
+};
+
+/**
+ * Complete a multipart upload
+ */
+export const completeMultipartUpload = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { key, uploadId, parts } = req.body;
+
+    if (!key || !uploadId || !parts || !Array.isArray(parts)) {
+      return next(
+        ApiError.badRequest('Key, uploadId, and parts array are required')
+      );
+    }
+
+    logger.info(`Completing multipart upload for: ${key}`);
+
+    const result = await multipartUploadHelpers.completeMultipartUpload(
+      key,
+      uploadId,
+      parts
+    );
+
+    const publicUrl = storageService.getPublicUrl(key);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        location: result.location,
+        key: result.key,
+        publicUrl,
+      },
+    });
+  } catch (error) {
+    logger.error('Error completing multipart upload:', error);
+    next(error);
+  }
+};
+
+/**
+ * Abort a multipart upload
+ */
+export const abortMultipartUpload = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { key, uploadId } = req.body;
+
+    if (!key || !uploadId) {
+      return next(ApiError.badRequest('Key and uploadId are required'));
+    }
+
+    logger.info(`Aborting multipart upload for: ${key}`);
+
+    await multipartUploadHelpers.abortMultipartUpload(key, uploadId);
+
+    res.status(200).json({
+      success: true,
+      message: 'Multipart upload aborted successfully',
+    });
+  } catch (error) {
+    logger.error('Error aborting multipart upload:', error);
     next(error);
   }
 };

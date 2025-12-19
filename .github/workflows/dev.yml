@@ -1,8 +1,8 @@
-name: Deploy to Staging Environment (arcadesbox)
-
+name: Deploy to Development Environment (arcadesbox)
 on:
   push:
-    branches: [main]
+    branches: [dev]
+  workflow_dispatch:
 permissions:
   packages: write
   contents: read
@@ -32,6 +32,8 @@ jobs:
         uses: dorny/paths-filter@v3
         id: filter
         with:
+          base: ${{ github.event.before }}
+          ref: ${{ github.sha }}
           filters: |
             backend:
               - 'Server/**'
@@ -39,11 +41,13 @@ jobs:
             frontend:
               - 'Client/**'
               - '.github/workflows/**'
+
   build-and-test-backend:
     name: Build & Test Backend
+    needs: detect-changes
     if: needs.detect-changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
-    environment: ${{ github.ref_name == 'release' && 'production' || github.ref_name == 'dev' && 'development' || github.ref_name == 'main' && 'staging' || 'development' }}
+    environment: "${{ github.ref_name == 'release' && 'production' || github.ref_name == 'dev' && 'development' || github.ref_name == 'main' && 'staging' || 'development' }}"
     strategy:
       matrix:
         node-version: ["22.x"]
@@ -52,7 +56,6 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # --- Backend (Server) ---
       - name: Setup Node.js for Backend
         uses: actions/setup-node@v4
         with:
@@ -74,7 +77,6 @@ jobs:
         run: npm test
         continue-on-error: true
 
-      # --- Frontend (Client) ---
   build-and-test-frontend:
     name: Build & Test Frontend
     needs: detect-changes
@@ -88,13 +90,23 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
       - name: Setup Node.js for Frontend
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: "npm"
-          cache-dependency-path: Client/package-lock.json
 
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: ./Client/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('Server/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Clean node_modules
+        working-directory: ./Client
+        run: rm -rf node_modules
       - name: Install Frontend Dependencies
         working-directory: ./Client
         run: npm ci
@@ -112,11 +124,12 @@ jobs:
       - name: Build Frontend
         working-directory: ./Client
         env:
+          MODE: development
           VITE_API_URL: ${{ vars.VITE_API_URL}}
           VITE_GAMES_CDN_URL: ${{ vars.VITE_GAMES_CDN_URL}}
           VITE_OFFICIAL_DOMAIN: ${{ vars.VITE_OFFICIAL_DOMAIN }}
           VITE_PAGES_DEV_DOMAIN: ${{ vars.VITE_PAGES_DEV_DOMAIN }}
-          VITE_CLOUDFLARE_ZONE: ${{ vars.VITE_CLOUDFLARE_ZONE }}
+          VITE_ENABLE_CACHE_DASHBOARD: "true"
         run: npm run build
 
       - name: Archive Frontend Build
@@ -129,10 +142,10 @@ jobs:
     name: Deploy Backend to ECS
     needs: [detect-changes, build-and-test-backend]
     runs-on: ubuntu-latest
-    environment: ${{ github.ref_name == 'release' && 'production' || github.ref_name == 'dev' && 'development' || github.ref_name == 'main' && 'staging' || 'development' }}
+    environment: "${{ github.ref_name == 'release' && 'production' || github.ref_name == 'dev' && 'development' || github.ref_name == 'main' && 'staging' || 'development' }}"
     if: |
       github.event_name == 'push' &&
-      github.ref == 'refs/heads/release' &&
+      github.ref == 'refs/heads/dev' &&
       needs.detect-changes.outputs.backend == 'true'
 
     steps:
@@ -156,11 +169,12 @@ jobs:
           echo "ECR_REGISTRY= '${{ env.ECR_REGISTRY }}'"
           echo "ECR_REPO     = '${{ env.ECR_REPO }}'"
           echo "FULL IMAGE   = '${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}'"
+
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: 476199653856.dkr.ecr.us-east-1.amazonaws.com/arcadesbox-server-staging-v1
+          images: 476199653856.dkr.ecr.eu-central-1.amazonaws.com/arcadesbox-server-development-v1
           tags: |
             type=ref,event=branch
             type=sha
@@ -192,14 +206,39 @@ jobs:
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
 
+      - name: Warm Redis Cache
+        run: |
+          echo "🔥 Warming Redis cache after deployment..."
+
+          # Get the task ARN of the running task
+          TASK_ARN=$(aws ecs list-tasks \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --service-name ${{ env.ECS_SERVICE }} \
+            --desired-status RUNNING \
+            --query 'taskArns[0]' \
+            --output text)
+
+          echo "Running warm-cache on task: $TASK_ARN"
+
+          # Execute warm-cache command on the running container
+          aws ecs execute-command \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --task $TASK_ARN \
+            --container ${{ env.CONTAINER_NAME }} \
+            --interactive \
+            --command "npm run warm-cache" || echo "⚠️ Cache warming failed (non-critical)"
+
+          echo "✅ Cache warming completed"
+        continue-on-error: true
+
   deploy-frontend:
     name: Deploy Frontend to Cloudflare Pages
     needs: [detect-changes, build-and-test-frontend]
     runs-on: ubuntu-latest
-    environment: ${{ github.ref_name == 'release' && 'production' || github.ref_name == 'dev' && 'development' || github.ref_name == 'main' && 'staging' || 'development' }}
+    environment: "${{ github.ref_name == 'release' && 'production' || github.ref_name == 'dev' && 'development' || github.ref_name == 'main' && 'staging' || 'development' }}"
     if: |
       github.event_name == 'push' &&
-      github.ref == 'refs/heads/release' &&
+      github.ref == 'refs/heads/dev' &&
       needs.detect-changes.outputs.frontend == 'true'
 
     steps:
@@ -220,12 +259,18 @@ jobs:
   notify-discord:
     name: Notify Discord
     needs:
-      [detect-changes, build-and-test-backend, deploy-frontend, deploy-backend]
-    environment: ${{ github.ref_name == 'release' && 'production' || github.ref_name == 'dev' && 'development' || github.ref_name == 'main' && 'staging' || 'development' }}
+      [
+        detect-changes,
+        build-and-test-backend,
+        build-and-test-frontend,
+        deploy-frontend,
+        deploy-backend,
+      ]
+    environment: "${{ github.ref_name == 'release' && 'production' || github.ref_name == 'dev' && 'development' || github.ref_name == 'main' && 'staging' || 'development' }}"
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/release' }}
+    if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
 
     steps:
       - name: Generate Build Status
@@ -258,35 +303,43 @@ jobs:
         id: backend-status
         run: |
           if [[ "${{ needs.deploy-backend.result }}" == "success" ]]; then
-            echo "backend_msg=:white_check_mark: Backend deployment to ECS SUCCESSFUL" >> $GITHUB_OUTPUT
+            echo "backend_msg=✅ Backend deployment to ECS SUCCESSFUL" >> $GITHUB_OUTPUT
           elif [[ "${{ needs.deploy-backend.result }}" == "skipped" ]]; then
-            echo "backend_msg=:warning: Backend deployment SKIPPED" >> $GITHUB_OUTPUT
+            echo "backend_msg=⏭️ Backend deployment SKIPPED (no changes or failed build)" >> $GITHUB_OUTPUT
           else
-            echo "backend_msg=:x: Backend deployment to ECS FAILED" >> $GITHUB_OUTPUT
+            echo "backend_msg=❌ Backend deployment to ECS FAILED" >> $GITHUB_OUTPUT
           fi
+
       - name: Generate Frontend Deploy Status
         id: frontend-status
         run: |
           if [[ "${{ needs.deploy-frontend.result }}" == "success" ]]; then
-            echo "frontend_msg=:white_check_mark: Frontend deployment to Cloudflare Pages SUCCESSFUL" >> $GITHUB_OUTPUT
+            echo "frontend_msg=✅ Frontend deployment to Cloudflare Pages SUCCESSFUL" >> $GITHUB_OUTPUT
           elif [[ "${{ needs.deploy-frontend.result }}" == "skipped" ]]; then
-            echo "frontend_msg=:warning: Frontend deployment SKIPPED" >> $GITHUB_OUTPUT
+            echo "frontend_msg=⏭️ Frontend deployment SKIPPED (no changes or failed build)" >> $GITHUB_OUTPUT
           else
-            echo "frontend_msg=:x: Frontend deployment to Cloudflare Pages FAILED" >> $GITHUB_OUTPUT
+            echo "frontend_msg=❌ Frontend deployment to Cloudflare Pages FAILED" >> $GITHUB_OUTPUT
           fi
+
       - name: Notify Discord
         if: always()
         uses: appleboy/discord-action@v1.2.0
         with:
           webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          username: ArcadesBox Staging Pipeline Bot
+          username: ArcadesBox Release Pipeline Bot
           message: |
-            🚀 **ArcadesBox Staging Deployment Summary(Client Account)**
+            🚀 **ArcadesBox Dev Deployment Summary (Client Account)**
             🔀 Branch: `${{ github.ref_name }}`
             📄 Commit: `${{ github.event.head_commit.message }}` by `${{ github.actor }}`
             🏗️ Event: `${{ github.event_name }}`
-            🧪 **Build & Test:** ${{ steps.build-status.outputs.build_msg }}
-            🖥️ **Backend (ECS):** ${{ steps.backend-status.outputs.backend_msg }}
-            🌐 **Frontend (Cloudflare Pages):** ${{ steps.frontend-status.outputs.frontend_msg }}
+
+            **Build & Test:**
+            ${{ steps.build-status.outputs.backend_build_msg }}
+            ${{ steps.build-status.outputs.frontend_build_msg }}
+
+            **Deployment:**
+            🖥️ ${{ steps.backend-status.outputs.backend_msg }}
+            🌐 ${{ steps.frontend-status.outputs.frontend_msg }}
+
             🔗 [View Run on GitHub](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
             🔗 [View site here](${{ vars.APP_URL }})

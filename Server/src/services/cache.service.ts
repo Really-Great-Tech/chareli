@@ -158,12 +158,16 @@ class CacheService {
   /**
    * Get categories list from cache
    */
-  async getCategoriesList(): Promise<Category[] | null> {
+  async getCategoriesList(
+    page?: number,
+    limit?: number,
+    search?: string
+  ): Promise<any | null> {
     if (!this.enabled) return null;
 
     try {
-      const key = cacheKeys.categoriesList();
-      const cached = await redisService.get<Category[]>(key);
+      const key = cacheKeys.categoriesList(page, limit, search);
+      const cached = await redisService.get<any>(key);
 
       if (cached) {
         logger.debug(`Cache hit: categories list`);
@@ -179,13 +183,19 @@ class CacheService {
   /**
    * Set categories list in cache
    */
-  async setCategoriesList(categories: Category[], ttl?: number): Promise<void> {
+  async setCategoriesList(
+    data: any,
+    page?: number,
+    limit?: number,
+    search?: string,
+    ttl?: number
+  ): Promise<void> {
     if (!this.enabled) return;
 
     try {
-      const key = cacheKeys.categoriesList();
+      const key = cacheKeys.categoriesList(page, limit, search);
       const cacheTtl = ttl || cacheConfig.ttl.categories;
-      await redisService.set(key, categories, cacheTtl);
+      await redisService.set(key, data, cacheTtl);
       logger.debug(`Cached categories list with TTL ${cacheTtl}s`);
     } catch (error) {
       logger.error(`Error caching categories:`, error);

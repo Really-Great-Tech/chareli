@@ -4,11 +4,26 @@ export class AddPerformanceIndexes1734451200000 implements MigrationInterface {
   name = 'AddPerformanceIndexes1734451200000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // Analytics composite index for dashboard queries (userId, activityType, startTime)
-    await queryRunner.query(`
-      CREATE INDEX IF NOT EXISTS "idx_analytics_user_activity_time"
-      ON "internal"."analytics" ("user_id", "activityType", "startTime" DESC)
+    // Ensure internal schema exists
+    await queryRunner.query(`CREATE SCHEMA IF NOT EXISTS internal`);
+
+    // Check if analytics table exists in internal schema
+    const analyticsTableExists = await queryRunner.query(`
+      SELECT EXISTS (
+        SELECT 1 FROM information_schema.tables
+        WHERE table_schema = 'internal'
+        AND table_name = 'analytics'
+      );
     `);
+
+    // Only create analytics index if the table exists in internal schema
+    if (analyticsTableExists[0].exists) {
+      // Analytics composite index for dashboard queries (userId, activityType, startTime)
+      await queryRunner.query(`
+        CREATE INDEX IF NOT EXISTS "idx_analytics_user_activity_time"
+        ON "internal"."analytics" ("user_id", "activityType", "startTime" DESC)
+      `);
+    }
 
     // Games composite index for recently added filter (status, createdAt)
     await queryRunner.query(`

@@ -161,7 +161,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: 476199653856.dkr.ecr.us-east-1.amazonaws.com/arcadesbox-server-staging-v1
+          images: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}
           tags: |
             type=ref,event=branch
             type=sha

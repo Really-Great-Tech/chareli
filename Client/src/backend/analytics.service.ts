@@ -50,27 +50,35 @@ export const useCreateAnalytics = () => {
     onSuccess: () => {
       // Invalidate all analytics-related queries
       queryClient.invalidateQueries({ queryKey: [BackendRoute.ANALYTICS] });
-      
+
       // Invalidate user stats
       queryClient.invalidateQueries({ queryKey: [BackendRoute.USER_STATS] });
-      
+
       // Invalidate admin dashboard analytics
-      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_DASHBOARD] });
-      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_USERS_ANALYTICS] });
-      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS] });
-      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_USER_ACTIVITY] });
-      
+      queryClient.invalidateQueries({
+        queryKey: [BackendRoute.ADMIN_DASHBOARD],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [BackendRoute.ADMIN_USERS_ANALYTICS],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [BackendRoute.ADMIN_USER_ACTIVITY],
+      });
+
       // Invalidate specific user and game analytics
-      queryClient.invalidateQueries({ 
+      queryClient.invalidateQueries({
         queryKey: [BackendRoute.ADMIN_USER_ANALYTICS],
-        exact: false // Invalidate all user analytics queries
+        exact: false, // Invalidate all user analytics queries
       });
-      queryClient.invalidateQueries({ 
+      queryClient.invalidateQueries({
         queryKey: [BackendRoute.ADMIN_GAME_ANALYTICS],
-        exact: false // Invalidate all game analytics queries
+        exact: false, // Invalidate all game analytics queries
       });
-      queryClient.invalidateQueries({ 
-        queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS_POPULARITY]
+      queryClient.invalidateQueries({
+        queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS_POPULARITY],
       });
     },
   });
@@ -83,7 +91,10 @@ export const useCreateAnalytics = () => {
 export const useUpdateAnalytics = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...data }: Partial<Analytics> & { id: string }) => {
+    mutationFn: async ({
+      id,
+      ...data
+    }: Partial<Analytics> & { id: string }) => {
       const url = BackendRoute.ANALYTICS_BY_ID.replace(':id', id);
       const response = await backendService.put(url, data);
       return response.data;
@@ -91,28 +102,38 @@ export const useUpdateAnalytics = () => {
     onSuccess: (_, variables) => {
       // Invalidate all analytics-related queries
       queryClient.invalidateQueries({ queryKey: [BackendRoute.ANALYTICS] });
-      queryClient.invalidateQueries({ queryKey: [BackendRoute.ANALYTICS, variables.id] });
-      
+      queryClient.invalidateQueries({
+        queryKey: [BackendRoute.ANALYTICS, variables.id],
+      });
+
       // Invalidate user stats
       queryClient.invalidateQueries({ queryKey: [BackendRoute.USER_STATS] });
-      
+
       // Invalidate admin dashboard analytics
-      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_DASHBOARD] });
-      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_USERS_ANALYTICS] });
-      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS] });
-      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_USER_ACTIVITY] });
-      
+      queryClient.invalidateQueries({
+        queryKey: [BackendRoute.ADMIN_DASHBOARD],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [BackendRoute.ADMIN_USERS_ANALYTICS],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [BackendRoute.ADMIN_USER_ACTIVITY],
+      });
+
       // Invalidate specific user and game analytics
-      queryClient.invalidateQueries({ 
+      queryClient.invalidateQueries({
         queryKey: [BackendRoute.ADMIN_USER_ANALYTICS],
-        exact: false // Invalidate all user analytics queries
+        exact: false, // Invalidate all user analytics queries
       });
-      queryClient.invalidateQueries({ 
+      queryClient.invalidateQueries({
         queryKey: [BackendRoute.ADMIN_GAME_ANALYTICS],
-        exact: false // Invalidate all game analytics queries
+        exact: false, // Invalidate all game analytics queries
       });
-      queryClient.invalidateQueries({ 
-        queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS_POPULARITY]
+      queryClient.invalidateQueries({
+        queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS_POPULARITY],
       });
     },
   });
@@ -133,27 +154,35 @@ export const useDeleteAnalytics = () => {
     onSuccess: () => {
       // Invalidate all analytics-related queries
       queryClient.invalidateQueries({ queryKey: [BackendRoute.ANALYTICS] });
-      
+
       // Invalidate user stats
       queryClient.invalidateQueries({ queryKey: [BackendRoute.USER_STATS] });
-      
+
       // Invalidate admin dashboard analytics
-      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_DASHBOARD] });
-      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_USERS_ANALYTICS] });
-      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS] });
-      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_USER_ACTIVITY] });
-      
+      queryClient.invalidateQueries({
+        queryKey: [BackendRoute.ADMIN_DASHBOARD],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [BackendRoute.ADMIN_USERS_ANALYTICS],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [BackendRoute.ADMIN_USER_ACTIVITY],
+      });
+
       // Invalidate specific user and game analytics
-      queryClient.invalidateQueries({ 
+      queryClient.invalidateQueries({
         queryKey: [BackendRoute.ADMIN_USER_ANALYTICS],
-        exact: false // Invalidate all user analytics queries
+        exact: false, // Invalidate all user analytics queries
       });
-      queryClient.invalidateQueries({ 
+      queryClient.invalidateQueries({
         queryKey: [BackendRoute.ADMIN_GAME_ANALYTICS],
-        exact: false // Invalidate all game analytics queries
+        exact: false, // Invalidate all game analytics queries
       });
-      queryClient.invalidateQueries({ 
-        queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS_POPULARITY]
+      queryClient.invalidateQueries({
+        queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS_POPULARITY],
       });
     },
   });
@@ -164,6 +193,14 @@ interface DashboardAnalytics {
   dailyActiveUsers: {
     current: number;
     // No percentage change since it's always 24 hours
+  };
+  dailyAnonymousVisitors: {
+    current: number;
+    // No percentage change since it's always 24 hours
+  };
+  totalVisitors: {
+    current: number;
+    percentageChange: number;
   };
   totalRegisteredUsers: {
     current: number;
@@ -186,9 +223,27 @@ interface DashboardAnalytics {
     current: number;
     percentageChange: number;
   };
+  anonymousSessions: {
+    current: number;
+    percentageChange: number;
+  };
   totalTimePlayed: {
     current: number;
     percentageChange: number;
+  };
+  anonymousTimePlayed: {
+    current: number;
+    percentageChange: number;
+  };
+  userTypeBreakdown: {
+    authenticatedSessions: number;
+    anonymousSessions: number;
+    authenticatedSessionsPercentage: number;
+    anonymousSessionsPercentage: number;
+    authenticatedTimePlayed: number;
+    anonymousTimePlayed: number;
+    authenticatedTimePercentage: number;
+    anonymousTimePercentage: number;
   };
   mostPlayedGames: {
     games: Array<{
@@ -298,14 +353,21 @@ export const useDashboardAnalytics = (filters?: DashboardFilters) => {
     queryFn: async () => {
       const params = new URLSearchParams();
       if (filters?.timeRange) {
-        if (filters.timeRange.period) params.append('period', filters.timeRange.period);
-        if (filters.timeRange.startDate) params.append('startDate', filters.timeRange.startDate);
-        if (filters.timeRange.endDate) params.append('endDate', filters.timeRange.endDate);
+        if (filters.timeRange.period)
+          params.append('period', filters.timeRange.period);
+        if (filters.timeRange.startDate)
+          params.append('startDate', filters.timeRange.startDate);
+        if (filters.timeRange.endDate)
+          params.append('endDate', filters.timeRange.endDate);
       }
       if (filters?.countries && filters.countries.length > 0) {
-        filters.countries.forEach(country => params.append('country', country));
+        filters.countries.forEach((country) =>
+          params.append('country', country)
+        );
       }
-      const url = `${BackendRoute.ADMIN_DASHBOARD}${params.toString() ? `?${params.toString()}` : ''}`;
+      const url = `${BackendRoute.ADMIN_DASHBOARD}${
+        params.toString() ? `?${params.toString()}` : ''
+      }`;
       const response = await backendService.get(url);
       console.log('API Response:', response.data);
       return response.data;
@@ -346,27 +408,42 @@ export const useUsersAnalytics = (filters?: FilterState) => {
     queryFn: async () => {
       const params = new URLSearchParams();
       if (filters) {
-        if (filters.registrationDates.startDate) params.append('startDate', filters.registrationDates.startDate);
-        if (filters.registrationDates.endDate) params.append('endDate', filters.registrationDates.endDate);
-        if (filters.lastLoginDates.startDate) params.append('lastLoginStartDate', filters.lastLoginDates.startDate);
-        if (filters.lastLoginDates.endDate) params.append('lastLoginEndDate', filters.lastLoginDates.endDate);
+        if (filters.registrationDates.startDate)
+          params.append('startDate', filters.registrationDates.startDate);
+        if (filters.registrationDates.endDate)
+          params.append('endDate', filters.registrationDates.endDate);
+        if (filters.lastLoginDates.startDate)
+          params.append('lastLoginStartDate', filters.lastLoginDates.startDate);
+        if (filters.lastLoginDates.endDate)
+          params.append('lastLoginEndDate', filters.lastLoginDates.endDate);
         if (filters.sortBy) params.append('sortBy', filters.sortBy);
         if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
-        if (filters.sessionCount) params.append('sessionCount', filters.sessionCount);
-        if (filters.timePlayed.min) params.append('minTimePlayed', String(filters.timePlayed.min * 60)); // Convert to seconds
-        if (filters.timePlayed.max) params.append('maxTimePlayed', String(filters.timePlayed.max * 60)); // Convert to seconds
+        if (filters.sessionCount)
+          params.append('sessionCount', filters.sessionCount);
+        if (filters.timePlayed.min)
+          params.append('minTimePlayed', String(filters.timePlayed.min * 60)); // Convert to seconds
+        if (filters.timePlayed.max)
+          params.append('maxTimePlayed', String(filters.timePlayed.max * 60)); // Convert to seconds
         if (filters.gameTitle && filters.gameTitle.length > 0) {
-          filters.gameTitle.forEach(title => params.append('gameTitle', title));
+          filters.gameTitle.forEach((title) =>
+            params.append('gameTitle', title)
+          );
         }
         if (filters.gameCategory && filters.gameCategory.length > 0) {
-          filters.gameCategory.forEach(category => params.append('gameCategory', category));
+          filters.gameCategory.forEach((category) =>
+            params.append('gameCategory', category)
+          );
         }
         if (filters.country && filters.country.length > 0) {
-          filters.country.forEach(country => params.append('country', country));
+          filters.country.forEach((country) =>
+            params.append('country', country)
+          );
         }
         if (filters.ageGroup) params.append('ageGroup', filters.ageGroup);
       }
-      const url = `${BackendRoute.ADMIN_USERS_ANALYTICS}${params.toString() ? `?${params.toString()}` : ''}`;
+      const url = `${BackendRoute.ADMIN_USERS_ANALYTICS}${
+        params.toString() ? `?${params.toString()}` : ''
+      }`;
       const response = await backendService.get(url);
       return response.data;
     },
@@ -399,7 +476,9 @@ export const useGamesAnalytics = () => {
   return useQuery<GameAnalytics[]>({
     queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS],
     queryFn: async () => {
-      const response = await backendService.get(BackendRoute.ADMIN_GAMES_ANALYTICS);
+      const response = await backendService.get(
+        BackendRoute.ADMIN_GAMES_ANALYTICS
+      );
       return response.data;
     },
     refetchOnWindowFocus: false,
@@ -448,18 +527,25 @@ export const useUserActivityLog = (filters?: ActivityLogFilterState) => {
     queryFn: async () => {
       const params = new URLSearchParams();
       if (filters) {
-        if (filters.dateRange.startDate) params.append('startDate', filters.dateRange.startDate);
-        if (filters.dateRange.endDate) params.append('endDate', filters.dateRange.endDate);
+        if (filters.dateRange.startDate)
+          params.append('startDate', filters.dateRange.startDate);
+        if (filters.dateRange.endDate)
+          params.append('endDate', filters.dateRange.endDate);
         if (filters.userStatus) params.append('userStatus', filters.userStatus);
         if (filters.userName) params.append('userName', filters.userName);
-        if (filters.activityType) params.append('activityType', filters.activityType);
+        if (filters.activityType)
+          params.append('activityType', filters.activityType);
         if (filters.sortBy) params.append('sortBy', filters.sortBy);
         if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
         if (filters.gameTitle && filters.gameTitle.length > 0) {
-          filters.gameTitle.forEach(title => params.append('gameTitle', title));
+          filters.gameTitle.forEach((title) =>
+            params.append('gameTitle', title)
+          );
         }
       }
-      const url = `${BackendRoute.ADMIN_USER_ACTIVITY}${params.toString() ? `?${params.toString()}` : ''}`;
+      const url = `${BackendRoute.ADMIN_USER_ACTIVITY}${
+        params.toString() ? `?${params.toString()}` : ''
+      }`;
       const response = await backendService.get(url);
       return response.data;
     },
@@ -475,14 +561,22 @@ export const useCheckInactiveUsers = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async () => {
-      const response = await backendService.post(BackendRoute.ADMIN_CHECK_INACTIVE);
+      const response = await backendService.post(
+        BackendRoute.ADMIN_CHECK_INACTIVE
+      );
       return response.data;
     },
     onSuccess: () => {
       // Invalidate relevant queries that might be affected by the inactive users check
-      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_DASHBOARD] });
-      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_USERS_ANALYTICS] });
-      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_USER_ACTIVITY] });
+      queryClient.invalidateQueries({
+        queryKey: [BackendRoute.ADMIN_DASHBOARD],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [BackendRoute.ADMIN_USERS_ANALYTICS],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [BackendRoute.ADMIN_USER_ACTIVITY],
+      });
     },
   });
 };
@@ -520,7 +614,9 @@ export const useGamesWithPopularity = () => {
   return useQuery({
     queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS_POPULARITY],
     queryFn: async () => {
-      const response = await backendService.get(BackendRoute.ADMIN_GAMES_ANALYTICS_POPULARITY);
+      const response = await backendService.get(
+        BackendRoute.ADMIN_GAMES_ANALYTICS_POPULARITY
+      );
       return response;
     },
     refetchOnWindowFocus: false,

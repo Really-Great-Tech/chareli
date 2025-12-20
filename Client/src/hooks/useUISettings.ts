@@ -1,24 +1,20 @@
-import { useSystemConfigByKey } from '../backend/configuration.service';
+// Phase 0 optimization: No longer fetching UI settings from API
+// Using environment variable defaults to eliminate unnecessary database query
 
 interface UISettings {
   showSearchBar: boolean;
 }
 
 const defaultUISettings: UISettings = {
-  showSearchBar: true
+  showSearchBar: import.meta.env.VITE_SHOW_SEARCH_BAR !== 'false', // Default to true unless explicitly disabled
 };
 
 export const useUISettings = () => {
-  const { data: uiConfigData, isLoading, error } = useSystemConfigByKey('ui_settings');
-
-  const uiSettings: UISettings = {
-    ...defaultUISettings,
-    ...(uiConfigData?.value || {})
-  };
-
+  // Phase 0 optimization: Use defaults instead of fetching from API
+  // This eliminates 1 unnecessary database query per guest user
   return {
-    uiSettings,
-    isLoading,
-    error
+    uiSettings: defaultUISettings,
+    isLoading: false,
+    error: null,
   };
 };

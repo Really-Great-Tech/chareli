@@ -39,6 +39,7 @@ jobs:
             frontend:
               - 'Client/**'
               - '.github/workflows/**'
+
   build-and-test-backend:
     name: Build & Test Backend
     needs: detect-changes

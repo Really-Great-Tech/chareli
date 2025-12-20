@@ -82,7 +82,14 @@ export const cacheKeys = {
       filters ? `:${filters}` : ''
     }`,
   category: (id: string) => `cache:${cacheConfig.version}:category:${id}`,
-  categoriesList: () => `cache:${cacheConfig.version}:categories:all`,
+  categoriesList: (page?: number, limit?: number, search?: string) => {
+    if (page && limit) {
+      return `cache:${cacheConfig.version}:categories:list:${page}:${limit}${
+        search ? `:${search}` : ''
+      }`;
+    }
+    return `cache:${cacheConfig.version}:categories:all`;
+  },
   categoryGames: (id: string, page: number, limit: number) =>
     `cache:${cacheConfig.version}:category:${id}:games:${page}:${limit}`,
   search: (query: string, filters?: string, page?: number) =>

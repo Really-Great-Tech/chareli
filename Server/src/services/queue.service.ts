@@ -233,7 +233,7 @@ class QueueService {
 
     const worker = new Worker(queueName, processor, {
       connection: redisConfig,
-      concurrency: 3, // Process 3 jobs simultaneously for better throughput
+      concurrency: 50, // Increased from 3 to handle 2000+ concurrent users
     });
 
     // Set up event handlers

@@ -1,45 +1,46 @@
 import cron from 'node-cron';
-import { jsonCdnService } from '../services/jsonCdn.service';
+import { queueService } from '../services/queue.service';
 import logger from '../utils/logger';
 import config from '../config/config';
 
-// Refresh interval for JSON CDN generation
-// Reduced frequency from 2min to 5min to prevent database connection exhaustion
-// Run every 5 minutes (configurable via JSON_CDN_REFRESH_INTERVAL env var)
 /**
  * Scheduled job to refresh JSON CDN files
- * Runs every N minutes (configurable via JSON_CDN_REFRESH_INTERVAL env var)
+ * Runs every N minutes and schedules jobs in existing worker queue
  */
-export function startJsonCdnRefreshJob(): void {
-  const intervalMinutes = config.jsonCdn.refreshIntervalMinutes;
-  const cronExpression = `*/${intervalMinutes} * * * *`;
-
-  if (!jsonCdnService.isEnabled()) {
+export const startJsonCdnRefreshJob = (): void => {
+  if (!config.jsonCdn.enabled) {
     logger.info('JSON CDN is disabled, skipping refresh job');
     return;
   }
 
-  logger.info(
-    `Starting JSON CDN refresh job (every ${intervalMinutes} minutes)`
-  );
+  const intervalMinutes = config.jsonCdn.refreshIntervalMinutes || 5;
+  const cronSchedule = `*/${intervalMinutes} * * * *`;
 
-  // Schedule periodic refresh
-  cron.schedule(cronExpression, async () => {
+  cron.schedule(cronSchedule, async () => {
     try {
-      logger.info('Running JSON CDN refresh job...');
-      await jsonCdnService.generateAllJsonFiles();
+      logger.info('Scheduling JSON CDN refresh job...');
+
+      // Schedule job in existing queue
+      await queueService.addJsonCdnJob({ type: 'full' });
+
+      logger.info('JSON CDN refresh job scheduled successfully');
     } catch (error) {
-      logger.error('JSON CDN refresh job failed:', error);
+      logger.error('Error scheduling JSON CDN refresh job:', error);
     }
   });
 
-  // Generate immediately on startup (after delay to ensure DB is ready)
+  logger.info(
+    `JSON CDN refresh job initialized (every ${intervalMinutes} minutes via existing worker pool)`
+  );
+
+  // Schedule initial generation on startup (after 5s delay)
   setTimeout(async () => {
     try {
-      logger.info('Initial JSON CDN generation on startup...');
-      await jsonCdnService.generateAllJsonFiles();
+      logger.info('Scheduling initial JSON CDN generation...');
+      await queueService.addJsonCdnJob({ type: 'full' });
+      logger.info('Initial JSON CDN generation scheduled');
     } catch (error) {
-      logger.error('Initial JSON CDN generation failed:', error);
+      logger.error('Error scheduling initial JSON CDN generation:', error);
     }
-  }, 5000); // 5 second delay to ensure DB is ready
-}
+  }, 5000);
+};

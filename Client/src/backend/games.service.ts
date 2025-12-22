@@ -93,40 +93,66 @@ export const useGameById = (id: string) => {
   return useQuery<any>({
     queryKey: [BackendRoute.GAMES, id],
     queryFn: async () => {
+      console.log('[Game Detail] Fetching game:', id);
+
       // Try CDN first if we have a slug (not a UUID)
       const isSlug = !id.match(
         /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
       );
 
+      console.log(
+        '[Game Detail] Is slug?',
+        isSlug,
+        'CDN enabled?',
+        cdnFetch.isEnabled()
+      );
+
       if (cdnFetch.isEnabled() && isSlug) {
+        console.log(
+          '[Game Detail] Attempting CDN fetch for:',
+          `games/${id}.json`
+        );
         try {
           const result = await cdnFetch.fetch<GameResponse>({
             cdnPath: `games/${id}.json`,
             apiPath: BackendRoute.GAME_BY_ID.replace(':id', id),
           });
 
+          console.log(
+            '[Game Detail] CDN fetch result:',
+            result.source,
+            result.data
+          );
+
           if (result.source === 'cdn') {
+            console.log('[Game Detail] Using CDN data');
             return result.data;
           }
         } catch (error) {
-          console.warn('[Game] CDN fetch failed, using API:', error);
+          console.warn('[Game Detail] CDN fetch failed, using API:', error);
           // Fall through to API
         }
       }
 
       // API fallback
+      console.log(
+        '[Game Detail] Fetching from API:',
+        BackendRoute.GAME_BY_ID.replace(':id', id)
+      );
       const response = await backendService.get(
         BackendRoute.GAME_BY_ID.replace(':id', id)
       );
-      console.log('Game API Response:', response.data);
+      console.log('[Game Detail] Game API Response:', response.data);
 
       // API returns { success: true, data: {game object} }
       // Extract the actual game data
       if (response.data?.data) {
+        console.log('[Game Detail] Returning game data from API');
         return response.data.data as GameResponse;
       }
 
       // Fallback if response structure is different
+      console.log('[Game Detail] Returning response.data directly');
       return response.data as GameResponse;
     },
   });

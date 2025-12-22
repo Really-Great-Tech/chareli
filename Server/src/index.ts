@@ -12,6 +12,7 @@ import { initializeGameZipWorker } from './workers/gameZipProcessor';
 import { initializeThumbnailWorker } from './workers/thumbnailProcessor';
 import { initializeAnalyticsWorker } from './workers/analyticsProcessor';
 import { initializeLikeWorker } from './workers/likeProcessor';
+import { initializeJsonCdnWorker } from './workers/jsonCdnProcessor';
 import { createServer } from 'http';
 import { websocketService } from './services/websocket.service';
 
@@ -38,6 +39,7 @@ async function initializeBackgroundServices(): Promise<void> {
     initializeThumbnailWorker();
     initializeAnalyticsWorker(); // NEW: Process analytics asynchronously
     initializeLikeWorker(); // NEW: Process likes asynchronously
+    initializeJsonCdnWorker(); // NEW: Process JSON CDN generation asynchronously
     logger.info('Background workers initialized successfully');
 
     // Verify worker is properly connected

@@ -142,13 +142,25 @@ export const likeLimiter = rateLimit({
 });
 
 /**
- * Analytics limiter - allow high volume tracking
+ * Analytics limiter - per-session/per-user rate limiting
+ *
+ * Environment behavior:
+ * - Development/Test: Rate limiting DISABLED for load testing
+ * - Production: Per-session limiting (500 events/session/minute)
+ *
+ * This prevents individual session abuse while allowing high aggregate traffic
  */
 export const analyticsLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
-  max: 100,
+  max: 500, // 500 events per session/user per minute (up from 100 per IP)
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: (req: Request) => {
+    // Priority: userId (authenticated) > sessionId (anonymous) > IP (fallback)
+    const userId = (req as any).user?.id;
+    const sessionId = req.body?.sessionId;
+    return userId || sessionId || req.ip || 'unknown';
+  },
   store: new RedisStore({
     // @ts-expect-error - Known issue with ioredis types
     sendCommand: (...args: string[]) => redisService.getClient().call(...args),
@@ -157,14 +169,19 @@ export const analyticsLimiter = rateLimit({
   handler: (_req: Request, _res: Response) => {
     throw new ApiError(
       429,
-      'Analytics rate limit exceeded, please try again shortly'
+      'Analytics rate limit exceeded for this session, please try again shortly'
     );
   },
   skip: (req) => {
-    return (
+    // Skip rate limiting if:
+    // 1. Redis is down (graceful degradation)
+    // 2. Running in development or test environment (for load testing)
+    const isDev =
+      process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
+    const redisDown =
       !redisService.getClient().status ||
-      redisService.getClient().status !== 'ready'
-    );
+      redisService.getClient().status !== 'ready';
+    return redisDown || isDev;
   },
 });
 

@@ -3,6 +3,8 @@ import logger from '../utils/logger';
 import { checkInactiveUsers } from './userInactivityCheck';
 import { updateLikeCounts } from '../cron/updateLikeCounts';
 
+export { startJsonCdnRefreshJob } from './jsonCdnRefresh.job';
+
 /**
  * Initialize all scheduled jobs
  */

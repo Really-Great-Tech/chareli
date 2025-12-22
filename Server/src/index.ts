@@ -6,12 +6,13 @@ import logger from './utils/logger';
 import fs from 'fs';
 import path from 'path';
 import { authService } from './services/auth.service';
-import { initializeScheduledJobs } from './jobs';
+import { initializeScheduledJobs, startJsonCdnRefreshJob } from './jobs';
 import { redisService } from './services/redis.service';
 import { initializeGameZipWorker } from './workers/gameZipProcessor';
 import { initializeThumbnailWorker } from './workers/thumbnailProcessor';
 import { initializeAnalyticsWorker } from './workers/analyticsProcessor';
 import { initializeLikeWorker } from './workers/likeProcessor';
+import { initializeJsonCdnWorker } from './workers/jsonCdnProcessor';
 import { createServer } from 'http';
 import { websocketService } from './services/websocket.service';
 
@@ -38,6 +39,7 @@ async function initializeBackgroundServices(): Promise<void> {
     initializeThumbnailWorker();
     initializeAnalyticsWorker(); // NEW: Process analytics asynchronously
     initializeLikeWorker(); // NEW: Process likes asynchronously
+    initializeJsonCdnWorker(); // NEW: Process JSON CDN generation asynchronously
     logger.info('Background workers initialized successfully');
 
     // Verify worker is properly connected
@@ -77,6 +79,9 @@ const startServer = async () => {
 
       // Initialize scheduled jobs
       initializeScheduledJobs();
+
+      // Initialize JSON CDN refresh job
+      startJsonCdnRefreshJob();
     } catch (dbError) {
       if (config.env === 'development') {
         logger.warn(

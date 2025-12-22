@@ -59,7 +59,7 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
     return category?.name || 'All Games';
   }, [selectedCategory, allCategories]);
 
-  const games: any = gamesData || [];
+  const games: any = gamesData?.data || [];
   const { handleGameClick } = useGameClickHandler();
 
   // Screen size detection

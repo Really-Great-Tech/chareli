@@ -9,6 +9,7 @@ import { ApiError } from '../middlewares/errorHandler';
 import { Between, FindOptionsWhere, In, LessThan, IsNull, Not } from 'typeorm';
 import { checkInactiveUsers } from '../jobs/userInactivityCheck';
 import { storageService } from '../services/storage.service';
+import { PerformanceTimer } from '../utils/performance';
 
 const userRepository = AppDataSource.getRepository(User);
 const gameRepository = AppDataSource.getRepository(Game);
@@ -40,6 +41,9 @@ export const getDashboardAnalytics = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
+  const overallTimer = new PerformanceTimer('getDashboardAnalytics', {
+    period: req.query.period,
+  });
   try {
     const { period, startDate, endDate, country } = req.query;
 
@@ -132,7 +136,9 @@ export const getDashboardAnalytics = async (
       );
     }
 
+    const timer1 = new PerformanceTimer('yesterdayUsersQuery');
     const yesterdayUsersResult = await yesterdayUsersQuery.getRawOne();
+    timer1.end();
 
     // Among those users, count how many also played games today (last 24 hours) for 30+ seconds
     let returningUsersQuery = analyticsRepository
@@ -168,7 +174,9 @@ export const getDashboardAnalytics = async (
         .andWhere('user2.country IN (:...countries)', { countries });
     }
 
+    const timer2 = new PerformanceTimer('returningUsersQuery (self-join)');
     const returningUsersResult = await returningUsersQuery.getRawOne();
+    timer2.end();
 
     const yesterdayUsers = parseInt(yesterdayUsersResult?.count) || 0;
     const returningUsers = parseInt(returningUsersResult?.count) || 0;
@@ -1334,97 +1342,149 @@ export const getUserActivityLog = async (
 
     const users = await userQueryBuilder.getMany();
 
-    // Format the data - one entry per user
-    let formattedActivities = await Promise.all(
-      users.map(async (user) => {
-        // Get the user's latest activity with date filtering if provided
-        let latestActivityQuery = analyticsRepository
-          .createQueryBuilder('analytics')
-          .where('analytics.userId = :userId', { userId: user.id })
-          .orderBy('analytics.createdAt', 'DESC');
+    // If no users found, return early
+    if (users.length === 0) {
+      const response: any = {
+        success: true,
+        count: 0,
+        total: 0,
+        data: [],
+      };
+      if (shouldPaginate && limitNumber) {
+        response.page = pageNumber;
+        response.limit = limitNumber;
+        response.totalPages = 0;
+      }
+      res.status(200).json(response);
+    }
 
-        // Apply date range filter to activities if provided
-        if (startDate && endDate) {
-          const start = new Date(startDate as string);
-          start.setHours(0, 0, 0, 0);
-          const end = new Date(endDate as string);
-          end.setHours(23, 59, 59, 999);
-          latestActivityQuery = latestActivityQuery.andWhere(
-            'analytics.createdAt BETWEEN :startDate AND :endDate',
-            {
-              startDate: start,
-              endDate: end,
-            }
-          );
-        }
-
-        const latestActivity = await latestActivityQuery.getOne();
-
-        // Get the user's last played game with date filtering if provided
-        let lastGameActivityQuery = analyticsRepository
-          .createQueryBuilder('analytics')
-          .leftJoinAndSelect('analytics.game', 'game')
-          .where('analytics.userId = :userId', { userId: user.id })
-          .andWhere('analytics.gameId IS NOT NULL')
-          .orderBy('analytics.startTime', 'DESC');
-
-        // Apply date range filter to game activities if provided
-        if (startDate && endDate) {
-          const start = new Date(startDate as string);
-          start.setHours(0, 0, 0, 0);
-          const end = new Date(endDate as string);
-          end.setHours(23, 59, 59, 999);
-          lastGameActivityQuery = lastGameActivityQuery.andWhere(
-            'analytics.startTime BETWEEN :startDate AND :endDate',
-            {
-              startDate: start,
-              endDate: end,
-            }
-          );
-        }
-
-        const lastGameActivity = await lastGameActivityQuery.getOne();
-
-        // Default values
-        let activity = '';
-        let gameTitle = '';
-        let gameStartTime: Date | null = null;
-        let gameEndTime: Date | null = null;
-
-        // If we found an activity, use its data
-        if (latestActivity) {
-          activity = latestActivity.activityType;
-        }
-
-        // If we found a game activity, use its data
-        if (lastGameActivity && lastGameActivity.game) {
-          gameTitle = lastGameActivity.game.title;
-          gameStartTime = lastGameActivity.startTime;
-          gameEndTime = lastGameActivity.endTime;
-        }
-
-        // Determine if user is online based on lastSeen timestamp and heartbeat system
-        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-        const isOnline =
-          user.lastSeen && user.lastSeen > fiveMinutesAgo && user.isActive;
-
-        return {
-          userId: user.id,
-          name: `${user.firstName || ''} ${user.lastName || ''}`,
-          userStatus: isOnline ? 'Online' : 'Offline',
-          activity: activity,
-          lastGamePlayed: gameTitle,
-          startTime: gameStartTime,
-          endTime: gameEndTime,
-          lastSessionDuration:
-            gameStartTime && gameEndTime
-              ? Math.floor(
-                  (gameEndTime.getTime() - gameStartTime.getTime()) / 1000
-                )
-              : null,
-        };
-      })
+    // OPTIMIZATION: Batch fetch all analytics data in a single query using window functions
+    const timer = new PerformanceTimer(
+      'getUserActivityLog - batch analytics query',
+      {
+        userCount: users.length,
+      }
     );
+
+    const userIds = users.map((u) => u.id);
+
+    // Build the batched analytics query with window functions
+    let batchAnalyticsQuery = `
+      WITH latest_activities AS (
+        SELECT
+          a.user_id,
+          a."activityType",
+          a."createdAt",
+          ROW_NUMBER() OVER (PARTITION BY a.user_id ORDER BY a."createdAt" DESC) as activity_rank
+        FROM internal.analytics a
+        WHERE a.user_id = ANY($1)
+    `;
+
+    const queryParams: any[] = [userIds];
+    let paramIndex = 2;
+
+    // Add date filter if provided
+    if (startDate && endDate) {
+      const start = new Date(startDate as string);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(endDate as string);
+      end.setHours(23, 59, 59, 999);
+      batchAnalyticsQuery += ` AND a."createdAt" BETWEEN $${paramIndex} AND $${
+        paramIndex + 1
+      }`;
+      queryParams.push(start, end);
+      paramIndex += 2;
+    }
+
+    batchAnalyticsQuery += `
+      ),
+      latest_games AS (
+        SELECT
+          a.user_id,
+          a.game_id,
+          g.title as game_title,
+          a."startTime",
+          a."endTime",
+          ROW_NUMBER() OVER (PARTITION BY a.user_id ORDER BY a."startTime" DESC) as game_rank
+        FROM internal.analytics a
+        LEFT JOIN public.games g ON a.game_id = g.id
+        WHERE a.user_id = ANY($1)
+          AND a.game_id IS NOT NULL
+    `;
+
+    // Add date filter for games if provided
+    if (startDate && endDate) {
+      const start = new Date(startDate as string);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(endDate as string);
+      end.setHours(23, 59, 59, 999);
+      // Use previously added params
+      batchAnalyticsQuery += ` AND a."startTime" BETWEEN $2 AND $3`;
+    }
+
+    batchAnalyticsQuery += `
+      )
+      SELECT
+        la.user_id,
+        la."activityType",
+        lg.game_title,
+        lg."startTime" as game_start_time,
+        lg."endTime" as game_end_time
+      FROM latest_activities la
+      LEFT JOIN latest_games lg ON la.user_id = lg.user_id AND lg.game_rank = 1
+      WHERE la.activity_rank = 1
+    `;
+
+    // Execute the batched query
+    const analyticsResults = await analyticsRepository.query(
+      batchAnalyticsQuery,
+      queryParams
+    );
+
+    timer.end();
+
+    // Create a map for fast lookup
+    const analyticsMap = new Map();
+    analyticsResults.forEach((result: any) => {
+      analyticsMap.set(result.user_id, {
+        activityType: result.activityType,
+        gameTitle: result.game_title,
+        gameStartTime: result.game_start_time,
+        gameEndTime: result.game_end_time,
+      });
+    });
+
+    // Format the data - one entry per user
+    let formattedActivities = users.map((user) => {
+      const analytics = analyticsMap.get(user.id);
+
+      // Default values
+      const activity = analytics?.activityType || '';
+      const gameTitle = analytics?.gameTitle || '';
+      const gameStartTime = analytics?.gameStartTime || null;
+      const gameEndTime = analytics?.gameEndTime || null;
+
+      // Determine if user is online based on lastSeen timestamp and heartbeat system
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+      const isOnline =
+        user.lastSeen && user.lastSeen > fiveMinutesAgo && user.isActive;
+
+      return {
+        userId: user.id,
+        name: `${user.firstName || ''} ${user.lastName || ''}`,
+        userStatus: isOnline ? 'Online' : 'Offline',
+        activity: activity,
+        lastGamePlayed: gameTitle,
+        startTime: gameStartTime,
+        endTime: gameEndTime,
+        lastSessionDuration:
+          gameStartTime && gameEndTime
+            ? Math.floor(
+                (gameEndTime.getTime() - gameStartTime.getTime()) / 1000
+              )
+            : null,
+      };
+    });
 
     // Apply additional filters to the formatted activities
 

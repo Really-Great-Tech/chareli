@@ -1,17 +1,17 @@
-import { FiTrash2 } from "react-icons/fi";
-import { CiEdit } from "react-icons/ci";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import CreateCategory from "../../../components/single/CreateCategory-Sheet";
-import { EditCategory } from "../../../components/single/EditCategory-Sheet";
+import { FiTrash2 } from 'react-icons/fi';
+import { CiEdit } from 'react-icons/ci';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import CreateCategory from '../../../components/single/CreateCategory-Sheet';
+import { EditCategory } from '../../../components/single/EditCategory-Sheet';
 import {
   useCategories,
   useDeleteCategory,
-} from "../../../backend/category.service";
-import { useGames } from "../../../backend/games.service";
-import { DeleteConfirmationModal } from "../../../components/modals/DeleteConfirmationModal";
-import { toast } from "sonner";
-import { usePermissions } from "../../../hooks/usePermissions";
+} from '../../../backend/category.service';
+import { useGames } from '../../../backend/games.service';
+import { DeleteConfirmationModal } from '../../../components/modals/DeleteConfirmationModal';
+import { toast } from 'sonner';
+import { usePermissions } from '../../../hooks/usePermissions';
 
 export default function GameCategories() {
   const permissions = usePermissions();
@@ -32,7 +32,7 @@ export default function GameCategories() {
     if (!selectedCategoryId) return;
     try {
       await deleteCategory(selectedCategoryId);
-      toast.success("Category deleted successfully");
+      toast.success('Category deleted successfully');
       setShowDeleteModal(false);
       setSelectedCategoryId(null);
       setEditOpen(false);
@@ -88,7 +88,7 @@ export default function GameCategories() {
                 </div>
                 {permissions.canManageGames ? (
                   <div className="flex gap-2">
-                    <button 
+                    <button
                       className="p-1 rounded transition"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -99,7 +99,7 @@ export default function GameCategories() {
                       <CiEdit className="dark:text-white w-5 h-5 text-black cursor-pointer" />
                     </button>
                     {!cat.isDefault && (
-                      <button 
+                      <button
                         className="p-1 rounded transition"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -116,12 +116,18 @@ export default function GameCategories() {
                 )}
               </div>
               <p className="text-[#475568] mb-2 font-worksans text-base tracking-wider dark:text-white">
-                {cat.description || "No description"}
+                {cat.description || 'No description'}
               </p>
               <span className="text-[#6A7282] font-bold text-sm shadow-none tracking-wider">
-                {(games as any)?.filter(
-                  (game: any) => game.categoryId === cat.id
-                ).length || 0}{" "}
+                {(() => {
+                  const gamesArray = Array.isArray(games)
+                    ? games
+                    : (games as any)?.data || [];
+                  return (
+                    gamesArray.filter((game: any) => game.categoryId === cat.id)
+                      .length || 0
+                  );
+                })()}{' '}
                 games
               </span>
             </div>

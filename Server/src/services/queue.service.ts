@@ -8,6 +8,7 @@ export enum JobType {
   THUMBNAIL_PROCESSING = 'thumbnail-processing',
   ANALYTICS_PROCESSING = 'analytics-processing',
   LIKE_PROCESSING = 'like-processing',
+  JSON_CDN_GENERATION = 'json-cdn-generation',
 }
 
 // Job data interfaces
@@ -37,6 +38,11 @@ export interface LikeProcessingJobData {
   userId: string;
   gameId: string;
   action: 'like' | 'unlike';
+}
+
+export interface JsonCdnJobData {
+  type: 'full' | 'invalidate';
+  paths?: string[]; // For invalidation
 }
 
 class QueueService {
@@ -121,6 +127,22 @@ class QueueService {
     });
 
     this.queues.set(JobType.LIKE_PROCESSING, likeProcessingQueue);
+
+    // Create JSON CDN generation queue
+    const jsonCdnQueue = new Queue(JobType.JSON_CDN_GENERATION, {
+      connection: redisConfig,
+      defaultJobOptions: {
+        removeOnComplete: 50,
+        removeOnFail: 100,
+        attempts: 2,
+        backoff: {
+          type: 'exponential',
+          delay: 5000,
+        },
+      },
+    });
+
+    this.queues.set(JobType.JSON_CDN_GENERATION, jsonCdnQueue);
 
     logger.info('Job queues initialized');
   }
@@ -214,6 +236,26 @@ class QueueService {
     logger.debug(
       `Added like processing job for game ${data.gameId} with job ID: ${job.id}`
     );
+    return job;
+  }
+
+  async addJsonCdnJob(
+    data: JsonCdnJobData,
+    options?: {
+      delay?: number;
+    }
+  ): Promise<Job<JsonCdnJobData>> {
+    const queue = this.queues.get(JobType.JSON_CDN_GENERATION);
+    if (!queue) {
+      throw new Error('JSON CDN processing queue not found');
+    }
+
+    const job = await queue.add('generate-json-cdn', data, {
+      ...options,
+      jobId: data.type === 'full' ? 'json-cdn-full' : `json-cdn-${Date.now()}`,
+    });
+
+    logger.info(`Added JSON CDN job: ${data.type} with job ID: ${job.id}`);
     return job;
   }
 

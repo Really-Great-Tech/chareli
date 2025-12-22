@@ -19,7 +19,6 @@ export default function GamePlay() {
   const { gameId } = useParams();
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
   const { data: game, isLoading, error } = useGameById(gameId || '');
   const { mutate: createAnalytics } = useCreateAnalytics();
   const analyticsIdRef = useRef<string | null>(null);
@@ -31,7 +30,7 @@ export default function GamePlay() {
   );
 
   const handleOpenSignUpModal = () => {
-    setIsSignUpModalOpen(true);
+    setIsModalOpen(true);
   };
 
   const isMobile = useIsMobile();

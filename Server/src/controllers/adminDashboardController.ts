@@ -1373,9 +1373,9 @@ export const getUserActivityLog = async (
       WITH latest_activities AS (
         SELECT
           a.user_id,
-          a.activity_type,
-          a.created_at,
-          ROW_NUMBER() OVER (PARTITION BY a.user_id ORDER BY a.created_at DESC) as activity_rank
+          a."activityType",
+          a."createdAt",
+          ROW_NUMBER() OVER (PARTITION BY a.user_id ORDER BY a."createdAt" DESC) as activity_rank
         FROM internal.analytics a
         WHERE a.user_id = ANY($1)
     `;
@@ -1389,7 +1389,7 @@ export const getUserActivityLog = async (
       start.setHours(0, 0, 0, 0);
       const end = new Date(endDate as string);
       end.setHours(23, 59, 59, 999);
-      batchAnalyticsQuery += ` AND a.created_at BETWEEN $${paramIndex} AND $${
+      batchAnalyticsQuery += ` AND a."createdAt" BETWEEN $${paramIndex} AND $${
         paramIndex + 1
       }`;
       queryParams.push(start, end);
@@ -1403,9 +1403,9 @@ export const getUserActivityLog = async (
           a.user_id,
           a.game_id,
           g.title as game_title,
-          a.start_time,
-          a.end_time,
-          ROW_NUMBER() OVER (PARTITION BY a.user_id ORDER BY a.start_time DESC) as game_rank
+          a."startTime",
+          a."endTime",
+          ROW_NUMBER() OVER (PARTITION BY a.user_id ORDER BY a."startTime" DESC) as game_rank
         FROM internal.analytics a
         LEFT JOIN public.games g ON a.game_id = g.id
         WHERE a.user_id = ANY($1)
@@ -1419,17 +1419,17 @@ export const getUserActivityLog = async (
       const end = new Date(endDate as string);
       end.setHours(23, 59, 59, 999);
       // Use previously added params
-      batchAnalyticsQuery += ` AND a.start_time BETWEEN $2 AND $3`;
+      batchAnalyticsQuery += ` AND a."startTime" BETWEEN $2 AND $3`;
     }
 
     batchAnalyticsQuery += `
       )
       SELECT
         la.user_id,
-        la.activity_type,
+        la."activityType",
         lg.game_title,
-        lg.start_time as game_start_time,
-        lg.end_time as game_end_time
+        lg."startTime" as game_start_time,
+        lg."endTime" as game_end_time
       FROM latest_activities la
       LEFT JOIN latest_games lg ON la.user_id = lg.user_id AND lg.game_rank = 1
       WHERE la.activity_rank = 1

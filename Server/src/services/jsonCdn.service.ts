@@ -151,19 +151,19 @@ class JsonCdnService {
         },
       });
 
-      // Transform file s3Key to public URLs
+      // Transform file s3Key to public URLs (match API response structure)
       const gamesWithUrls = games.map((game) => ({
         ...game,
         thumbnailFile: game.thumbnailFile
           ? {
               ...game.thumbnailFile,
-              url: this.r2Adapter.getPublicUrl(game.thumbnailFile.s3Key),
+              s3Key: this.r2Adapter.getPublicUrl(game.thumbnailFile.s3Key),
             }
           : null,
         gameFile: game.gameFile
           ? {
               ...game.gameFile,
-              url: this.r2Adapter.getPublicUrl(game.gameFile.s3Key),
+              s3Key: this.r2Adapter.getPublicUrl(game.gameFile.s3Key),
             }
           : null,
       }));
@@ -227,19 +227,19 @@ class JsonCdnService {
         },
       });
 
-      // Transform file s3Key to public URLs
+      // Transform file s3Key to public URLs (match API response structure)
       const gamesWithUrls = games.map((game) => ({
         ...game,
         thumbnailFile: game.thumbnailFile
           ? {
               ...game.thumbnailFile,
-              url: this.r2Adapter.getPublicUrl(game.thumbnailFile.s3Key),
+              s3Key: this.r2Adapter.getPublicUrl(game.thumbnailFile.s3Key),
             }
           : null,
         gameFile: game.gameFile
           ? {
               ...game.gameFile,
-              url: this.r2Adapter.getPublicUrl(game.gameFile.s3Key),
+              s3Key: this.r2Adapter.getPublicUrl(game.gameFile.s3Key),
             }
           : null,
       }));
@@ -305,19 +305,19 @@ class JsonCdnService {
         return;
       }
 
-      // Transform file s3Key to public URLs
+      // Transform file s3Key to public URLs (match API response structure)
       const gameWithUrls = {
         ...game,
         thumbnailFile: game.thumbnailFile
           ? {
               ...game.thumbnailFile,
-              url: this.r2Adapter.getPublicUrl(game.thumbnailFile.s3Key),
+              s3Key: this.r2Adapter.getPublicUrl(game.thumbnailFile.s3Key),
             }
           : null,
         gameFile: game.gameFile
           ? {
               ...game.gameFile,
-              url: this.r2Adapter.getPublicUrl(game.gameFile.s3Key),
+              s3Key: this.r2Adapter.getPublicUrl(game.gameFile.s3Key),
             }
           : null,
       };

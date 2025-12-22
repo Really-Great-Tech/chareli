@@ -49,8 +49,41 @@ export const useGames = (params?: {
       }
 
       // API fallback for filtered queries or if CDN fails
+      console.debug('[Games] Fetching from API with params:', params);
       const response = await backendService.get(BackendRoute.GAMES, { params });
-      return response.data as PaginatedResponse<GameResponse>;
+      console.debug('[Games] API response:', response.data);
+
+      // Handle both response formats:
+      // 1. Full PaginatedResponse: { success, data, total, page, limit, count, totalPages }
+      // 2. Simple filter response: { data }
+      const responseData = response.data;
+
+      if (responseData.data && Array.isArray(responseData.data)) {
+        // Response already in correct format
+        return responseData as PaginatedResponse<GameResponse>;
+      } else if (Array.isArray(responseData)) {
+        // Legacy format - wrap in pagination structure
+        return {
+          success: true,
+          data: responseData,
+          total: responseData.length,
+          count: responseData.length,
+          page: 1,
+          limit: responseData.length,
+          totalPages: 1,
+        } as PaginatedResponse<GameResponse>;
+      }
+
+      // Shouldn't reach here, but return safe default
+      return {
+        success: true,
+        data: [],
+        total: 0,
+        count: 0,
+        page: 1,
+        limit: 0,
+        totalPages: 0,
+      } as PaginatedResponse<GameResponse>;
     },
   });
 };

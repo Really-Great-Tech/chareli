@@ -29,7 +29,7 @@ const PopularSection = ({
     search: searchQuery || undefined,
     limit: 4, // This limit will only apply to auto mode, manual mode ignores it
   });
-  const games: any = gamesData || [];
+  const games: any = gamesData?.data || [];
   const { handleGameClick } = useGameClickHandler();
 
   // If no games and no search query, only show search bar (if enabled)

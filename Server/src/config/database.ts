@@ -18,20 +18,27 @@ export const AppDataSource = new DataSource({
     // Environment-based connection pooling for Supabase
     // Respects Supavisor pooler limits based on compute tier
     //
+    // CRITICAL: Increased pool size to handle JSON CDN generation background jobs
+    // JSON generation runs every 2-5 min and needs 3-5 connections temporarily
+    //
     // Supabase Micro (dev): 200 max pooler clients
-    // - 20 instances × 5 = 100 connections (50% capacity, safe margin)
+    // - 20 instances × 15 = 300 connections (not safe, use lower per-instance)
+    // - Current: 15 connections per instance (safe for dev/staging)
     //
     // Production: Adjust based on Supabase tier
-    // - Small (400 pooler): 20 instances × 10 = 200 (50% capacity)
-    // - Medium (600 pooler): 20 instances × 15 = 300 (50% capacity)
-    max: config.env === 'production' ? 10 : 5,
+    // - Small (400 pooler): 20 instances × 15 = 300 (75% capacity, safe)
+    // - Medium (600 pooler): 20 instances × 20 = 400 (67% capacity, safe)
+    max: config.env === 'production' ? 8 : 10, // Increased from 5/10
 
     // Connection management
     connectionTimeoutMillis: 30000, // 30s connection timeout
     statement_timeout: 60000, // 60s statement timeout
 
     // Ensure connections are released promptly
-    idleTimeoutMillis: 30000, // Release idle connections after 30s
+    idleTimeoutMillis: 10000, // Reduced from 30s - release idle connections faster
+
+    // Minimum pool size (keep some connections ready)
+    min: 2,
   },
 });
 

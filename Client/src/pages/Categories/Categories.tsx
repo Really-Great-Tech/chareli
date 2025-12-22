@@ -45,7 +45,7 @@ export default function Categories() {
   });
 
   const categories = (categoriesData || []) as Category[];
-  const games: any = gamesData || [];
+  const games: any = gamesData?.data || [];
   const { handleGameClick } = useGameClickHandler();
 
   // Screen size detection

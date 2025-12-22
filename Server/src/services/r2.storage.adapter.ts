@@ -270,4 +270,39 @@ export class R2StorageAdapter implements IStorageService {
       throw new Error(`Failed to move file in R2: ${(error as Error).message}`);
     }
   }
+
+  /**
+   * Upload file with exact key (no UUID prefix or modifications)
+   * Useful for CDN JSON files that need predictable paths
+   */
+  async uploadWithExactKey(
+    key: string,
+    body: Buffer,
+    contentType: string,
+    metadata?: Record<string, string>
+  ): Promise<string> {
+    try {
+      const command = new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        Body: body,
+        ContentType: contentType,
+        Metadata: metadata,
+        CacheControl: 'public, max-age=300', // 5 minutes cache
+      });
+
+      await this.s3Client.send(command);
+      logger.info(`Successfully uploaded file to R2 with exact key: ${key}`);
+
+      return key;
+    } catch (error) {
+      logger.error('Error uploading file with exact key to R2:', {
+        error,
+        key,
+      });
+      throw new Error(
+        `Failed to upload file to R2: ${(error as Error).message}`
+      );
+    }
+  }
 }

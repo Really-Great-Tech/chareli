@@ -2,15 +2,35 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { backendService } from './api.service';
 import { BackendRoute } from './constants';
 import type { Category } from './types';
+import { cdnFetch } from '../utils/cdnFetch';
 
 /**
  * Hook to fetch all categories
+ * Attempts to fetch from CDN first, falls back to API
  * @returns Query result with categories data
  */
 export const useCategories = () => {
   return useQuery<Category[]>({
     queryKey: [BackendRoute.CATEGORIES],
     queryFn: async () => {
+      // Try CDN first
+      if (cdnFetch.isEnabled()) {
+        try {
+          const result = await cdnFetch.fetch<Category[]>({
+            cdnPath: 'categories.json',
+            apiPath: BackendRoute.CATEGORIES,
+          });
+
+          if (result.source === 'cdn') {
+            return result.data;
+          }
+        } catch (error) {
+          console.warn('[Categories] CDN fetch failed, using API:', error);
+          // Fall through to API
+        }
+      }
+
+      // API fallback
       const response = await backendService.get(BackendRoute.CATEGORIES);
       return response.data as Category[];
     },
@@ -23,15 +43,21 @@ export const useCategories = () => {
  * @param params - Optional pagination parameters
  * @returns Query result with category data
  */
-export const useCategoryById = (id: string, params?: { page?: number; limit?: number }) => {
+export const useCategoryById = (
+  id: string,
+  params?: { page?: number; limit?: number }
+) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return useQuery<any>({
     queryKey: [BackendRoute.CATEGORIES, id, params],
     queryFn: async () => {
-      const response = await backendService.get(BackendRoute.CATEGORY_BY_ID.replace(':id', id), { 
-        params,
-        suppressErrorToast: true
-      });
+      const response = await backendService.get(
+        BackendRoute.CATEGORY_BY_ID.replace(':id', id),
+        {
+          params,
+          suppressErrorToast: true,
+        }
+      );
       return response.data;
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -51,11 +77,13 @@ export const useCategoryById = (id: string, params?: { page?: number; limit?: nu
 export const useCreateCategory = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: Omit<Category, 'id' | 'createdAt' | 'updatedAt'>) => 
+    mutationFn: (data: Omit<Category, 'id' | 'createdAt' | 'updatedAt'>) =>
       backendService.post(BackendRoute.CATEGORIES, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [BackendRoute.CATEGORIES] });
-      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS] });
+      queryClient.invalidateQueries({
+        queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS],
+      });
       queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES] });
       queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES] });
     },
@@ -73,8 +101,12 @@ export const useUpdateCategory = () => {
       backendService.put(BackendRoute.CATEGORY_BY_ID.replace(':id', id), data),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: [BackendRoute.CATEGORIES] });
-      queryClient.invalidateQueries({ queryKey: [BackendRoute.CATEGORIES, id] });
-      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS] });
+      queryClient.invalidateQueries({
+        queryKey: [BackendRoute.CATEGORIES, id],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS],
+      });
       queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES] });
       queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES] });
     },
@@ -94,7 +126,9 @@ export const useDeleteCategory = () => {
       queryClient.invalidateQueries({ queryKey: [BackendRoute.CATEGORIES] });
       // Remove the specific category query to prevent refetching
       queryClient.removeQueries({ queryKey: [BackendRoute.CATEGORIES, id] });
-      queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS] });
+      queryClient.invalidateQueries({
+        queryKey: [BackendRoute.ADMIN_GAMES_ANALYTICS],
+      });
       queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES] });
       queryClient.invalidateQueries({ queryKey: [BackendRoute.ADMIN_GAMES] });
     },

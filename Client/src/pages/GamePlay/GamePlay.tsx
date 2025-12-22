@@ -141,7 +141,7 @@ export default function GamePlay() {
     };
   }, [isMobile, expanded]);
 
-  console.log(isSignUpModalOpen, timeRemaining);
+  // console.log(isSignUpModalOpen, timeRemaining); // DEBUG: Removed spam
 
   // Reset loading states when gameId changes (for similar games navigation)
   useEffect(() => {

@@ -120,6 +120,8 @@ jobs:
           VITE_PAGES_DEV_DOMAIN: ${{ vars.VITE_PAGES_DEV_DOMAIN }}
           VITE_CLOUDFLARE_ZONE: ${{ vars.VITE_CLOUDFLARE_ZONE }}
           VITE_ENABLE_CACHE_DASHBOARD: "true"
+          VITE_CDN_ENABLED: ${{ vars.VITE_CDN_ENABLED }}
+          VITE_CDN_BASE_URL: ${{ vars.VITE_CDN_BASE_URL }}
         run: npm run build
 
       - name: Archive Frontend Build

@@ -119,6 +119,14 @@ export const useGameById = (id: string) => {
         BackendRoute.GAME_BY_ID.replace(':id', id)
       );
       console.log('Game API Response:', response.data);
+
+      // API returns { success: true, data: {game object} }
+      // Extract the actual game data
+      if (response.data?.data) {
+        return response.data.data as GameResponse;
+      }
+
+      // Fallback if response structure is different
       return response.data as GameResponse;
     },
   });

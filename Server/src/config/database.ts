@@ -15,11 +15,23 @@ export const AppDataSource = new DataSource({
   migrations: [path.join(__dirname, '../migrations/**/*.{ts,js}')],
   subscribers: [path.join(__dirname, '../subscribers/**/*.{ts,js}')],
   extra: {
-    // Optimized for Supabase transaction pooler (port 6543)
-    // Lower max connections since pooler handles actual DB connections
-    max: 15, // Maximum pool size
+    // Environment-based connection pooling for Supabase
+    // Respects Supavisor pooler limits based on compute tier
+    //
+    // Supabase Micro (dev): 200 max pooler clients
+    // - 20 instances × 5 = 100 connections (50% capacity, safe margin)
+    //
+    // Production: Adjust based on Supabase tier
+    // - Small (400 pooler): 20 instances × 10 = 200 (50% capacity)
+    // - Medium (600 pooler): 20 instances × 15 = 300 (50% capacity)
+    max: config.env === 'production' ? 10 : 5,
+
+    // Connection management
     connectionTimeoutMillis: 30000, // 30s connection timeout
     statement_timeout: 60000, // 60s statement timeout
+
+    // Ensure connections are released promptly
+    idleTimeoutMillis: 30000, // Release idle connections after 30s
   },
 });
 

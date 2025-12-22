@@ -233,20 +233,50 @@ class QueueService {
 
     const worker = new Worker(queueName, processor, {
       connection: redisConfig,
-      concurrency: 3, // Process 3 jobs simultaneously for better throughput
+      concurrency: 50, // Increased from 3 to handle 2000+ concurrent users
     });
 
+    // Track active jobs for monitoring
+    let activeJobs = 0;
+    let totalProcessed = 0;
+    let totalFailed = 0;
+
     // Set up event handlers
+    worker.on('active', (job: any) => {
+      activeJobs++;
+      totalProcessed++;
+
+      // Log every 100 jobs or every 10th job if low volume
+      if (
+        totalProcessed % 100 === 0 ||
+        (totalProcessed <= 100 && totalProcessed % 10 === 0)
+      ) {
+        logger.info(
+          `[WORKER:${queueName}] Active jobs: ${activeJobs}/50 | Total processed: ${totalProcessed} | Failed: ${totalFailed}`
+        );
+      }
+    });
+
     worker.on('completed', (job: any) => {
+      activeJobs--;
       const duration = job.finishedOn ? job.finishedOn - job.processedOn : 0;
-      logger.info(
-        `[PERF] Job ${job.id} completed successfully in ${duration}ms`
-      );
+
+      // Log slow jobs (>1s) or periodically (every 500 jobs)
+      if (duration > 1000 || totalProcessed % 500 === 0) {
+        logger.info(
+          `[PERF:${queueName}] Job ${job.id} completed in ${duration}ms | Active: ${activeJobs}/50`
+        );
+      }
     });
 
     worker.on('failed', (job: any, error: any) => {
+      activeJobs--;
+      totalFailed++;
       const duration = job.finishedOn ? job.finishedOn - job.processedOn : 0;
-      logger.error(`[PERF] Job ${job?.id} failed after ${duration}ms:`, error);
+      logger.error(
+        `[PERF:${queueName}] Job ${job?.id} failed after ${duration}ms | Active: ${activeJobs}/50 | Total failed: ${totalFailed}`,
+        error
+      );
     });
 
     worker.on('progress', (job: any, progress: any) => {
@@ -254,15 +284,44 @@ class QueueService {
     });
 
     worker.on('stalled', (jobId: any) => {
-      logger.warn(`Job ${jobId} stalled`);
+      logger.warn(`[WORKER:${queueName}] Job ${jobId} stalled`);
     });
 
     worker.on('error', (error: any) => {
-      logger.error('Worker error:', error);
+      logger.error(`[WORKER:${queueName}] Worker error:`, error);
+    });
+
+    // Log queue statistics every 30 seconds
+    const statsInterval = setInterval(async () => {
+      try {
+        const queue = this.queues.get(queueName);
+        if (queue) {
+          const waiting = await queue.getWaitingCount();
+          const active = await queue.getActiveCount();
+          const completed = await queue.getCompletedCount();
+          const failed = await queue.getFailedCount();
+
+          logger.info(
+            `[QUEUE:${queueName}] Waiting: ${waiting} | Active: ${active} | Completed: ${completed} | Failed: ${failed} | Worker concurrency: ${activeJobs}/50`
+          );
+        }
+      } catch (error) {
+        logger.debug(`Failed to get queue stats for ${queueName}:`, error);
+      }
+    }, 30000);
+
+    // Cleanup interval on worker close
+    worker.on('closing', () => {
+      clearInterval(statsInterval);
+      logger.info(
+        `[WORKER:${queueName}] Closing worker | Final stats - Processed: ${totalProcessed} | Failed: ${totalFailed}`
+      );
     });
 
     this.workers.set(queueName, worker);
-    logger.info(`Worker created for queue: ${queueName}`);
+    logger.info(
+      `[WORKER:${queueName}] Created with concurrency: 50 | Ready to process jobs`
+    );
 
     return worker;
   }

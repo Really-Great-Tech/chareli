@@ -3,6 +3,9 @@ import { jsonCdnService } from '../services/jsonCdn.service';
 import logger from '../utils/logger';
 import config from '../config/config';
 
+// Refresh interval for JSON CDN generation
+// Reduced frequency from 2min to 5min to prevent database connection exhaustion
+// Run every 5 minutes (configurable via JSON_CDN_REFRESH_INTERVAL env var)
 /**
  * Scheduled job to refresh JSON CDN files
  * Runs every N minutes (configurable via JSON_CDN_REFRESH_INTERVAL env var)

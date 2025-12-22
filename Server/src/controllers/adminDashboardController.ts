@@ -9,6 +9,7 @@ import { ApiError } from '../middlewares/errorHandler';
 import { Between, FindOptionsWhere, In, LessThan, IsNull, Not } from 'typeorm';
 import { checkInactiveUsers } from '../jobs/userInactivityCheck';
 import { storageService } from '../services/storage.service';
+import { PerformanceTimer } from '../utils/performance';
 
 const userRepository = AppDataSource.getRepository(User);
 const gameRepository = AppDataSource.getRepository(Game);
@@ -40,6 +41,9 @@ export const getDashboardAnalytics = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
+  const overallTimer = new PerformanceTimer('getDashboardAnalytics', {
+    period: req.query.period,
+  });
   try {
     const { period, startDate, endDate, country } = req.query;
 
@@ -132,7 +136,9 @@ export const getDashboardAnalytics = async (
       );
     }
 
+    const timer1 = new PerformanceTimer('yesterdayUsersQuery');
     const yesterdayUsersResult = await yesterdayUsersQuery.getRawOne();
+    timer1.end();
 
     // Among those users, count how many also played games today (last 24 hours) for 30+ seconds
     let returningUsersQuery = analyticsRepository
@@ -168,7 +174,9 @@ export const getDashboardAnalytics = async (
         .andWhere('user2.country IN (:...countries)', { countries });
     }
 
+    const timer2 = new PerformanceTimer('returningUsersQuery (self-join)');
     const returningUsersResult = await returningUsersQuery.getRawOne();
+    timer2.end();
 
     const yesterdayUsers = parseInt(yesterdayUsersResult?.count) || 0;
     const returningUsers = parseInt(returningUsersResult?.count) || 0;

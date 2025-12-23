@@ -45,7 +45,7 @@ export const useCreateAnalytics = () => {
   return useMutation({
     mutationFn: async (data: CreateAnalyticsData) => {
       const response = await backendService.post(BackendRoute.ANALYTICS, data);
-      return response.data;
+      return response; // Return full response to access id field
     },
     onSuccess: () => {
       // Invalidate all analytics-related queries

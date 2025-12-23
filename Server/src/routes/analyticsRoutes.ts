@@ -37,6 +37,16 @@ router.post(
   createAnalytics
 );
 
+// Update analytics entry - accessible by all (to update endTime for guests)
+router.put(
+  '/:id',
+  optionalAuthenticate,
+  analyticsLimiter,
+  validateParams(analyticsIdParamSchema),
+  validateBody(updateAnalyticsSchema),
+  updateAnalytics
+);
+
 // All other analytics routes require authentication
 router.use(authenticate);
 
@@ -55,14 +65,6 @@ router.get(
   isAdmin,
   validateParams(analyticsIdParamSchema),
   getAnalyticsById
-);
-
-// Update analytics entry - admin only
-router.put(
-  '/:id',
-  validateParams(analyticsIdParamSchema),
-  validateBody(updateAnalyticsSchema),
-  updateAnalytics
 );
 
 // Delete analytics entry - admin only

@@ -79,7 +79,7 @@ export const createAnalytics = async (
     }
 
     // Enqueue analytics processing job
-    await queueService.addAnalyticsProcessingJob({
+    const job = await queueService.addAnalyticsProcessingJob({
       userId,
       sessionId: sessionId || null,
       gameId: gameId || null,
@@ -89,10 +89,16 @@ export const createAnalytics = async (
       sessionCount,
     });
 
-    // Return 202 Accepted immediately (job queued)
-    res.status(202).json({
+    // Wait for the job to complete and get the result
+    // This adds minimal delay but ensures we get the analytics ID
+    const analytics = await job.waitUntilFinished(queueService.queueEvents);
+
+    // Return 201 Created with the analytics ID
+    res.status(201).json({
       success: true,
-      message: 'Analytics event queued for processing',
+      message: 'Analytics event created successfully',
+      id: analytics.id,
+      data: analytics,
     });
   } catch (error) {
     next(error);

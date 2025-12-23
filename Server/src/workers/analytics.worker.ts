@@ -9,10 +9,11 @@ const analyticsRepository = AppDataSource.getRepository(Analytics);
 /**
  * Worker processor for analytics processing jobs
  * Writes analytics data to database asynchronously
+ * @returns The saved analytics object with ID
  */
 export async function processAnalyticsJob(
   job: Job<AnalyticsProcessingJobData>
-): Promise<void> {
+): Promise<Analytics> {
   const {
     userId,
     sessionId,
@@ -54,6 +55,9 @@ export async function processAnalyticsJob(
         userId ? `user ${userId}` : `session ${sessionId}`
       }`
     );
+
+    // Return the saved analytics so the controller can access the ID
+    return saved;
   } catch (error) {
     logger.error(
       `[Analytics Worker] Failed to process analytics job ${job.id}:`,

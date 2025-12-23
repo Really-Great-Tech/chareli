@@ -5,6 +5,16 @@ import { BackendRoute } from './constants';
 import type { Analytics, CreateAnalyticsData } from './types';
 
 /**
+ * Response from creating analytics
+ */
+interface CreateAnalyticsResponse {
+  success: boolean;
+  message: string;
+  id: string;
+  data: Analytics;
+}
+
+/**
  * Hook to fetch all analytics entries
  * @returns Query result with analytics data
  */
@@ -42,10 +52,11 @@ export const useAnalyticsById = (id: string) => {
  */
 export const useCreateAnalytics = () => {
   const queryClient = useQueryClient();
-  return useMutation({
+  return useMutation<CreateAnalyticsResponse, Error, CreateAnalyticsData>({
     mutationFn: async (data: CreateAnalyticsData) => {
       const response = await backendService.post(BackendRoute.ANALYTICS, data);
-      return response.data;
+      // Axios interceptor unwraps response.data, so we cast it to our response type
+      return response as unknown as CreateAnalyticsResponse;
     },
     onSuccess: () => {
       // Invalidate all analytics-related queries

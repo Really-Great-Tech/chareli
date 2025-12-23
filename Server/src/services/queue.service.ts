@@ -1,4 +1,4 @@
-import { Queue, Worker, Job } from 'bullmq';
+import { Queue, Worker, Job, QueueEvents } from 'bullmq';
 import { redisService } from './redis.service';
 import logger from '../utils/logger';
 
@@ -48,6 +48,7 @@ export interface JsonCdnJobData {
 class QueueService {
   private queues: Map<string, Queue> = new Map();
   private workers: Map<string, Worker> = new Map();
+  public queueEvents!: QueueEvents; // For waiting on job completion
 
   constructor() {
     this.initializeQueues();
@@ -143,6 +144,11 @@ class QueueService {
     });
 
     this.queues.set(JobType.JSON_CDN_GENERATION, jsonCdnQueue);
+
+    // Create QueueEvents for analytics queue to listen for job completion
+    this.queueEvents = new QueueEvents(JobType.ANALYTICS_PROCESSING, {
+      connection: redisConfig,
+    });
 
     logger.info('Job queues initialized');
   }
@@ -261,7 +267,7 @@ class QueueService {
 
   createWorker<T = any>(
     queueName: string,
-    processor: (job: Job<T>) => Promise<void>
+    processor: (job: Job<T>) => Promise<any>
   ): Worker<T> {
     // Use the same Redis config as queues
     const redisConfig = {

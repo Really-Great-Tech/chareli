@@ -29,7 +29,7 @@ const PopularSection = ({
     search: searchQuery || undefined,
     limit: 4, // This limit will only apply to auto mode, manual mode ignores it
   });
-  const games: any = gamesData || [];
+  const games: any = gamesData?.data || [];
   const { handleGameClick } = useGameClickHandler();
 
   // If no games and no search query, only show search bar (if enabled)
@@ -113,6 +113,8 @@ const PopularSection = ({
                         src={game.thumbnailFile?.s3Key || emptyGameImg}
                         alt={game.title}
                         className="w-full h-full object-fill"
+                        aspectRatio="1/1"
+                        width={400}
                         loadingClassName="rounded-[28px]"
                         spinnerColor="#64748A"
                         rootMargin="50px"

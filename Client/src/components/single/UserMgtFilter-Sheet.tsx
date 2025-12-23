@@ -1,6 +1,6 @@
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
 import {
   Sheet,
   SheetClose,
@@ -8,12 +8,12 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "../ui/sheet";
-import { MultiSelect } from "../ui/multi-select";
-import { SearchableSelect } from "../ui/searchable-select";
-import { useGames } from "../../backend/games.service";
-import { useCategories } from "../../backend/category.service";
-import { countries } from "country-data-list";
+} from '../ui/sheet';
+import { MultiSelect } from '../ui/multi-select';
+import { SearchableSelect } from '../ui/searchable-select';
+import { useGames } from '../../backend/games.service';
+import { useCategories } from '../../backend/category.service';
+import { countries } from 'country-data-list';
 
 interface FilterState {
   registrationDates: {
@@ -34,7 +34,7 @@ interface FilterState {
   country: string[];
   ageGroup: string;
   sortBy: string;
-  sortOrder: "asc" | "desc";
+  sortOrder: 'asc' | 'desc';
 }
 
 interface UserManagementFilterSheetProps {
@@ -60,10 +60,13 @@ export function UserManagementFilterSheet({
     ),
   ] as string[];
 
+  // Extract games array from response (handles both CDN and API responses)
+  const games = Array.isArray(gamesData)
+    ? gamesData
+    : (gamesData as any)?.data || [];
+
   const titles = [
-    ...new Set(
-      ((gamesData as any) || [])?.map((game: any) => game.title).filter(Boolean)
-    ),
+    ...new Set(games.map((game: any) => game.title).filter(Boolean)),
   ] as string[];
 
   // Get countries from country-data-list package (standardized list)
@@ -95,7 +98,7 @@ export function UserManagementFilterSheet({
                 type="date"
                 value={filters.registrationDates.startDate}
                 onChange={(e) =>
-                  handleChange("registrationDates", {
+                  handleChange('registrationDates', {
                     ...filters.registrationDates,
                     startDate: e.target.value,
                   })
@@ -106,7 +109,7 @@ export function UserManagementFilterSheet({
                 type="date"
                 value={filters.registrationDates.endDate}
                 onChange={(e) =>
-                  handleChange("registrationDates", {
+                  handleChange('registrationDates', {
                     ...filters.registrationDates,
                     endDate: e.target.value,
                   })
@@ -123,7 +126,7 @@ export function UserManagementFilterSheet({
               type="number"
               min="0"
               value={filters.sessionCount}
-              onChange={(e) => handleChange("sessionCount", e.target.value)}
+              onChange={(e) => handleChange('sessionCount', e.target.value)}
               placeholder="Minimum sessions"
               className="bg-[#F1F5F9] border border-[#CBD5E0] h-12 sm:h-14 text-gray-400 font-thin font-worksans text-sm tracking-wider dark:bg-[#121C2D]"
             />
@@ -137,13 +140,13 @@ export function UserManagementFilterSheet({
                 type="number"
                 min="0"
                 value={
-                  filters.timePlayed.min === 0 ? "" : filters.timePlayed.min
+                  filters.timePlayed.min === 0 ? '' : filters.timePlayed.min
                 }
                 onChange={(e) =>
-                  handleChange("timePlayed", {
+                  handleChange('timePlayed', {
                     ...filters.timePlayed,
                     min:
-                      e.target.value === ""
+                      e.target.value === ''
                         ? 0
                         : parseInt(e.target.value, 10) || 0,
                   })
@@ -155,13 +158,13 @@ export function UserManagementFilterSheet({
                 type="number"
                 min={filters.timePlayed.min}
                 value={
-                  filters.timePlayed.max === 0 ? "" : filters.timePlayed.max
+                  filters.timePlayed.max === 0 ? '' : filters.timePlayed.max
                 }
                 onChange={(e) =>
-                  handleChange("timePlayed", {
+                  handleChange('timePlayed', {
                     ...filters.timePlayed,
                     max:
-                      e.target.value === ""
+                      e.target.value === ''
                         ? 0
                         : parseInt(e.target.value, 10) || 0,
                   })
@@ -177,7 +180,7 @@ export function UserManagementFilterSheet({
             <Label className="text-base">Game Category</Label>
             <MultiSelect
               value={filters.gameCategory}
-              onValueChange={(value) => handleChange("gameCategory", value)}
+              onValueChange={(value) => handleChange('gameCategory', value)}
               options={categories.map((category) => ({
                 value: category,
                 label: category,
@@ -193,7 +196,7 @@ export function UserManagementFilterSheet({
             <Label className="text-base">Game Title</Label>
             <MultiSelect
               value={filters.gameTitle}
-              onValueChange={(value) => handleChange("gameTitle", value)}
+              onValueChange={(value) => handleChange('gameTitle', value)}
               options={titles.map((title) => ({ value: title, label: title }))}
               placeholder="All Games"
               searchPlaceholder="Search games..."
@@ -206,7 +209,7 @@ export function UserManagementFilterSheet({
             <Label className="text-base">Country</Label>
             <MultiSelect
               value={filters.country}
-              onValueChange={(value) => handleChange("country", value)}
+              onValueChange={(value) => handleChange('country', value)}
               options={countryList.map((country) => ({
                 value: country,
                 label: country,
@@ -225,7 +228,7 @@ export function UserManagementFilterSheet({
                 type="date"
                 value={filters.lastLoginDates.startDate}
                 onChange={(e) =>
-                  handleChange("lastLoginDates", {
+                  handleChange('lastLoginDates', {
                     ...filters.lastLoginDates,
                     startDate: e.target.value,
                   })
@@ -236,7 +239,7 @@ export function UserManagementFilterSheet({
                 type="date"
                 value={filters.lastLoginDates.endDate}
                 onChange={(e) =>
-                  handleChange("lastLoginDates", {
+                  handleChange('lastLoginDates', {
                     ...filters.lastLoginDates,
                     endDate: e.target.value,
                   })
@@ -251,17 +254,17 @@ export function UserManagementFilterSheet({
             <Label className="text-base">Sort By</Label>
             <SearchableSelect
               value={filters.sortBy}
-              onValueChange={(value) => handleChange("sortBy", value)}
+              onValueChange={(value) => handleChange('sortBy', value)}
               options={[
-                { value: "createdAt", label: "Registration Date (Default)" },
-                { value: "firstName", label: "First Name" },
-                { value: "lastName", label: "Last Name" },
-                { value: "email", label: "Email" },
-                { value: "lastLoggedIn", label: "Last Login" },
-                { value: "lastSeen", label: "Last Seen" },
-                { value: "country", label: "Country" },
-                { value: "timePlayed", label: "Time Played" },
-                { value: "sessionCount", label: "Session Count" },
+                { value: 'createdAt', label: 'Registration Date (Default)' },
+                { value: 'firstName', label: 'First Name' },
+                { value: 'lastName', label: 'Last Name' },
+                { value: 'email', label: 'Email' },
+                { value: 'lastLoggedIn', label: 'Last Login' },
+                { value: 'lastSeen', label: 'Last Seen' },
+                { value: 'country', label: 'Country' },
+                { value: 'timePlayed', label: 'Time Played' },
+                { value: 'sessionCount', label: 'Session Count' },
               ]}
               placeholder="Registration Date (Default)"
               searchPlaceholder="Search sort options..."
@@ -274,10 +277,10 @@ export function UserManagementFilterSheet({
             <Label className="text-base">Sort Order</Label>
             <SearchableSelect
               value={filters.sortOrder}
-              onValueChange={(value) => handleChange("sortOrder", value)}
+              onValueChange={(value) => handleChange('sortOrder', value)}
               options={[
-                { value: "asc", label: "Ascending (A-Z, 0-9, Oldest)" },
-                { value: "desc", label: "Descending (Z-A, 9-0, Newest)" },
+                { value: 'asc', label: 'Ascending (A-Z, 0-9, Oldest)' },
+                { value: 'desc', label: 'Descending (Z-A, 9-0, Newest)' },
               ]}
               placeholder="Ascending"
               searchPlaceholder="Search sort order..."

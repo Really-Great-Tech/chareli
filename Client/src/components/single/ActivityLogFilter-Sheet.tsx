@@ -1,17 +1,17 @@
-import { Button } from "../ui/button";
-import { Label } from "../ui/label";
+import { Button } from '../ui/button';
+import { Label } from '../ui/label';
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "../ui/sheet";
-import { MultiSelect } from "../ui/multi-select";
-import { SearchableSelect } from "../ui/searchable-select";
-import { useGames } from "../../backend/games.service";
-import type { ActivityLogFilterState } from "../../backend/analytics.service";
-import { useCallback, useState, useEffect } from "react";
+} from '../ui/sheet';
+import { MultiSelect } from '../ui/multi-select';
+import { SearchableSelect } from '../ui/searchable-select';
+import { useGames } from '../../backend/games.service';
+import type { ActivityLogFilterState } from '../../backend/analytics.service';
+import { useCallback, useState, useEffect } from 'react';
 
 interface ActivityLogFilterSheetProps {
   children: React.ReactNode;
@@ -28,10 +28,16 @@ export function ActivityLogFilterSheet({
 }: ActivityLogFilterSheetProps) {
   const { data: gamesData } = useGames();
   const [isOpen, setIsOpen] = useState(false);
-  const [localFilters, setLocalFilters] = useState<ActivityLogFilterState>(filters);
-  
+  const [localFilters, setLocalFilters] =
+    useState<ActivityLogFilterState>(filters);
+
+  // Extract games array from response (handles both CDN and API responses)
+  const games = Array.isArray(gamesData)
+    ? gamesData
+    : (gamesData as any)?.data || [];
+
   const titles = [
-    ...new Set(((gamesData as any) || [])?.map((game: any) => game.title).filter(Boolean)),
+    ...new Set(games.map((game: any) => game.title).filter(Boolean)),
   ] as string[];
 
   // Sync local filters with props when sheet opens
@@ -41,25 +47,28 @@ export function ActivityLogFilterSheet({
     }
   }, [isOpen, filters]);
 
-  const handleChange = useCallback((field: keyof ActivityLogFilterState, value: unknown) => {
-    const newFilters = {
-      ...localFilters,
-      [field]: value,
-    };
-    setLocalFilters(newFilters);
-    
-    // Check if the change is a "clearing" action and apply immediately
-    const isClearing = 
-      (field === 'userStatus' && value === '') ||
-      (field === 'userName' && value === '') ||
-      (field === 'activityType' && value === '') ||
-      (field === 'gameTitle' && Array.isArray(value) && value.length === 0);
-    
-    // Apply immediately if clearing, otherwise wait for button click
-    if (isClearing) {
-      onFiltersChange(newFilters);
-    }
-  }, [localFilters, onFiltersChange]);
+  const handleChange = useCallback(
+    (field: keyof ActivityLogFilterState, value: unknown) => {
+      const newFilters = {
+        ...localFilters,
+        [field]: value,
+      };
+      setLocalFilters(newFilters);
+
+      // Check if the change is a "clearing" action and apply immediately
+      const isClearing =
+        (field === 'userStatus' && value === '') ||
+        (field === 'userName' && value === '') ||
+        (field === 'activityType' && value === '') ||
+        (field === 'gameTitle' && Array.isArray(value) && value.length === 0);
+
+      // Apply immediately if clearing, otherwise wait for button click
+      if (isClearing) {
+        onFiltersChange(newFilters);
+      }
+    },
+    [localFilters, onFiltersChange]
+  );
 
   const handleApplyFilters = useCallback(() => {
     onFiltersChange(localFilters);
@@ -69,15 +78,15 @@ export function ActivityLogFilterSheet({
   const handleResetFilters = useCallback(() => {
     const resetFilters = {
       dateRange: {
-        startDate: "",
-        endDate: "",
+        startDate: '',
+        endDate: '',
       },
-      userStatus: "",
-      userName: "",
+      userStatus: '',
+      userName: '',
       gameTitle: [],
-      activityType: "",
-      sortBy: "createdAt",
-      sortOrder: "desc" as const,
+      activityType: '',
+      sortBy: 'createdAt',
+      sortOrder: 'desc' as const,
     };
     setLocalFilters(resetFilters);
     onReset();
@@ -104,11 +113,11 @@ export function ActivityLogFilterSheet({
             <Label className="text-base">User Status</Label>
             <SearchableSelect
               value={localFilters.userStatus}
-              onValueChange={(value) => handleChange("userStatus", value)}
+              onValueChange={(value) => handleChange('userStatus', value)}
               options={[
-                { value: "", label: "All Status" },
-                { value: "Online", label: "Online" },
-                { value: "Offline", label: "Offline" },
+                { value: '', label: 'All Status' },
+                { value: 'Online', label: 'Online' },
+                { value: 'Offline', label: 'Offline' },
               ]}
               placeholder="All Status"
               searchPlaceholder="Search status..."
@@ -121,7 +130,7 @@ export function ActivityLogFilterSheet({
             <Label className="text-base">Game Title</Label>
             <MultiSelect
               value={localFilters.gameTitle}
-              onValueChange={(value) => handleChange("gameTitle", value)}
+              onValueChange={(value) => handleChange('gameTitle', value)}
               options={titles.map((title) => ({ value: title, label: title }))}
               placeholder="All Games"
               searchPlaceholder="Search games..."
@@ -134,12 +143,12 @@ export function ActivityLogFilterSheet({
             <Label className="text-base">Activity Type</Label>
             <SearchableSelect
               value={localFilters.activityType}
-              onValueChange={(value) => handleChange("activityType", value)}
+              onValueChange={(value) => handleChange('activityType', value)}
               options={[
-                { value: "", label: "All Activities" },
-                { value: "Signed up", label: "Signed up" },
-                { value: "Logged in", label: "Logged in" },
-                { value: "game_session", label: "Game Session" },
+                { value: '', label: 'All Activities' },
+                { value: 'Signed up', label: 'Signed up' },
+                { value: 'Logged in', label: 'Logged in' },
+                { value: 'game_session', label: 'Game Session' },
               ]}
               placeholder="All Activities"
               searchPlaceholder="Search activities..."
@@ -152,11 +161,11 @@ export function ActivityLogFilterSheet({
             <Label className="text-base">Sort By</Label>
             <SearchableSelect
               value={localFilters.sortBy}
-              onValueChange={(value) => handleChange("sortBy", value)}
+              onValueChange={(value) => handleChange('sortBy', value)}
               options={[
-                { value: "createdAt", label: "Registration Date" },
-                { value: "name", label: "Name" },
-                { value: "email", label: "Email" },
+                { value: 'createdAt', label: 'Registration Date' },
+                { value: 'name', label: 'Name' },
+                { value: 'email', label: 'Email' },
               ]}
               placeholder="Registration Date"
               searchPlaceholder="Search sort options..."
@@ -169,10 +178,10 @@ export function ActivityLogFilterSheet({
             <Label className="text-base">Sort Order</Label>
             <SearchableSelect
               value={localFilters.sortOrder}
-              onValueChange={(value) => handleChange("sortOrder", value)}
+              onValueChange={(value) => handleChange('sortOrder', value)}
               options={[
-                { value: "asc", label: "Ascending (A-Z, Oldest)" },
-                { value: "desc", label: "Descending (Z-A, Newest)" },
+                { value: 'asc', label: 'Ascending (A-Z, Oldest)' },
+                { value: 'desc', label: 'Descending (Z-A, Newest)' },
               ]}
               placeholder="Ascending"
               searchPlaceholder="Search sort order..."

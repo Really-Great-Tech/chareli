@@ -13,12 +13,12 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { trackGameplay } from '../../utils/analytics';
 import { useSystemConfigByKey } from '../../backend/configuration.service';
 import { useLikeGame, useUnlikeGame } from '../../backend/gameLikes.service';
+import { getVisitorSessionId } from '../../utils/sessionUtils';
 
 export default function GamePlay() {
   const { gameId } = useParams();
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
   const { data: game, isLoading, error } = useGameById(gameId || '');
   const { mutate: createAnalytics } = useCreateAnalytics();
   const analyticsIdRef = useRef<string | null>(null);
@@ -30,7 +30,7 @@ export default function GamePlay() {
   );
 
   const handleOpenSignUpModal = () => {
-    setIsSignUpModalOpen(true);
+    setIsModalOpen(true);
   };
 
   const isMobile = useIsMobile();
@@ -140,7 +140,7 @@ export default function GamePlay() {
     };
   }, [isMobile, expanded]);
 
-  console.log(isSignUpModalOpen, timeRemaining);
+  // console.log(isSignUpModalOpen, timeRemaining); // DEBUG: Removed spam
 
   // Reset loading states when gameId changes (for similar games navigation)
   useEffect(() => {
@@ -243,7 +243,7 @@ export default function GamePlay() {
 
   // Create analytics record when game starts
   useEffect(() => {
-    if (game && isAuthenticated) {
+    if (game) {
       const startTime = new Date();
       gameStartTimeRef.current = startTime;
 
@@ -252,6 +252,7 @@ export default function GamePlay() {
           gameId: game.id,
           activityType: 'game_session',
           startTime: new Date(),
+          ...(!isAuthenticated && { sessionId: getVisitorSessionId() }),
         },
         {
           onSuccess: (response) => {
@@ -263,7 +264,7 @@ export default function GamePlay() {
       // Track game start in Google Analytics
       trackGameplay.gameStart(game.id, game.title);
     }
-  }, [game, isAuthenticated, createAnalytics]);
+  }, [game, createAnalytics]);
 
   const location = useLocation();
   const { mutate: updateAnalytics } = useUpdateAnalytics();

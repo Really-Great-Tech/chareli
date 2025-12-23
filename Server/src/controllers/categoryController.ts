@@ -4,6 +4,9 @@ import { Category } from '../entities/Category';
 import { ApiError } from '../middlewares/errorHandler';
 import { File } from '../entities/Files';
 import { storageService } from '../services/storage.service';
+import { cacheService } from '../services/cache.service';
+import { cacheInvalidationService } from '../services/cache-invalidation.service';
+import logger from '../utils/logger';
 
 // Extend File type to include url
 type FileWithUrl = File & { url?: string };
@@ -63,29 +66,46 @@ export const getAllCategories = async (
 ): Promise<void> => {
   try {
     const { page = 1, limit = 10, search } = req.query;
-    
+
     const pageNumber = parseInt(page as string, 10);
     const limitNumber = parseInt(limit as string, 10);
-    
+
+    // Try cache first (categories change infrequently)
+    if (cacheService.isEnabled()) {
+      const cached = await cacheService.getCategoriesList(
+        pageNumber,
+        limitNumber,
+        search as string | undefined
+      );
+
+      if (cached) {
+        logger.debug(`Cache hit: categories list page ${pageNumber}`);
+        res.status(200).json(cached);
+        return;
+      }
+    }
+
     const queryBuilder = categoryRepository.createQueryBuilder('category');
-    
+
     // Apply search filter if provided
     if (search) {
-      queryBuilder.where('category.name ILIKE :search', { search: `%${search}%` });
+      queryBuilder.where('category.name ILIKE :search', {
+        search: `%${search}%`,
+      });
     }
-    
+
     // Get total count for pagination
     const total = await queryBuilder.getCount();
-    
+
     // Apply pagination
     queryBuilder
       .skip((pageNumber - 1) * limitNumber)
       .take(limitNumber)
       .orderBy('category.isDefault', 'DESC');
-    
+
     const categories = await queryBuilder.getMany();
-    
-    res.status(200).json({
+
+    const responseData = {
       success: true,
       count: categories.length,
       total,
@@ -93,7 +113,21 @@ export const getAllCategories = async (
       limit: limitNumber,
       totalPages: Math.ceil(total / limitNumber),
       data: categories,
-    });
+    };
+
+    // Cache the response (30 minutes TTL - categories rarely change)
+    if (cacheService.isEnabled()) {
+      await cacheService.setCategoriesList(
+        responseData,
+        pageNumber,
+        limitNumber,
+        search as string | undefined,
+        1800 // 30 minutes
+      );
+      logger.debug(`Cached categories list page ${pageNumber}`);
+    }
+
+    res.status(200).json(responseData);
   } catch (error) {
     next(error);
   }
@@ -136,22 +170,22 @@ export const getCategoryById = async (
   try {
     const { id } = req.params;
     const { page = 1, limit = 5 } = req.query;
-    
+
     const pageNumber = parseInt(page as string, 10);
     const limitNumber = parseInt(limit as string, 10);
-    
+
     const category = await categoryRepository.findOne({
       where: { id },
-      relations: ['games', 'games.thumbnailFile', 'games.gameFile']
+      relations: ['games', 'games.thumbnailFile', 'games.gameFile'],
     });
-    
+
     if (!category) {
       return next(ApiError.notFound(`Category with id ${id} not found`));
     }
 
     // Get analytics data for all games in this category
     const analyticsQuery = `
-      SELECT 
+      SELECT
         g.id as game_id,
         g.title,
         COUNT(DISTINCT a.id) as total_sessions,
@@ -173,40 +207,42 @@ export const getCategoryById = async (
         sessions: parseInt(result.total_sessions) || 0,
         totalTimePlayed: parseInt(result.total_time_played) || 0,
         uniquePlayers: parseInt(result.unique_players) || 0,
-        position: index + 1
+        position: index + 1,
       });
     });
 
     // Transform games with analytics and URLs
-    const gamesWithAnalytics = await Promise.all(category.games.map(async game => {
-      const transformedGame: any = { ...game };
-      
-      // Add file URLs
-      if (game.thumbnailFile?.s3Key) {
-        transformedGame.thumbnailFile = {
-          ...game.thumbnailFile,
-          url: storageService.getPublicUrl(game.thumbnailFile.s3Key)
-        } as FileWithUrl;
-      }
-      if (game.gameFile?.s3Key) {
-        transformedGame.gameFile = {
-          ...game.gameFile,
-          url: storageService.getPublicUrl(game.gameFile.s3Key)
-        } as FileWithUrl;
-      }
+    const gamesWithAnalytics = await Promise.all(
+      category.games.map(async (game) => {
+        const transformedGame: any = { ...game };
 
-      // Add analytics data
-      const analytics = analyticsMap.get(game.id) || {
-        sessions: 0,
-        totalTimePlayed: 0,
-        uniquePlayers: 0,
-        position: category.games.length
-      };
-      
-      transformedGame.analytics = analytics;
-      
-      return transformedGame;
-    }));
+        // Add file URLs
+        if (game.thumbnailFile?.s3Key) {
+          transformedGame.thumbnailFile = {
+            ...game.thumbnailFile,
+            url: storageService.getPublicUrl(game.thumbnailFile.s3Key),
+          } as FileWithUrl;
+        }
+        if (game.gameFile?.s3Key) {
+          transformedGame.gameFile = {
+            ...game.gameFile,
+            url: storageService.getPublicUrl(game.gameFile.s3Key),
+          } as FileWithUrl;
+        }
+
+        // Add analytics data
+        const analytics = analyticsMap.get(game.id) || {
+          sessions: 0,
+          totalTimePlayed: 0,
+          uniquePlayers: 0,
+          position: category.games.length,
+        };
+
+        transformedGame.analytics = analytics;
+
+        return transformedGame;
+      })
+    );
 
     // Sort games by performance (sessions desc, then total time played desc)
     gamesWithAnalytics.sort((a, b) => {
@@ -223,10 +259,19 @@ export const getCategoryById = async (
 
     // Calculate category-level metrics
     const categoryMetrics = {
-      totalPlays: gamesWithAnalytics.reduce((sum, game) => sum + game.analytics.uniquePlayers, 0),
-      totalSessions: gamesWithAnalytics.reduce((sum, game) => sum + game.analytics.sessions, 0),
-      totalTimePlayed: gamesWithAnalytics.reduce((sum, game) => sum + game.analytics.totalTimePlayed, 0),
-      totalGames: gamesWithAnalytics.length
+      totalPlays: gamesWithAnalytics.reduce(
+        (sum, game) => sum + game.analytics.uniquePlayers,
+        0
+      ),
+      totalSessions: gamesWithAnalytics.reduce(
+        (sum, game) => sum + game.analytics.sessions,
+        0
+      ),
+      totalTimePlayed: gamesWithAnalytics.reduce(
+        (sum, game) => sum + game.analytics.totalTimePlayed,
+        0
+      ),
+      totalGames: gamesWithAnalytics.length,
     };
 
     // Apply pagination to games
@@ -246,10 +291,10 @@ export const getCategoryById = async (
         totalItems: totalGames,
         itemsPerPage: limitNumber,
         hasNextPage: pageNumber < totalPages,
-        hasPrevPage: pageNumber > 1
-      }
+        hasPrevPage: pageNumber > 1,
+      },
     };
-    
+
     res.status(200).json({
       success: true,
       data: transformedCategory,
@@ -300,24 +345,29 @@ export const createCategory = async (
 ): Promise<void> => {
   try {
     const { name, description } = req.body;
-    
+
     // Check if category with the same name already exists
     const existingCategory = await categoryRepository.findOne({
-      where: { name }
+      where: { name },
     });
-    
+
     if (existingCategory) {
-      return next(ApiError.badRequest(`Category with name "${name}" already exists`));
+      return next(
+        ApiError.badRequest(`Category with name "${name}" already exists`)
+      );
     }
-    
+
     // Create new category
     const category = categoryRepository.create({
       name,
-      description
+      description,
     });
-    
+
     await categoryRepository.save(category);
-    
+
+    // Invalidate categories cache
+    await cacheInvalidationService.invalidateCategoryUpdate(category.id);
+
     res.status(201).json({
       success: true,
       data: category,
@@ -377,35 +427,40 @@ export const updateCategory = async (
   try {
     const { id } = req.params;
     const { name, description } = req.body;
-    
+
     const category = await categoryRepository.findOne({
-      where: { id }
+      where: { id },
     });
-    
+
     if (!category) {
       return next(ApiError.notFound(`Category with id ${id} not found`));
     }
-    
+
     // Check if name is being updated and if it already exists
     if (name && name !== category.name) {
       const existingCategory = await categoryRepository.findOne({
-        where: { name }
+        where: { name },
       });
-      
+
       if (existingCategory && existingCategory.id !== id) {
-        return next(ApiError.badRequest(`Category with name "${name}" already exists`));
+        return next(
+          ApiError.badRequest(`Category with name "${name}" already exists`)
+        );
       }
-      
+
       category.name = name;
     }
-    
+
     // Update description if provided
     if (description !== undefined) {
       category.description = description;
     }
-    
+
     await categoryRepository.save(category);
-    
+
+    // Invalidate categories cache
+    await cacheInvalidationService.invalidateCategoryUpdate(id);
+
     res.status(200).json({
       success: true,
       data: category,
@@ -453,31 +508,40 @@ export const deleteCategory = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    
+
     const category = await categoryRepository.findOne({
       where: { id },
-      relations: ['games']
+      relations: ['games'],
     });
-    
+
     if (!category) {
       return next(ApiError.notFound(`Category with id ${id} not found`));
     }
-    
+
     // Prevent deletion of default category
     if (category.isDefault) {
-      return next(ApiError.badRequest('Cannot delete the default "General" category'));
+      return next(
+        ApiError.badRequest('Cannot delete the default "General" category')
+      );
     }
-    
+
     // Check if category has associated games
     if (category.games && category.games.length > 0) {
-      return next(ApiError.badRequest(`Cannot delete category with ${category.games.length} associated games`));
+      return next(
+        ApiError.badRequest(
+          `Cannot delete category with ${category.games.length} associated games`
+        )
+      );
     }
-    
+
     await categoryRepository.remove(category);
-    
+
+    // Invalidate categories cache
+    await cacheInvalidationService.invalidateCategoryUpdate(id);
+
     res.status(200).json({
       success: true,
-      message: 'Category deleted successfully'
+      message: 'Category deleted successfully',
     });
   } catch (error) {
     next(error);

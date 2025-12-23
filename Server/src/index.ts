@@ -6,9 +6,13 @@ import logger from './utils/logger';
 import fs from 'fs';
 import path from 'path';
 import { authService } from './services/auth.service';
-import { initializeScheduledJobs } from './jobs';
+import { initializeScheduledJobs, startJsonCdnRefreshJob } from './jobs';
 import { redisService } from './services/redis.service';
 import { initializeGameZipWorker } from './workers/gameZipProcessor';
+import { initializeThumbnailWorker } from './workers/thumbnailProcessor';
+import { initializeAnalyticsWorker } from './workers/analyticsProcessor';
+import { initializeLikeWorker } from './workers/likeProcessor';
+import { initializeJsonCdnWorker } from './workers/jsonCdnProcessor';
 import { createServer } from 'http';
 import { websocketService } from './services/websocket.service';
 
@@ -25,21 +29,25 @@ async function initializeBackgroundServices(): Promise<void> {
     logger.info('Connecting to Redis...');
     await redisService.connect();
     logger.info('Redis connected successfully');
-    
+
     // Wait a moment to ensure Redis is fully ready
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
     // Initialize background workers
     logger.info('Initializing background workers...');
     initializeGameZipWorker();
+    initializeThumbnailWorker();
+    initializeAnalyticsWorker(); // NEW: Process analytics asynchronously
+    initializeLikeWorker(); // NEW: Process likes asynchronously
+    initializeJsonCdnWorker(); // NEW: Process JSON CDN generation asynchronously
     logger.info('Background workers initialized successfully');
-    
+
     // Verify worker is properly connected
     const isRedisConnected = await redisService.isConnected();
     if (!isRedisConnected) {
       throw new Error('Redis connection verification failed');
     }
-    
+
     logger.info('Background services are fully operational');
   } catch (error) {
     logger.error('Failed to initialize background services:', error);
@@ -58,7 +66,6 @@ const startServer = async () => {
       logger.info(`Created logs directory at ${logDir}`);
     }
 
-
     logger.info('Initializing database connection...');
     try {
       await initializeDatabase();
@@ -72,6 +79,9 @@ const startServer = async () => {
 
       // Initialize scheduled jobs
       initializeScheduledJobs();
+
+      // Initialize JSON CDN refresh job
+      startJsonCdnRefreshJob();
     } catch (dbError) {
       if (config.env === 'development') {
         logger.warn(
@@ -87,7 +97,7 @@ const startServer = async () => {
 
     // Create HTTP server
     const httpServer = createServer(app);
-    
+
     // Initialize WebSocket service
     websocketService.initialize(httpServer);
     logger.info('WebSocket service initialized');
@@ -109,7 +119,6 @@ const startServer = async () => {
       logger.error(`${err.name}: ${err.message}`);
       logger.error(err.stack || 'No stack trace available');
 
-
       server.close(() => {
         process.exit(1);
       });
@@ -120,7 +129,6 @@ const startServer = async () => {
       logger.error('UNCAUGHT EXCEPTION! Shutting down...');
       logger.error(`${err.name}: ${err.message}`);
       logger.error(err.stack || 'No stack trace available');
-
 
       process.exit(1);
     });
@@ -137,7 +145,6 @@ const startServer = async () => {
     logger.error(
       error instanceof Error ? error.stack || error.message : String(error)
     );
-
 
     process.exit(1);
   }

@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -13,23 +13,27 @@
 /* } */
 
 @font-face {
-  font-family: "Dm Mono";
-  src: url("./fonts/dm mono/DMMono-Regular.ttf");
+  font-family: 'Dm Mono';
+  src: url('./fonts/dm mono/DMMono-Regular.ttf');
+  font-display: swap;
 }
 
 @font-face {
-  font-family: "Work Sans";
-  src: url("./fonts/work sans/WorkSans-Regular.ttf");
+  font-family: 'Work Sans';
+  src: url('./fonts/work sans/WorkSans-Regular.ttf');
+  font-display: swap;
 }
 
 @font-face {
   font-family: 'Pong Game';
-  src: url('./fonts/pong game/Pong-Game.ttf'),
+  src: url('./fonts/pong game/Pong-Game.ttf');
+  font-display: swap;
 }
 
 @font-face {
   font-family: 'Jersey 25';
-  src: url('./fonts/jersey 25/Jersey25-Regular.ttf'),
+  src: url('./fonts/jersey 25/Jersey25-Regular.ttf');
+  font-display: swap;
 }
 
 @layer base {
@@ -52,12 +56,12 @@
 
 /* headers */
 .font-dmmono {
-  font-family: "Dm Mono", cursive;
+  font-family: 'Dm Mono', cursive;
 }
 
 /* sub texts */
 .font-worksans {
-  font-family: "Work Sans", cursive;
+  font-family: 'Work Sans', cursive;
 }
 
 /* logo text */
@@ -93,7 +97,7 @@ span,
 th,
 li,
 label {
-  font-family: "Work Sans", cursive;
+  font-family: 'Work Sans', cursive;
 }
 
 h1,
@@ -104,7 +108,7 @@ h5,
 tr,
 td,
 h6 {
-  font-family: "Dm Mono", cursive;
+  font-family: 'Dm Mono', cursive;
 }
 
 /* Admin route cursor overrides removed - using normal system cursors throughout */
@@ -126,13 +130,13 @@ h6 {
 }
 
 .gradient-shadow-hover::after {
-  content: "";
+  content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.3s;
-  filter: drop-shadow(8px 8px 10px #6A7282);
+  filter: drop-shadow(8px 8px 10px #6a7282);
 }
 
 /* in your CSS */
@@ -187,7 +191,7 @@ h6 {
 .custom-scrollbar {
   /* Firefox */
   scrollbar-width: thin;
-  scrollbar-color: #6A7282 transparent;
+  scrollbar-color: #6a7282 transparent;
 
   /* Webkit browsers */
   &::-webkit-scrollbar {

@@ -1,37 +1,37 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { useState } from "react";
-import { useCreateUser } from "../../backend/user.service";
-import { useTrackSignupClick } from "../../backend/signup.analytics.service";
-import { useSystemConfigByKey } from "../../backend/configuration.service";
+import { useState } from 'react';
+import { useCreateUser } from '../../backend/user.service';
+import { useTrackSignupClick } from '../../backend/signup.analytics.service';
+import { useSystemConfigByKey } from '../../backend/configuration.service';
 // import { toast } from "sonner";
-import { Formik, Form, Field, ErrorMessage } from "formik";
-import type { FormikHelpers, FieldProps } from "formik";
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import type { FormikHelpers, FieldProps } from 'formik';
 import {
   boolean as yupBoolean,
   object as yupObject,
   string as yupString,
-} from "yup";
+} from 'yup';
 import {
   passwordSchema,
   confirmPasswordSchema,
-} from "../../validation/password";
-import PhoneInput from "react-phone-input-2";
-import "react-phone-input-2/lib/style.css";
-import "../../styles/phone-input.css";
-import { Dialog, DialogHeader, DialogTitle } from "../../components/ui/dialog";
-import { CustomDialogContent } from "../ui/custom-dialog-content";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
-import { Checkbox } from "../../components/ui/checkbox";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { TbUser } from "react-icons/tb";
-import { AiOutlineMail } from "react-icons/ai";
-import { useNavigate } from "react-router-dom";
-import { getVisitorSessionId } from "../../utils/sessionUtils";
-import { useUserCountry } from "../../hooks/useUserCountry";
-import { WelcomeModal } from "./WelcomeModal";
+} from '../../validation/password';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
+import '../../styles/phone-input.css';
+import { Dialog, DialogHeader, DialogTitle } from '../../components/ui/dialog';
+import { CustomDialogContent } from '../ui/custom-dialog-content';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { Label } from '../../components/ui/label';
+import { Checkbox } from '../../components/ui/checkbox';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { TbUser } from 'react-icons/tb';
+import { AiOutlineMail } from 'react-icons/ai';
+import { useNavigate } from 'react-router-dom';
+import { getVisitorSessionId } from '../../utils/sessionUtils';
+import { useUserCountry } from '../../hooks/useUserCountry';
+import { WelcomeModal } from './WelcomeModal';
 
 const getAuthFields = (config?: { value?: { settings: any } }) => {
   // CHANGE REQUEST: Force email-only authentication (phone number field disabled)
@@ -130,29 +130,29 @@ const getValidationSchema = (config?: { value?: { settings: any } }) => {
     password: passwordSchema,
     confirmPassword: confirmPasswordSchema,
     ageConfirm: yupBoolean()
-      .oneOf([true], "You must be 18+ years")
-      .required("You must be 18+ years"),
+      .oneOf([true], 'You must be 18+ years')
+      .required('You must be 18+ years'),
     terms: yupBoolean()
-      .oneOf([true], "You must accept the terms of use")
-      .required("You must accept the terms of use"),
+      .oneOf([true], 'You must accept the terms of use')
+      .required('You must accept the terms of use'),
   };
 
   if (fields.showAll || fields.showEmail) {
     schema.email = yupString()
-      .email("Invalid email address")
-      .required("Email is required");
+      .email('Invalid email address')
+      .required('Email is required');
   }
 
   if (fields.showAll || fields.showPhone) {
-    schema.phoneNumber = yupString().required("Phone number is required");
+    schema.phoneNumber = yupString().required('Phone number is required');
   }
 
   if (fields.firstName) {
-    schema.firstName = yupString().required("First name is required");
+    schema.firstName = yupString().required('First name is required');
   }
 
   if (fields.lastName) {
-    schema.lastName = yupString().required("Last name is required");
+    schema.lastName = yupString().required('Last name is required');
   }
 
   return yupObject(schema);
@@ -161,16 +161,16 @@ const getValidationSchema = (config?: { value?: { settings: any } }) => {
 const getInitialValues = (config?: { value?: { settings: any } }) => {
   const fields = getAuthFields(config);
   const values: any = {
-    password: "",
-    confirmPassword: "",
+    password: '',
+    confirmPassword: '',
     ageConfirm: false,
     terms: false,
   };
 
-  if (fields.showAll || fields.showEmail) values.email = "";
-  if (fields.showAll || fields.showPhone) values.phoneNumber = "";
-  if (fields.firstName) values.firstName = "";
-  if (fields.lastName) values.lastName = "";
+  if (fields.showAll || fields.showEmail) values.email = '';
+  if (fields.showAll || fields.showPhone) values.phoneNumber = '';
+  if (fields.firstName) values.firstName = '';
+  if (fields.lastName) values.lastName = '';
 
   return values;
 };
@@ -191,7 +191,10 @@ export function SignUpModal({
 }: SignUpDialogProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
-  const { data: config } = useSystemConfigByKey("authentication_settings");
+  // Phase 0 optimization: Only fetch auth settings when modal is opened
+  const { data: config } = useSystemConfigByKey('authentication_settings', {
+    enabled: open, // Only fetch when modal is open
+  });
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { countryCode, isLoading: _isCountryLoading } = useUserCountry();
 
@@ -210,7 +213,7 @@ export function SignUpModal({
       // Track the final signup button click with session ID
       trackSignup({
         sessionId: getVisitorSessionId(),
-        type: "signup-modal",
+        type: 'signup-modal',
       });
 
       await createUser.mutateAsync({
@@ -229,7 +232,7 @@ export function SignUpModal({
       // Show welcome modal instead of immediately opening login
       setShowWelcomeModal(true);
     } catch (error: any) {
-      actions.setStatus({ error: "Failed to create account" });
+      actions.setStatus({ error: 'Failed to create account' });
     } finally {
       actions.setSubmitting(false);
     }
@@ -243,12 +246,12 @@ export function SignUpModal({
   const navigate = useNavigate();
   const handleTerms = () => {
     onOpenChange(false);
-    navigate("/terms");
+    navigate('/terms');
   };
 
   const handlePrivacy = () => {
     onOpenChange(false);
-    navigate("/privacy");
+    navigate('/privacy');
   };
 
   return (
@@ -265,7 +268,7 @@ export function SignUpModal({
             className="absolute -top-2 -right-2 sm:-top-4 sm:-right-4 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#6A7282] flex items-center justify-center shadow-lg hover:bg-[#5A626F] transition-colors"
             onClick={() => onOpenChange(false)}
             aria-label="Close"
-            style={{ border: "none" }}
+            style={{ border: 'none' }}
           >
             <span className="text-white text-2xl font-bold">×</span>
           </button>
@@ -337,33 +340,33 @@ export function SignUpModal({
                                       value={field.value}
                                       onChange={(value) =>
                                         form.setFieldValue(
-                                          "phoneNumber",
+                                          'phoneNumber',
                                           formatPhoneNumber(value)
                                         )
                                       }
                                       inputStyle={{
-                                        width: "100%",
-                                        height: "48px",
-                                        backgroundColor: "#E2E8F0",
-                                        border: "0",
-                                        borderRadius: "0.375rem",
-                                        fontFamily: "Dm Mono, cursive",
-                                        fontSize: "11px",
+                                        width: '100%',
+                                        height: '48px',
+                                        backgroundColor: '#E2E8F0',
+                                        border: '0',
+                                        borderRadius: '0.375rem',
+                                        fontFamily: 'Dm Mono, cursive',
+                                        fontSize: '11px',
                                       }}
                                       containerClass="dark:bg-[#191c2b]"
                                       buttonStyle={{
-                                        backgroundColor: "#E2E8F0",
-                                        border: "0",
-                                        borderRadius: "0.375rem 0 0 0.375rem",
+                                        backgroundColor: '#E2E8F0',
+                                        border: '0',
+                                        borderRadius: '0.375rem 0 0 0.375rem',
                                       }}
                                       dropdownStyle={{
-                                        backgroundColor: "#E2E8F0",
-                                        color: "#000",
+                                        backgroundColor: '#E2E8F0',
+                                        color: '#000',
                                         zIndex: 50,
                                       }}
                                       searchStyle={{
-                                        backgroundColor: "##E2E8F0",
-                                        color: "#000",
+                                        backgroundColor: '##E2E8F0',
+                                        color: '#000',
                                       }}
                                       enableAreaCodeStretch
                                       autoFormat
@@ -462,7 +465,7 @@ export function SignUpModal({
                           onClick={togglePasswordVisibility}
                           className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
                           aria-label={
-                            showPassword ? "Hide password" : "Show password"
+                            showPassword ? 'Hide password' : 'Show password'
                           }
                         >
                           {showPassword ? (
@@ -475,7 +478,7 @@ export function SignUpModal({
                           as={Input}
                           id="password"
                           name="password"
-                          type={showPassword ? "text" : "password"}
+                          type={showPassword ? 'text' : 'password'}
                           placeholder="Enter Password"
                           className="mt-1 md:mt-1.5 lg:mt-2 bg-[#E2E8F0] border-0 pl-10 pr-10 font-dmmono text-lg tracking-wider text-[11px] font-normal h-[48px]"
                         />
@@ -504,8 +507,8 @@ export function SignUpModal({
                           className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
                           aria-label={
                             showConfirmPassword
-                              ? "Hide password"
-                              : "Show password"
+                              ? 'Hide password'
+                              : 'Show password'
                           }
                         >
                           {showConfirmPassword ? (
@@ -518,7 +521,7 @@ export function SignUpModal({
                           as={Input}
                           id="confirmPassword"
                           name="confirmPassword"
-                          type={showConfirmPassword ? "text" : "password"}
+                          type={showConfirmPassword ? 'text' : 'password'}
                           placeholder="Confirm Password"
                           className="mt-1 md:mt-1.5 lg:mt-2 bg-[#E2E8F0] border-0 pl-10 pr-10 font-dmmono text-lg tracking-wider text-[11px] font-normal h-[48px]"
                         />
@@ -540,8 +543,8 @@ export function SignUpModal({
                               id="ageConfirm"
                               checked={field.value}
                               onCheckedChange={(checked) => {
-                                form.setFieldValue("ageConfirm", checked);
-                                form.setFieldTouched("ageConfirm", true, false);
+                                form.setFieldValue('ageConfirm', checked);
+                                form.setFieldTouched('ageConfirm', true, false);
                               }}
                               className="border-2 border-gray-400 data-[state=checked]:bg-[#6A7282] data-[state=checked]:border-[#6A7282]"
                             />
@@ -566,8 +569,8 @@ export function SignUpModal({
                               id="terms"
                               checked={field.value}
                               onCheckedChange={(checked) => {
-                                form.setFieldValue("terms", checked);
-                                form.setFieldTouched("terms", true, false);
+                                form.setFieldValue('terms', checked);
+                                form.setFieldTouched('terms', true, false);
                               }}
                               className="border-2 border-gray-400 data-[state=checked]:bg-[#6A7282] data-[state=checked]:border-[#6A7282]"
                             />
@@ -578,7 +581,7 @@ export function SignUpModal({
                           className="font-dmmono text-black dark:text-white cursor-pointer leading-6 text-xs text-start flex"
                         >
                           <div>
-                            I confirm and accept the{" "}
+                            I confirm and accept the{' '}
                             <span
                               onClick={(e) => {
                                 e.preventDefault();
@@ -587,8 +590,8 @@ export function SignUpModal({
                               className="text-[#6A7282] hover:underline cursor-pointer font-dmmono text-xs"
                             >
                               terms & conditions
-                            </span>{" "}
-                            and the{" "}
+                            </span>{' '}
+                            and the{' '}
                             <span
                               onClick={(e) => {
                                 e.preventDefault();
@@ -616,7 +619,7 @@ export function SignUpModal({
                     disabled={isSubmitting || !isValid}
                     className="w-full bg-[#6A7282] hover:bg-[#5A626F] text-white font-dmmono cursor-pointer"
                   >
-                    {isSubmitting ? "Submitting..." : "Submit"}
+                    {isSubmitting ? 'Submitting...' : 'Submit'}
                   </Button>
                 </Form>
               )}
@@ -624,7 +627,7 @@ export function SignUpModal({
 
             <div className="flex flex-col flex-1 mt-3 md:mt-4 lg:mt-5">
               <p className=" text-center text-black dark:text-white font-dmmono text-sm tracking-wider">
-                Already have an account?{" "}
+                Already have an account?{' '}
                 <button
                   className="underline text-[#6A7282] cursor-pointer font-dmmono text-sm"
                   onClick={openLoginModal}

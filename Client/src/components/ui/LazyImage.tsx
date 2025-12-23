@@ -1,12 +1,12 @@
-import React from "react";
-import { useLazyImage } from "../../hooks/useLazyImage";
-import { transformImageUrl } from "../../utils/cloudflareImageTransform";
-import type { CloudflareImageTransformOptions } from "../../utils/cloudflareImageTransform";
+import React from 'react';
+import { useLazyImage } from '../../hooks/useLazyImage';
+import { transformImageUrl } from '../../utils/cloudflareImageTransform';
+import type { CloudflareImageTransformOptions } from '../../utils/cloudflareImageTransform';
 import {
   CLOUDFLARE_ZONE,
   DEFAULT_IMAGE_OPTIONS,
-} from "../../config/imageConfig";
-import "./LazyImage.css";
+} from '../../config/imageConfig';
+import './LazyImage.css';
 
 interface LazyImageProps {
   src: string;
@@ -25,6 +25,10 @@ interface LazyImageProps {
   transformOptions?: CloudflareImageTransformOptions;
   /** Width for responsive images (used with transform) */
   width?: number;
+  /** Height for responsive images (reserves space to prevent CLS) */
+  height?: number;
+  /** Aspect ratio to maintain (e.g., "16/9", "4/3", "1/1") - prevents CLS */
+  aspectRatio?: string;
 }
 
 export const LazyImage: React.FC<LazyImageProps> = ({
@@ -37,10 +41,12 @@ export const LazyImage: React.FC<LazyImageProps> = ({
   showSpinner = true,
   spinnerColor = '#D946EF',
   threshold = 0.1,
-  rootMargin = "100px",
+  rootMargin = '100px',
   enableTransform = true,
   transformOptions,
   width,
+  height,
+  aspectRatio,
 }) => {
   // Apply Cloudflare transformations if enabled and zone is configured
   const finalSrc = React.useMemo(() => {
@@ -64,54 +70,85 @@ export const LazyImage: React.FC<LazyImageProps> = ({
     placeholder,
   });
 
+  // Calculate container style to prevent CLS
+  const containerStyle = React.useMemo(() => {
+    const style: React.CSSProperties = {};
+
+    if (aspectRatio) {
+      style.aspectRatio = aspectRatio;
+    }
+
+    if (width && !aspectRatio) {
+      style.width = typeof width === 'number' ? `${width}px` : width;
+    }
+
+    if (height && !aspectRatio) {
+      style.height = typeof height === 'number' ? `${height}px` : height;
+    }
+
+    return style;
+  }, [width, height, aspectRatio]);
+
   return (
-    <div className="relative w-full h-full min-h-[100px]">
+    <div
+      className="relative w-full h-full min-h-[100px]"
+      style={containerStyle}
+    >
       {/* Only show image when it's loaded and no error */}
       {isLoaded && !hasError && imageSrc && (
         <img
           ref={imgRef}
           src={imageSrc}
           alt={alt}
+          width={width}
+          height={height}
           className={`w-full h-full transition-all duration-500 opacity-100 blur-0 lazy-image-cover ${className}`}
+          style={aspectRatio ? { aspectRatio } : undefined}
         />
       )}
-      
+
       {/* Show loading state when not loaded and not in error */}
       {!isLoaded && !hasError && (
-        <div className={`w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 animate-pulse flex items-center justify-center ${loadingClassName}`}>
+        <div
+          className={`w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 animate-pulse flex items-center justify-center ${loadingClassName}`}
+        >
           <div ref={!isLoaded && !hasError ? imgRef : undefined}>
             {showSpinner && (
-              <div 
+              <div
                 className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin"
-                style={{ 
-                  borderColor: `${spinnerColor} transparent transparent transparent` 
+                style={{
+                  borderColor: `${spinnerColor} transparent transparent transparent`,
                 }}
               />
             )}
           </div>
         </div>
       )}
-      
+
       {/* Show error state when there's an error */}
       {hasError && (
-        <div className={`w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 flex flex-col items-center justify-center ${errorClassName}`}>
+        <div
+          className={`w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 flex flex-col items-center justify-center ${errorClassName}`}
+        >
           <div ref={hasError ? imgRef : undefined}>
             <div className="w-12 h-12 mb-2 rounded-lg bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
-              <svg 
-                className="w-6 h-6 text-gray-500 dark:text-gray-400" 
-                fill="none" 
-                stroke="currentColor" 
+              <svg
+                className="w-6 h-6 text-gray-500 dark:text-gray-400"
+                fill="none"
+                stroke="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth={2} 
-                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 002 2z" 
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 002 2z"
                 />
               </svg>
             </div>
-            <span className="text-xs text-gray-500 dark:text-gray-400 text-center">Image unavailable</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400 text-center">
+              Image unavailable
+            </span>
           </div>
         </div>
       )}

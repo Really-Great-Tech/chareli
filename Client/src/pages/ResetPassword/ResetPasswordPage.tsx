@@ -1,20 +1,22 @@
-import { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { Formik, Form, Field, ErrorMessage } from "formik";
-import { object as yupObject } from "yup";
+import { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import { object as yupObject } from 'yup';
 import {
   passwordSchema,
   confirmPasswordSchema,
-} from "../../validation/password";
-import { useResetPassword } from "../../backend/auth.service";
-import { backendService } from "../../backend/api.service";
-import { BackendRoute } from "../../backend/constants";
+} from '../../validation/password';
+import {
+  useResetPassword,
+  useVerifyResetToken,
+} from '../../backend/auth.service';
 // import { toast } from "sonner";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { LoginModal } from "../../components/modals/LoginModal";
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import logger from '../../utils/logger';
+import { Label } from '../../components/ui/label';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { LoginModal } from '../../components/modals/LoginModal';
 
 const validationSchema = yupObject({
   password: passwordSchema,
@@ -22,8 +24,8 @@ const validationSchema = yupObject({
 });
 
 const initialValues = {
-  password: "",
-  confirmPassword: "",
+  password: '',
+  confirmPassword: '',
 };
 
 export function ResetPasswordPage() {
@@ -37,6 +39,7 @@ export function ResetPasswordPage() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const navigate = useNavigate();
   const resetPassword = useResetPassword();
+  const verifyToken = useVerifyResetToken(); // Assuming this is the new hook
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
   const toggleConfirmPasswordVisibility = () =>
@@ -46,7 +49,7 @@ export function ResetPasswordPage() {
 
   useEffect(() => {
     if (!token && !userId) {
-      navigate("/");
+      navigate('/');
       return;
     }
 
@@ -62,24 +65,34 @@ export function ResetPasswordPage() {
       const verifyTokenDirectly = async () => {
         try {
           // Add cache-busting parameter to prevent 304 responses
-          const response = await backendService.get(
-            `${BackendRoute.AUTH_RESET_PASSWORD}/${token}?_=${Date.now()}`
-          );
-          console.log("Token verification response:", response);
-
-          setIsTokenValid(true);
+          // const response = await backendService.get(
+          //   `${BackendRoute.AUTH_RESET_PASSWORD}/${token}?_=${Date.now()}`
+          // );
+          if (!token) {
+            setIsTokenValid(false);
+            setIsTokenChecking(false);
+            return;
+          }
+          const response = await verifyToken.mutateAsync(token); // Using the new verifyToken hook
+          if (response) {
+            // Token verification successful - don't log sensitive data
+            logger.debug('Reset token verified successfully');
+            setIsTokenValid(true);
+          } else {
+            setIsTokenValid(false);
+          }
           setIsTokenChecking(false);
         } catch (error) {
+          logger.error('Token verification failed', error);
           setIsTokenValid(false);
           setIsTokenChecking(false);
-          console.log(error);
           // toast.error("Invalid or expired reset token");
         }
       };
 
       verifyTokenDirectly();
     }
-  }, [token, userId, navigate, isPhoneFlow]);
+  }, [token, userId, navigate, isPhoneFlow, verifyToken]); // Added verifyToken to dependencies
 
   const handleSubmit = async (values: typeof initialValues) => {
     try {
@@ -90,21 +103,22 @@ export function ResetPasswordPage() {
         confirmPassword: values.confirmPassword,
       });
       setIsSuccess(true);
-      
+
       setTimeout(() => {
-        navigate("/?openLogin=true");
+        navigate('/?openLogin=true');
       }, 2000);
-      
-    } catch (error: any) {
-      console.log(error);
+    } catch (err) {
+      logger.error('Password reset failed', err);
+      // Optionally, set an error state to display to the user
+      // setError('Failed to reset password. Please try again.');
     }
   };
 
   const requestNewResetLink = () => {
-    navigate("/");
+    navigate('/');
     setTimeout(() => {
       const forgotPasswordButton = document.querySelector(
-        "[data-forgot-password-trigger]"
+        '[data-forgot-password-trigger]'
       );
       if (forgotPasswordButton) {
         (forgotPasswordButton as HTMLElement).click();
@@ -116,7 +130,7 @@ export function ResetPasswordPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-200">
       <div className="bg-white dark:bg-[#0F1221] rounded-lg shadow-xl p-8 max-w-md w-full">
         <h1 className="text-xl font-bold mb-6 text-center text-[#6A7282] dark:text-white font-dmmono">
-          {isSuccess ? "Password Reset Successful" : "Reset Your Password"}
+          {isSuccess ? 'Password Reset Successful' : 'Reset Your Password'}
         </h1>
 
         {isTokenChecking ? (
@@ -124,16 +138,16 @@ export function ResetPasswordPage() {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#6A7282]"></div>
             <p className="mt-4  text-black dark:text-white font-worksans text-lg tracking-wider">
               {isPhoneFlow
-                ? "Preparing reset form..."
-                : "Verifying your reset token..."}
+                ? 'Preparing reset form...'
+                : 'Verifying your reset token...'}
             </p>
           </div>
         ) : !isTokenValid ? (
           <div className="space-y-4 py-4">
             <p className=" text-center text-black dark:text-white font-worksans text-lg tracking-wider">
               {isPhoneFlow
-                ? "Unable to process your password reset request."
-                : "The password reset link is invalid or has expired."}
+                ? 'Unable to process your password reset request.'
+                : 'The password reset link is invalid or has expired.'}
             </p>
             <p className=" text-center text-black dark:text-white font-worksans text-lg tracking-wider">
               Please request a new password reset link.
@@ -148,7 +162,7 @@ export function ResetPasswordPage() {
               </Button>
               <Button
                 type="button"
-                onClick={() => navigate("/")}
+                onClick={() => navigate('/')}
                 className="w-full bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-black dark:text-white border border-gray-300 dark:border-gray-700 font-dmmono"
               >
                 Return to Home
@@ -159,8 +173,18 @@ export function ResetPasswordPage() {
           <div className="space-y-4 py-4">
             <div className="flex flex-col items-center justify-center">
               <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mb-4">
-                <svg className="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                <svg
+                  className="w-8 h-8 text-green-600 dark:text-green-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
               </div>
             </div>
@@ -198,7 +222,7 @@ export function ResetPasswordPage() {
                       onClick={togglePasswordVisibility}
                       className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 z-10"
                       aria-label={
-                        showPassword ? "Hide password" : "Show password"
+                        showPassword ? 'Hide password' : 'Show password'
                       }
                     >
                       {showPassword ? (
@@ -211,7 +235,7 @@ export function ResetPasswordPage() {
                       as={Input}
                       id="password"
                       name="password"
-                      type={showPassword ? "text" : "password"}
+                      type={showPassword ? 'text' : 'password'}
                       placeholder="New password"
                       className="mt-1 bg-[#E2E8F0] dark:bg-[#191c2b] border-0 pl-10 font-worksans text-sm tracking-wider font-normal h-[48px]"
                     />
@@ -235,7 +259,7 @@ export function ResetPasswordPage() {
                       onClick={toggleConfirmPasswordVisibility}
                       className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 z-10"
                       aria-label={
-                        showConfirmPassword ? "Hide password" : "Show password"
+                        showConfirmPassword ? 'Hide password' : 'Show password'
                       }
                     >
                       {showConfirmPassword ? (
@@ -248,7 +272,7 @@ export function ResetPasswordPage() {
                       as={Input}
                       id="confirmPassword"
                       name="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
+                      type={showConfirmPassword ? 'text' : 'password'}
                       placeholder="Confirm password"
                       className="mt-1 bg-[#E2E8F0] dark:bg-[#191c2b] border-0 pl-10 font-worksans tracking-wider text-sm font-normal h-[48px]"
                     />
@@ -265,11 +289,11 @@ export function ResetPasswordPage() {
                     disabled={isSubmitting}
                     className="w-full bg-[#6A7282] hover:bg-[#5A626F] text-white font-dmmono"
                   >
-                    {isSubmitting ? "Resetting..." : "Reset Password"}
+                    {isSubmitting ? 'Resetting...' : 'Reset Password'}
                   </Button>
                   <Button
                     type="button"
-                    onClick={() => navigate("/")}
+                    onClick={() => navigate('/')}
                     className="w-full bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-black dark:text-white border border-gray-300 dark:border-gray-700 font-dmmono"
                   >
                     Return to Home
@@ -286,7 +310,7 @@ export function ResetPasswordPage() {
         onOpenChange={setIsLoginModalOpen}
         openSignUpModal={() => {
           setIsLoginModalOpen(false);
-          navigate("/");
+          navigate('/');
         }}
       />
     </div>

@@ -1,6 +1,9 @@
-import * as cron from 'node-cron';
+import cron from 'node-cron';
 import logger from '../utils/logger';
 import { checkInactiveUsers } from './userInactivityCheck';
+import { updateLikeCounts } from '../cron/updateLikeCounts';
+
+export { startJsonCdnRefreshJob } from './jsonCdnRefresh.job';
 
 /**
  * Initialize all scheduled jobs
@@ -8,8 +11,8 @@ import { checkInactiveUsers } from './userInactivityCheck';
 export function initializeScheduledJobs(): void {
   try {
     logger.info('Initializing scheduled jobs...');
-    
-    // Run user inactivity check at midnight every day
+
+    // User inactivity check - runs daily at midnight
     cron.schedule('0 0 * * *', async () => {
       logger.info('Running scheduled job: User inactivity check');
       try {
@@ -18,9 +21,16 @@ export function initializeScheduledJobs(): void {
         logger.error('Error in user inactivity check job:', error);
       }
     });
-    
-    // Add more scheduled jobs here as needed
-    
+
+    // Like count cache update - runs daily at 2 AM
+    cron.schedule('0 2 * * *', async () => {
+      try {
+        await updateLikeCounts();
+      } catch (error) {
+        logger.error('[Cron] Like count cache update failed:', error);
+      }
+    });
+
     logger.info('Scheduled jobs initialized successfully');
   } catch (error) {
     logger.error('Failed to initialize scheduled jobs:', error);

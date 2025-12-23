@@ -1,1 +1,4 @@
-.github/workflows/* merge=ours
+# Workflow files should always use the current branch's version during merges
+.github/workflows/dev.yml merge=ours
+.github/workflows/staging.yml merge=ours
+.github/workflows/release.yml merge=ours

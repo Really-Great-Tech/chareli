@@ -94,6 +94,14 @@ interface Config {
     password?: string;
     db?: number;
   };
+  logging: {
+    format: 'json' | 'pretty';
+  };
+  jsonCdn: {
+    enabled: boolean;
+    refreshIntervalMinutes: number;
+    baseUrl: string;
+  };
 }
 
 function getEnv(key: string, defaultValue?: string): string {
@@ -213,6 +221,17 @@ const config: Config = {
     port: parseInt(process.env.REDIS_PORT || '6379', 10),
     password: process.env.REDIS_PASSWORD,
     db: parseInt(process.env.REDIS_DB || '0', 10),
+  },
+  logging: {
+    format: (process.env.LOG_FORMAT || 'pretty') as 'json' | 'pretty',
+  },
+  jsonCdn: {
+    enabled: process.env.JSON_CDN_ENABLED === 'true',
+    refreshIntervalMinutes: parseInt(
+      process.env.JSON_CDN_REFRESH_INTERVAL || '5',
+      10
+    ),
+    baseUrl: process.env.JSON_CDN_BASE_URL || process.env.R2_PUBLIC_URL || '',
   },
 };
 

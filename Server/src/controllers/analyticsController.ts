@@ -3,6 +3,9 @@ import { AppDataSource } from '../config/database';
 import { Analytics } from '../entities/Analytics';
 import { ApiError } from '../middlewares/errorHandler';
 import { Between, FindOptionsWhere } from 'typeorm';
+import { cacheService } from '../services/cache.service';
+import { queueService } from '../services/queue.service';
+import logger from '../utils/logger';
 
 const analyticsRepository = AppDataSource.getRepository(Analytics);
 
@@ -51,45 +54,51 @@ const analyticsRepository = AppDataSource.getRepository(Analytics);
  *         description: Internal server error
  */
 export const createAnalytics = async (
-  req: Request, 
-  res: Response, 
+  req: Request,
+  res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { gameId, activityType, startTime, endTime, sessionCount } = req.body;
-    
-    // Get user ID from authenticated user
-    if (!req.user || !req.user.userId) {
-      return next(ApiError.unauthorized('User not authenticated'));
+    const {
+      gameId,
+      activityType,
+      startTime,
+      endTime,
+      sessionCount,
+      sessionId,
+    } = req.body;
+
+    // Get user ID from authenticated user (if logged in)
+    const userId = req.user?.userId || null;
+
+    // Require either userId or sessionId
+    if (!userId && !sessionId) {
+      return next(
+        ApiError.badRequest('Either authentication or sessionId is required')
+      );
     }
-    
-    const userId = req.user.userId;
-    
-    // Create a new analytics instance
-    const analytics = new Analytics();
-    analytics.userId = userId;
-    
-    // Only set gameId if provided (optional for login/signup activities)
-    if (gameId) {
-      analytics.gameId = gameId;
-    }
-    
-    analytics.activityType = activityType;
-    analytics.startTime = new Date(startTime);
-    
-    if (endTime) {
-      analytics.endTime = new Date(endTime);
-    }
-    
-    if (sessionCount) {
-      analytics.sessionCount = sessionCount;
-    }
-    
-    await analyticsRepository.save(analytics);
-    
+
+    // Enqueue analytics processing job
+    const job = await queueService.addAnalyticsProcessingJob({
+      userId,
+      sessionId: sessionId || null,
+      gameId: gameId || null,
+      activityType,
+      startTime: new Date(startTime),
+      endTime: endTime ? new Date(endTime) : undefined,
+      sessionCount,
+    });
+
+    // Wait for the job to complete and get the result
+    // This adds minimal delay but ensures we get the analytics ID
+    const analytics = await job.waitUntilFinished(queueService.queueEvents);
+
+    // Return 201 Created with the analytics ID
     res.status(201).json({
       success: true,
-      data: analytics
+      message: 'Analytics event created successfully',
+      id: analytics.id,
+      data: analytics,
     });
   } catch (error) {
     next(error);
@@ -163,26 +172,54 @@ export const getAllAnalytics = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { userId, gameId, activityType, startDate, endDate, page = 1, limit = 10 } = req.query;
-    
+    const {
+      userId,
+      gameId,
+      activityType,
+      startDate,
+      endDate,
+      page = 1,
+      limit = 10,
+    } = req.query;
+
     const pageNumber = parseInt(page as string, 10);
     const limitNumber = parseInt(limit as string, 10);
-    
+
+    // Try cache first - create cache key from filters
+    const filterParts = [
+      userId ? `user:${userId}` : '',
+      gameId ? `game:${gameId}` : '',
+      activityType ? `type:${activityType}` : '',
+      startDate ? `start:${startDate}` : '',
+      endDate ? `end:${endDate}` : '',
+      `page:${pageNumber}`,
+      `limit:${limitNumber}`,
+    ].filter(Boolean);
+
+    const cacheKey = filterParts.join(':') || 'all';
+    const cached = await cacheService.getAnalytics('list', cacheKey);
+
+    if (cached) {
+      logger.debug(`Cache hit for analytics query: ${cacheKey}`);
+      res.status(200).json(cached);
+      return;
+    }
+
     // Build where conditions
     const whereConditions: FindOptionsWhere<Analytics> = {};
-    
+
     if (userId) {
       whereConditions.userId = userId as string;
     }
-    
+
     if (gameId) {
       whereConditions.gameId = gameId as string;
     }
-    
+
     if (activityType) {
       whereConditions.activityType = activityType as string;
     }
-    
+
     if (startDate && endDate) {
       whereConditions.startTime = Between(
         new Date(startDate as string),
@@ -194,32 +231,44 @@ export const getAllAnalytics = async (
         new Date()
       );
     }
-    
+
     // Get total count for pagination
     const total = await analyticsRepository.count({
-      where: whereConditions
+      where: whereConditions,
     });
-    
+
     // Get analytics entries with pagination
     const analytics = await analyticsRepository.find({
       where: whereConditions,
       skip: (pageNumber - 1) * limitNumber,
       take: limitNumber,
       order: {
-        startTime: 'DESC'
+        startTime: 'DESC',
       },
-      relations: ['user', 'game']
+      relations: ['user', 'game'],
     });
-    
-    res.status(200).json({
+
+    const responseData = {
       success: true,
       count: analytics.length,
       total,
       page: pageNumber,
       limit: limitNumber,
       totalPages: Math.ceil(total / limitNumber),
-      data: analytics
-    });
+      data: analytics,
+    };
+
+    // Cache for 1 hour (3600s) - analytics data changes infrequently
+    await cacheService.setAnalytics(
+      'list',
+      cacheKey,
+      responseData,
+      undefined,
+      3600
+    );
+    logger.debug(`Cached analytics query: ${cacheKey}`);
+
+    res.status(200).json(responseData);
   } catch (error) {
     next(error);
   }
@@ -258,19 +307,19 @@ export const getAnalyticsById = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    
+
     const analytics = await analyticsRepository.findOne({
       where: { id },
-      relations: ['user', 'game']
+      relations: ['user', 'game'],
     });
-    
+
     if (!analytics) {
       return next(ApiError.notFound(`Analytics entry with id ${id} not found`));
     }
-    
+
     res.status(200).json({
       success: true,
-      data: analytics
+      data: analytics,
     });
   } catch (error) {
     next(error);
@@ -326,49 +375,52 @@ export const updateAnalytics = async (
   try {
     const { id } = req.params;
     const { endTime, sessionCount } = req.body;
-    
+
     const analytics = await analyticsRepository.findOne({
-      where: { id }
+      where: { id },
     });
-    
+
     if (!analytics) {
       return next(ApiError.notFound(`Analytics entry with id ${id} not found`));
     }
-    
+
     // Update fields
     if (endTime !== undefined) {
       if (endTime) {
         analytics.endTime = new Date(endTime);
       }
     }
-    
+
     if (sessionCount !== undefined) {
       analytics.sessionCount = sessionCount;
     }
-    
+
     // Calculate duration before saving
     if (analytics.startTime && analytics.endTime) {
-      const duration = Math.floor((analytics.endTime.getTime() - analytics.startTime.getTime()) / 1000);
-      
+      const duration = Math.floor(
+        (analytics.endTime.getTime() - analytics.startTime.getTime()) / 1000
+      );
+
       // For game sessions, only save if duration >= 30 seconds
       if (analytics.gameId && duration < 30) {
         // Delete the analytics record if it's a game session with duration < 30 seconds
         await analyticsRepository.remove(analytics);
-        
+
         res.status(200).json({
           success: true,
-          message: 'Analytics entry removed due to insufficient duration (< 30 seconds)',
-          data: null
+          message:
+            'Analytics entry removed due to insufficient duration (< 30 seconds)',
+          data: null,
         });
         return;
       }
     }
-    
+
     await analyticsRepository.save(analytics);
-    
+
     res.status(200).json({
       success: true,
-      data: analytics
+      data: analytics,
     });
   } catch (error) {
     next(error);
@@ -437,40 +489,43 @@ export const updateAnalyticsEndTime = async (
   try {
     const { id } = req.params;
     const { endTime } = req.body;
-    
+
     const analytics = await analyticsRepository.findOne({
-      where: { id }
+      where: { id },
     });
-    
+
     if (!analytics) {
       return next(ApiError.notFound(`Analytics entry with id ${id} not found`));
     }
-    
+
     analytics.endTime = new Date(endTime);
-    
+
     // Calculate duration before saving
     if (analytics.startTime && analytics.endTime) {
-      const duration = Math.floor((analytics.endTime.getTime() - analytics.startTime.getTime()) / 1000);
-      
+      const duration = Math.floor(
+        (analytics.endTime.getTime() - analytics.startTime.getTime()) / 1000
+      );
+
       // For game sessions, only save if duration >= 30 seconds
       if (analytics.gameId && duration < 30) {
         // Delete the analytics record if it's a game session with duration < 30 seconds
         await analyticsRepository.remove(analytics);
-        
+
         res.status(200).json({
           success: true,
-          message: 'Analytics entry removed due to insufficient duration (< 30 seconds)',
-          data: null
+          message:
+            'Analytics entry removed due to insufficient duration (< 30 seconds)',
+          data: null,
         });
         return;
       }
     }
-    
+
     await analyticsRepository.save(analytics);
-    
+
     res.status(200).json({
       success: true,
-      data: analytics
+      data: analytics,
     });
   } catch (error) {
     next(error);
@@ -484,20 +539,20 @@ export const deleteAnalytics = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    
+
     const analytics = await analyticsRepository.findOne({
-      where: { id }
+      where: { id },
     });
-    
+
     if (!analytics) {
       return next(ApiError.notFound(`Analytics entry with id ${id} not found`));
     }
-    
+
     await analyticsRepository.remove(analytics);
-    
+
     res.status(200).json({
       success: true,
-      message: 'Analytics entry deleted successfully'
+      message: 'Analytics entry deleted successfully',
     });
   } catch (error) {
     next(error);

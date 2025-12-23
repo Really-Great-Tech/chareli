@@ -62,3 +62,4 @@ repomix.config.json
 # Environment setup scripts
 envup.sh
 **/envup.sh
+Server/results.txt

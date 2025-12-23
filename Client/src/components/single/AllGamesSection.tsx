@@ -311,6 +311,8 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
                           src={game.thumbnailFile?.s3Key}
                           alt={game.title}
                           className="w-full h-full object-fill"
+                          aspectRatio="1/1"
+                          width={400}
                           loadingClassName="rounded-[16px]"
                           spinnerColor="#64748A"
                           rootMargin="50px"

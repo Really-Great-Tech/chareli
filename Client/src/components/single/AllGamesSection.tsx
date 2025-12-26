@@ -313,6 +313,9 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
                           className="w-full h-full object-fill"
                           aspectRatio="1/1"
                           width={400}
+                          variants={game.thumbnailFile?.variants}
+                          dimensions={game.thumbnailFile?.dimensions}
+                          enableTransform={!game.thumbnailFile?.variants}
                           loadingClassName="rounded-[16px]"
                           spinnerColor="#64748A"
                           rootMargin="50px"

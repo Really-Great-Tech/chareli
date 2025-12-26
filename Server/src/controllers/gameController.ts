@@ -1007,6 +1007,13 @@ export const createGame = async (
       permanentFolder: 'thumbnails',
     });
 
+    // Queue image processing job for variant generation
+    logger.info(`🖼️  Queuing image processing job for thumbnail`);
+    await queueService.addImageProcessingJob({
+      fileId: thumbnailFileRecord.id,
+      s3Key: permanentThumbnailKey,
+    });
+
     // Queue background job for ZIP processing
     logger.info('Queuing background job for ZIP processing...');
     console.log('🚀 [CREATE GAME] Queuing job for game:', {
@@ -1226,6 +1233,15 @@ export const updateGame = async (
 
       // Update game with new file ID
       game.thumbnailFileId = thumbnailFileRecord.id;
+
+      // Trigger background job to generate image variants
+      logger.info(
+        `🖼️  Queuing image processing job for thumbnail ${thumbnailFileRecord.id}`
+      );
+      await queueService.addImageProcessingJob({
+        fileId: thumbnailFileRecord.id,
+        s3Key: permanentThumbnailKey,
+      });
     }
     // Handle thumbnail file upload - Old multer approach (for backward compatibility)
     else if (files?.thumbnailFile && files.thumbnailFile[0]) {
@@ -1251,6 +1267,15 @@ export const updateGame = async (
 
       // Update game with new file ID
       game.thumbnailFileId = thumbnailFileRecord.id;
+
+      // Trigger background job to generate image variants
+      logger.info(
+        `🖼️  Queuing image processing job for thumbnail ${thumbnailFileRecord.id}`
+      );
+      await queueService.addImageProcessingJob({
+        fileId: thumbnailFileRecord.id,
+        s3Key: thumbnailUploadResult.key,
+      });
     }
 
     // Handle game file upload - New presigned URL approach

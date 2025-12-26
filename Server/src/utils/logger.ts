@@ -14,7 +14,7 @@ const levels = {
 // Define level based on environment
 const level = () => {
   const env = config.env || 'development';
-  return env === 'development' ? 'debug' : 'warn';
+  return env === 'development' ? 'debug' : 'info';
 };
 
 // Define colors for each level

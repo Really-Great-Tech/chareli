@@ -2,7 +2,7 @@ name: Deploy to Production Environment (arcadesbox)
 
 on:
   push:
-    branches: [release]
+    branches: [main]
     tags:
       - "v*"
 
@@ -139,7 +139,7 @@ jobs:
     environment: ${{ github.ref_name == 'release' && 'production' || github.ref_name == 'dev' && 'development' || github.ref_name == 'main' && 'staging' || 'development' }}
     if: |
       github.event_name == 'push' &&
-      github.ref == 'refs/heads/release' &&
+      github.ref == 'refs/heads/main' &&
       needs.detect-changes.outputs.backend == 'true'
 
     steps:
@@ -212,7 +212,7 @@ jobs:
     environment: ${{ github.ref_name == 'release' && 'production' || github.ref_name == 'dev' && 'development' || github.ref_name == 'main' && 'staging' || 'development' }}
     if: |
       github.event_name == 'push' &&
-      github.ref == 'refs/heads/release' &&
+      github.ref == 'refs/heads/main' &&
       needs.detect-changes.outputs.frontend == 'true'
 
     steps:
@@ -238,7 +238,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/release' }}
+    if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
 
     steps:
       - name: Generate Build Status
@@ -294,7 +294,7 @@ jobs:
           webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
           username: ArcadesBox Release Pipeline Bot
           message: |
-            🚀 **ArcadesBox Production Deployment Summary(Client Account)**
+            🚀 **ArcadesBox Staging Deployment Summary(Client Account)**
             🔀 Branch: `${{ github.ref_name }}`
             📄 Commit: `${{ github.event.head_commit.message }}` by `${{ github.actor }}`
             🏗️ Event: `${{ github.event_name }}`

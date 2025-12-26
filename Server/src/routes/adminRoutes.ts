@@ -303,6 +303,35 @@ router.post('/cache/clear/categories', async (req, res, next) => {
       success: true,
       message: 'Categories cache cleared successfully',
     });
+  } catch (error) {}
+});
+
+/**
+ * @swagger
+ * /admin/cdn/regenerate:
+ *   post:
+ *     summary: Regenerate JSON CDN files
+ *     description: Regenerate all static JSON files for CDN. Use this when data is stale.
+ *     tags: [Admin - Cache]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: CDN files regenerated successfully
+ */
+router.post('/cdn/regenerate', async (req, res, next) => {
+  try {
+    const { jsonCdnService } = await import('../services/jsonCdn.service');
+
+    // Run generation in background to avoid timeout
+    jsonCdnService.generateAllJsonFiles().catch((error) => {
+      console.error('Error generating JSON CDN files:', error);
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'JSON CDN regeneration started in background',
+    });
   } catch (error) {
     next(error);
   }

@@ -111,11 +111,22 @@ export async function generateImageVariants(
 
     const thumbnailDimensions = await getImageDimensions(thumbnailBuffer);
     const thumbnailKey = `${basePath}/${fileNameWithoutExt}-thumb.webp`;
-    await storageService.uploadFile(
-      thumbnailBuffer,
-      thumbnailKey,
-      'image/webp'
-    );
+
+    // Use uploadWithExactKey for R2 to avoid UUID prefix
+    if ('uploadWithExactKey' in storageService) {
+      await (storageService as any).uploadWithExactKey(
+        thumbnailKey,
+        thumbnailBuffer,
+        'image/webp'
+      );
+    } else {
+      await storageService.uploadFile(
+        thumbnailBuffer,
+        thumbnailKey,
+        'image/webp'
+      );
+    }
+
     variants.thumbnail = storageService.getPublicUrl(thumbnailKey);
     dimensions.thumbnail = thumbnailDimensions;
 
@@ -135,7 +146,17 @@ export async function generateImageVariants(
 
     const mediumDimensions = await getImageDimensions(mediumBuffer);
     const mediumKey = `${basePath}/${fileNameWithoutExt}-medium.webp`;
-    await storageService.uploadFile(mediumBuffer, mediumKey, 'image/webp');
+
+    if ('uploadWithExactKey' in storageService) {
+      await (storageService as any).uploadWithExactKey(
+        mediumKey,
+        mediumBuffer,
+        'image/webp'
+      );
+    } else {
+      await storageService.uploadFile(mediumBuffer, mediumKey, 'image/webp');
+    }
+
     variants.medium = storageService.getPublicUrl(mediumKey);
     dimensions.medium = mediumDimensions;
 
@@ -155,7 +176,17 @@ export async function generateImageVariants(
 
     const largeDimensions = await getImageDimensions(largeBuffer);
     const largeKey = `${basePath}/${fileNameWithoutExt}-large.webp`;
-    await storageService.uploadFile(largeBuffer, largeKey, 'image/webp');
+
+    if ('uploadWithExactKey' in storageService) {
+      await (storageService as any).uploadWithExactKey(
+        largeKey,
+        largeBuffer,
+        'image/webp'
+      );
+    } else {
+      await storageService.uploadFile(largeBuffer, largeKey, 'image/webp');
+    }
+
     variants.large = storageService.getPublicUrl(largeKey);
     dimensions.large = largeDimensions;
 

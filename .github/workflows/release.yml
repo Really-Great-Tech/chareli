@@ -1,8 +1,11 @@
-name: Deploy to Staging Environment (arcadesbox)
+name: Deploy to Production Environment (arcadesbox)
 
 on:
   push:
-    branches: [main]
+    branches: [release]
+    tags:
+      - "v*"
+
 permissions:
   packages: write
   contents: read
@@ -54,7 +57,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # --- Backend (Server) ---
+      # --- Backend (Server Prod) ---
       - name: Setup Node.js for Backend
         uses: actions/setup-node@v4
         with:
@@ -119,7 +122,6 @@ jobs:
           VITE_OFFICIAL_DOMAIN: ${{ vars.VITE_OFFICIAL_DOMAIN }}
           VITE_PAGES_DEV_DOMAIN: ${{ vars.VITE_PAGES_DEV_DOMAIN }}
           VITE_CLOUDFLARE_ZONE: ${{ vars.VITE_CLOUDFLARE_ZONE }}
-          VITE_ENABLE_CACHE_DASHBOARD: "true"
           VITE_CDN_ENABLED: ${{ vars.VITE_CDN_ENABLED }}
           VITE_CDN_BASE_URL: ${{ vars.VITE_CDN_BASE_URL }}
         run: npm run build
@@ -137,7 +139,7 @@ jobs:
     environment: ${{ github.ref_name == 'release' && 'production' || github.ref_name == 'dev' && 'development' || github.ref_name == 'main' && 'staging' || 'development' }}
     if: |
       github.event_name == 'push' &&
-      github.ref == 'refs/heads/main' &&
+      github.ref == 'refs/heads/release' &&
       needs.detect-changes.outputs.backend == 'true'
 
     steps:
@@ -165,10 +167,15 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}
+          images: 476199653856.dkr.ecr.us-east-1.amazonaws.com/arcadesbox-server-production-v1
           tags: |
-            type=ref,event=branch
-            type=sha
+            type=semver,pattern={{version}},enable=${{ startsWith(github.ref, 'refs/tags/') }}
+            type=semver,pattern={{major}}.{{minor}},enable=${{ startsWith(github.ref, 'refs/tags/') }}
+            type=semver,pattern={{major}},enable=${{ startsWith(github.ref, 'refs/tags/') }}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/') }}
+
+            type=ref,event=branch,enable=${{ !startsWith(github.ref, 'refs/tags/') }}
+            type=sha,enable=${{ !startsWith(github.ref, 'refs/tags/') }}
 
       - name: Build and Push Backend Docker Image
         uses: docker/build-push-action@v6
@@ -204,7 +211,7 @@ jobs:
     environment: ${{ github.ref_name == 'release' && 'production' || github.ref_name == 'dev' && 'development' || github.ref_name == 'main' && 'staging' || 'development' }}
     if: |
       github.event_name == 'push' &&
-      github.ref == 'refs/heads/main' &&
+      github.ref == 'refs/heads/release' &&
       needs.detect-changes.outputs.frontend == 'true'
 
     steps:
@@ -230,7 +237,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/release' }}
 
     steps:
       - name: Generate Build Status
@@ -284,9 +291,9 @@ jobs:
         uses: appleboy/discord-action@v1.2.0
         with:
           webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          username: ArcadesBox Staging Pipeline Bot
+          username: ArcadesBox Release Pipeline Bot
           message: |
-            🚀 **ArcadesBox Staging Deployment Summary(Client Account)**
+            🚀 **ArcadesBox Production Deployment Summary(Client Account)**
             🔀 Branch: `${{ github.ref_name }}`
             📄 Commit: `${{ github.event.head_commit.message }}` by `${{ github.actor }}`
             🏗️ Event: `${{ github.event_name }}`

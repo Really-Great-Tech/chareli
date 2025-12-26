@@ -1,4 +1,4 @@
-name: Deploy to Production Environment (arcadesbox)
+name: Deploy to Client Production Environment (arcadesbox)
 
 on:
   push:

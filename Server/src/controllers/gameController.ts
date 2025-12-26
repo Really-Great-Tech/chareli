@@ -973,13 +973,13 @@ export const createGame = async (
     logger.info('Generating unique slug from title...');
     const slug = await generateUniqueSlug(title);
 
-    // Create new game with pending processing status and disabled status (no thumbnailFileId yet)
-    logger.info('Creating game record with pending processing status...');
+    // Create new game with thumbnail file ID already set (since we processed it synchronously)
+    logger.info('Creating game record with thumbnail file ID...');
     const game = gameRepository.create({
       title,
       slug,
       description,
-      thumbnailFileId: undefined, // Will be set by background worker
+      thumbnailFileId: thumbnailFileRecord.id, // ✅ Set immediately since we already processed it
       gameFileId: undefined, // Will be set by background worker
       categoryId: finalCategoryId,
       status: GameStatus.DISABLED, // Always start as disabled until processing completes
@@ -999,13 +999,8 @@ export const createGame = async (
       queryRunner
     );
 
-    // Queue background job for thumbnail processing
-    logger.info('Queuing background job for thumbnail processing...');
-    await queueService.addThumbnailProcessingJob({
-      gameId: game.id,
-      tempKey: thumbnailFileKey,
-      permanentFolder: 'thumbnails',
-    });
+    // ❌ REMOVED: Thumbnail processing job (thumbnail already processed synchronously above)
+    // The thumbnail was already moved and file record created, no need for background job
 
     // Queue image processing job for variant generation
     logger.info(`🖼️  Queuing image processing job for thumbnail`);

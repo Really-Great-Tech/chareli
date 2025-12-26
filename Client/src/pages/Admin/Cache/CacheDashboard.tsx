@@ -312,7 +312,7 @@ export default function CacheDashboard() {
                     </Button>
                   </div>
                   <div className="flex items-center justify-between p-3 rounded-lg bg-white dark:bg-gray-800">
-                  <div>
+                    <div>
                       <p className="font-medium text-gray-900 dark:text-white">
                         Regenerate JSON CDN
                       </p>
@@ -323,18 +323,32 @@ export default function CacheDashboard() {
                     <Button
                       onClick={async () => {
                         try {
-                          const result = await regenerateJsonCdnMutation.mutateAsync();
-                          toast.success(result.message || 'JSON CDN regeneration started');
-                        } catch (err: unknown) {
-                          const errorMessage = (err as { response?: { data?: { message?: string } })?.response?.data?.message;
-                          toast.error(errorMessage || 'Failed to regenerate JSON CDN');
+                          const result =
+                            await regenerateJsonCdnMutation.mutateAsync();
+                          toast.success(
+                            result.message || 'JSON CDN regeneration started'
+                          );
+                        } catch (err) {
+                          const error = err as {
+                            response?: { data?: { message?: string } };
+                          };
+                          toast.error(
+                            error?.response?.data?.message ||
+                              'Failed to regenerate JSON CDN'
+                          );
                         }
                       }}
                       disabled={regenerateJsonCdnMutation.isPending}
                       variant="outline"
                       size="sm"
                     >
-                      <RefreshCw className={`mr-2 h-4 w-4 ${regenerateJsonCdnMutation.isPending ? 'animate-spin' : ''}`} />
+                      <RefreshCw
+                        className={`mr-2 h-4 w-4 ${
+                          regenerateJsonCdnMutation.isPending
+                            ? 'animate-spin'
+                            : ''
+                        }`}
+                      />
                       Regenerate
                     </Button>
                   </div>

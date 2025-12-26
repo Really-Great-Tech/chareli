@@ -44,7 +44,7 @@ export class ImageReprocessingService {
       };
     }
 
-    return JSON.parse(statusStr);
+    return JSON.parse(statusStr as string);
   }
 
   /**
@@ -52,7 +52,7 @@ export class ImageReprocessingService {
    */
   async getErrors(): Promise<ReprocessingError[]> {
     const errorsStr = await redisService.get(REDIS_ERRORS_KEY);
-    return errorsStr ? JSON.parse(errorsStr) : [];
+    return errorsStr ? JSON.parse(errorsStr as string) : [];
   }
 
   /**
@@ -109,7 +109,7 @@ export class ImageReprocessingService {
     }
 
     status.paused = true;
-    await redisClient.set(REDIS_STATUS_KEY, JSON.stringify(status));
+    await redisService.set(REDIS_STATUS_KEY, JSON.stringify(status));
     logger.info('⏸️  Image reprocessing paused');
   }
 
@@ -128,7 +128,7 @@ export class ImageReprocessingService {
     }
 
     status.paused = false;
-    await redisClient.set(REDIS_STATUS_KEY, JSON.stringify(status));
+    await redisService.set(REDIS_STATUS_KEY, JSON.stringify(status));
     logger.info('▶️  Image reprocessing resumed');
 
     // Restart processing loop
@@ -203,10 +203,7 @@ export class ImageReprocessingService {
 
           const errors = await this.getErrors();
           errors.push(errorObj);
-          await redisService.set(
-            REDIS_ERRORS_KEY,
-            JSON.stringify(errors)
-          );
+          await redisService.set(REDIS_ERRORS_KEY, JSON.stringify(errors));
 
           logger.error(`Failed to queue ${file.s3Key}:`, error);
         }

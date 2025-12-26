@@ -454,7 +454,7 @@ class JsonCdnService {
         }
       );
 
-      logger.debug(`Uploaded JSON to R2: ${fullKey} (${buffer.length} bytes)`);
+      logger.info(`Uploaded JSON to R2: ${fullKey} (${buffer.length} bytes)`);
     } catch (error) {
       logger.error(`Error uploading JSON ${key}:`, error);
       throw error;

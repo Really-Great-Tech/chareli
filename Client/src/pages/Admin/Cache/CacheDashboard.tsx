@@ -139,8 +139,11 @@ export default function CacheDashboard() {
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
             Monitor and manage Redis cache performance
             <span className="ml-2 inline-flex items-center rounded-full bg-yellow-100 dark:bg-yellow-900/30 px-2.5 py-0.5 text-xs font-medium text-yellow-800 dark:text-yellow-300">
-              DEV/TEST ONLY
+              USE WITH CAUTION
             </span>
+          </p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            Most times you do not need to clear the cache
           </p>
         </div>
         <Button

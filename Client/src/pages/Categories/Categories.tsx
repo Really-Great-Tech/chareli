@@ -363,11 +363,14 @@ export default function Categories() {
                       <div className="relative h-full overflow-hidden rounded-[20px] transition-all duration-300 ease-in-out group-hover:shadow-[0_0px_20px_#6A7282,0_0px_10px_rgba(106,114,130,0.8)] aspect-square sm:aspect-auto">
                         <div className="w-full h-full rounded-[16px] overflow-hidden">
                           <LazyImage
-                            src={game.thumbnailFile?.s3Key}
+                            src={game.thumbnailFile?.s3Key || emptyGameImg}
                             alt={game.title}
                             className="w-full h-full object-fill"
-                            loadingClassName="rounded-[16px]"
-                            spinnerColor="#6A7282"
+                            variants={game.thumbnailFile?.variants}
+                            dimensions={game.thumbnailFile?.dimensions}
+                            enableTransform={!game.thumbnailFile?.variants}
+                            loadingClassName="rounded-[28px]"
+                            spinnerColor="#64748A"
                             rootMargin="50px"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent group-hover:opacity-100 transition-opacity duration-300 lg:opacity-0 lg:group-hover:opacity-100 rounded-[16px]">

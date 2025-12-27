@@ -98,3 +98,18 @@ export const useClearCategoriesCache = () => {
     },
   });
 };
+
+/**
+ * Hook to regenerate JSON CDN files
+ * Triggers background regeneration of all static JSON files
+ */
+export const useRegenerateJsonCdn = () => {
+  return useMutation<CacheClearResponse>({
+    mutationFn: async () => {
+      const response = (await backendService.post(
+        '/api/admin/cdn/regenerate'
+      )) as unknown as CacheClearResponse;
+      return response;
+    },
+  });
+};

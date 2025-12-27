@@ -123,6 +123,7 @@ jobs:
           VITE_GAMES_CDN_URL: ${{ vars.VITE_GAMES_CDN_URL}}
           VITE_OFFICIAL_DOMAIN: ${{ vars.VITE_OFFICIAL_DOMAIN }}
           VITE_PAGES_DEV_DOMAIN: ${{ vars.VITE_PAGES_DEV_DOMAIN }}
+          VITE_ENABLE_CACHE_DASHBOARD: "true"
           VITE_CLOUDFLARE_ZONE: ${{ vars.VITE_CLOUDFLARE_ZONE }}
           VITE_CDN_ENABLED: ${{ vars.VITE_CDN_ENABLED }}
           VITE_CDN_BASE_URL: ${{ vars.VITE_CDN_BASE_URL }}

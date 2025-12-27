@@ -47,6 +47,8 @@ interface LazyImageProps {
   variants?: ImageVariants;
   /** Dimensions from backend for CLS prevention */
   dimensions?: ImageDimensions;
+  /** Fetch priority hint for browser (use 'high' for LCP images) */
+  fetchPriority?: 'high' | 'low' | 'auto';
 }
 
 export const LazyImage: React.FC<LazyImageProps> = ({
@@ -67,6 +69,7 @@ export const LazyImage: React.FC<LazyImageProps> = ({
   aspectRatio,
   variants,
   dimensions,
+  fetchPriority = 'auto',
 }) => {
   // Determine if we should use Sharp variants or Cloudflare transforms
   const hasVariants = variants && Object.keys(variants).length > 0;
@@ -176,6 +179,8 @@ export const LazyImage: React.FC<LazyImageProps> = ({
           height={imageDimensions?.height || height}
           className={`w-full h-full transition-all duration-500 opacity-100 blur-0 lazy-image-cover ${className}`}
           style={aspectRatio ? { aspectRatio } : undefined}
+          loading={fetchPriority === 'high' ? 'eager' : 'lazy'}
+          fetchPriority={fetchPriority}
         />
       )}
 

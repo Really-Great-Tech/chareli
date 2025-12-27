@@ -2,9 +2,32 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Fonts now loaded via Google Fonts CDN in index.html */
-/* Keeping Pong Game as it's custom and not available on Google Fonts */
+/* Self-hosted WOFF2 fonts for optimal performance */
+@font-face {
+  font-family: 'DM Mono';
+  src: url('./fonts/woff2/dm-mono-regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 
+@font-face {
+  font-family: 'Work Sans';
+  src: url('./fonts/woff2/work-sans-regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Jersey 25';
+  src: url('./fonts/woff2/jersey-25-regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Keeping Pong Game as it's custom and not available elsewhere */
 @font-face {
   font-family: 'Pong Game';
   src: url('./fonts/pong game/Pong-Game.ttf');

@@ -24,8 +24,8 @@ export default function ImageReprocessing() {
 
   const [batchSize, setBatchSize] = useState(10);
 
-  // Access control: admin only
-  if (!permissions.isAdmin) {
+  // Access control: same as cache dashboard (superadmin in dev/test)
+  if (!permissions.canAccessCacheDashboard) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <Card className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 p-8">
@@ -35,7 +35,7 @@ export default function ImageReprocessing() {
               Access Denied
             </h2>
             <p className="text-red-700 dark:text-red-300 max-w-md">
-              This feature is only accessible to admin users.
+              This feature is only accessible to superadmin users in dev/test environments.
             </p>
           </div>
         </Card>

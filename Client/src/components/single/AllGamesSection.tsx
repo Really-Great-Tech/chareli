@@ -277,35 +277,14 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 md:gap-6 auto-rows-[1fr] sm:auto-rows-[160px] md:auto-rows-[150px]">
-              {games.map((game: any, index: number) => {
-                // Different behavior for mobile vs desktop
-                let colSpan = 1;
-                let rowSpan = 1;
-
-                if (screenSize === 'mobile') {
-                  // Mobile: uniform sizes (no varied widths)
-                  colSpan = 1;
-                } else {
-                  // Desktop: keep original varied heights
-                  const spans = [1.2, 1.3, 1.25]; // Even more uniform heights with minimal variation
-                  const spanIndex = index % spans.length;
-                  const heightSpan = spans[spanIndex];
-                  rowSpan = Math.round(heightSpan * 2);
-                }
-
+              {games.map((game: any) => {
                 return (
                   <div
                     key={game.id}
                     className="relative group cursor-pointer"
-                    style={{
-                      gridColumn:
-                        screenSize === 'mobile' ? `span ${colSpan}` : 'span 1',
-                      gridRow:
-                        screenSize === 'mobile' ? 'span 1' : `span ${rowSpan}`,
-                    }}
                     onClick={() => handleGameClick(game.id, game.slug)}
                   >
-                    <div className="relative h-full overflow-hidden rounded-[20px] transition-all duration-300 ease-in-out group-hover:shadow-[0_0px_20px_#64748A,0_0px_10px_rgba(100,116,138,0.8)] aspect-square sm:aspect-auto">
+                    <div className="relative aspect-square overflow-hidden rounded-[20px] transition-all duration-300 ease-in-out group-hover:shadow-[0_0px_20px_#64748A,0_0px_10px_rgba(100,116,138,0.8)]">
                       <div className="w-full h-full rounded-[16px] overflow-hidden">
                         <LazyImage
                           src={game.thumbnailFile?.s3Key}

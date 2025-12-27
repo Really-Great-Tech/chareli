@@ -63,3 +63,12 @@ repomix.config.json
 envup.sh
 **/envup.sh
 Server/results.txt
+
+# Database dumps - prevent accidental commits
+*.sql
+supabase_*.sql
+*_dump.sql
+
+# Local docker compose files
+compose.yml
+docker-compose.override.yml

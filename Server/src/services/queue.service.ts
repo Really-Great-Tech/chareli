@@ -9,6 +9,7 @@ export enum JobType {
   ANALYTICS_PROCESSING = 'analytics-processing',
   LIKE_PROCESSING = 'like-processing',
   JSON_CDN_GENERATION = 'json-cdn-generation',
+  IMAGE_PROCESSING = 'image-processing',
 }
 
 // Job data interfaces
@@ -43,6 +44,11 @@ export interface LikeProcessingJobData {
 export interface JsonCdnJobData {
   type: 'full' | 'invalidate';
   paths?: string[]; // For invalidation
+}
+
+export interface ImageProcessingJobData {
+  fileId: string;
+  s3Key: string;
 }
 
 class QueueService {
@@ -144,6 +150,22 @@ class QueueService {
     });
 
     this.queues.set(JobType.JSON_CDN_GENERATION, jsonCdnQueue);
+
+    // Create image processing queue
+    const imageProcessingQueue = new Queue(JobType.IMAGE_PROCESSING, {
+      connection: redisConfig,
+      defaultJobOptions: {
+        removeOnComplete: 100,
+        removeOnFail: 200,
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 2000,
+        },
+      },
+    });
+
+    this.queues.set(JobType.IMAGE_PROCESSING, imageProcessingQueue);
 
     // Create QueueEvents for analytics queue to listen for job completion
     this.queueEvents = new QueueEvents(JobType.ANALYTICS_PROCESSING, {
@@ -262,6 +284,29 @@ class QueueService {
     });
 
     logger.info(`Added JSON CDN job: ${data.type} with job ID: ${job.id}`);
+    return job;
+  }
+
+  async addImageProcessingJob(
+    data: ImageProcessingJobData,
+    options?: {
+      delay?: number;
+      priority?: number;
+    }
+  ): Promise<Job<ImageProcessingJobData>> {
+    const queue = this.queues.get(JobType.IMAGE_PROCESSING);
+    if (!queue) {
+      throw new Error('Image processing queue not found');
+    }
+
+    const job = await queue.add('process-image', data, {
+      ...options,
+      jobId: `image-${data.fileId}-${Date.now()}`,
+    });
+
+    logger.info(
+      `Added image processing job for file ${data.fileId} with job ID: ${job.id}`
+    );
     return job;
   }
 

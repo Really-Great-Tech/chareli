@@ -8,6 +8,20 @@ import {
 } from '../../config/imageConfig';
 import './LazyImage.css';
 
+// Image variant interfaces (matching backend)
+interface ImageVariants {
+  thumbnail?: string; // 256px width WebP
+  medium?: string; // 768px width WebP
+  large?: string; // 1536px width WebP
+}
+
+interface ImageDimensions {
+  original?: { width: number; height: number };
+  thumbnail?: { width: number; height: number };
+  medium?: { width: number; height: number };
+  large?: { width: number; height: number };
+}
+
 interface LazyImageProps {
   src: string;
   alt: string;
@@ -29,6 +43,12 @@ interface LazyImageProps {
   height?: number;
   /** Aspect ratio to maintain (e.g., "16/9", "4/3", "1/1") - prevents CLS */
   aspectRatio?: string;
+  /** Sharp-generated WebP variants (from backend) */
+  variants?: ImageVariants;
+  /** Dimensions from backend for CLS prevention */
+  dimensions?: ImageDimensions;
+  /** Fetch priority hint for browser (use 'high' for LCP images) */
+  fetchPriority?: 'high' | 'low' | 'auto';
 }
 
 export const LazyImage: React.FC<LazyImageProps> = ({
@@ -47,28 +67,81 @@ export const LazyImage: React.FC<LazyImageProps> = ({
   width,
   height,
   aspectRatio,
+  variants,
+  dimensions,
+  fetchPriority = 'auto',
 }) => {
-  // Apply Cloudflare transformations if enabled and zone is configured
+  // Determine if we should use Sharp variants or Cloudflare transforms
+  const hasVariants = variants && Object.keys(variants).length > 0;
+
+  // Use variants if available, otherwise use Cloudflare transforms
+  const shouldUseCloudflare =
+    enableTransform && !hasVariants && CLOUDFLARE_ZONE;
+
+  // Apply Cloudflare transformations only if no variants exist
   const finalSrc = React.useMemo(() => {
-    if (!enableTransform || !CLOUDFLARE_ZONE || !src) {
-      return src;
+    if (shouldUseCloudflare && src) {
+      // Merge default options with provided options and width
+      const options: CloudflareImageTransformOptions = {
+        ...DEFAULT_IMAGE_OPTIONS,
+        ...transformOptions,
+        ...(width && { width }),
+      };
+      return transformImageUrl(src, options, CLOUDFLARE_ZONE);
     }
-
-    // Merge default options with provided options and width
-    const options: CloudflareImageTransformOptions = {
-      ...DEFAULT_IMAGE_OPTIONS,
-      ...transformOptions,
-      ...(width && { width }),
-    };
-
-    return transformImageUrl(src, options, CLOUDFLARE_ZONE);
-  }, [src, enableTransform, transformOptions, width]);
+    return src;
+  }, [src, shouldUseCloudflare, transformOptions, width]);
 
   const { imageSrc, isLoaded, hasError, imgRef } = useLazyImage(finalSrc, {
     threshold,
     rootMargin,
     placeholder,
   });
+
+  // Generate srcset from Sharp variants
+  const srcSet = React.useMemo(() => {
+    if (!hasVariants || !variants) return undefined;
+
+    const srcsetParts: string[] = [];
+
+    if (variants.thumbnail) {
+      srcsetParts.push(`${variants.thumbnail} 256w`);
+    }
+    if (variants.medium) {
+      srcsetParts.push(`${variants.medium} 768w`);
+    }
+    if (variants.large) {
+      srcsetParts.push(`${variants.large} 1536w`);
+    }
+
+    return srcsetParts.length > 0 ? srcsetParts.join(', ') : undefined;
+  }, [hasVariants, variants]);
+
+  // Determine best variant source for main src (use medium as default)
+  const bestSrc = React.useMemo(() => {
+    if (hasVariants && variants) {
+      return (
+        variants.medium || variants.large || variants.thumbnail || imageSrc
+      );
+    }
+    return imageSrc;
+  }, [hasVariants, variants, imageSrc]);
+
+  // Get dimensions for CLS prevention
+  const imageDimensions = React.useMemo(() => {
+    // Prioritize dimensions from database
+    if (dimensions?.medium) {
+      return dimensions.medium;
+    }
+    if (dimensions?.original) {
+      return dimensions.original;
+    }
+    // Fallback to provided width/height
+    if (width && height) {
+      return { width, height };
+    }
+    return null;
+  }, [dimensions, width, height]);
 
   // Calculate container style to prevent CLS
   const containerStyle = React.useMemo(() => {
@@ -95,15 +168,19 @@ export const LazyImage: React.FC<LazyImageProps> = ({
       style={containerStyle}
     >
       {/* Only show image when it's loaded and no error */}
-      {isLoaded && !hasError && imageSrc && (
+      {isLoaded && !hasError && (bestSrc || imageSrc) && (
         <img
           ref={imgRef}
-          src={imageSrc}
+          src={bestSrc || imageSrc}
+          srcSet={srcSet}
+          sizes="(max-width: 640px) 256px, (max-width: 1024px) 768px, 1536px"
           alt={alt}
-          width={width}
-          height={height}
+          width={imageDimensions?.width || width}
+          height={imageDimensions?.height || height}
           className={`w-full h-full transition-all duration-500 opacity-100 blur-0 lazy-image-cover ${className}`}
           style={aspectRatio ? { aspectRatio } : undefined}
+          loading={fetchPriority === 'high' ? 'eager' : 'lazy'}
+          fetchPriority={fetchPriority}
         />
       )}
 

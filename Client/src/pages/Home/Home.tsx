@@ -19,12 +19,17 @@ const LoginModal = lazy(() =>
   }))
 );
 
-const SectionFallback = ({ title }: { title: string }) => (
+const SectionFallback = ({ title, count = 4 }: { title: string; count?: number }) => (
   <div className="p-4">
-    <div
-      className="h-48 animate-pulse rounded-[32px] bg-[#e2e8f0]/60 dark:bg-[#1f2937]/60"
-      aria-label={`${title} loading`}
-    />
+    <div className="grid gap-6 w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3">
+      {Array.from({ length: count }).map((_, i) => (
+        <div
+          key={i}
+          className="aspect-square animate-pulse rounded-[32px] bg-[#e2e8f0]/60 dark:bg-[#1f2937]/60"
+          aria-label={`${title} item ${i + 1} loading`}
+        />
+      ))}
+    </div>
   </div>
 );
 
@@ -72,7 +77,7 @@ function Home() {
           setSearchQuery={setSearchQuery}
         />
       </Suspense>
-      <Suspense fallback={<SectionFallback title="All games" />}>
+      <Suspense fallback={<SectionFallback title="All games" count={9} />}>
         <AllGamesSection searchQuery={searchQuery} />
       </Suspense>
       <Suspense fallback={null}>

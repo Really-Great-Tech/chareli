@@ -46,6 +46,9 @@ const Privacy = lazy(() => import('../pages/PrivacyPolicy/Privacy'));
 const CacheDashboard = lazy(
   () => import('../pages/Admin/Cache/CacheDashboard')
 );
+const ImageReprocessing = lazy(
+  () => import('../pages/Admin/ImageReprocessing/ImageReprocessing')
+);
 
 const RouteFallback = () => (
   <div className="flex min-h-screen items-center justify-center bg-[#0F1221] text-white">
@@ -110,6 +113,7 @@ export const AppRoutes = () => {
         <Route path="admin/" element={<ProtectedRoute requireAdmin={true} />}>
           <Route element={<AdminLayout />}>
             <Route path="cache" element={<CacheDashboard />} />
+            <Route path="image-reprocessing" element={<ImageReprocessing />} />
           </Route>
         </Route>
 

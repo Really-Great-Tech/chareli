@@ -16,6 +16,13 @@ import {
   runInactiveUsersCheck,
   getUserActivityLog,
 } from '../controllers/adminDashboardController';
+import {
+  getReprocessingStatus,
+  startReprocessing,
+  pauseReprocessing,
+  resumeReprocessing,
+  resetReprocessing,
+} from '../controllers/imageReprocessingController';
 
 const router = Router();
 
@@ -336,5 +343,87 @@ router.post('/cdn/regenerate', async (req, res, next) => {
     next(error);
   }
 });
+
+// Image Reprocessing Routes
+/**
+ * @swagger
+ * /admin/image-reprocessing/status:
+ *   get:
+ *     summary: Get image reprocessing status
+ *     description: Get current status of image reprocessing including progress and errors
+ *     tags: [Admin - Image Reprocessing]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Status retrieved successfully
+ */
+router.get('/image-reprocessing/status', getReprocessingStatus);
+
+/**
+ * @swagger
+ * /admin/image-reprocessing/start:
+ *   post:
+ *     summary: Start image reprocessing
+ *     description: Start reprocessing unprocessed images to generate Sharp variants
+ *     tags: [Admin - Image Reprocessing]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               batchSize:
+ *                 type: number
+ *                 default: 10
+ *     responses:
+ *       200:
+ *         description: Reprocessing started successfully
+ */
+router.post('/image-reprocessing/start', startReprocessing);
+
+/**
+ * @swagger
+ * /admin/image-reprocessing/pause:
+ *   post:
+ *     summary: Pause image reprocessing
+ *     tags: [Admin - Image Reprocessing]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Reprocessing paused successfully
+ */
+router.post('/image-reprocessing/pause', pauseReprocessing);
+
+/**
+ * @swagger
+ * /admin/image-reprocessing/resume:
+ *   post:
+ *     summary: Resume image reprocessing
+ *     tags: [Admin - Image Reprocessing]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Reprocessing resumed successfully
+ */
+router.post('/image-reprocessing/resume', resumeReprocessing);
+
+/**
+ * @swagger
+ * /admin/image-reprocessing/reset:
+ *   delete:
+ *     summary: Reset reprocessing status
+ *     tags: [Admin - Image Reprocessing]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Status reset successfully
+ */
+router.delete('/image-reprocessing/reset', resetReprocessing);
 
 export default router;

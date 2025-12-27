@@ -3,16 +3,37 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+
+    <!-- Resource Hints: Enable early connections to critical origins -->
+    <!-- Google Analytics -->
+    <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+
+    <!-- Facebook Pixel -->
+    <link rel="preconnect" href="https://connect.facebook.net" crossorigin>
+    <link rel="dns-prefetch" href="https://connect.facebook.net">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- CDN (for production) -->
+    <link rel="dns-prefetch" href="https://cdn.arcadesbox.org">
+
     <title>Arcades Box – Play Free Online Arcade and Puzzle Games</title>
-    <meta
-      name="description"
-      content="Play free online arcade, puzzle, sports and action games on Arcades Box. Instant play, no downloads, and new games added regularly."
-    />
+    <meta name="description" content="Play free online arcade, puzzle, sports and action games on Arcades Box. Instant play, no downloads, and new games added regularly." />
     <link rel="canonical" href="https://www.arcadesbox.com/" />
+
+    <!-- Preload Critical Resources -->
+    <link rel="modulepreload" href="/src/main.tsx">
+    <link rel="preload" href="/src/index.css" as="style">
+
+    <!-- Preload Critical Fonts (WOFF2) -->
+    <link rel="preload" href="/src/fonts/woff2/dm-mono-regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/src/fonts/woff2/work-sans-regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/src/fonts/woff2/jersey-25-regular.woff2" as="font" type="font/woff2" crossorigin>
+
 
     <!-- Analytics Domain Check -->
     <script>
@@ -34,59 +55,69 @@
       window.shouldLoadAnalytics = shouldLoadAnalytics;
     </script>
 
-    <!-- Google tag (gtag.js) - Conditionally Loaded -->
+    <!-- Google tag (gtag.js) - Deferred Loading for Better Performance -->
     <script>
-      if (window.shouldLoadAnalytics) {
-        // Load Google Analytics script
-        const gaScript = document.createElement("script");
-        gaScript.async = true;
-        gaScript.src =
-          "https://www.googletagmanager.com/gtag/js?id=G-M661H945TQ";
-        document.head.appendChild(gaScript);
+      // Defer analytics loading until after page is interactive
+      window.addEventListener('load', function () {
+        setTimeout(function () {
+          if (window.shouldLoadAnalytics) {
+            // Load Google Analytics script
+            const gaScript = document.createElement("script");
+            gaScript.async = true;
+            gaScript.src =
+              "https://www.googletagmanager.com/gtag/js?id=G-M661H945TQ";
+            document.head.appendChild(gaScript);
 
-        // Initialize Google Analytics
-        window.dataLayer = window.dataLayer || [];
-        function gtag() {
-          dataLayer.push(arguments);
-        }
-        gtag("js", new Date());
-        gtag("config", "G-M661H945TQ");
+            // Initialize Google Analytics
+            window.dataLayer = window.dataLayer || [];
+            function gtag() {
+              dataLayer.push(arguments);
+            }
+            gtag("js", new Date());
+            gtag("config", "G-M661H945TQ");
 
-        console.log("[Analytics] Google Analytics enabled");
-      }
+            console.log("[Analytics] Google Analytics enabled");
+          }
+        }, 2000); // 2 second delay
+      });
     </script>
 
-    <!-- Facebook Pixel Code - Conditionally Loaded -->
+    <!-- Facebook Pixel Code - Deferred Loading for Better Performance -->
     <script>
-      if (window.shouldLoadAnalytics) {
-        !(function (f, b, e, v, n, t, s) {
-          if (f.fbq) return;
-          n = f.fbq = function () {
-            n.callMethod
-              ? n.callMethod.apply(n, arguments)
-              : n.queue.push(arguments);
-          };
-          if (!f._fbq) f._fbq = n;
-          n.push = n;
-          n.loaded = !0;
-          n.version = "2.0";
-          n.queue = [];
-          t = b.createElement(e);
-          t.async = !0;
-          t.src = v;
-          s = b.getElementsByTagName(e)[0];
-          s.parentNode.insertBefore(t, s);
-        })(
-          window,
-          document,
-          "script",
-          "https://connect.facebook.net/en_US/fbevents.js"
-        );
-        fbq("init", "1940362026887774");
-        fbq("track", "PageView");
+      // Defer Facebook Pixel loading until after page is interactive
+      window.addEventListener('load', function () {
+        setTimeout(function () {
+          if (window.shouldLoadAnalytics) {
+            !(function (f, b, e, v, n, t, s) {
+              if (f.fbq) return;
+              n = f.fbq = function () {
+                n.callMethod
+                  ? n.callMethod.apply(n, arguments)
+                  : n.queue.push(arguments);
+              };
+              if (!f._fbq) f._fbq = n;
+              n.push = n;
+              n.loaded = !0;
+              n.version = "2.0";
+              n.queue = [];
+              t = b.createElement(e);
+              t.async = !0;
+              t.src = v;
+              s = b.getElementsByTagName(e)[0];
+              s.parentNode.insertBefore(t, s);
+            })(
+              window,
+              document,
+              "script",
+              "https://connect.facebook.net/en_US/fbevents.js"
+            );
+            fbq("init", "1940362026887774");
+            fbq("track", "PageView");
 
-        console.log("[Analytics] Facebook Pixel enabled");
-      }
+            console.log("[Analytics] Facebook Pixel enabled");
+          }
+        }, 2000); // 2 second delay
+      });
     </script>
     <!-- End Facebook Pixel Code -->
 
@@ -123,30 +154,38 @@
       }
     </script>
 
-    <!-- Google Ads Conversion Tag (gtag.js) - Conditionally Loaded -->
+    <!-- Google Ads Conversion Tag (gtag.js) - Deferred Loading -->
     <script>
-      if (window.shouldLoadAnalytics) {
-        // Load Google Ads script dynamically
-        const adsScript = document.createElement("script");
-        adsScript.async = true;
-        adsScript.src =
-          "https://www.googletagmanager.com/gtag/js?id=AW-17063551057";
-        document.head.appendChild(adsScript);
+      // Defer Google Ads loading until after page is interactive
+      window.addEventListener('load', function () {
+        setTimeout(function () {
+          if (window.shouldLoadAnalytics) {
+            // Load Google Ads script dynamically
+            const adsScript = document.createElement("script");
+            adsScript.async = true;
+            adsScript.src =
+              "https://www.googletagmanager.com/gtag/js?id=AW-17063551057";
+            document.head.appendChild(adsScript);
 
-        // Reuse existing gtag function if available, otherwise create it
-        window.dataLayer = window.dataLayer || [];
-        if (typeof window.gtag === "undefined") {
-          window.gtag = function () {
-            dataLayer.push(arguments);
-          };
-        }
+            // Reuse existing gtag function if available, otherwise create it
+            window.dataLayer = window.dataLayer || [];
+            if (typeof window.gtag === "undefined") {
+              window.gtag = function () {
+                dataLayer.push(arguments);
+              };
+            }
 
-        // Configure Google Ads conversion tag
-        gtag("config", "AW-17063551057");
+            // Configure Google Ads conversion tag
+            gtag("config", "AW-17063551057");
 
-        console.log("[Analytics2] Google Ads conversion tag enabled");
-      }
+            console.log("[Analytics2] Google Ads conversion tag enabled");
+          }
+        }, 2000); // 2 second delay
+      });
     </script>
+
+    <!-- Speed Vitals Performance Monitoring -->
+    <script data-rum-site-id="d609beeb-0dcd-4229-9946-16b3705c7bda" src="https://assets.speedvitals.com/vitals.min.js" defer></script>
   </head>
 
   <body class="">

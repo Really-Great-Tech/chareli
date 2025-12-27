@@ -7,6 +7,7 @@ import {
   useClearAllCache,
   useClearGamesCache,
   useClearCategoriesCache,
+  useRegenerateJsonCdn,
 } from '../../../backend/cache.service';
 import { toast } from 'sonner';
 import { AlertCircle, Database, RefreshCw, Server, Trash2 } from 'lucide-react';
@@ -29,6 +30,7 @@ export default function CacheDashboard() {
   const clearAllMutation = useClearAllCache();
   const clearGamesMutation = useClearGamesCache();
   const clearCategoriesMutation = useClearCategoriesCache();
+  const regenerateJsonCdnMutation = useRegenerateJsonCdn();
 
   const [showClearAllConfirm, setShowClearAllConfirm] = useState(false);
 
@@ -139,8 +141,11 @@ export default function CacheDashboard() {
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
             Monitor and manage Redis cache performance
             <span className="ml-2 inline-flex items-center rounded-full bg-yellow-100 dark:bg-yellow-900/30 px-2.5 py-0.5 text-xs font-medium text-yellow-800 dark:text-yellow-300">
-              DEV/TEST ONLY
+              USE WITH CAUTION
             </span>
+          </p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            Most times you do not need to clear the cache
           </p>
         </div>
         <Button
@@ -307,6 +312,47 @@ export default function CacheDashboard() {
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
                       Clear
+                    </Button>
+                  </div>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-white dark:bg-gray-800">
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        Regenerate JSON CDN
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Regenerate all static JSON files for CDN
+                      </p>
+                    </div>
+                    <Button
+                      onClick={async () => {
+                        try {
+                          const result =
+                            await regenerateJsonCdnMutation.mutateAsync();
+                          toast.success(
+                            result.message || 'JSON CDN regeneration started'
+                          );
+                        } catch (err) {
+                          const error = err as {
+                            response?: { data?: { message?: string } };
+                          };
+                          toast.error(
+                            error?.response?.data?.message ||
+                              'Failed to regenerate JSON CDN'
+                          );
+                        }
+                      }}
+                      disabled={regenerateJsonCdnMutation.isPending}
+                      variant="outline"
+                      size="sm"
+                    >
+                      <RefreshCw
+                        className={`mr-2 h-4 w-4 ${
+                          regenerateJsonCdnMutation.isPending
+                            ? 'animate-spin'
+                            : ''
+                        }`}
+                      />
+                      Regenerate
                     </Button>
                   </div>
 

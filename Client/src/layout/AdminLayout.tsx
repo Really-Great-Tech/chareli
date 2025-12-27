@@ -11,7 +11,7 @@ import { SlEqualizer } from 'react-icons/sl';
 import { RiTeamLine } from 'react-icons/ri';
 import { IoChevronBackOutline, IoChevronForwardOutline } from 'react-icons/io5';
 import { usePermissions } from '../hooks/usePermissions';
-import { Database } from 'lucide-react';
+import { Database, ImageIcon } from 'lucide-react';
 
 const allMenuItems = [
   {
@@ -90,6 +90,12 @@ const AdminLayout: React.FC = () => {
       title: 'Cache Dashboard',
       icon: <Database size={20} />,
       path: '/admin/cache',
+      requiresConfig: false,
+    });
+    menuItems.push({
+      title: 'Image Reprocessing',
+      icon: <ImageIcon size={20} />,
+      path: '/admin/image-reprocessing',
       requiresConfig: false,
     });
   }

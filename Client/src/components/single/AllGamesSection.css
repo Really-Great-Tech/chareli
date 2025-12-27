@@ -1,0 +1,19 @@
+/* AllGamesSection CSS-only varied heights */
+.all-games-grid > div:nth-child(3n + 1) {
+  grid-row: span 2;
+}
+
+.all-games-grid > div:nth-child(3n + 2) {
+  grid-row: span 3;
+}
+
+.all-games-grid > div:nth-child(3n + 3) {
+  grid-row: span 2;
+}
+
+/* Mobile: all items square (span 1) - override above rules */
+@media (max-width: 640px) {
+  .all-games-grid > div {
+    grid-row: span 1 !important;
+  }
+}

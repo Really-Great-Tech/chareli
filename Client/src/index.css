@@ -2,27 +2,8 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* @font-face { */
-/* font-family: 'Pong-Game'; */
-/* src: url('./fonts/Pong-Game.ttf'), */
-/* font-weight: normal; */
-/* font-style: normal; */
-/* src: url('./fonts/Boogaloo-Regular.ttf'), */
-/* font-weight: normal; */
-/* font-style: normal; */
-/* } */
-
-@font-face {
-  font-family: 'Dm Mono';
-  src: url('./fonts/dm mono/DMMono-Regular.ttf');
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Work Sans';
-  src: url('./fonts/work sans/WorkSans-Regular.ttf');
-  font-display: swap;
-}
+/* Fonts now loaded via Google Fonts CDN in index.html */
+/* Keeping Pong Game as it's custom and not available on Google Fonts */
 
 @font-face {
   font-family: 'Pong Game';

@@ -69,7 +69,7 @@ export class ImageReprocessingService {
     const total = await this.fileRepository.count({
       where: {
         type: 'thumbnail',
-        isProcessed: false as any,
+        isProcessed: false,
       },
     });
 
@@ -163,7 +163,7 @@ export class ImageReprocessingService {
       const files = await this.fileRepository.find({
         where: {
           type: 'thumbnail',
-          isProcessed: false as any,
+          isProcessed: false,
         },
         take: batchSize,
       });

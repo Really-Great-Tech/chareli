@@ -79,6 +79,24 @@ export async function processImageJob(
 
     await fileRepository.save(fileRecord);
 
+    // Update reprocessing progress in Redis (if this is part of reprocessing)
+    try {
+      const { redisService } = await import('../services/redis.service');
+      const REDIS_STATUS_KEY = 'image-reprocessing:status';
+      const statusStr = await redisService.get(REDIS_STATUS_KEY);
+
+      if (statusStr) {
+        const status = JSON.parse(statusStr as string);
+        if (status.isRunning) {
+          status.processed = (status.processed || 0) + 1;
+          await redisService.set(REDIS_STATUS_KEY, JSON.stringify(status));
+        }
+      }
+    } catch (redisError) {
+      // Redis update is optional, don't fail the job if it errors
+      logger.debug('Could not update reprocessing progress:', redisError);
+    }
+
     await job.updateProgress(100);
 
     const duration = Date.now() - startTime;

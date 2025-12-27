@@ -187,9 +187,8 @@ export class ImageReprocessingService {
             s3Key: file.s3Key,
           });
 
-          status.processed++;
           logger.debug(
-            `Queued ${file.s3Key} for processing (${status.processed}/${status.total})`
+            `Queued ${file.s3Key} for processing`
           );
         } catch (error) {
           // Track error

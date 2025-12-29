@@ -8,6 +8,7 @@ import type { ImageVariants, ImageDimensions } from '../entities/Files';
  */
 export const IMAGE_VARIANT_SIZES = {
   thumbnail: 256,
+  small: 512,
   medium: 768,
   large: 1536,
 } as const;
@@ -17,6 +18,7 @@ export const IMAGE_VARIANT_SIZES = {
  */
 export const WEBP_QUALITY = {
   thumbnail: 80,
+  small: 82,
   medium: 85,
   large: 90,
 } as const;
@@ -135,6 +137,36 @@ export async function generateImageVariants(
         `size: ${(thumbnailBuffer.length / 1024).toFixed(2)}KB`
     );
 
+    // Generate small variant (512px width)
+    const smallBuffer = await sharp(originalBuffer)
+      .resize(IMAGE_VARIANT_SIZES.small, null, {
+        fit: 'inside',
+        withoutEnlargement: true,
+      })
+      .webp({ quality: WEBP_QUALITY.small })
+      .toBuffer();
+
+    const smallDimensions = await getImageDimensions(smallBuffer);
+    const smallKey = `${basePath}/${fileNameWithoutExt}-small.webp`;
+
+    if ('uploadWithExactKey' in storageService) {
+      await (storageService as any).uploadWithExactKey(
+        smallKey,
+        smallBuffer,
+        'image/webp'
+      );
+    } else {
+      await storageService.uploadFile(smallBuffer, smallKey, 'image/webp');
+    }
+
+    variants.small = storageService.getPublicUrl(smallKey);
+    dimensions.small = smallDimensions;
+
+    logger.debug(
+      `✅ Small: ${smallDimensions.width}x${smallDimensions.height}, ` +
+        `size: ${(smallBuffer.length / 1024).toFixed(2)}KB`
+    );
+
     // Generate medium variant (768px width)
     const mediumBuffer = await sharp(originalBuffer)
       .resize(IMAGE_VARIANT_SIZES.medium, null, {
@@ -197,7 +229,7 @@ export async function generateImageVariants(
 
     const totalTime = Date.now() - startTime;
     logger.info(
-      `🎉 Successfully generated 3 variants for ${originalKey} in ${totalTime}ms`
+      `🎉 Successfully generated 4 variants for ${originalKey} in ${totalTime}ms`
     );
 
     return { variants, dimensions };

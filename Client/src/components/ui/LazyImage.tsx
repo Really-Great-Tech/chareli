@@ -49,6 +49,8 @@ interface LazyImageProps {
   dimensions?: ImageDimensions;
   /** Fetch priority hint for browser (use 'high' for LCP images) */
   fetchPriority?: 'high' | 'low' | 'auto';
+  /** Responsive sizes hint for browser (affects which srcset variant loads) */
+  sizes?: string;
 }
 
 export const LazyImage: React.FC<LazyImageProps> = ({
@@ -70,6 +72,7 @@ export const LazyImage: React.FC<LazyImageProps> = ({
   variants,
   dimensions,
   fetchPriority = 'auto',
+  sizes,
 }) => {
   // Determine if we should use Sharp variants or Cloudflare transforms
   const hasVariants = variants && Object.keys(variants).length > 0;
@@ -173,7 +176,7 @@ export const LazyImage: React.FC<LazyImageProps> = ({
           ref={imgRef}
           src={bestSrc || imageSrc}
           srcSet={srcSet}
-          sizes="(max-width: 640px) 256px, 512px"
+          sizes={sizes || "(max-width: 640px) 256px, (max-width: 1024px) 400px, 512px"}
           alt={alt}
           width={imageDimensions?.width || width}
           height={imageDimensions?.height || height}

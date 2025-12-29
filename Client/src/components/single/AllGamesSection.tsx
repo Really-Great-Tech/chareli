@@ -293,6 +293,7 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
                           className="w-full h-full object-fill"
                           aspectRatio="1/1"
                           width={400}
+                          sizes="(max-width: 640px) 256px, (max-width: 1024px) 400px, 512px"
                           variants={game.thumbnailFile?.variants}
                           dimensions={game.thumbnailFile?.dimensions}
                           enableTransform={!game.thumbnailFile?.variants}

@@ -122,7 +122,7 @@ const PopularSection = ({
                         loadingClassName="rounded-[28px]"
                         spinnerColor="#64748A"
                         rootMargin="50px"
-                        fetchPriority={_index === 0 ? 'high' : 'auto'}
+                        fetchPriority={_index < 3 ? 'high' : 'auto'}
                       />
                       {/* Game Info Overlay - Always visible on mobile, hover on desktop */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent group-hover:opacity-100 transition-opacity duration-300 lg:opacity-0 lg:group-hover:opacity-100 rounded-[28px]">

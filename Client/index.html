@@ -18,8 +18,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <!-- CDN (for production) -->
+    <!-- CDN (for production) - Preconnect for faster image loading -->
+    <link rel="preconnect" href="https://cdn.arcadesbox.org" crossorigin>
     <link rel="dns-prefetch" href="https://cdn.arcadesbox.org">
+
+    <!-- Cloudflare Image Resizing (if using transformations) -->
+    <link rel="preconnect" href="https://cdn.arcadesbox.org/cdn-cgi" crossorigin>
 
     <title>Arcades Box - Play Free Online Arcade and Puzzle Games</title>
     <meta name="description" content="Play free online arcade, puzzle, sports and action games on Arcades Box. Instant play, no downloads, and new games added regularly." />
@@ -186,6 +190,7 @@
 
     <!-- Speed Vitals Performance Monitoring -->
     <script data-rum-site-id="d609beeb-0dcd-4229-9946-16b3705c7bda" src="https://assets.speedvitals.com/vitals.min.js" defer></script>
+    <script data-rum-site-id="170420d9-f4a0-4216-ae66-bab4138b94f7" src="https://assets.speedvitals.com/vitals.min.js" defer></script>
   </head>
 
   <body class="">

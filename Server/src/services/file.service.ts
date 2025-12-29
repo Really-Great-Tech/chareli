@@ -240,6 +240,123 @@ export async function generateImageVariants(
 }
 
 /**
+ * Generate only missing image variants
+ * Useful for adding new variant sizes without regenerating existing ones
+ * @param originalBuffer Original image buffer
+ * @param originalKey S3 key of the original image
+ * @param existingVariants Existing variants from database
+ * @param existingDimensions Existing dimensions from database
+ * @returns Object containing all variants (existing + newly generated) and dimensions
+ */
+export async function generateMissingVariants(
+  originalBuffer: Buffer,
+  originalKey: string,
+  existingVariants?: ImageVariants,
+  existingDimensions?: ImageDimensions
+): Promise<{ variants: ImageVariants; dimensions: ImageDimensions }> {
+  const startTime = Date.now();
+  logger.info(`🔍 Checking missing variants for: ${originalKey}`);
+
+  // Start with existing data
+  const variants: ImageVariants = { ...existingVariants };
+  const dimensions: ImageDimensions = { ...existingDimensions };
+
+  // Extract file info
+  const lastSlashIndex = originalKey.lastIndexOf('/');
+  const basePath = originalKey.substring(0, lastSlashIndex);
+  const fileName = originalKey.substring(lastSlashIndex + 1);
+  const fileNameWithoutExt = fileName.replace(/\.[^/.]+$/, '');
+
+  let generatedCount = 0;
+  const variantsToCheck: Array<{
+    name: keyof typeof IMAGE_VARIANT_SIZES;
+    size: number;
+    quality: number;
+    suffix: string;
+  }> = [
+    {
+      name: 'thumbnail',
+      size: IMAGE_VARIANT_SIZES.thumbnail,
+      quality: WEBP_QUALITY.thumbnail,
+      suffix: 'thumb',
+    },
+    {
+      name: 'small',
+      size: IMAGE_VARIANT_SIZES.small,
+      quality: WEBP_QUALITY.small,
+      suffix: 'small',
+    },
+    {
+      name: 'medium',
+      size: IMAGE_VARIANT_SIZES.medium,
+      quality: WEBP_QUALITY.medium,
+      suffix: 'medium',
+    },
+    {
+      name: 'large',
+      size: IMAGE_VARIANT_SIZES.large,
+      quality: WEBP_QUALITY.large,
+      suffix: 'large',
+    },
+  ];
+
+  // Check and generate each variant if missing
+  for (const variant of variantsToCheck) {
+    if (!variants[variant.name]) {
+      logger.info(`  → Generating missing ${variant.size}px variant`);
+
+      const variantBuffer = await sharp(originalBuffer)
+        .resize(variant.size, null, {
+          fit: 'inside',
+          withoutEnlargement: true,
+        })
+        .webp({ quality: variant.quality })
+        .toBuffer();
+
+      const variantDimensions = await getImageDimensions(variantBuffer);
+      const variantKey = `${basePath}/${fileNameWithoutExt}-${variant.suffix}.webp`;
+
+      if ('uploadWithExactKey' in storageService) {
+        await (storageService as any).uploadWithExactKey(
+          variantKey,
+          variantBuffer,
+          'image/webp'
+        );
+      } else {
+        await storageService.uploadFile(
+          variantBuffer,
+          variantKey,
+          'image/webp'
+        );
+      }
+
+      variants[variant.name] = storageService.getPublicUrl(variantKey);
+      dimensions[variant.name] = variantDimensions;
+      generatedCount++;
+
+      logger.debug(
+        `  ✅ ${variant.name}: ${variantDimensions.width}x${variantDimensions.height}, ` +
+          `size: ${(variantBuffer.length / 1024).toFixed(2)}KB`
+      );
+    } else {
+      logger.debug(`  ⏭️  ${variant.name} variant already exists, skipping`);
+    }
+  }
+
+  // Update original dimensions if missing
+  if (!dimensions.original) {
+    dimensions.original = await getImageDimensions(originalBuffer);
+  }
+
+  const totalTime = Date.now() - startTime;
+  logger.info(
+    `✅ Generated ${generatedCount} missing variant(s) for ${originalKey} in ${totalTime}ms`
+  );
+
+  return { variants, dimensions };
+}
+
+/**
  * Main orchestrator for processing an uploaded image
  * Downloads from storage, generates variants, and returns metadata
  * @param s3Key S3/R2 key of the uploaded image

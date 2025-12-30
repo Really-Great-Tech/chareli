@@ -223,6 +223,9 @@ class JsonCdnService {
             id: true,
             s3Key: true,
             type: true,
+            variants: true,
+            dimensions: true,
+            isProcessed: true,
           },
           gameFile: {
             id: true,
@@ -348,6 +351,9 @@ class JsonCdnService {
             id: true,
             s3Key: true,
             type: true,
+            variants: true,
+            dimensions: true,
+            isProcessed: true,
           },
           gameFile: {
             id: true,
@@ -553,6 +559,9 @@ class JsonCdnService {
             id: true,
             s3Key: true,
             type: true,
+            variants: true,
+            dimensions: true,
+            isProcessed: true,
           },
           gameFile: {
             id: true,

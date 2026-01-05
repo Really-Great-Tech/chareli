@@ -14,6 +14,7 @@ import { initializeAnalyticsWorker } from './workers/analyticsProcessor';
 import { initializeLikeWorker } from './workers/likeProcessor';
 import { initializeJsonCdnWorker } from './workers/jsonCdnProcessor';
 import { initializeImageWorker } from './workers/imageProcessor';
+import { initializeClickTrackingWorker } from './workers/clickTrackingProcessor';
 import { createServer } from 'http';
 import { websocketService } from './services/websocket.service';
 
@@ -42,6 +43,7 @@ async function initializeBackgroundServices(): Promise<void> {
     initializeLikeWorker(); // NEW: Process likes asynchronously
     initializeJsonCdnWorker(); // NEW: Process JSON CDN generation asynchronously
     initializeImageWorker(); // NEW: Process image variants asynchronously
+    initializeClickTrackingWorker(); // NEW: Process click tracking asynchronously
     logger.info('Background workers initialized successfully');
 
     // Verify worker is properly connected

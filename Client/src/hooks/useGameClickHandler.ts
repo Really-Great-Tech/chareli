@@ -15,12 +15,40 @@ export const useGameClickHandler = (
   const { onSuccess, onError, trackingEnabled = true } = options;
 
   const handleGameClick = async (gameId: string, gameSlug?: string) => {
+    // Navigate immediately to avoid blocking gameplay
     navigate(`/gameplay/${gameSlug || gameId}`);
 
-    if (trackingEnabled) {
+    // Track click asynchronously using sendBeacon for reliability during navigation
+   if (trackingEnabled) {
       try {
-        await recordGameClick.mutateAsync(gameId);
-        onSuccess?.();
+        const baseURL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
+        const url = `${baseURL}/api/game-position-history/${gameId}/click`;
+
+        // Use sendBeacon for non-blocking analytics that works even during page unload
+        const data = new Blob([JSON.stringify({})], {
+          type: 'application/json',
+        });
+
+        const sent = navigator.sendBeacon(url, data);
+
+        if (sent) {
+          onSuccess?.();
+        } else {
+          // Fallback to regular fetch if sendBeacon fails
+          recordGameClick.mutateAsync(gameId).catch((error) => {
+            console.warn('Failed to track game click:', error);
+            onError?.(error);
+          });
+        }
+
+        // Track in Google Analytics via Zaraz
+        if (typeof (window as any).zaraz !== 'undefined') {
+          (window as any).zaraz.track('game_click', {
+            game_id: gameId,
+            game_slug: gameSlug || gameId,
+            source: window.location.pathname,
+          });
+        }
       } catch (error) {
         console.warn('Failed to track game click:', error);
         onError?.(error);

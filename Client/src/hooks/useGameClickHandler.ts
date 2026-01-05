@@ -24,21 +24,40 @@ export const useGameClickHandler = (
         const baseURL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
         const url = `${baseURL}/api/game-position-history/${gameId}/click`;
 
-        // Use sendBeacon for non-blocking analytics that works even during page unload
-        const data = new Blob([JSON.stringify({})], {
-          type: 'application/json',
-        });
+        // Use regular fetch in development (sendBeacon has CORS issues on localhost)
+        const isDevelopment = baseURL.includes('localhost') || baseURL.includes('127.0.0.1');
 
-        const sent = navigator.sendBeacon(url, data);
-
-        if (sent) {
-          onSuccess?.();
+        if (isDevelopment) {
+          // Use regular fetch for development
+          fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({}),
+          })
+            .then(() => onSuccess?.())
+            .catch((error) => {
+              console.warn('Failed to track game click:', error);
+              onError?.(error);
+            });
         } else {
-          // Fallback to regular fetch if sendBeacon fails
-          recordGameClick.mutateAsync(gameId).catch((error) => {
-            console.warn('Failed to track game click:', error);
-            onError?.(error);
+          // Use sendBeacon for production (works during page unload)
+          const data = new Blob([JSON.stringify({})], {
+            type: 'application/json',
           });
+
+          const sent = navigator.sendBeacon(url, data);
+
+          if (sent) {
+            onSuccess?.();
+          } else {
+            // Fallback to regular fetch if sendBeacon fails
+            recordGameClick.mutateAsync(gameId).catch((error) => {
+              console.warn('Failed to track game click:', error);
+              onError?.(error);
+            });
+          }
         }
 
         // Track in Google Analytics via Zaraz

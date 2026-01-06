@@ -29,12 +29,8 @@ const AnalyticsTracker = () => {
       return;
     }
 
-    // Track pageview on route change via Cloudflare Zaraz
-    if (typeof (window as any).zaraz !== 'undefined') {
-      (window as any).zaraz.track('pageview', {
-        page_path: location.pathname + location.search,
-      });
-    }
+    // Note: GA4 automatically tracks page_view events via Zaraz
+    // No need to manually track pageviews - removed to prevent duplication
 
     // Track pageview on route change for Facebook Pixel
     if (typeof (window as any).fbq !== 'undefined') {

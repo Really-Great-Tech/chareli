@@ -19,7 +19,7 @@ const queryClient = new QueryClient({
   },
 });
 
-// Analytics tracking component for Google Analytics and Facebook Pixel
+// Analytics tracking component for Cloudflare Zaraz and Facebook Pixel
 const AnalyticsTracker = () => {
   const location = useLocation();
 
@@ -29,9 +29,9 @@ const AnalyticsTracker = () => {
       return;
     }
 
-    // Track pageview on route change for Google Analytics
-    if (typeof (window as any).gtag !== 'undefined') {
-      (window as any).gtag('config', 'G-M661H945TQ', {
+    // Track pageview on route change via Cloudflare Zaraz
+    if (typeof (window as any).zaraz !== 'undefined') {
+      (window as any).zaraz.track('pageview', {
         page_path: location.pathname + location.search,
       });
     }

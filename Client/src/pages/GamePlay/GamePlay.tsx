@@ -353,20 +353,10 @@ export default function GamePlay() {
           );
         }
 
-        // Track in Google Analytics using gtag() directly
-        // Note: gtag() is the recommended way for GA4, even on page unload
-        const win = window as Window & {
-          gtag?: (
-            command: 'config' | 'event' | 'js' | 'set',
-            targetId: string | Date,
-            config?: Record<string, unknown>
-          ) => void;
-          shouldLoadAnalytics?: boolean;
-        };
 
-        if (typeof win.gtag !== 'undefined' && win.shouldLoadAnalytics) {
+        // Track game exit event via Zaraz (using trackGameplay utility)
+        if ((window as any).shouldLoadAnalytics) {
           try {
-            // Track game exit event
             trackGameplay.gameExit(
               game.id,
               game.title,
@@ -374,7 +364,7 @@ export default function GamePlay() {
               'page_unload'
             );
           } catch (error) {
-            console.error('Failed to send analytics beacon:', error);
+            console.error('Failed to send analytics event:', error);
           }
         }
 

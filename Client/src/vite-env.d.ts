@@ -1,13 +1,13 @@
 /// <reference types="vite/client" />
 
-// Google Analytics gtag.js type declarations
+// Cloudflare Zaraz Analytics type declarations
 interface Window {
-  dataLayer: any[];
-  gtag: (
-    command: 'config' | 'event' | 'js' | 'set',
-    targetId: string | Date,
-    config?: Record<string, any>
-  ) => void;
+  shouldLoadAnalytics?: boolean;
+  zaraz?: {
+    track: (eventName: string, eventData?: Record<string, any>) => void;
+    set: (key: string, value: any) => void;
+    ecommerce: (action: string, data: Record<string, any>) => void;
+  };
   // Facebook Pixel type declarations
   fbq: (
     command: 'init' | 'track' | 'trackCustom',

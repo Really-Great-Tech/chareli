@@ -532,7 +532,8 @@ Disallow: /
 `;
 
       const buffer = Buffer.from(robotsTxt, 'utf-8');
-      const fullKey = 'cdn/robots.txt';
+      const fullKey = 'robots.txt'; // At bucket root, not in cdn/ folder
+
 
       await this.r2Adapter.uploadWithExactKey(fullKey, buffer, 'text/plain', {
         generatedAt: new Date().toISOString(),

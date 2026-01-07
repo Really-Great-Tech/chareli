@@ -2084,9 +2084,48 @@ export const getGamesPopularityMetrics = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const now = new Date();
-    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+    const { period, startDate, endDate } = req.query;
+
+    let now = new Date();
+    let currentPeriodStart: Date;
+    let previousPeriodStart: Date;
+    let previousPeriodEnd: Date;
+
+    // Determine time ranges based on the period parameter (same logic as dashboard)
+    switch (period) {
+      case 'last7days':
+        currentPeriodStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        previousPeriodStart = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+        previousPeriodEnd = currentPeriodStart;
+        break;
+      case 'last30days':
+        currentPeriodStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        previousPeriodStart = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+        previousPeriodEnd = currentPeriodStart;
+        break;
+      case 'custom':
+        if (startDate && endDate) {
+          currentPeriodStart = new Date(startDate as string);
+          currentPeriodStart.setHours(0, 0, 0, 0);
+          const customEndDate = new Date(endDate as string);
+          customEndDate.setHours(23, 59, 59, 999);
+          const daysDiff = Math.ceil(
+            (customEndDate.getTime() - currentPeriodStart.getTime()) / (1000 * 60 * 60 * 24)
+          );
+          previousPeriodStart = new Date(currentPeriodStart.getTime() - daysDiff * 24 * 60 * 60 * 1000);
+          previousPeriodEnd = currentPeriodStart;
+          now = customEndDate;
+        } else {
+          currentPeriodStart = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+          previousPeriodStart = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+          previousPeriodEnd = currentPeriodStart;
+        }
+        break;
+      default: // last24hours
+        currentPeriodStart = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        previousPeriodStart = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+        previousPeriodEnd = currentPeriodStart;
+    }
 
     // Get all games with basic info
     const games = await gameRepository.find({
@@ -2104,18 +2143,20 @@ export const getGamesPopularityMetrics = async (
     // Get metrics for all games
     const gamesMetrics = await Promise.all(
       games.map(async (game) => {
-        // Get total plays and average play time (duration >= 30 seconds)
+        // Get total plays and average play time for the selected period (duration >= 30 seconds)
         const overallMetrics = await analyticsRepository
           .createQueryBuilder('analytics')
           .select('COUNT(*)', 'totalPlays')
           .addSelect('AVG(analytics.duration)', 'averagePlayTime')
+          .addSelect('SUM(analytics.duration)', 'totalTime')
           .where('analytics.gameId = :gameId', { gameId: game.id })
           .andWhere('analytics.startTime IS NOT NULL')
           .andWhere('analytics.endTime IS NOT NULL')
           .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
+          .andWhere('analytics.createdAt > :currentPeriodStart', { currentPeriodStart })
           .getRawOne();
 
-        // Get plays in last 24 hours (duration >= 30 seconds)
+        // Get plays in current period (duration >= 30 seconds)
         const currentPeriodPlays = await analyticsRepository
           .createQueryBuilder('analytics')
           .select('COUNT(*)', 'count')
@@ -2123,12 +2164,12 @@ export const getGamesPopularityMetrics = async (
           .andWhere('analytics.startTime IS NOT NULL')
           .andWhere('analytics.endTime IS NOT NULL')
           .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
-          .andWhere('analytics.createdAt > :twentyFourHoursAgo', {
-            twentyFourHoursAgo,
+          .andWhere('analytics.createdAt > :currentPeriodStart', {
+            currentPeriodStart,
           })
           .getRawOne();
 
-        // Get plays in previous 24 hours (duration >= 30 seconds)
+        // Get plays in previous period (duration >= 30 seconds)
         const previousPeriodPlays = await analyticsRepository
           .createQueryBuilder('analytics')
           .select('COUNT(*)', 'count')
@@ -2137,8 +2178,8 @@ export const getGamesPopularityMetrics = async (
           .andWhere('analytics.endTime IS NOT NULL')
           .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
           .andWhere('analytics.createdAt BETWEEN :start AND :end', {
-            start: fortyEightHoursAgo,
-            end: twentyFourHoursAgo,
+            start: previousPeriodStart,
+            end: previousPeriodEnd,
           })
           .getRawOne();
 
@@ -2164,7 +2205,7 @@ export const getGamesPopularityMetrics = async (
 
         const totalPlays = parseInt(overallMetrics?.totalPlays) || 0;
         const avgPlayTime = parseFloat(overallMetrics?.averagePlayTime) || 0;
-        const totalTime = Math.round(totalPlays * avgPlayTime); // Total time in seconds
+        const totalTime = parseInt(overallMetrics?.totalTime) || 0; // Total time from SUM(duration)
 
         return {
           id: game.id,

@@ -1,16 +1,31 @@
 export function formatTime(seconds: number): string {
   if (!seconds || isNaN(seconds)) return "0 seconds";
-  const displayMinutes = Math.floor(seconds / 60);
-  const displaySeconds = Math.floor(seconds % 60);
-  
-  const minuteText = displayMinutes === 1 ? 'minute' : 'minutes';
-  const secondText = displaySeconds === 1 ? 'second' : 'seconds';
-  
-  if (displayMinutes === 0) {
-    return `${displaySeconds} ${secondText}`;
+
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = Math.floor(seconds % 60);
+
+  const hourText = hours === 1 ? 'hour' : 'hours';
+  const minuteText = minutes === 1 ? 'minute' : 'minutes';
+  const secondText = secs === 1 ? 'second' : 'seconds';
+
+  // Display hours when >= 60 minutes (1 hour)
+  if (hours > 0) {
+    if (minutes > 0) {
+      return `${hours} ${hourText} ${minutes} ${minuteText}`;
+    }
+    return `${hours} ${hourText}`;
   }
-  
-  return `${displayMinutes} ${minuteText} ${displaySeconds} ${secondText}`;
+
+  // Display minutes and seconds
+  if (minutes > 0) {
+    if (secs > 0) {
+      return `${minutes} ${minuteText} ${secs} ${secondText}`;
+    }
+    return `${minutes} ${minuteText}`;
+  }
+
+  return `${secs} ${secondText}`;
 }
 
 
@@ -47,21 +62,21 @@ export interface UserWithRole {
  */
 export function canDeleteUser(currentUser: UserWithRole | null, targetUser: UserWithRole | null): boolean {
   if (!currentUser || !targetUser) return false;
-  
+
   const currentUserRole = currentUser.role?.name;
   const targetUserRole = targetUser.role?.name;
-  
+
   // Prevent users from deleting themselves
   if (currentUser.id === targetUser.id) return false;
-  
+
   // Superadmin can delete anyone except themselves
   if (currentUserRole === 'superadmin') return true;
-  
+
   // Admin can only delete players and editors, not other admins or superadmins
   if (currentUserRole === 'admin') {
     return targetUserRole === 'player' || targetUserRole === 'editor';
   }
-  
+
   // Other roles cannot delete anyone
   return false;
 }
@@ -74,15 +89,15 @@ export function canDeleteUser(currentUser: UserWithRole | null, targetUser: User
  */
 export function getDeletionErrorMessage(currentUser: UserWithRole | null, targetUser: UserWithRole | null): string {
   if (!currentUser || !targetUser) return "Invalid user data";
-  
+
   const currentUserRole = currentUser.role?.name;
   const targetUserRole = targetUser.role?.name;
-  
+
   // Self-deletion attempt
   if (currentUser.id === targetUser.id) {
     return "You cannot delete your own account";
   }
-  
+
   // Admin trying to delete higher or equal role
   if (currentUserRole === 'admin') {
     if (targetUserRole === 'admin') {
@@ -92,7 +107,7 @@ export function getDeletionErrorMessage(currentUser: UserWithRole | null, target
       return "Admins cannot delete superadmins";
     }
   }
-  
+
   // Default permission denied message
   return "You don't have permission to delete this user";
 }

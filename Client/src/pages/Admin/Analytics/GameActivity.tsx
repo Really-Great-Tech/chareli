@@ -24,6 +24,7 @@ export default function GameActivity({ filters }: GameActivityProps) {
 
   const gamesPerPage = 4;
   const [gamePage, setGamePage] = useState(1);
+  const [sortBy, setSortBy] = useState<'time' | 'sessions'>('time');
 
   if (isLoading) {
     return (
@@ -96,16 +97,48 @@ export default function GameActivity({ filters }: GameActivityProps) {
   }
 
   const allGames = gamesAnalytics?.data || [];
-  const totalGamePages = Math.ceil(allGames.length / gamesPerPage);
+
+  // Sort games based on selected sort option
+  const sortedGames = [...allGames].sort((a: any, b: any) => {
+    if (sortBy === 'time') {
+      return (b.metrics?.totalTime || 0) - (a.metrics?.totalTime || 0);
+    }
+    return (b.metrics?.totalPlays || 0) - (a.metrics?.totalPlays || 0);
+  });
+
+  const totalGamePages = Math.ceil(sortedGames.length / gamesPerPage);
   const startIdx = (gamePage - 1) * gamesPerPage;
   const endIdx = startIdx + gamesPerPage;
-  const gamesToShow = allGames.slice(startIdx, endIdx);
+  const gamesToShow = sortedGames.slice(startIdx, endIdx);
 
   return (
     <div className="col-span-1 md:col-span-2 lg:col-span-4 mt-4">
       <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full pl-4">
         <div className="justify-between items-center flex p-3">
           <p className="text-lg md:text-2xl">Game Activity</p>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500 mr-2">Sort by:</span>
+            <button
+              onClick={() => { setSortBy('time'); setGamePage(1); }}
+              className={`px-3 py-1 rounded text-sm transition-colors ${
+                sortBy === 'time'
+                  ? 'bg-[#6A7282] text-white'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+              }`}
+            >
+              Time
+            </button>
+            <button
+              onClick={() => { setSortBy('sessions'); setGamePage(1); }}
+              className={`px-3 py-1 rounded text-sm transition-colors ${
+                sortBy === 'sessions'
+                  ? 'bg-[#6A7282] text-white'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+              }`}
+            >
+              Sessions
+            </button>
+          </div>
         </div>
         <Table>
           <TableHeader>

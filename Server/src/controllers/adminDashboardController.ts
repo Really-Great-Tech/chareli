@@ -163,7 +163,7 @@ export const getDashboardAnalytics = async (
       .andWhere('a1.duration >= :minDuration', { minDuration: 30 })
       .andWhere(`EXISTS (
         SELECT 1 FROM internal.analytics a2
-        LEFT JOIN internal.users user2 ON a2.user_id = user2.id
+        LEFT JOIN public.users user2 ON a2.user_id = user2.id
         WHERE COALESCE(CAST(a2.user_id AS VARCHAR), a2.session_id) = COALESCE(CAST(a1.userId AS VARCHAR), a1.sessionId)
         AND a2.created_at BETWEEN :start AND :end
         AND a2.game_id IS NOT NULL

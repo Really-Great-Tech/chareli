@@ -1,6 +1,10 @@
 # CloudFlare Pages Headers Configuration
 # Fix MIME type issues and set proper headers
 
+# robots.txt
+/robots.txt
+  Content-Type: text/plain; charset=utf-8
+
 # JavaScript and TypeScript files
 /*.js
   Content-Type: application/javascript; charset=utf-8

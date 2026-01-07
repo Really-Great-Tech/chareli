@@ -2,45 +2,37 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Outlet } from 'react-router-dom';
 import AdminNavbar from '../components/single/AdminNavbar';
 import { NavLink } from 'react-router-dom';
-import { IoGameControllerOutline } from 'react-icons/io5';
-import { FiHome } from 'react-icons/fi';
-import { MdOutlineCategory } from 'react-icons/md';
-import { FaRegUser } from 'react-icons/fa6';
-// import { FaChartLine } from "react-icons/fa";
-import { SlEqualizer } from 'react-icons/sl';
-import { RiTeamLine } from 'react-icons/ri';
-import { IoChevronBackOutline, IoChevronForwardOutline } from 'react-icons/io5';
 import { usePermissions } from '../hooks/usePermissions';
-import { Database, ImageIcon } from 'lucide-react';
+import { Database, ImageIcon, Home, Gamepad2, Shapes, UserRound, Users2, Sliders, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const allMenuItems = [
   {
     title: 'Home',
-    icon: <FiHome size={20} />,
+    icon: <Home size={20} />,
     path: '/admin',
     requiresConfig: false,
   },
   {
     title: 'Game Management',
-    icon: <IoGameControllerOutline size={20} />,
+    icon: <Gamepad2 size={20} />,
     path: '/admin/game-management',
     requiresConfig: false,
   },
   {
     title: 'Game Category',
-    icon: <MdOutlineCategory size={20} />,
+    icon: <Shapes size={20} />,
     path: '/admin/categories',
     requiresConfig: false,
   },
   {
     title: 'User Management',
-    icon: <FaRegUser size={20} />,
+    icon: <UserRound size={20} />,
     path: '/admin/management',
     requiresConfig: false,
   },
   {
     title: 'Team Management',
-    icon: <RiTeamLine size={20} />,
+    icon: <Users2 size={20} />,
     path: '/admin/team',
     requiresConfig: false,
   },
@@ -52,7 +44,7 @@ const allMenuItems = [
   // },
   {
     title: 'Configuration',
-    icon: <SlEqualizer size={20} />,
+    icon: <Sliders size={20} />,
     path: '/admin/config',
     requiresConfig: true,
   },
@@ -213,12 +205,12 @@ const AdminLayout: React.FC = () => {
                   style={{ bottom: '20px' }}
                 >
                   {isSidebarCollapsed ? (
-                    <IoChevronForwardOutline
+                    <ChevronRight
                       size={18}
                       className="cursor-pointer"
                     />
                   ) : (
-                    <IoChevronBackOutline
+                    <ChevronLeft
                       size={18}
                       className="cursor-pointer"
                     />

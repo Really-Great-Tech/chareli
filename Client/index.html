@@ -3,25 +3,32 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
     <!-- Resource Hints: Enable early connections to critical origins -->
-    <!-- Google Analytics -->
-    <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
-    <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+    <!-- Google Analytics - MIGRATED TO ZARAZ -->
+    <!-- <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin> -->
+    <!-- <link rel="dns-prefetch" href="https://www.googletagmanager.com"> -->
 
     <!-- Facebook Pixel -->
     <link rel="preconnect" href="https://connect.facebook.net" crossorigin>
     <link rel="dns-prefetch" href="https://connect.facebook.net">
 
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <!-- Performance: Preconnect to critical origins -->
+    <!-- API for data fetching (90ms LCP savings) -->
+    <link rel="preconnect" href="https://api.arcadesbox.com" crossorigin>
+
+    <!-- Google Fonts - only gstatic needed for font files -->
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <!-- CDN (for production) -->
+    <!-- CDN (for production) - Preconnect for faster image loading -->
+    <link rel="preconnect" href="https://cdn.arcadesbox.org" crossorigin>
     <link rel="dns-prefetch" href="https://cdn.arcadesbox.org">
 
-    <title>Arcades Box – Play Free Online Arcade and Puzzle Games</title>
+    <!-- Cloudflare Image Resizing (if using transformations) -->
+    <link rel="preconnect" href="https://cdn.arcadesbox.org/cdn-cgi" crossorigin>
+
+    <title>Arcades Box - Play Free Online Arcade and Puzzle Games</title>
     <meta name="description" content="Play free online arcade, puzzle, sports and action games on Arcades Box. Instant play, no downloads, and new games added regularly." />
     <link rel="canonical" href="https://www.arcadesbox.com/" />
 
@@ -55,8 +62,8 @@
       window.shouldLoadAnalytics = shouldLoadAnalytics;
     </script>
 
-    <!-- Google tag (gtag.js) - Deferred Loading for Better Performance -->
-    <script>
+    <!-- Google tag (gtag.js) - MIGRATED TO ZARAZ -->
+    <!-- <script defer>
       // Defer analytics loading until after page is interactive
       window.addEventListener('load', function () {
         setTimeout(function () {
@@ -80,10 +87,10 @@
           }
         }, 2000); // 2 second delay
       });
-    </script>
+    </script> -->
 
     <!-- Facebook Pixel Code - Deferred Loading for Better Performance -->
-    <script>
+    <script defer>
       // Defer Facebook Pixel loading until after page is interactive
       window.addEventListener('load', function () {
         setTimeout(function () {
@@ -154,8 +161,8 @@
       }
     </script>
 
-    <!-- Google Ads Conversion Tag (gtag.js) - Deferred Loading -->
-    <script>
+    <!-- Google Ads Conversion Tag (gtag.js) - MIGRATED TO ZARAZ -->
+    <!-- <script defer>
       // Defer Google Ads loading until after page is interactive
       window.addEventListener('load', function () {
         setTimeout(function () {
@@ -182,10 +189,10 @@
           }
         }, 2000); // 2 second delay
       });
-    </script>
+    </script> -->
 
-    <!-- Speed Vitals Performance Monitoring -->
-    <script data-rum-site-id="d609beeb-0dcd-4229-9946-16b3705c7bda" src="https://assets.speedvitals.com/vitals.min.js" defer></script>
+    <!-- Speed Vitals Performance Monitoring - DISABLED: Causing 4s delay + 404 errors -->
+    <!-- <script data-rum-site-id="d609beeb-0dcd-4229-9946-16b3705c7bda" src="https://assets.speedvitals.com/vitals.min.js" defer></script> -->
   </head>
 
   <body class="">

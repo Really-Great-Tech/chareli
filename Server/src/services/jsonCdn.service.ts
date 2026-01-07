@@ -2,9 +2,11 @@ import { AppDataSource } from '../config/database';
 import { Game, GameStatus } from '../entities/Games';
 import { Category } from '../entities/Category';
 import { GameLike } from '../entities/GameLike';
+import { SystemConfig } from '../entities/SystemConfig';
 import { R2StorageAdapter } from './r2.storage.adapter';
 import logger from '../utils/logger';
 import config from '../config/config';
+import { In } from 'typeorm';
 
 interface JsonCdnConfig {
   enabled: boolean;
@@ -62,6 +64,9 @@ class JsonCdnService {
         this.generateActiveGamesJson(),
         this.generateAllGamesJson(),
         this.generateAllGameDetailsJson(),
+        this.generatePopularGamesJson(),
+        this.generateSitemap(),
+        this.generateRobotsTxt(),
       ]);
 
       const duration = Date.now() - startTime;
@@ -219,6 +224,9 @@ class JsonCdnService {
             id: true,
             s3Key: true,
             type: true,
+            variants: true,
+            dimensions: true,
+            isProcessed: true,
           },
           gameFile: {
             id: true,
@@ -267,6 +275,278 @@ class JsonCdnService {
   }
 
   /**
+   * Generate games_popular.json (manual mode popular games)
+   */
+  private async generatePopularGamesJson(): Promise<void> {
+    try {
+      const systemConfigRepository = AppDataSource.getRepository(SystemConfig);
+      const gameRepository = AppDataSource.getRepository(Game);
+
+      // Get popular games config
+      const popularConfig = await systemConfigRepository.findOne({
+        where: { key: 'popular_games_settings' },
+      });
+
+      if (!popularConfig || popularConfig.value?.mode !== 'manual') {
+        logger.info(
+          'Popular games not in manual mode, generating empty popular games JSON'
+        );
+        await this.uploadJson('games_popular.json', {
+          games: [],
+          metadata: this.createMetadata(0),
+        });
+        return;
+      }
+
+      // Get game IDs from config
+      let gameIds: string[] = [];
+      if (popularConfig.value.selectedGameIds) {
+        if (Array.isArray(popularConfig.value.selectedGameIds)) {
+          gameIds = popularConfig.value.selectedGameIds;
+        } else if (typeof popularConfig.value.selectedGameIds === 'object') {
+          gameIds = Object.values(popularConfig.value.selectedGameIds);
+        }
+      }
+
+      if (gameIds.length === 0) {
+        logger.info('No popular games selected, generating empty JSON');
+        await this.uploadJson('games_popular.json', {
+          games: [],
+          metadata: this.createMetadata(0),
+        });
+        return;
+      }
+
+      // Fetch games with all relations
+      const games = await gameRepository.find({
+        where: {
+          id: In(gameIds),
+          status: GameStatus.ACTIVE,
+        },
+        relations: ['category', 'createdBy', 'thumbnailFile', 'gameFile'],
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          description: true,
+          status: true,
+          config: true,
+          baseLikeCount: true,
+          lastLikeIncrement: true,
+          position: true,
+          processingStatus: true,
+          createdAt: true,
+          updatedAt: true,
+          category: {
+            id: true,
+            name: true,
+            description: true,
+          },
+          createdBy: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+          thumbnailFile: {
+            id: true,
+            s3Key: true,
+            type: true,
+            variants: true,
+            dimensions: true,
+            isProcessed: true,
+          },
+          gameFile: {
+            id: true,
+            s3Key: true,
+            type: true,
+          },
+        },
+      });
+
+      // Order by selectedGameIds order (preserve admin's chosen order)
+      const orderedGames = gameIds
+        .map((id: string) => games.find((game) => game.id === id))
+        .filter((game): game is Game => game !== undefined);
+
+      // Get all user likes in a single batch query
+      const userLikesMap = await this.getBatchUserLikesCount(
+        orderedGames.map((g) => g.id)
+      );
+
+      // Transform file s3Key to public URLs and add likeCount
+      const gamesWithUrls = orderedGames.map((game) => {
+        const userLikesCount = userLikesMap.get(game.id) || 0;
+        return {
+          ...game,
+          likeCount: this.calculateLikeCount(game, userLikesCount),
+          thumbnailFile: game.thumbnailFile
+            ? {
+                ...game.thumbnailFile,
+                s3Key: this.r2Adapter.getPublicUrl(game.thumbnailFile.s3Key),
+              }
+            : null,
+          gameFile: game.gameFile
+            ? {
+                ...game.gameFile,
+                s3Key: this.r2Adapter.getPublicUrl(game.gameFile.s3Key),
+              }
+            : null,
+        };
+      });
+
+      const json = {
+        games: gamesWithUrls,
+        metadata: this.createMetadata(gamesWithUrls.length),
+      };
+
+      await this.uploadJson('games_popular.json', json);
+      logger.info(
+        `Generated games_popular.json (${gamesWithUrls.length} games)`
+      );
+    } catch (error) {
+      logger.error('Error generating popular games JSON:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Generate sitemap.xml with all games, categories, and static pages
+   */
+  private async generateSitemap(): Promise<void> {
+    try {
+      const gameRepository = AppDataSource.getRepository(Game);
+      const categoryRepository = AppDataSource.getRepository(Category);
+
+      // Fetch all active games
+      const games = await gameRepository.find({
+        where: { status: GameStatus.ACTIVE },
+        select: ['slug', 'updatedAt'],
+        order: { updatedAt: 'DESC' },
+      });
+
+      // Fetch all categories
+      const categories = await categoryRepository.find({
+        select: ['name', 'id'],
+        order: { name: 'ASC' },
+      });
+
+      const baseUrl = 'https://www.arcadesbox.com';
+      const today = new Date().toISOString().split('T')[0];
+
+      // Build sitemap XML
+      let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Homepage -->
+  <url>
+    <loc>${baseUrl}/</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Static Pages -->
+  <url>
+    <loc>${baseUrl}/about</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/categories</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/terms</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/privacy</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+
+  <!-- Individual Games -->
+`;
+
+      for (const game of games) {
+        const lastmod = game.updatedAt.toISOString().split('T')[0];
+        xml += `  <url>
+    <loc>${baseUrl}/games/${game.slug}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+`;
+      }
+
+      // Individual Categories
+      xml += `
+  <!-- Category Pages -->
+`;
+      for (const category of categories) {
+        const categorySlug = category.name.toLowerCase().replace(/\s+/g, '-');
+        xml += `  <url>
+    <loc>${baseUrl}/categories/${categorySlug}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+`;
+      }
+
+      xml += `</urlset>`;
+
+      // Upload to R2 as XML file
+      const buffer = Buffer.from(xml, 'utf-8');
+      const fullKey = 'cdn/sitemap.xml';
+
+      await this.r2Adapter.uploadWithExactKey(fullKey, buffer, 'application/xml', {
+        generatedAt: new Date().toISOString(),
+        size: buffer.length.toString(),
+        gamesCount: games.length.toString(),
+        categoriesCount: categories.length.toString(),
+      });
+
+      logger.info(
+        `Generated sitemap.xml (${games.length} games, ${categories.length} categories)`
+      );
+    } catch (error) {
+      logger.error('Error generating sitemap:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Generate robots.txt to disallow all crawlers
+   */
+  private async generateRobotsTxt(): Promise<void> {
+    try {
+      const robotsTxt = `User-agent: *
+Disallow: /
+`;
+
+      const buffer = Buffer.from(robotsTxt, 'utf-8');
+      const fullKey = 'cdn/robots.txt';
+
+      await this.r2Adapter.uploadWithExactKey(fullKey, buffer, 'text/plain', {
+        generatedAt: new Date().toISOString(),
+        size: buffer.length.toString(),
+      });
+
+      logger.info('Generated robots.txt for CDN subdomain');
+    } catch (error) {
+      logger.error('Error generating robots.txt:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Generate games_all.json (all games regardless of status)
    */
   private async generateAllGamesJson(): Promise<void> {
@@ -304,6 +584,9 @@ class JsonCdnService {
             id: true,
             s3Key: true,
             type: true,
+            variants: true,
+            dimensions: true,
+            isProcessed: true,
           },
           gameFile: {
             id: true,
@@ -483,6 +766,9 @@ class JsonCdnService {
           // Regenerate both active and all games lists
           await this.generateActiveGamesJson();
           await this.generateAllGamesJson();
+        } else if (path.includes('games_popular') || path.includes('popular')) {
+          // Regenerate popular games JSON
+          await this.generatePopularGamesJson();
         } else if (path.includes('games/')) {
           const slug = path.replace('games/', '').replace('.json', '');
           const gameRepository = AppDataSource.getRepository(Game);

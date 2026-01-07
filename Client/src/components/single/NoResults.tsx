@@ -1,5 +1,5 @@
 import React from 'react';
-import { RiSearchLine } from 'react-icons/ri';
+import { Search } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 interface NoResultsProps {
@@ -12,7 +12,7 @@ interface NoResultsProps {
 export function NoResults({
   title = "No results found",
   message = "Try adjusting your filters or search criteria",
-  icon = <RiSearchLine className="w-12 h-12 text-gray-400" />,
+  icon = <Search className="w-12 h-12 text-gray-400" />,
   className
 }: NoResultsProps) {
   return (

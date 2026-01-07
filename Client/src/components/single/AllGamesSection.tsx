@@ -277,7 +277,7 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
                     ?.name || 'this category'}
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 md:gap-6 auto-rows-[1fr] sm:auto-rows-[160px] md:auto-rows-[150px] all-games-grid">
+            <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-2 auto-rows-[1fr] sm:auto-rows-[160px] md:auto-rows-[150px] all-games-grid sm:min-h-[500px]">
               {games.map((game: any) => {
                 return (
                   <div
@@ -293,6 +293,7 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
                           className="w-full h-full object-fill"
                           aspectRatio="1/1"
                           width={400}
+                          sizes="(max-width: 640px) 256px, (max-width: 1024px) 400px, 512px"
                           variants={game.thumbnailFile?.variants}
                           dimensions={game.thumbnailFile?.dimensions}
                           enableTransform={!game.thumbnailFile?.variants}

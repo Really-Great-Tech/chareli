@@ -15,8 +15,8 @@ import { useAuth } from "../../context/AuthContext";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import type { FieldProps } from "formik";
 import { object as yupObject, string as yupString } from "yup";
-import PhoneInput from "react-phone-input-2";
-import "react-phone-input-2/lib/style.css";
+import LazyPhoneInput from "../ui/LazyPhoneInput";
+
 import "../../styles/phone-input.css";
 
 interface EditProfileSheetProps {
@@ -172,7 +172,7 @@ export function EditProfileSheet({
                 <Field name="phone">
                   {({ field, form }: FieldProps) => (
                     <div className="w-full mt-1">
-                      <PhoneInput
+                      <LazyPhoneInput
                         country="us"
                         value={field.value}
                         onChange={(value) =>

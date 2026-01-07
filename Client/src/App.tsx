@@ -19,7 +19,7 @@ const queryClient = new QueryClient({
   },
 });
 
-// Analytics tracking component for Google Analytics and Facebook Pixel
+// Analytics tracking component for Cloudflare Zaraz and Facebook Pixel
 const AnalyticsTracker = () => {
   const location = useLocation();
 
@@ -29,12 +29,8 @@ const AnalyticsTracker = () => {
       return;
     }
 
-    // Track pageview on route change for Google Analytics
-    if (typeof (window as any).gtag !== 'undefined') {
-      (window as any).gtag('config', 'G-M661H945TQ', {
-        page_path: location.pathname + location.search,
-      });
-    }
+    // Note: GA4 automatically tracks page_view events via Zaraz
+    // No need to manually track pageviews - removed to prevent duplication
 
     // Track pageview on route change for Facebook Pixel
     if (typeof (window as any).fbq !== 'undefined') {

@@ -19,6 +19,34 @@ export const useGames = (params?: {
   return useQuery<PaginatedResponse<GameResponse>>({
     queryKey: [BackendRoute.GAMES, params],
     queryFn: async () => {
+      // Try CDN for popular filter (only if no search active)
+      if (
+        cdnFetch.isEnabled() &&
+        params?.filter === 'popular' &&
+        !params.search
+      ) {
+        try {
+          const result = await cdnFetch.fetch<GameResponse[]>({
+            cdnPath: 'games_popular.json',
+            apiPath: BackendRoute.GAMES,
+          });
+
+          if (result.source === 'cdn') {
+            console.log('[Games] Using CDN for popular games');
+            // CDN returns flat array, wrap in pagination structure
+            return {
+              data: result.data,
+              total: result.data.length,
+              page: 1,
+              limit: result.data.length,
+            } as PaginatedResponse<GameResponse>;
+          }
+        } catch (error) {
+          console.warn('[Games] CDN fetch failed for popular, using API:', error);
+          // Fall through to API
+        }
+      }
+
       // Try CDN for active games without filters
       if (
         cdnFetch.isEnabled() &&

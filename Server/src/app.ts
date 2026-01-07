@@ -59,95 +59,11 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
   },
 }));
 
-
-
-// test/cloudfront.test.ts
-
-
-
-// async function testSignedUrl() {
-//    const s3Key = 'games/200274ce-df18-4160-96c1-09efe2e71cd8/glass-city/index.html';
-
-//   const signedUrl = cloudFrontService.transformS3KeyToCloudFront(s3Key);
-
-//   console.log('Generated Signed URL:');
-//   console.log(signedUrl);
-// }
-
-// testSignedUrl();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// Robots.txt route - Disallow all crawlers
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain');
+  res.send('User-agent: *\nDisallow: /');
+});
 
 // API Routes
 app.use('/api', routes);

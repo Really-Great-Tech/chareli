@@ -1,7 +1,10 @@
 import { Job } from 'bullmq';
 import { AppDataSource } from '../config/database';
 import { File } from '../entities/Files';
-import { processUploadedImage } from '../services/file.service';
+import {
+  processUploadedImage,
+  generateMissingVariants,
+} from '../services/file.service';
 import logger from '../utils/logger';
 
 export interface ImageProcessingJobData {
@@ -49,13 +52,41 @@ export async function processImageJob(
 
     let variants, dimensions;
     try {
-      const result = await processUploadedImage(s3Key);
-      variants = result.variants;
-      dimensions = result.dimensions;
+      // Smart generation: check if file already has variants
+      // If it does, only generate missing ones (e.g., new 512px variant)
+      const hasExistingVariants =
+        fileRecord.variants && Object.keys(fileRecord.variants).length > 0;
+
+      if (hasExistingVariants) {
+        logger.info(
+          `File ${fileId} has existing variants, using smart generation`
+        );
+        const { storageService } = await import('../services/storage.service');
+        const originalBuffer = await storageService.downloadFile(s3Key);
+
+        const result = await generateMissingVariants(
+          originalBuffer,
+          s3Key,
+          fileRecord.variants,
+          fileRecord.dimensions
+        );
+        variants = result.variants;
+        dimensions = result.dimensions;
+      } else {
+        logger.info(`File ${fileId} is new, generating all variants`);
+        const result = await processUploadedImage(s3Key);
+        variants = result.variants;
+        dimensions = result.dimensions;
+      }
     } catch (error: any) {
       // Check if this is a "file not found" error
-      if (error.message?.includes('does not exist') || error.message?.includes('NoSuchKey')) {
-        logger.warn(`⚠️  File ${s3Key} does not exist in R2, skipping processing`);
+      if (
+        error.message?.includes('does not exist') ||
+        error.message?.includes('NoSuchKey')
+      ) {
+        logger.warn(
+          `⚠️  File ${s3Key} does not exist in R2, skipping processing`
+        );
 
         // Mark as processed with error to prevent future attempts
         fileRecord.processingError = 'File does not exist in R2 storage';
@@ -103,6 +134,7 @@ export async function processImageJob(
     logger.info(
       `✨ [Job ${job.id}] Successfully processed image ${fileId} in ${duration}ms\n` +
         `   Thumbnail: ${variants.thumbnail}\n` +
+        `   Small: ${variants.small}\n` +
         `   Medium: ${variants.medium}\n` +
         `   Large: ${variants.large}`
     );

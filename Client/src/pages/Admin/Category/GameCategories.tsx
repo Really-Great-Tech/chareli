@@ -1,5 +1,4 @@
-import { FiTrash2 } from 'react-icons/fi';
-import { CiEdit } from 'react-icons/ci';
+import { Trash2, Edit } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CreateCategory from '../../../components/single/CreateCategory-Sheet';
@@ -96,7 +95,7 @@ export default function GameCategories() {
                         setEditOpen(true);
                       }}
                     >
-                      <CiEdit className="dark:text-white w-5 h-5 text-black cursor-pointer" />
+                      <Edit className="dark:text-white w-5 h-5 text-black cursor-pointer" />
                     </button>
                     {!cat.isDefault && (
                       <button
@@ -107,7 +106,7 @@ export default function GameCategories() {
                           setShowDeleteModal(true);
                         }}
                       >
-                        <FiTrash2 className="text-black w-5 h-5 dark:text-white cursor-pointer" />
+                        <Trash2 className="text-black w-5 h-5 dark:text-white cursor-pointer" />
                       </button>
                     )}
                   </div>

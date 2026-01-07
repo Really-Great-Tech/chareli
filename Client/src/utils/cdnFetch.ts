@@ -46,7 +46,7 @@ class CDNFetchService {
     };
 
     if (this.config.enabled) {
-      console.debug('[CDN] Initialized:', {
+      console.log('[CDN] Initialized:', {
         enabled: this.config.enabled,
         baseUrl: this.config.baseUrl,
         timeout: this.config.timeout,
@@ -67,7 +67,7 @@ class CDNFetchService {
         const duration = performance.now() - startTime;
 
         this.metrics.cdnHits++;
-        console.debug(
+        console.log(
           '[CDN] Fetch successful:',
           options.cdnPath,
           `${duration.toFixed(0)}ms`

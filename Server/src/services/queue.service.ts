@@ -10,6 +10,7 @@ export enum JobType {
   LIKE_PROCESSING = 'like-processing',
   JSON_CDN_GENERATION = 'json-cdn-generation',
   IMAGE_PROCESSING = 'image-processing',
+  CLICK_TRACKING = 'click-tracking',
 }
 
 // Job data interfaces
@@ -49,6 +50,11 @@ export interface JsonCdnJobData {
 export interface ImageProcessingJobData {
   fileId: string;
   s3Key: string;
+}
+
+export interface ClickTrackingJobData {
+  gameId: string;
+  position: number;
 }
 
 class QueueService {
@@ -166,6 +172,22 @@ class QueueService {
     });
 
     this.queues.set(JobType.IMAGE_PROCESSING, imageProcessingQueue);
+
+    // Create click tracking queue
+    const clickTrackingQueue = new Queue(JobType.CLICK_TRACKING, {
+      connection: redisConfig,
+      defaultJobOptions: {
+        removeOnComplete: 100,
+        removeOnFail: 200,
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 500,
+        },
+      },
+    });
+
+    this.queues.set(JobType.CLICK_TRACKING, clickTrackingQueue);
 
     // Create QueueEvents for analytics queue to listen for job completion
     this.queueEvents = new QueueEvents(JobType.ANALYTICS_PROCESSING, {
@@ -306,6 +328,29 @@ class QueueService {
 
     logger.info(
       `Added image processing job for file ${data.fileId} with job ID: ${job.id}`
+    );
+    return job;
+  }
+
+  async addClickTrackingJob(
+    data: ClickTrackingJobData,
+    options?: {
+      delay?: number;
+      priority?: number;
+    }
+  ): Promise<Job<ClickTrackingJobData>> {
+    const queue = this.queues.get(JobType.CLICK_TRACKING);
+    if (!queue) {
+      throw new Error('Click tracking queue not found');
+    }
+
+    const job = await queue.add('track-click', data, {
+      ...options,
+      jobId: `click-${data.gameId}-${Date.now()}`,
+    });
+
+    logger.debug(
+      `Added click tracking job for game ${data.gameId} with job ID: ${job.id}`
     );
     return job;
   }

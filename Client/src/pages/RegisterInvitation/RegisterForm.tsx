@@ -10,8 +10,8 @@ import {
   passwordSchema,
   confirmPasswordSchema,
 } from "../../validation/password";
-import PhoneInput from "react-phone-input-2";
-import "react-phone-input-2/lib/style.css";
+import LazyPhoneInput from "../../components/ui/LazyPhoneInput";
+
 import "../../styles/phone-input.css";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useUserCountry } from "../../hooks/useUserCountry";
@@ -130,7 +130,7 @@ export function RegisterForm({ email, token, onSuccess }: RegisterFormProps) {
             <Field name="phoneNumber">
               {({ field, form }: FieldProps) => (
                 <div className="w-full mt-1">
-                  <PhoneInput
+                  <LazyPhoneInput
                     country={countryCode}
                     value={field.value}
                     onChange={(value) =>

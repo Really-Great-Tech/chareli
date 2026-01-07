@@ -15,7 +15,7 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import logger from '../../utils/logger';
 import { Label } from '../../components/ui/label';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { Eye, EyeOff } from 'lucide-react';
 import { LoginModal } from '../../components/modals/LoginModal';
 
 const validationSchema = yupObject({
@@ -226,9 +226,9 @@ export function ResetPasswordPage() {
                       }
                     >
                       {showPassword ? (
-                        <FaEyeSlash size={15} />
+                        <EyeOff size={15} />
                       ) : (
-                        <FaEye size={15} />
+                        <Eye size={15} />
                       )}
                     </button>
                     <Field
@@ -263,9 +263,9 @@ export function ResetPasswordPage() {
                       }
                     >
                       {showConfirmPassword ? (
-                        <FaEyeSlash size={15} />
+                        <EyeOff size={15} />
                       ) : (
-                        <FaEye size={15} />
+                        <Eye size={15} />
                       )}
                     </button>
                     <Field

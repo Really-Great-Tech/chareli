@@ -3,7 +3,7 @@ import {
   type DashboardFilters,
 } from '../../backend/analytics.service';
 import { Card } from '../ui/card';
-import { HiOutlineUsers } from 'react-icons/hi2';
+import { Users } from 'lucide-react';
 import {
   Cell,
   Pie,
@@ -101,7 +101,7 @@ export function UserTypeBreakdown({ filters }: UserTypeBreakdownProps) {
     <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
       <div className="p-3">
         <div className="flex items-center gap-3 mb-4">
-          <HiOutlineUsers
+          <Users
             size={32}
             className="text-[#64748A] dark:text-white"
           />

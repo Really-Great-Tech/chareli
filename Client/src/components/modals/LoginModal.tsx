@@ -16,8 +16,8 @@ import { Label } from "../../components/ui/label";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { AiOutlineMail } from "react-icons/ai";
 import { OTPVerificationModal } from "./OTPVerificationModal";
-import PhoneInput from "react-phone-input-2";
-import "react-phone-input-2/lib/style.css";
+import LazyPhoneInput from "../ui/LazyPhoneInput";
+
 import "../../styles/phone-input.css";
 import { useNavigate } from "react-router-dom";
 import { isValidRole } from "../../utils/main";
@@ -276,7 +276,7 @@ export function LoginModal({
                     {activeTab === "phone" ? (
                       <Field name="phoneNumber">
                         {({ field, form }: FieldProps) => (
-                          <PhoneInput
+                          <LazyPhoneInput
                             country={countryCode}
                             value={field.value}
                             onChange={(value) =>

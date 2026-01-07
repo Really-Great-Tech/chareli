@@ -1,21 +1,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
- * Google Analytics utility functions for tracking gameplay events
+ * Cloudflare Zaraz Analytics utility functions for tracking gameplay events
  */
 
 /**
- * Check if analytics is enabled and gtag is available
+ * Check if analytics is enabled and Zaraz is available
  */
 export const isAnalyticsEnabled = (): boolean => {
   return (
     typeof window !== "undefined" &&
     (window as any).shouldLoadAnalytics === true &&
-    typeof (window as any).gtag !== "undefined"
+    typeof (window as any).zaraz !== "undefined"
   );
 };
 
 /**
- * Track a custom event to Google Analytics
+ * Track a custom event to Google Analytics via Cloudflare Zaraz
  */
 export const trackEvent = (
   eventName: string,
@@ -26,7 +26,7 @@ export const trackEvent = (
   }
 
   try {
-    (window as any).gtag("event", eventName, {
+    (window as any).zaraz.track(eventName, {
       ...eventParams,
     });
   } catch (error) {

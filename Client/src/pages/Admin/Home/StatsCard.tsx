@@ -1,12 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { FaRegClock, FaRegStar } from 'react-icons/fa';
-import { IoHourglassOutline } from 'react-icons/io5';
-import { TbCalendarClock } from 'react-icons/tb';
-import {
-  HiMiniArrowDown,
-  HiMiniArrowUp,
-  HiOutlineUsers,
-} from 'react-icons/hi2';
+import { Clock, Star, Hourglass, CalendarClock, Users, ArrowUp, ArrowDown } from 'lucide-react';
 import {
   useDashboardAnalytics,
   type DashboardFilters,
@@ -78,7 +71,7 @@ export default function StatsCard({ filters }: StatsCardProps) {
     {
       title: 'New Verified Users',
       value: data.totalRegisteredUsers.current,
-      icon: <HiOutlineUsers size={32} />,
+      icon: <Users size={32} />,
       change: `${data.totalRegisteredUsers.percentageChange ?? 0}%`,
       changeType:
         data.totalRegisteredUsers.percentageChange >= 0 ? 'up' : 'down',
@@ -88,7 +81,7 @@ export default function StatsCard({ filters }: StatsCardProps) {
     {
       title: 'Daily Active Users',
       value: data.dailyActiveUsers.current,
-      icon: <HiOutlineUsers size={32} />,
+      icon: <Users size={32} />,
       change: '24h only',
       changeType: 'up',
       description: 'Always last 24 hours',
@@ -98,7 +91,7 @@ export default function StatsCard({ filters }: StatsCardProps) {
     {
       title: 'Daily Anonymous Visitors',
       value: data.dailyAnonymousVisitors.current,
-      icon: <HiOutlineUsers size={32} />,
+      icon: <Users size={32} />,
       change: '24h only',
       changeType: 'up',
       description: 'Anonymous users (24h)',
@@ -108,7 +101,7 @@ export default function StatsCard({ filters }: StatsCardProps) {
     {
       title: 'Total Visitors',
       value: data.totalVisitors.current,
-      icon: <HiOutlineUsers size={32} />,
+      icon: <Users size={32} />,
       change: `${data.totalVisitors.percentageChange ?? 0}%`,
       changeType: data.totalVisitors.percentageChange >= 0 ? 'up' : 'down',
       description: 'Auth + Anonymous',
@@ -118,7 +111,7 @@ export default function StatsCard({ filters }: StatsCardProps) {
     {
       title: 'Total Time played',
       value: formatTime(data.totalTimePlayed.current),
-      icon: <FaRegClock size={32} className="dark:text-white" />,
+      icon: <Clock size={32} className="dark:text-white" />,
       change: `${data.totalTimePlayed.percentageChange ?? 0}%`,
       changeType: data.totalTimePlayed.percentageChange >= 0 ? 'up' : 'down',
       description: timeDescription,
@@ -127,7 +120,7 @@ export default function StatsCard({ filters }: StatsCardProps) {
     {
       title: 'Sessions Played',
       value: data.totalSessions.current,
-      icon: <TbCalendarClock size={36} />,
+      icon: <CalendarClock size={36} />,
       change: `${data.totalSessions.percentageChange ?? 0}%`,
       changeType: data.totalSessions.percentageChange >= 0 ? 'up' : 'down',
       description: timeDescription,
@@ -136,7 +129,7 @@ export default function StatsCard({ filters }: StatsCardProps) {
     {
       title: 'Average Session Time',
       value: formatTime(data.avgSessionDuration.current),
-      icon: <IoHourglassOutline size={32} />,
+      icon: <Hourglass size={32} />,
       change: `${data.avgSessionDuration.percentageChange ?? 0}%`,
       changeType: data.avgSessionDuration.percentageChange >= 0 ? 'up' : 'down',
       description: timeDescription,
@@ -145,7 +138,7 @@ export default function StatsCard({ filters }: StatsCardProps) {
     {
       title: 'Anonymous Sessions',
       value: data.anonymousSessions.current,
-      icon: <TbCalendarClock size={36} />,
+      icon: <CalendarClock size={36} />,
       change: `${data.anonymousSessions.percentageChange ?? 0}%`,
       changeType: data.anonymousSessions.percentageChange >= 0 ? 'up' : 'down',
       description: timeDescription,
@@ -154,7 +147,7 @@ export default function StatsCard({ filters }: StatsCardProps) {
     {
       title: 'Anonymous Time Played',
       value: formatTime(data.anonymousTimePlayed.current),
-      icon: <FaRegClock size={32} className="dark:text-white" />,
+      icon: <Clock size={32} className="dark:text-white" />,
       change: `${data.anonymousTimePlayed.percentageChange ?? 0}%`,
       changeType:
         data.anonymousTimePlayed.percentageChange >= 0 ? 'up' : 'down',
@@ -167,7 +160,7 @@ export default function StatsCard({ filters }: StatsCardProps) {
         data.mostPlayedGames?.games?.length > 0
           ? data.mostPlayedGames.games
           : 'No games played',
-      icon: <FaRegStar size={32} />,
+      icon: <Star size={32} />,
       change: `${data.mostPlayedGames?.percentageChange ?? 0}%`,
       changeType:
         (data.mostPlayedGames?.percentageChange ?? 0) >= 0 ? 'up' : 'down',
@@ -178,7 +171,7 @@ export default function StatsCard({ filters }: StatsCardProps) {
     {
       title: 'Game Coverage',
       value: `${data.gameCoverage.current}%`,
-      icon: <FaRegStar size={32} />,
+      icon: <Star size={32} />,
       change: `${data.gameCoverage.percentageChange ?? 0}%`,
       changeType: data.gameCoverage.percentageChange >= 0 ? 'up' : 'down',
       description: timeDescription,
@@ -187,7 +180,7 @@ export default function StatsCard({ filters }: StatsCardProps) {
     {
       title: 'Total Active Users',
       value: data.totalActiveUsers.current,
-      icon: <HiOutlineUsers size={32} />,
+      icon: <Users size={32} />,
       change: `${data.totalActiveUsers.percentageChange ?? 0}%`,
       changeType: data.totalActiveUsers.percentageChange >= 0 ? 'up' : 'down',
       description: timeDescription,
@@ -196,7 +189,7 @@ export default function StatsCard({ filters }: StatsCardProps) {
     {
       title: 'User Retention',
       value: `${Math.round(data.retentionRate) ?? 0}%`,
-      icon: <TbCalendarClock size={36} />,
+      icon: <CalendarClock size={36} />,
       change: '0%',
       changeType: 'up',
       description: timeDescription,
@@ -278,9 +271,9 @@ export default function StatsCard({ filters }: StatsCardProps) {
                 }`}
               >
                 {card.changeType === 'up' ? (
-                  <HiMiniArrowUp />
+                  <ArrowUp />
                 ) : (
-                  <HiMiniArrowDown />
+                  <ArrowDown />
                 )}
                 <span>{card.change}</span>
               </div>

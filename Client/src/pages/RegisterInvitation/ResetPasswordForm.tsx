@@ -7,7 +7,7 @@ import { Label } from '../../components/ui/label';
 import { useResetPasswordFromInvitation } from '../../backend/teams.service';
 import { passwordSchema, confirmPasswordSchema } from '../../validation/password';
 import { toast } from 'sonner';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface ResetPasswordFormProps {
   email: string;
@@ -46,8 +46,8 @@ export function ResetPasswordForm({ email, token, onSuccess }: ResetPasswordForm
 
   const handleSubmit = (values: FormValues) => {
     resetPassword(
-      { 
-        token, 
+      {
+        token,
         data: values
       },
       {
@@ -88,9 +88,9 @@ export function ResetPasswordForm({ email, token, onSuccess }: ResetPasswordForm
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? (
-                  <FaEyeSlash size={15} />
+                  <EyeOff size={15} />
                 ) : (
-                  <FaEye size={15} />
+                  <Eye size={15} />
                 )}
               </button>
               <Field
@@ -118,9 +118,9 @@ export function ResetPasswordForm({ email, token, onSuccess }: ResetPasswordForm
                 aria-label={showConfirmPassword ? "Hide password" : "Show password"}
               >
                 {showConfirmPassword ? (
-                  <FaEyeSlash size={15} />
+                  <EyeOff size={15} />
                 ) : (
-                  <FaEye size={15} />
+                  <Eye size={15} />
                 )}
               </button>
               <Field

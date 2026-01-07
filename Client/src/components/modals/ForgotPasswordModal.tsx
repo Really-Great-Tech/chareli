@@ -20,8 +20,8 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { AiOutlineMail } from "react-icons/ai";
-import PhoneInput from "react-phone-input-2";
-import "react-phone-input-2/lib/style.css";
+import LazyPhoneInput from "../ui/LazyPhoneInput";
+
 import "../../styles/phone-input.css";
 import { ResetPasswordOTPModal } from "./ResetPasswordOTPModal";
 import { useUserCountry } from "../../hooks/useUserCountry";
@@ -271,7 +271,7 @@ export function ForgotPasswordModal({
                         ) : (
                           <Field name="phoneNumber">
                             {({ field, form }: FieldProps) => (
-                              <PhoneInput
+                              <LazyPhoneInput
                                 country={countryCode}
                                 value={field.value}
                                 onChange={(value) =>

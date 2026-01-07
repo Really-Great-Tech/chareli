@@ -1,0 +1,53 @@
+# CloudFlare Pages Headers Configuration
+# Fix MIME type issues and set proper headers
+
+# JavaScript and TypeScript files
+/*.js
+  Content-Type: application/javascript; charset=utf-8
+/*.mjs
+  Content-Type: application/javascript; charset=utf-8
+/*.ts
+  Content-Type: application/javascript; charset=utf-8
+/*.tsx
+  Content-Type: application/javascript; charset=utf-8
+
+# JSON files
+/*.json
+  Content-Type: application/json; charset=utf-8
+
+# CSS files
+/*.css
+  Content-Type: text/css; charset=utf-8
+
+# Images
+/*.svg
+  Content-Type: image/svg+xml
+/*.png
+  Content-Type: image/png
+/*.jpg
+  Content-Type: image/jpeg
+/*.jpeg
+  Content-Type: image/jpeg
+/*.webp
+  Content-Type: image/webp
+/*.gif
+  Content-Type: image/gif
+
+# Fonts
+/*.woff
+  Content-Type: font/woff
+/*.woff2
+  Content-Type: font/woff2
+/*.ttf
+  Content-Type: font/ttf
+/*.otf
+  Content-Type: font/otf
+
+# HTML files with caching
+/*.html
+  Content-Type: text/html; charset=utf-8
+  Cache-Control: public, max-age=0, must-revalidate
+
+# Static assets with long cache
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

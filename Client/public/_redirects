@@ -1,0 +1,7 @@
+# CloudFlare Pages Redirects Configuration
+
+# Sitemap: Serve dynamic version from CDN
+/sitemap.xml https://cdn.arcadesbox.org/cdn/sitemap.xml 200
+
+# Robots.txt sitemap reference (if needed in future)
+# /robots.txt /robots.txt 200

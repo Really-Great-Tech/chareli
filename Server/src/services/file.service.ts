@@ -8,6 +8,7 @@ import type { ImageVariants, ImageDimensions } from '../entities/Files';
  */
 export const IMAGE_VARIANT_SIZES = {
   thumbnail: 256,
+  small: 512,
   medium: 768,
   large: 1536,
 } as const;
@@ -17,6 +18,7 @@ export const IMAGE_VARIANT_SIZES = {
  */
 export const WEBP_QUALITY = {
   thumbnail: 80,
+  small: 82,
   medium: 85,
   large: 90,
 } as const;
@@ -135,6 +137,36 @@ export async function generateImageVariants(
         `size: ${(thumbnailBuffer.length / 1024).toFixed(2)}KB`
     );
 
+    // Generate small variant (512px width)
+    const smallBuffer = await sharp(originalBuffer)
+      .resize(IMAGE_VARIANT_SIZES.small, null, {
+        fit: 'inside',
+        withoutEnlargement: true,
+      })
+      .webp({ quality: WEBP_QUALITY.small })
+      .toBuffer();
+
+    const smallDimensions = await getImageDimensions(smallBuffer);
+    const smallKey = `${basePath}/${fileNameWithoutExt}-small.webp`;
+
+    if ('uploadWithExactKey' in storageService) {
+      await (storageService as any).uploadWithExactKey(
+        smallKey,
+        smallBuffer,
+        'image/webp'
+      );
+    } else {
+      await storageService.uploadFile(smallBuffer, smallKey, 'image/webp');
+    }
+
+    variants.small = storageService.getPublicUrl(smallKey);
+    dimensions.small = smallDimensions;
+
+    logger.debug(
+      `✅ Small: ${smallDimensions.width}x${smallDimensions.height}, ` +
+        `size: ${(smallBuffer.length / 1024).toFixed(2)}KB`
+    );
+
     // Generate medium variant (768px width)
     const mediumBuffer = await sharp(originalBuffer)
       .resize(IMAGE_VARIANT_SIZES.medium, null, {
@@ -197,7 +229,7 @@ export async function generateImageVariants(
 
     const totalTime = Date.now() - startTime;
     logger.info(
-      `🎉 Successfully generated 3 variants for ${originalKey} in ${totalTime}ms`
+      `🎉 Successfully generated 4 variants for ${originalKey} in ${totalTime}ms`
     );
 
     return { variants, dimensions };
@@ -205,6 +237,123 @@ export async function generateImageVariants(
     logger.error(`❌ Error generating variants for ${originalKey}:`, error);
     throw error;
   }
+}
+
+/**
+ * Generate only missing image variants
+ * Useful for adding new variant sizes without regenerating existing ones
+ * @param originalBuffer Original image buffer
+ * @param originalKey S3 key of the original image
+ * @param existingVariants Existing variants from database
+ * @param existingDimensions Existing dimensions from database
+ * @returns Object containing all variants (existing + newly generated) and dimensions
+ */
+export async function generateMissingVariants(
+  originalBuffer: Buffer,
+  originalKey: string,
+  existingVariants?: ImageVariants,
+  existingDimensions?: ImageDimensions
+): Promise<{ variants: ImageVariants; dimensions: ImageDimensions }> {
+  const startTime = Date.now();
+  logger.info(`🔍 Checking missing variants for: ${originalKey}`);
+
+  // Start with existing data
+  const variants: ImageVariants = { ...existingVariants };
+  const dimensions: ImageDimensions = { ...existingDimensions };
+
+  // Extract file info
+  const lastSlashIndex = originalKey.lastIndexOf('/');
+  const basePath = originalKey.substring(0, lastSlashIndex);
+  const fileName = originalKey.substring(lastSlashIndex + 1);
+  const fileNameWithoutExt = fileName.replace(/\.[^/.]+$/, '');
+
+  let generatedCount = 0;
+  const variantsToCheck: Array<{
+    name: keyof typeof IMAGE_VARIANT_SIZES;
+    size: number;
+    quality: number;
+    suffix: string;
+  }> = [
+    {
+      name: 'thumbnail',
+      size: IMAGE_VARIANT_SIZES.thumbnail,
+      quality: WEBP_QUALITY.thumbnail,
+      suffix: 'thumb',
+    },
+    {
+      name: 'small',
+      size: IMAGE_VARIANT_SIZES.small,
+      quality: WEBP_QUALITY.small,
+      suffix: 'small',
+    },
+    {
+      name: 'medium',
+      size: IMAGE_VARIANT_SIZES.medium,
+      quality: WEBP_QUALITY.medium,
+      suffix: 'medium',
+    },
+    {
+      name: 'large',
+      size: IMAGE_VARIANT_SIZES.large,
+      quality: WEBP_QUALITY.large,
+      suffix: 'large',
+    },
+  ];
+
+  // Check and generate each variant if missing
+  for (const variant of variantsToCheck) {
+    if (!variants[variant.name]) {
+      logger.info(`  → Generating missing ${variant.size}px variant`);
+
+      const variantBuffer = await sharp(originalBuffer)
+        .resize(variant.size, null, {
+          fit: 'inside',
+          withoutEnlargement: true,
+        })
+        .webp({ quality: variant.quality })
+        .toBuffer();
+
+      const variantDimensions = await getImageDimensions(variantBuffer);
+      const variantKey = `${basePath}/${fileNameWithoutExt}-${variant.suffix}.webp`;
+
+      if ('uploadWithExactKey' in storageService) {
+        await (storageService as any).uploadWithExactKey(
+          variantKey,
+          variantBuffer,
+          'image/webp'
+        );
+      } else {
+        await storageService.uploadFile(
+          variantBuffer,
+          variantKey,
+          'image/webp'
+        );
+      }
+
+      variants[variant.name] = storageService.getPublicUrl(variantKey);
+      dimensions[variant.name] = variantDimensions;
+      generatedCount++;
+
+      logger.debug(
+        `  ✅ ${variant.name}: ${variantDimensions.width}x${variantDimensions.height}, ` +
+          `size: ${(variantBuffer.length / 1024).toFixed(2)}KB`
+      );
+    } else {
+      logger.debug(`  ⏭️  ${variant.name} variant already exists, skipping`);
+    }
+  }
+
+  // Update original dimensions if missing
+  if (!dimensions.original) {
+    dimensions.original = await getImageDimensions(originalBuffer);
+  }
+
+  const totalTime = Date.now() - startTime;
+  logger.info(
+    `✅ Generated ${generatedCount} missing variant(s) for ${originalKey} in ${totalTime}ms`
+  );
+
+  return { variants, dimensions };
 }
 
 /**

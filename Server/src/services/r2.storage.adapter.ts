@@ -67,6 +67,7 @@ export class R2StorageAdapter implements IStorageService {
         Bucket: this.bucket,
         Key: key,
         ContentType: contentType || 'application/octet-stream',
+        CacheControl: 'public, max-age=31536000, immutable', // 1 year cache
       });
 
       const url = await getSignedUrl(this.s3Client, command, {
@@ -107,6 +108,7 @@ export class R2StorageAdapter implements IStorageService {
         Key: key,
         Body: file,
         ContentType: contentType,
+        CacheControl: 'public, max-age=31536000, immutable', // 1 year cache
       });
 
       await this.s3Client.send(command);
@@ -151,6 +153,7 @@ export class R2StorageAdapter implements IStorageService {
             Key: fullRemotePath,
             Body: fileContent,
             ContentType: contentType,
+            CacheControl: 'public, max-age=31536000, immutable', // 1 year cache
           });
 
           await this.s3Client.send(command);
@@ -242,7 +245,8 @@ export class R2StorageAdapter implements IStorageService {
         CopySource: `${this.bucket}/${sourceKey}`,
         Key: destinationKey,
         ContentType: contentType,
-        MetadataDirective: 'COPY', // Preserve all metadata
+        CacheControl: 'public, max-age=31536000, immutable', // 1 year cache
+        MetadataDirective: 'REPLACE', // Replace to add CacheControl
       });
 
       await this.s3Client.send(copyCommand);
@@ -288,7 +292,7 @@ export class R2StorageAdapter implements IStorageService {
         Body: body,
         ContentType: contentType,
         Metadata: metadata,
-        CacheControl: 'public, max-age=300', // 5 minutes cache
+        CacheControl: 'public, max-age=31536000, immutable', // 1 year cache
       });
 
       await this.s3Client.send(command);

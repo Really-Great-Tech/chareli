@@ -9,7 +9,9 @@ import { ApiError } from '../middlewares/errorHandler';
 import { Between, FindOptionsWhere, In, LessThan, IsNull, Not } from 'typeorm';
 import { checkInactiveUsers } from '../jobs/userInactivityCheck';
 import { storageService } from '../services/storage.service';
+import { cacheService } from '../services/cache.service';
 import { PerformanceTimer } from '../utils/performance';
+import logger from '../utils/logger';
 
 const userRepository = AppDataSource.getRepository(User);
 const gameRepository = AppDataSource.getRepository(Game);
@@ -52,6 +54,15 @@ export const getDashboardAnalytics = async (
       : country
       ? [country as string]
       : [];
+
+    // Check cache first (TTL: 3 minutes)
+    const cacheKey = `${period || 'last24hours'}:${countries.sort().join(',')}`;
+    const cached = await cacheService.getAnalytics('dashboard', cacheKey);
+    if (cached) {
+      logger.debug(`[CACHE HIT] Dashboard analytics for ${cacheKey}`);
+      res.status(200).json(cached);
+      return;
+    }
 
     let now = new Date();
     let currentPeriodStart: Date;
@@ -1041,7 +1052,8 @@ export const getDashboardAnalytics = async (
           )
         : 0;
 
-    res.status(200).json({
+    // Build response object
+    const responseData = {
       success: true,
       data: {
         dailyActiveUsers: {
@@ -1118,7 +1130,13 @@ export const getDashboardAnalytics = async (
         },
         retentionRate,
       },
-    });
+    };
+
+    // Cache the response (TTL: 3 minutes = 180 seconds)
+    await cacheService.setAnalytics('dashboard', cacheKey, responseData, undefined, 180);
+    logger.debug(`[CACHE SET] Dashboard analytics for ${cacheKey}`);
+
+    res.status(200).json(responseData);
   } catch (error) {
     next(error);
   }

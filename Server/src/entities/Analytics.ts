@@ -19,6 +19,10 @@ import { Game } from './Games';
 @Index(['userId', 'startTime'])
 @Index(['activityType', 'startTime'])
 @Index(['userId', 'gameId'])
+// Composite indexes for optimized queries (new)
+@Index(['createdAt', 'userId', 'sessionId', 'duration']) // For unified user counting with COALESCE
+@Index(['createdAt', 'gameId', 'duration'])              // For game session queries
+@Index(['createdAt', 'duration'])                        // For time-range filtered queries
 export class Analytics {
   @PrimaryGeneratedColumn('uuid')
   id: string;

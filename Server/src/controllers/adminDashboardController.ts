@@ -2186,6 +2186,9 @@ export const getGamesPopularityMetrics = async (
       })
     );
 
+    // Sort by total plays (best performers first)
+    gamesMetrics.sort((a, b) => b.metrics.totalPlays - a.metrics.totalPlays);
+
     res.status(200).json({
       success: true,
       data: gamesMetrics,

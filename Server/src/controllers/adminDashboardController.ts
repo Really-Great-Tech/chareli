@@ -112,9 +112,10 @@ export const getDashboardAnalytics = async (
     const fortyEightHoursAgo = previousPeriodStart;
 
     // Get users who played games yesterday (24-48 hours ago) for 30+ seconds
+    // Track all users: authenticated (userId) + anonymous (sessionId)
     let yesterdayUsersQuery = analyticsRepository
       .createQueryBuilder('analytics')
-      .select('COUNT(DISTINCT analytics.userId)', 'count')
+      .select('COUNT(DISTINCT COALESCE(CAST(analytics.userId AS VARCHAR), analytics.sessionId))', 'count')
       .leftJoin('analytics.user', 'user')
       .where('analytics.createdAt BETWEEN :start AND :end', {
         start: fortyEightHoursAgo,
@@ -123,10 +124,7 @@ export const getDashboardAnalytics = async (
       .andWhere('analytics.gameId IS NOT NULL')
       .andWhere('analytics.startTime IS NOT NULL')
       .andWhere('analytics.endTime IS NOT NULL')
-      .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
-      .andWhere('user.hasCompletedFirstLogin = :hasCompleted', {
-        hasCompleted: true,
-      });
+      .andWhere('analytics.duration >= :minDuration', { minDuration: 30 });
 
     // Add country filter if provided
     if (countries.length > 0) {
@@ -141,10 +139,11 @@ export const getDashboardAnalytics = async (
     timer1.end();
 
     // Among those users, count how many also played games today (last 24 hours) for 30+ seconds
+    // Track all users: authenticated (userId) + anonymous (sessionId)
     let returningUsersQuery = analyticsRepository
       .createQueryBuilder('a1')
-      .select('COUNT(DISTINCT a1.userId)', 'count')
-      .innerJoin('analytics', 'a2', 'a1.userId = a2.userId')
+      .select('COUNT(DISTINCT COALESCE(CAST(a1.userId AS VARCHAR), a1.sessionId))', 'count')
+      .innerJoin('analytics', 'a2', 'COALESCE(CAST(a1.userId AS VARCHAR), a1.sessionId) = COALESCE(CAST(a2.userId AS VARCHAR), a2.sessionId)')
       .leftJoin('a1.user', 'user1')
       .leftJoin('a2.user', 'user2')
       .where('a1.createdAt > :twentyFourHoursAgo', { twentyFourHoursAgo })
@@ -159,13 +158,7 @@ export const getDashboardAnalytics = async (
       .andWhere('a2.gameId IS NOT NULL')
       .andWhere('a2.startTime IS NOT NULL')
       .andWhere('a2.endTime IS NOT NULL')
-      .andWhere('a2.duration >= :minDuration2', { minDuration2: 30 })
-      .andWhere('user1.hasCompletedFirstLogin = :hasCompleted1', {
-        hasCompleted1: true,
-      })
-      .andWhere('user2.hasCompletedFirstLogin = :hasCompleted2', {
-        hasCompleted2: true,
-      });
+      .andWhere('a2.duration >= :minDuration2', { minDuration2: 30 });
 
     // Add country filter if provided
     if (countries.length > 0) {
@@ -186,6 +179,7 @@ export const getDashboardAnalytics = async (
         : 0;
 
     // 1. Daily Active Users - Always 24 hours, users who played games for 30+ seconds
+    // Track all users: authenticated (userId) + anonymous (sessionId)
     const dailyActiveUsersNow = new Date();
     const dailyActiveUsers24HoursAgo = new Date(
       dailyActiveUsersNow.getTime() - 24 * 60 * 60 * 1000
@@ -193,16 +187,13 @@ export const getDashboardAnalytics = async (
 
     let dailyActiveUsersQuery = analyticsRepository
       .createQueryBuilder('analytics')
-      .select('COUNT(DISTINCT analytics.userId)', 'count')
+      .select('COUNT(DISTINCT COALESCE(CAST(analytics.userId AS VARCHAR), analytics.sessionId))', 'count')
       .leftJoin('analytics.user', 'user')
       .where('analytics.gameId IS NOT NULL')
       .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
       .andWhere('analytics.createdAt BETWEEN :start AND :end', {
         start: dailyActiveUsers24HoursAgo,
         end: dailyActiveUsersNow,
-      })
-      .andWhere('user.hasCompletedFirstLogin = :hasCompleted', {
-        hasCompleted: true,
       });
 
     // Add country filter if provided
@@ -327,6 +318,7 @@ export const getDashboardAnalytics = async (
     // }
 
     // 3. Game Coverage - Percentage of total games that have been played
+    // Track all users: authenticated (userId) + anonymous (sessionId)
     const totalGames = await gameRepository.count();
 
     // Get games played in current period
@@ -339,9 +331,6 @@ export const getDashboardAnalytics = async (
       .andWhere('analytics.createdAt BETWEEN :start AND :end', {
         start: twentyFourHoursAgo,
         end: now,
-      })
-      .andWhere('user.hasCompletedFirstLogin = :hasCompleted', {
-        hasCompleted: true,
       });
 
     // Get games played in previous period
@@ -354,9 +343,6 @@ export const getDashboardAnalytics = async (
       .andWhere('analytics.createdAt BETWEEN :start AND :end', {
         start: fortyEightHoursAgo,
         end: twentyFourHoursAgo,
-      })
-      .andWhere('user.hasCompletedFirstLogin = :hasCompleted', {
-        hasCompleted: true,
       });
 
     // Add country filter if provided
@@ -402,32 +388,27 @@ export const getDashboardAnalytics = async (
         : 0;
 
     // 4. Total Active Users - Users who have analytics records within the selected period
+    // Track all users: authenticated (userId) + anonymous (sessionId)
     let currentTotalActiveUsersQuery = analyticsRepository
       .createQueryBuilder('analytics')
-      .select('COUNT(DISTINCT analytics.userId)', 'count')
+      .select('COUNT(DISTINCT COALESCE(CAST(analytics.userId AS VARCHAR), analytics.sessionId))', 'count')
       .leftJoin('analytics.user', 'user')
       .where('analytics.gameId IS NOT NULL')
       .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
       .andWhere('analytics.createdAt BETWEEN :start AND :end', {
         start: twentyFourHoursAgo,
         end: now,
-      })
-      .andWhere('user.hasCompletedFirstLogin = :hasCompleted', {
-        hasCompleted: true,
       });
 
     let previousTotalActiveUsersQuery = analyticsRepository
       .createQueryBuilder('analytics')
-      .select('COUNT(DISTINCT analytics.userId)', 'count')
+      .select('COUNT(DISTINCT COALESCE(CAST(analytics.userId AS VARCHAR), analytics.sessionId))', 'count')
       .leftJoin('analytics.user', 'user')
       .where('analytics.gameId IS NOT NULL')
       .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
       .andWhere('analytics.createdAt BETWEEN :start AND :end', {
         start: fortyEightHoursAgo,
         end: twentyFourHoursAgo,
-      })
-      .andWhere('user.hasCompletedFirstLogin = :hasCompleted', {
-        hasCompleted: true,
       });
 
     // Add country filter if provided
@@ -475,9 +456,6 @@ export const getDashboardAnalytics = async (
       .andWhere('analytics.createdAt BETWEEN :start AND :end', {
         start: twentyFourHoursAgo,
         end: now,
-      })
-      .andWhere('user.hasCompletedFirstLogin = :hasCompleted', {
-        hasCompleted: true,
       });
 
     let previousTotalSessionsQuery = analyticsRepository
@@ -490,9 +468,6 @@ export const getDashboardAnalytics = async (
       .andWhere('analytics.createdAt BETWEEN :start AND :end', {
         start: fortyEightHoursAgo,
         end: twentyFourHoursAgo,
-      })
-      .andWhere('user.hasCompletedFirstLogin = :hasCompleted', {
-        hasCompleted: true,
       });
 
     let actualSessionsQuery = analyticsRepository
@@ -501,10 +476,7 @@ export const getDashboardAnalytics = async (
       .where('analytics.gameId IS NOT NULL')
       .andWhere('analytics.startTime IS NOT NULL')
       .andWhere('analytics.endTime IS NOT NULL')
-      .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
-      .andWhere('user.hasCompletedFirstLogin = :hasCompleted', {
-        hasCompleted: true,
-      });
+      .andWhere('analytics.duration >= :minDuration', { minDuration: 30 });
 
     // Add country filter if provided
     if (countries.length > 0) {
@@ -544,7 +516,8 @@ export const getDashboardAnalytics = async (
           )
         : 0;
 
-    // 5. Total Time Played (in minutes, game-related only, duration >= 30 seconds)
+    // 5. Total Time Played (in seconds, game-related only, duration >= 30 seconds)
+    // Track all users: authenticated (userId) + anonymous (sessionId)
     let currentTotalTimePlayedQuery = analyticsRepository
       .createQueryBuilder('analytics')
       .select('SUM(analytics.duration)', 'totalPlayTime')
@@ -556,9 +529,6 @@ export const getDashboardAnalytics = async (
       .andWhere('analytics.startTime BETWEEN :start AND :end', {
         start: twentyFourHoursAgo,
         end: now,
-      })
-      .andWhere('user.hasCompletedFirstLogin = :hasCompleted', {
-        hasCompleted: true,
       });
 
     let previousTotalTimePlayedQuery = analyticsRepository
@@ -572,9 +542,6 @@ export const getDashboardAnalytics = async (
       .andWhere('analytics.startTime BETWEEN :start AND :end', {
         start: fortyEightHoursAgo,
         end: twentyFourHoursAgo,
-      })
-      .andWhere('user.hasCompletedFirstLogin = :hasCompleted', {
-        hasCompleted: true,
       });
 
     let actualTimePlayedQuery = analyticsRepository
@@ -584,10 +551,7 @@ export const getDashboardAnalytics = async (
       .where('analytics.gameId IS NOT NULL')
       .andWhere('analytics.startTime IS NOT NULL')
       .andWhere('analytics.endTime IS NOT NULL')
-      .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
-      .andWhere('user.hasCompletedFirstLogin = :hasCompleted', {
-        hasCompleted: true,
-      });
+      .andWhere('analytics.duration >= :minDuration', { minDuration: 30 });
 
     // Add country filter if provided
     if (countries.length > 0) {
@@ -637,6 +601,7 @@ export const getDashboardAnalytics = async (
         : 0;
 
     // 6. Most Played Games (top 3) with percentage change (for the current period, duration >= 30 seconds)
+    // Track all users: authenticated (userId) + anonymous (sessionId)
     let mostPlayedGamesQuery = analyticsRepository
       .createQueryBuilder('analytics')
       .select('analytics.gameId', 'gameId')
@@ -653,9 +618,6 @@ export const getDashboardAnalytics = async (
       .andWhere('analytics.createdAt BETWEEN :start AND :end', {
         start: twentyFourHoursAgo,
         end: now,
-      })
-      .andWhere('user.hasCompletedFirstLogin = :hasCompleted', {
-        hasCompleted: true,
       });
 
     // Add country filter if provided
@@ -695,9 +657,6 @@ export const getDashboardAnalytics = async (
             .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
             .andWhere('analytics.createdAt > :twentyFourHoursAgo', {
               twentyFourHoursAgo,
-            })
-            .andWhere('user.hasCompletedFirstLogin = :hasCompleted', {
-              hasCompleted: true,
             });
 
           // Get previous period sessions for this game
@@ -712,9 +671,6 @@ export const getDashboardAnalytics = async (
             .andWhere('analytics.createdAt BETWEEN :start AND :end', {
               start: fortyEightHoursAgo,
               end: twentyFourHoursAgo,
-            })
-            .andWhere('user.hasCompletedFirstLogin = :hasCompleted', {
-              hasCompleted: true,
             });
 
           // Add country filter if provided
@@ -760,7 +716,8 @@ export const getDashboardAnalytics = async (
     const overallPercentageChange =
       mostPlayedGames.length > 0 ? mostPlayedGames[0].percentageChange : 0;
 
-    // 7. Average Session Duration (in minutes, game-related only, duration >= 30 seconds)
+    // 7. Average Session Duration (in seconds, game-related only, duration >= 30 seconds)
+    // Track all users: authenticated (userId) + anonymous (sessionId)
     let currentAvgDurationQuery = analyticsRepository
       .createQueryBuilder('analytics')
       .select(
@@ -774,9 +731,6 @@ export const getDashboardAnalytics = async (
       .andWhere('analytics.createdAt BETWEEN :start AND :end', {
         start: twentyFourHoursAgo,
         end: now,
-      })
-      .andWhere('user.hasCompletedFirstLogin = :hasCompleted', {
-        hasCompleted: true,
       });
 
     let previousAvgDurationQuery = analyticsRepository
@@ -792,9 +746,6 @@ export const getDashboardAnalytics = async (
       .andWhere('analytics.createdAt BETWEEN :start AND :end', {
         start: fortyEightHoursAgo,
         end: twentyFourHoursAgo,
-      })
-      .andWhere('user.hasCompletedFirstLogin = :hasCompleted', {
-        hasCompleted: true,
       });
 
     // Add country filter if provided

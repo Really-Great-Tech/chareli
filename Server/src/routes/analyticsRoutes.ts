@@ -6,6 +6,7 @@ import {
   updateAnalytics,
   deleteAnalytics,
   updateAnalyticsEndTime,
+  trackHomepageVisit,
 } from '../controllers/analyticsController';
 import {
   authenticate,
@@ -35,6 +36,14 @@ router.post(
   analyticsLimiter,
   validateBody(createAnalyticsSchema),
   createAnalytics
+);
+
+// Track homepage visit - accessible by all (logged-in and anonymous)
+router.post(
+  '/homepage-visit',
+  optionalAuthenticate,
+  analyticsLimiter,
+  trackHomepageVisit
 );
 
 // Update analytics entry - accessible by all (to update endTime for guests)

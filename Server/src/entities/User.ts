@@ -86,6 +86,9 @@ export class User {
   @Column({ nullable: true })
   resetTokenExpiry: Date;
 
+  @Column({ nullable: true, default: 'UTC' })
+  preferredTimezone: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

@@ -12,6 +12,7 @@ import { storageService } from '../services/storage.service';
 import { cacheService } from '../services/cache.service';
 import { PerformanceTimer } from '../utils/performance';
 import logger from '../utils/logger';
+import { toZonedTime } from 'date-fns-tz';
 
 const userRepository = AppDataSource.getRepository(User);
 const gameRepository = AppDataSource.getRepository(Game);
@@ -47,7 +48,8 @@ export const getDashboardAnalytics = async (
     period: req.query.period,
   });
   try {
-    const { period, startDate, endDate, country } = req.query;
+    const { period, startDate, endDate, country, timezone } = req.query;
+    const userTimezone = (timezone as string) || 'UTC';
 
     const countries = Array.isArray(country)
       ? (country as string[])
@@ -55,8 +57,8 @@ export const getDashboardAnalytics = async (
       ? [country as string]
       : [];
 
-    // Check cache first (TTL: 3 minutes)
-    const cacheKey = `${period || 'last24hours'}:${countries.sort().join(',')}`;
+    // Check cache first (TTL: 3 minutes) - include timezone in cache key
+    const cacheKey = `${period || 'last24hours'}:${countries.sort().join(',')}:${userTimezone}`;
     const cached = await cacheService.getAnalytics('dashboard', cacheKey);
     if (cached) {
       logger.debug(`[CACHE HIT] Dashboard analytics for ${cacheKey}`);
@@ -2084,7 +2086,8 @@ export const getGamesPopularityMetrics = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { period, startDate, endDate } = req.query;
+    const { period, startDate, endDate, timezone } = req.query;
+    const userTimezone = (timezone as string) || 'UTC';
 
     let now = new Date();
     let currentPeriodStart: Date;

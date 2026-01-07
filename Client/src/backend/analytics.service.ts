@@ -351,6 +351,7 @@ export interface DashboardTimeRange {
 export interface DashboardFilters {
   timeRange?: DashboardTimeRange;
   countries?: string[];
+  timezone?: string;
 }
 
 /**
@@ -375,6 +376,9 @@ export const useDashboardAnalytics = (filters?: DashboardFilters) => {
         filters.countries.forEach((country) =>
           params.append('country', country)
         );
+      }
+      if (filters?.timezone) {
+        params.append('timezone', filters.timezone);
       }
       const url = `${BackendRoute.ADMIN_DASHBOARD}${
         params.toString() ? `?${params.toString()}` : ''
@@ -638,6 +642,9 @@ export const useGamesWithPopularity = (filters?: DashboardFilters) => {
         filters.countries.forEach((country) =>
           params.append('country', country)
         );
+      }
+      if (filters?.timezone) {
+        params.append('timezone', filters.timezone);
       }
       const url = `${BackendRoute.ADMIN_GAMES_ANALYTICS_POPULARITY}${
         params.toString() ? `?${params.toString()}` : ''

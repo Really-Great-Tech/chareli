@@ -2162,6 +2162,10 @@ export const getGamesPopularityMetrics = async (
           popularity = 'up';
         }
 
+        const totalPlays = parseInt(overallMetrics?.totalPlays) || 0;
+        const avgPlayTime = parseFloat(overallMetrics?.averagePlayTime) || 0;
+        const totalTime = Math.round(totalPlays * avgPlayTime); // Total time in seconds
+
         return {
           id: game.id,
           title: game.title,
@@ -2170,10 +2174,9 @@ export const getGamesPopularityMetrics = async (
             : null,
           status: game.status,
           metrics: {
-            totalPlays: parseInt(overallMetrics?.totalPlays) || 0,
-            averagePlayTime: Math.round(
-              (overallMetrics?.averagePlayTime || 0) / 60
-            ), // Convert to minutes
+            totalPlays,
+            totalTime, // Total time in seconds
+            averagePlayTime: Math.round(avgPlayTime / 60), // Convert to minutes
             popularity,
             mostPlayedAt: mostPlayedAtPosition
               ? {
@@ -2186,8 +2189,12 @@ export const getGamesPopularityMetrics = async (
       })
     );
 
-    // Sort by total plays (best performers first)
-    gamesMetrics.sort((a, b) => b.metrics.totalPlays - a.metrics.totalPlays);
+    // Sort by total time first, then sessions as tiebreaker (highest first)
+    gamesMetrics.sort((a, b) => {
+      const timeDiff = b.metrics.totalTime - a.metrics.totalTime;
+      if (timeDiff !== 0) return timeDiff;
+      return b.metrics.totalPlays - a.metrics.totalPlays;
+    });
 
     res.status(200).json({
       success: true,

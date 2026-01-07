@@ -13,6 +13,7 @@ import { RiGamepadLine } from "react-icons/ri";
 import { useGamesWithPopularity, type DashboardFilters } from "../../../backend/analytics.service";
 import { NoResults } from "../../../components/single/NoResults";
 import GameThumbnail from "./GameThumbnail";
+import { formatTime } from "../../../utils/main";
 
 interface GameActivityProps {
   filters?: DashboardFilters;
@@ -161,7 +162,7 @@ export default function GameActivity({ filters }: GameActivityProps) {
                   </TableCell>
                   <TableCell>
                     <p className="font-dmmono pr-8">
-                      {game.metrics.averagePlayTime} min
+                      {formatTime(game.metrics.averagePlayTime * 60)}
                     </p>
                   </TableCell>
                   <TableCell>

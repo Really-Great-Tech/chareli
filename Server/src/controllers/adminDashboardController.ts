@@ -151,34 +151,39 @@ export const getDashboardAnalytics = async (
 
     // Among those users, count how many also played games today (last 24 hours) for 30+ seconds
     // Track all users: authenticated (userId) + anonymous (sessionId)
+    // Optimized: Using EXISTS subquery instead of self-join for better performance
     let returningUsersQuery = analyticsRepository
       .createQueryBuilder('a1')
       .select('COUNT(DISTINCT COALESCE(CAST(a1.userId AS VARCHAR), a1.sessionId))', 'count')
-      .innerJoin('analytics', 'a2', 'COALESCE(CAST(a1.userId AS VARCHAR), a1.sessionId) = COALESCE(CAST(a2.userId AS VARCHAR), a2.sessionId)')
       .leftJoin('a1.user', 'user1')
-      .leftJoin('a2.user', 'user2')
       .where('a1.createdAt > :twentyFourHoursAgo', { twentyFourHoursAgo })
       .andWhere('a1.gameId IS NOT NULL')
       .andWhere('a1.startTime IS NOT NULL')
       .andWhere('a1.endTime IS NOT NULL')
       .andWhere('a1.duration >= :minDuration', { minDuration: 30 })
-      .andWhere('a2.createdAt BETWEEN :start AND :end', {
+      .andWhere(`EXISTS (
+        SELECT 1 FROM internal.analytics a2
+        LEFT JOIN internal.users user2 ON a2.user_id = user2.id
+        WHERE COALESCE(CAST(a2.user_id AS VARCHAR), a2.session_id) = COALESCE(CAST(a1.userId AS VARCHAR), a1.sessionId)
+        AND a2.created_at BETWEEN :start AND :end
+        AND a2.game_id IS NOT NULL
+        AND a2.start_time IS NOT NULL
+        AND a2.end_time IS NOT NULL
+        AND a2.duration >= 30
+        ${countries.length > 0 ? 'AND user2.country = ANY(:countries)' : ''}
+      )`, {
         start: fortyEightHoursAgo,
         end: twentyFourHoursAgo,
-      })
-      .andWhere('a2.gameId IS NOT NULL')
-      .andWhere('a2.startTime IS NOT NULL')
-      .andWhere('a2.endTime IS NOT NULL')
-      .andWhere('a2.duration >= :minDuration2', { minDuration2: 30 });
+        ...(countries.length > 0 ? { countries } : {}),
+      });
 
-    // Add country filter if provided
+    // Add country filter for the outer query if provided
     if (countries.length > 0) {
       returningUsersQuery = returningUsersQuery
-        .andWhere('user1.country IN (:...countries)', { countries })
-        .andWhere('user2.country IN (:...countries)', { countries });
+        .andWhere('user1.country IN (:...countriesOuter)', { countriesOuter: countries });
     }
 
-    const timer2 = new PerformanceTimer('returningUsersQuery (self-join)');
+    const timer2 = new PerformanceTimer('returningUsersQuery (EXISTS subquery)');
     const returningUsersResult = await returningUsersQuery.getRawOne();
     timer2.end();
 

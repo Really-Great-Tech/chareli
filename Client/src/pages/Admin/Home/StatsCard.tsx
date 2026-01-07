@@ -67,17 +67,91 @@ export default function StatsCard({ filters }: StatsCardProps) {
 
   const timeDescription = getTimeRangeDescription();
 
+  // Metrics ordered as required:
+  // 1. Total Users Landed on Homepage
+  // 2. Total Unique Users Who Started a Game Session
+  // 3. Total Sessions (gameplay hits)
+  // 4. Total Gameplay Time (hours for >60 min)
+  // 5. Best Performing Games
+  // 6. Game Coverage
+  // 7. Retention
   const cardData = [
+    // 1. Total Users Landed on Homepage (All visitors - auth + anonymous)
     {
-      title: 'New Verified Users',
-      value: data.totalRegisteredUsers.current,
+      title: 'Total Visitors',
+      value: data.totalVisitors.current,
       icon: <Users size={32} />,
-      change: `${data.totalRegisteredUsers.percentageChange ?? 0}%`,
-      changeType:
-        data.totalRegisteredUsers.percentageChange >= 0 ? 'up' : 'down',
+      change: `${data.totalVisitors.percentageChange ?? 0}%`,
+      changeType: data.totalVisitors.percentageChange >= 0 ? 'up' : 'down',
+      description: 'Users landed on homepage',
+      color: 'text-[#64748A] dark:text-white',
+    },
+    // 2. Total Unique Users Who Started a Game Session
+    {
+      title: 'Unique Game Starters',
+      value: data.totalActiveUsers.current,
+      icon: <Users size={32} />,
+      change: `${data.totalActiveUsers.percentageChange ?? 0}%`,
+      changeType: data.totalActiveUsers.percentageChange >= 0 ? 'up' : 'down',
+      description: 'Users who started a game',
+      color: 'text-[#64748A] dark:text-white',
+    },
+    // 3. Total Sessions (gameplay hits)
+    {
+      title: 'Total Sessions',
+      value: data.totalSessions.current,
+      icon: <CalendarClock size={36} />,
+      change: `${data.totalSessions.percentageChange ?? 0}%`,
+      changeType: data.totalSessions.percentageChange >= 0 ? 'up' : 'down',
       description: timeDescription,
       color: 'text-[#64748A] dark:text-white',
     },
+    // 4. Total Gameplay Time (displays hours for >60 min via formatTime)
+    {
+      title: 'Total Gameplay Time',
+      value: formatTime(data.totalTimePlayed.current),
+      icon: <Clock size={32} className="dark:text-white" />,
+      change: `${data.totalTimePlayed.percentageChange ?? 0}%`,
+      changeType: data.totalTimePlayed.percentageChange >= 0 ? 'up' : 'down',
+      description: timeDescription,
+      color: 'text-[#64748A] dark:text-white',
+    },
+    // 5. Best Performing Games (for selected timeframe)
+    {
+      title: 'Best Performing Games',
+      value:
+        data.mostPlayedGames?.games?.length > 0
+          ? data.mostPlayedGames.games
+          : 'No games played',
+      icon: <Star size={32} />,
+      change: `${data.mostPlayedGames?.percentageChange ?? 0}%`,
+      changeType:
+        (data.mostPlayedGames?.percentageChange ?? 0) >= 0 ? 'up' : 'down',
+      description: timeDescription,
+      color: 'text-[#64748A] dark:text-white',
+      isGamesList: true,
+    },
+    // 6. Game Coverage
+    {
+      title: 'Game Coverage',
+      value: `${data.gameCoverage.current}%`,
+      icon: <Star size={32} />,
+      change: `${data.gameCoverage.percentageChange ?? 0}%`,
+      changeType: data.gameCoverage.percentageChange >= 0 ? 'up' : 'down',
+      description: timeDescription,
+      color: 'text-[#64748A] dark:text-white',
+    },
+    // 7. Retention
+    {
+      title: 'Retention Rate',
+      value: `${Math.round(data.retentionRate) ?? 0}%`,
+      icon: <CalendarClock size={36} />,
+      change: '0%',
+      changeType: 'up',
+      description: 'Day-over-day retention',
+      color: 'text-[#64748A] dark:text-white',
+    },
+    // Additional metrics (secondary)
     {
       title: 'Daily Active Users',
       value: data.dailyActiveUsers.current,
@@ -86,45 +160,7 @@ export default function StatsCard({ filters }: StatsCardProps) {
       changeType: 'up',
       description: 'Always last 24 hours',
       color: 'text-[#64748A] dark:text-white',
-      isStatic: true, // No percentage change
-    },
-    {
-      title: 'Daily Anonymous Visitors',
-      value: data.dailyAnonymousVisitors.current,
-      icon: <Users size={32} />,
-      change: '24h only',
-      changeType: 'up',
-      description: 'Anonymous users (24h)',
-      color: 'text-[#64748A] dark:text-white',
-      isStatic: true, // No percentage change
-    },
-    {
-      title: 'Total Visitors',
-      value: data.totalVisitors.current,
-      icon: <Users size={32} />,
-      change: `${data.totalVisitors.percentageChange ?? 0}%`,
-      changeType: data.totalVisitors.percentageChange >= 0 ? 'up' : 'down',
-      description: 'Auth + Anonymous',
-      color: 'text-[#64748A] dark:text-white',
-    },
-
-    {
-      title: 'Total Time played',
-      value: formatTime(data.totalTimePlayed.current),
-      icon: <Clock size={32} className="dark:text-white" />,
-      change: `${data.totalTimePlayed.percentageChange ?? 0}%`,
-      changeType: data.totalTimePlayed.percentageChange >= 0 ? 'up' : 'down',
-      description: timeDescription,
-      color: 'text-[#64748A] dark:text-white',
-    },
-    {
-      title: 'Sessions Played',
-      value: data.totalSessions.current,
-      icon: <CalendarClock size={36} />,
-      change: `${data.totalSessions.percentageChange ?? 0}%`,
-      changeType: data.totalSessions.percentageChange >= 0 ? 'up' : 'down',
-      description: timeDescription,
-      color: 'text-[#64748A] dark:text-white',
+      isStatic: true,
     },
     {
       title: 'Average Session Time',
@@ -132,6 +168,16 @@ export default function StatsCard({ filters }: StatsCardProps) {
       icon: <Hourglass size={32} />,
       change: `${data.avgSessionDuration.percentageChange ?? 0}%`,
       changeType: data.avgSessionDuration.percentageChange >= 0 ? 'up' : 'down',
+      description: timeDescription,
+      color: 'text-[#64748A] dark:text-white',
+    },
+    {
+      title: 'New Registered Users',
+      value: data.totalRegisteredUsers.current,
+      icon: <Users size={32} />,
+      change: `${data.totalRegisteredUsers.percentageChange ?? 0}%`,
+      changeType:
+        data.totalRegisteredUsers.percentageChange >= 0 ? 'up' : 'down',
       description: timeDescription,
       color: 'text-[#64748A] dark:text-white',
     },
@@ -151,47 +197,6 @@ export default function StatsCard({ filters }: StatsCardProps) {
       change: `${data.anonymousTimePlayed.percentageChange ?? 0}%`,
       changeType:
         data.anonymousTimePlayed.percentageChange >= 0 ? 'up' : 'down',
-      description: timeDescription,
-      color: 'text-[#64748A] dark:text-white',
-    },
-    {
-      title: 'Most Played Games',
-      value:
-        data.mostPlayedGames?.games?.length > 0
-          ? data.mostPlayedGames.games
-          : 'No games played',
-      icon: <Star size={32} />,
-      change: `${data.mostPlayedGames?.percentageChange ?? 0}%`,
-      changeType:
-        (data.mostPlayedGames?.percentageChange ?? 0) >= 0 ? 'up' : 'down',
-      description: timeDescription,
-      color: 'text-[#64748A] dark:text-white',
-      isGamesList: true,
-    },
-    {
-      title: 'Game Coverage',
-      value: `${data.gameCoverage.current}%`,
-      icon: <Star size={32} />,
-      change: `${data.gameCoverage.percentageChange ?? 0}%`,
-      changeType: data.gameCoverage.percentageChange >= 0 ? 'up' : 'down',
-      description: timeDescription,
-      color: 'text-[#64748A] dark:text-white',
-    },
-    {
-      title: 'Total Active Users',
-      value: data.totalActiveUsers.current,
-      icon: <Users size={32} />,
-      change: `${data.totalActiveUsers.percentageChange ?? 0}%`,
-      changeType: data.totalActiveUsers.percentageChange >= 0 ? 'up' : 'down',
-      description: timeDescription,
-      color: 'text-[#64748A] dark:text-white',
-    },
-    {
-      title: 'User Retention',
-      value: `${Math.round(data.retentionRate) ?? 0}%`,
-      icon: <CalendarClock size={36} />,
-      change: '0%',
-      changeType: 'up',
       description: timeDescription,
       color: 'text-[#64748A] dark:text-white',
     },

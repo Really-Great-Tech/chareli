@@ -10,12 +10,16 @@ import {
 } from "../../../components/ui/table";
 import { FaChevronUp, FaChevronDown } from "react-icons/fa6";
 import { RiGamepadLine } from "react-icons/ri";
-import { useGamesWithPopularity } from "../../../backend/analytics.service";
+import { useGamesWithPopularity, type DashboardFilters } from "../../../backend/analytics.service";
 import { NoResults } from "../../../components/single/NoResults";
 import GameThumbnail from "./GameThumbnail";
 
-export default function GameActivity() {
-  const { data: gamesAnalytics, isError, isLoading } = useGamesWithPopularity();
+interface GameActivityProps {
+  filters?: DashboardFilters;
+}
+
+export default function GameActivity({ filters }: GameActivityProps) {
+  const { data: gamesAnalytics, isError, isLoading } = useGamesWithPopularity(filters);
 
   const gamesPerPage = 4;
   const [gamePage, setGamePage] = useState(1);
@@ -225,7 +229,7 @@ export default function GameActivity() {
                   {(() => {
                     const pages = [];
                     const maxVisiblePages = 5;
-                    
+
                                           if (totalGamePages <= maxVisiblePages) {
                         // Show all pages if total is small
                         for (let i = 1; i <= totalGamePages; i++) {
@@ -247,7 +251,7 @@ export default function GameActivity() {
                       // Smart truncation for many pages
                       const startPage = Math.max(1, gamePage - 2);
                       const endPage = Math.min(totalGamePages, gamePage + 2);
-                      
+
                                               // First page
                         if (startPage > 1) {
                           pages.push(
@@ -271,7 +275,7 @@ export default function GameActivity() {
                           );
                         }
                       }
-                      
+
                                               // Current range
                         for (let i = startPage; i <= endPage; i++) {
                           pages.push(
@@ -288,7 +292,7 @@ export default function GameActivity() {
                             </button>
                           );
                         }
-                      
+
                       // Last page
                       if (endPage < totalGamePages) {
                         if (endPage < totalGamePages - 1) {
@@ -313,7 +317,7 @@ export default function GameActivity() {
                           );
                       }
                     }
-                    
+
                     return pages;
                   })()}
                 </div>

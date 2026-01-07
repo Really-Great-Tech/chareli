@@ -26,18 +26,19 @@ export const BackendRoute = {
   GAME_BY_POSITION: '/api/games/position/:position',
   CATEGORIES: '/api/categories',
   CATEGORY_BY_ID: '/api/categories/:id',
-  
+
   // Game Position History Routes
   GAME_POSITION_HISTORY: '/api/game-position-history',
   GAME_POSITION_HISTORY_BY_GAME: '/api/game-position-history/:gameId',
   GAME_POSITION_HISTORY_CLICK: '/api/game-position-history/:gameId/click',
   GAME_POSITION_HISTORY_ANALYTICS: '/api/game-position-history/analytics',
   GAME_POSITION_HISTORY_PERFORMANCE: '/api/game-position-history/performance',
-  
+
   // Analytics Routes
   ANALYTICS: '/api/analytics',
   ANALYTICS_BY_ID: '/api/analytics/:id',
   ANALYTICS_END_TIME: '/api/analytics/:id/end',
+  ANALYTICS_HOMEPAGE_VISIT: '/api/analytics/homepage-visit',
 
   // Admin Dashboard Routes
   ADMIN_DASHBOARD: '/api/admin/dashboard',
@@ -45,14 +46,14 @@ export const BackendRoute = {
   ADMIN_USERS_ANALYTICS: '/api/admin/users-analytics',
   ADMIN_USER_ANALYTICS: '/api/admin/users/:id/analytics',
   ADMIN_GAMES_ANALYTICS: '/api/admin/games-analytics',
-  ADMIN_GAME_ANALYTICS: '/api/admin/games/:id/analytics', 
+  ADMIN_GAME_ANALYTICS: '/api/admin/games/:id/analytics',
   ADMIN_USER_ACTIVITY: '/api/admin/user-activity-log',
   ADMIN_GAMES_ANALYTICS_POPULARITY: '/api/admin/games-popularity',
   ADMIN_CHECK_INACTIVE: '/api/admin/check-inactive-users',
-  
+
   // User Stats Route
   USER_STATS: '/api/users/me/stats',
-  
+
   // Heartbeat Routes
   USER_HEARTBEAT: '/api/users/heartbeat',
   USER_ONLINE_STATUS: '/api/users/online-status',

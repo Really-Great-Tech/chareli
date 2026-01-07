@@ -11,6 +11,7 @@ export enum JobType {
   JSON_CDN_GENERATION = 'json-cdn-generation',
   IMAGE_PROCESSING = 'image-processing',
   CLICK_TRACKING = 'click-tracking',
+  HOMEPAGE_VISIT = 'homepage-visit',
 }
 
 // Job data interfaces
@@ -55,6 +56,11 @@ export interface ImageProcessingJobData {
 export interface ClickTrackingJobData {
   gameId: string;
   position: number;
+}
+
+export interface HomepageVisitJobData {
+  userId: string | null;
+  sessionId: string | null;
 }
 
 class QueueService {
@@ -188,6 +194,22 @@ class QueueService {
     });
 
     this.queues.set(JobType.CLICK_TRACKING, clickTrackingQueue);
+
+    // Create homepage visit tracking queue
+    const homepageVisitQueue = new Queue(JobType.HOMEPAGE_VISIT, {
+      connection: redisConfig,
+      defaultJobOptions: {
+        removeOnComplete: 100,
+        removeOnFail: 200,
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 500,
+        },
+      },
+    });
+
+    this.queues.set(JobType.HOMEPAGE_VISIT, homepageVisitQueue);
 
     // Create QueueEvents for analytics queue to listen for job completion
     this.queueEvents = new QueueEvents(JobType.ANALYTICS_PROCESSING, {
@@ -351,6 +373,29 @@ class QueueService {
 
     logger.debug(
       `Added click tracking job for game ${data.gameId} with job ID: ${job.id}`
+    );
+    return job;
+  }
+
+  async addHomepageVisitJob(
+    data: HomepageVisitJobData,
+    options?: {
+      delay?: number;
+      priority?: number;
+    }
+  ): Promise<Job<HomepageVisitJobData>> {
+    const queue = this.queues.get(JobType.HOMEPAGE_VISIT);
+    if (!queue) {
+      throw new Error('Homepage visit tracking queue not found');
+    }
+
+    const job = await queue.add('track-homepage-visit', data, {
+      ...options,
+      jobId: `homepage-${data.userId || data.sessionId}-${Date.now()}`,
+    });
+
+    logger.debug(
+      `Added homepage visit tracking job with job ID: ${job.id}`
     );
     return job;
   }

@@ -558,3 +558,65 @@ export const deleteAnalytics = async (
     next(error);
   }
 };
+
+/**
+ *@swagger
+ * /analytics/homepage-visit:
+ *   post:
+ *     summary: Track homepage visit
+ *     tags: [Analytics]
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               sessionId:
+ *                 type: string
+ *                 description: Anonymous session ID (if not authenticated)
+ *     responses:
+ *       202:
+ *         description: Homepage visit tracking queued successfully
+ *       500:
+ *         description: Internal server error
+ */
+export const trackHomepageVisit = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    // Get user ID from authenticated user (if logged in)
+    const userId = req.user?.userId || null;
+
+    // Get session ID from body (for anonymous users)
+    const { sessionId } = req.body || {};
+
+    // Require either userId or sessionId
+    if (!userId && !sessionId) {
+      return next(
+        ApiError.badRequest('Either authentication or sessionId is required')
+      );
+    }
+
+    // Enqueue homepage visit tracking job (non-blocking)
+    await queueService.addHomepageVisitJob({
+      userId,
+      sessionId: sessionId || null,
+    });
+
+    // Return immediately without waiting for processing
+    res.status(202).json({
+      success: true,
+      message: 'Homepage visit tracking queued successfully',
+    });
+  } catch (error) {
+    // Don't block user experience even if tracking fails
+    logger.error('Failed to queue homepage visit tracking:', error);
+    res.status(202).json({
+      success: true,
+      message: 'Request acknowledged',
+    });
+  }
+};

@@ -210,6 +210,19 @@ export async function processGameZip(
       jobId: job.id as string,
     });
 
+    // Trigger CDN JSON regeneration and Cloudflare cache purge
+    // This ensures the newly activated game appears in games_active.json
+    try {
+      const { cacheInvalidationService } = await import(
+        '../services/cache-invalidation.service'
+      );
+      await cacheInvalidationService.invalidateGameCreation(gameId);
+      logger.info(`[WORKER] CDN cache invalidated for newly activated game ${gameId}`);
+    } catch (cdnError) {
+      logger.warn(`[WORKER] Failed to invalidate CDN cache for game ${gameId}:`, cdnError);
+      // Don't fail the job for CDN errors
+    }
+
     // Calculate overall timing
     const overallEndTime = performance.now();
     const overallDuration = overallEndTime - overallStartTime;

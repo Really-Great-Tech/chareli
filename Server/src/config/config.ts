@@ -102,6 +102,10 @@ interface Config {
     refreshIntervalMinutes: number;
     baseUrl: string;
   };
+  cloudflare: {
+    apiToken: string;
+    cdnZoneId: string;
+  };
 }
 
 function getEnv(key: string, defaultValue?: string): string {
@@ -233,6 +237,11 @@ const config: Config = {
     ),
     baseUrl: process.env.JSON_CDN_BASE_URL || process.env.R2_PUBLIC_URL || '',
   },
+  cloudflare: {
+    apiToken: process.env.CLOUDFLARE_API_TOKEN || '',
+    cdnZoneId: process.env.CLOUDFLARE_CDN_ZONE_ID || '',
+  },
 };
 
 export default config;
+

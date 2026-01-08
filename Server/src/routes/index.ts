@@ -9,6 +9,7 @@ import systemConfigRoutes from './systemConfigRoutes';
 import signupAnalyticsRoutes from './signupAnalyticsRoutes';
 import analyticsRoutes from './analyticsRoutes';
 import adminRoutes from './adminRoutes';
+import cdnRoutes from './cdnRoutes';
 import { ApiError } from '../middlewares/errorHandler';
 
 const router = Router();
@@ -42,6 +43,7 @@ router.use('/system-configs', systemConfigRoutes);
 router.use('/signup-analytics', signupAnalyticsRoutes);
 router.use('/analytics', analyticsRoutes);
 router.use('/admin', adminRoutes);
+router.use('/cdn', cdnRoutes);
 
 // Handle 404 errors for routes that don't exist
 router.all('/:path', (req, _res, next) => {

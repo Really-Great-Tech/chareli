@@ -13,6 +13,7 @@ interface DashboardTimezoneFilterProps {
 
 // Common timezones for admin users
 const timezoneOptions = [
+  { value: 'Europe/Nicosia', label: 'Europe/Nicosia (GMT+2)' },
   { value: 'UTC', label: 'UTC' },
   { value: 'Africa/Accra', label: 'Africa/Accra (GMT+0)' },
   { value: 'Africa/Lagos', label: 'Africa/Lagos (GMT+1)' },

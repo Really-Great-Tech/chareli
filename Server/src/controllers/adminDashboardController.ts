@@ -66,27 +66,51 @@ export const getDashboardAnalytics = async (
       return;
     }
 
-    let now = new Date();
+    // Get current time in the user's timezone for proper day boundaries
+    // This ensures "today" means "today in the user's timezone" (like Google Analytics)
+    const nowUtc = new Date();
+    const nowInUserTz = toZonedTime(nowUtc, userTimezone);
+
+    // Helper to calculate period boundaries in user's timezone
+    const getTimezoneAwarePeriodBoundaries = (daysBack: number, prevDaysBack: number) => {
+      // Calculate start of today in user's timezone
+      const startOfTodayInUserTz = new Date(nowInUserTz);
+      startOfTodayInUserTz.setHours(0, 0, 0, 0);
+
+      // Current period: from X days ago at midnight (user's TZ) to now
+      const currentStart = new Date(startOfTodayInUserTz);
+      currentStart.setDate(currentStart.getDate() - daysBack + 1); // +1 because we include today
+
+      // Previous period: from 2X days ago to X days ago
+      const prevStart = new Date(startOfTodayInUserTz);
+      prevStart.setDate(prevStart.getDate() - prevDaysBack + 1);
+
+      const prevEnd = new Date(currentStart);
+
+      return { currentStart, prevStart, prevEnd };
+    };
+
+    let now = nowUtc;
     let currentPeriodStart: Date;
     let previousPeriodStart: Date;
     let previousPeriodEnd: Date;
 
-    // Determine time ranges based on the period parameter
+    // Determine time ranges based on the period parameter (timezone-aware)
     switch (period) {
-      case 'last7days':
-        currentPeriodStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        previousPeriodStart = new Date(
-          now.getTime() - 14 * 24 * 60 * 60 * 1000
-        );
-        previousPeriodEnd = currentPeriodStart;
+      case 'last7days': {
+        const boundaries = getTimezoneAwarePeriodBoundaries(7, 14);
+        currentPeriodStart = boundaries.currentStart;
+        previousPeriodStart = boundaries.prevStart;
+        previousPeriodEnd = boundaries.prevEnd;
         break;
-      case 'last30days':
-        currentPeriodStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        previousPeriodStart = new Date(
-          now.getTime() - 60 * 24 * 60 * 60 * 1000
-        );
-        previousPeriodEnd = currentPeriodStart;
+      }
+      case 'last30days': {
+        const boundaries = getTimezoneAwarePeriodBoundaries(30, 60);
+        currentPeriodStart = boundaries.currentStart;
+        previousPeriodStart = boundaries.prevStart;
+        previousPeriodEnd = boundaries.prevEnd;
         break;
+      }
       case 'custom':
         if (startDate && endDate) {
           currentPeriodStart = new Date(startDate as string);
@@ -108,16 +132,19 @@ export const getDashboardAnalytics = async (
           now = customEndDate;
         } else {
           // Fallback to last 24 hours if custom dates are invalid
-          currentPeriodStart = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-          previousPeriodStart = new Date(now.getTime() - 48 * 60 * 60 * 1000);
-          previousPeriodEnd = currentPeriodStart;
+          const boundaries = getTimezoneAwarePeriodBoundaries(1, 2);
+          currentPeriodStart = boundaries.currentStart;
+          previousPeriodStart = boundaries.prevStart;
+          previousPeriodEnd = boundaries.prevEnd;
         }
         break;
-      default: // 'last24hours' or no period specified
-        currentPeriodStart = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-        previousPeriodStart = new Date(now.getTime() - 48 * 60 * 60 * 1000);
-        previousPeriodEnd = currentPeriodStart;
+      default: { // 'last24hours' or no period specified
+        const boundaries = getTimezoneAwarePeriodBoundaries(1, 2);
+        currentPeriodStart = boundaries.currentStart;
+        previousPeriodStart = boundaries.prevStart;
+        previousPeriodEnd = boundaries.prevEnd;
         break;
+      }
     }
 
     // For backward compatibility, keep the original variable names
@@ -2089,23 +2116,47 @@ export const getGamesPopularityMetrics = async (
     const { period, startDate, endDate, timezone } = req.query;
     const userTimezone = (timezone as string) || 'UTC';
 
-    let now = new Date();
+    // Get current time in the user's timezone for proper day boundaries
+    const nowUtc = new Date();
+    const nowInUserTz = toZonedTime(nowUtc, userTimezone);
+
+    // Helper to calculate period boundaries in user's timezone
+    const getTimezoneAwarePeriodBoundaries = (daysBack: number, prevDaysBack: number) => {
+      const startOfTodayInUserTz = new Date(nowInUserTz);
+      startOfTodayInUserTz.setHours(0, 0, 0, 0);
+
+      const currentStart = new Date(startOfTodayInUserTz);
+      currentStart.setDate(currentStart.getDate() - daysBack + 1);
+
+      const prevStart = new Date(startOfTodayInUserTz);
+      prevStart.setDate(prevStart.getDate() - prevDaysBack + 1);
+
+      const prevEnd = new Date(currentStart);
+
+      return { currentStart, prevStart, prevEnd };
+    };
+
+    let now = nowUtc;
     let currentPeriodStart: Date;
     let previousPeriodStart: Date;
     let previousPeriodEnd: Date;
 
-    // Determine time ranges based on the period parameter (same logic as dashboard)
+    // Determine time ranges based on the period parameter (timezone-aware)
     switch (period) {
-      case 'last7days':
-        currentPeriodStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        previousPeriodStart = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
-        previousPeriodEnd = currentPeriodStart;
+      case 'last7days': {
+        const boundaries = getTimezoneAwarePeriodBoundaries(7, 14);
+        currentPeriodStart = boundaries.currentStart;
+        previousPeriodStart = boundaries.prevStart;
+        previousPeriodEnd = boundaries.prevEnd;
         break;
-      case 'last30days':
-        currentPeriodStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        previousPeriodStart = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
-        previousPeriodEnd = currentPeriodStart;
+      }
+      case 'last30days': {
+        const boundaries = getTimezoneAwarePeriodBoundaries(30, 60);
+        currentPeriodStart = boundaries.currentStart;
+        previousPeriodStart = boundaries.prevStart;
+        previousPeriodEnd = boundaries.prevEnd;
         break;
+      }
       case 'custom':
         if (startDate && endDate) {
           currentPeriodStart = new Date(startDate as string);
@@ -2119,15 +2170,18 @@ export const getGamesPopularityMetrics = async (
           previousPeriodEnd = currentPeriodStart;
           now = customEndDate;
         } else {
-          currentPeriodStart = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-          previousPeriodStart = new Date(now.getTime() - 48 * 60 * 60 * 1000);
-          previousPeriodEnd = currentPeriodStart;
+          const boundaries = getTimezoneAwarePeriodBoundaries(1, 2);
+          currentPeriodStart = boundaries.currentStart;
+          previousPeriodStart = boundaries.prevStart;
+          previousPeriodEnd = boundaries.prevEnd;
         }
         break;
-      default: // last24hours
-        currentPeriodStart = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-        previousPeriodStart = new Date(now.getTime() - 48 * 60 * 60 * 1000);
-        previousPeriodEnd = currentPeriodStart;
+      default: { // last24hours
+        const boundaries = getTimezoneAwarePeriodBoundaries(1, 2);
+        currentPeriodStart = boundaries.currentStart;
+        previousPeriodStart = boundaries.prevStart;
+        previousPeriodEnd = boundaries.prevEnd;
+      }
     }
 
     // Get all games with basic info

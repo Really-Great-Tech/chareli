@@ -29,7 +29,7 @@ export default function Home() {
     period: 'last24hours',
   });
   const [countryFilter, setCountryFilter] = useState<string[]>([]);
-  const [timezoneFilter, setTimezoneFilter] = useState<string>('UTC');
+  const [timezoneFilter, setTimezoneFilter] = useState<string>('Europe/Nicosia');
   // Separate state for insights filter
   const [insightsTimeRange, setInsightsTimeRange] =
     useState<DashboardTimeRange>({ period: 'last30days' });

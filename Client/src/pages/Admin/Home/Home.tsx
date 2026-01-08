@@ -4,6 +4,7 @@ import { Card } from '../../../components/ui/card';
 import { AcceptInvitationModal } from '../../../components/modals/AdminModals/AcceptInvitationModal';
 import { DashboardTimeFilter } from '../../../components/single/DashboardTimeFilter';
 import { DashboardCountryFilter } from '../../../components/single/DashboardCountryFilter';
+import { DashboardTimezoneFilter } from '../../../components/single/DashboardTimezoneFilter';
 import StatsCard from './StatsCard';
 import PieChart from '../../../components/charts/piechart';
 import { useState } from 'react';
@@ -24,11 +25,11 @@ import { UserTypeBreakdown } from '../../../components/charts/UserTypeBreakdown'
 export default function Home() {
   const permissions = usePermissions();
   const [isAcceptInviteOpen, setIsAcceptInviteOpen] = useState(false);
-  // Separate state for stats cards filter
   const [statsTimeRange, setStatsTimeRange] = useState<DashboardTimeRange>({
     period: 'last24hours',
   });
   const [countryFilter, setCountryFilter] = useState<string[]>([]);
+  const [timezoneFilter, setTimezoneFilter] = useState<string>('Europe/Nicosia');
   // Separate state for insights filter
   const [insightsTimeRange, setInsightsTimeRange] =
     useState<DashboardTimeRange>({ period: 'last30days' });
@@ -60,17 +61,21 @@ export default function Home() {
                 value={countryFilter}
                 onChange={setCountryFilter}
               />
+              <DashboardTimezoneFilter
+                value={timezoneFilter}
+                onChange={setTimezoneFilter}
+              />
             </div>
           )}
         </div>
       </div>
       <div className="px-6">
         <StatsCard
-          filters={{ timeRange: statsTimeRange, countries: countryFilter }}
+          filters={{ timeRange: statsTimeRange, countries: countryFilter, timezone: timezoneFilter }}
         />
 
         {/* Game activity */}
-        <GameActivity filters={{ timeRange: statsTimeRange, countries: countryFilter }} />
+        <GameActivity filters={{ timeRange: statsTimeRange, countries: countryFilter, timezone: timezoneFilter }} />
 
         <div className="col-span-1 md:col-span-2 lg:col-span-4 mb-6 mt-6">
           <MostPlayedGames />

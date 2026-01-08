@@ -53,6 +53,7 @@ export const updateUserSchema = yup
     isAdult: yup.boolean(),
     hasAcceptedTerms: yup.boolean(),
     lastLoggedIn: yup.date(),
+    preferredTimezone: yup.string().trim(),
   })
   .test(
     "at-least-one-field",

@@ -12,6 +12,7 @@ import { storageService } from '../services/storage.service';
 import { cacheService } from '../services/cache.service';
 import { PerformanceTimer } from '../utils/performance';
 import logger from '../utils/logger';
+import { toZonedTime } from 'date-fns-tz';
 
 const userRepository = AppDataSource.getRepository(User);
 const gameRepository = AppDataSource.getRepository(Game);
@@ -47,7 +48,8 @@ export const getDashboardAnalytics = async (
     period: req.query.period,
   });
   try {
-    const { period, startDate, endDate, country } = req.query;
+    const { period, startDate, endDate, country, timezone } = req.query;
+    const userTimezone = (timezone as string) || 'UTC';
 
     const countries = Array.isArray(country)
       ? (country as string[])
@@ -55,8 +57,8 @@ export const getDashboardAnalytics = async (
       ? [country as string]
       : [];
 
-    // Check cache first (TTL: 3 minutes)
-    const cacheKey = `${period || 'last24hours'}:${countries.sort().join(',')}`;
+    // Check cache first (TTL: 3 minutes) - include timezone in cache key
+    const cacheKey = `${period || 'last24hours'}:${countries.sort().join(',')}:${userTimezone}`;
     const cached = await cacheService.getAnalytics('dashboard', cacheKey);
     if (cached) {
       logger.debug(`[CACHE HIT] Dashboard analytics for ${cacheKey}`);
@@ -64,27 +66,51 @@ export const getDashboardAnalytics = async (
       return;
     }
 
-    let now = new Date();
+    // Get current time in the user's timezone for proper day boundaries
+    // This ensures "today" means "today in the user's timezone" (like Google Analytics)
+    const nowUtc = new Date();
+    const nowInUserTz = toZonedTime(nowUtc, userTimezone);
+
+    // Helper to calculate period boundaries in user's timezone
+    const getTimezoneAwarePeriodBoundaries = (daysBack: number, prevDaysBack: number) => {
+      // Calculate start of today in user's timezone
+      const startOfTodayInUserTz = new Date(nowInUserTz);
+      startOfTodayInUserTz.setHours(0, 0, 0, 0);
+
+      // Current period: from X days ago at midnight (user's TZ) to now
+      const currentStart = new Date(startOfTodayInUserTz);
+      currentStart.setDate(currentStart.getDate() - daysBack + 1); // +1 because we include today
+
+      // Previous period: from 2X days ago to X days ago
+      const prevStart = new Date(startOfTodayInUserTz);
+      prevStart.setDate(prevStart.getDate() - prevDaysBack + 1);
+
+      const prevEnd = new Date(currentStart);
+
+      return { currentStart, prevStart, prevEnd };
+    };
+
+    let now = nowUtc;
     let currentPeriodStart: Date;
     let previousPeriodStart: Date;
     let previousPeriodEnd: Date;
 
-    // Determine time ranges based on the period parameter
+    // Determine time ranges based on the period parameter (timezone-aware)
     switch (period) {
-      case 'last7days':
-        currentPeriodStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        previousPeriodStart = new Date(
-          now.getTime() - 14 * 24 * 60 * 60 * 1000
-        );
-        previousPeriodEnd = currentPeriodStart;
+      case 'last7days': {
+        const boundaries = getTimezoneAwarePeriodBoundaries(7, 14);
+        currentPeriodStart = boundaries.currentStart;
+        previousPeriodStart = boundaries.prevStart;
+        previousPeriodEnd = boundaries.prevEnd;
         break;
-      case 'last30days':
-        currentPeriodStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        previousPeriodStart = new Date(
-          now.getTime() - 60 * 24 * 60 * 60 * 1000
-        );
-        previousPeriodEnd = currentPeriodStart;
+      }
+      case 'last30days': {
+        const boundaries = getTimezoneAwarePeriodBoundaries(30, 60);
+        currentPeriodStart = boundaries.currentStart;
+        previousPeriodStart = boundaries.prevStart;
+        previousPeriodEnd = boundaries.prevEnd;
         break;
+      }
       case 'custom':
         if (startDate && endDate) {
           currentPeriodStart = new Date(startDate as string);
@@ -106,16 +132,19 @@ export const getDashboardAnalytics = async (
           now = customEndDate;
         } else {
           // Fallback to last 24 hours if custom dates are invalid
-          currentPeriodStart = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-          previousPeriodStart = new Date(now.getTime() - 48 * 60 * 60 * 1000);
-          previousPeriodEnd = currentPeriodStart;
+          const boundaries = getTimezoneAwarePeriodBoundaries(1, 2);
+          currentPeriodStart = boundaries.currentStart;
+          previousPeriodStart = boundaries.prevStart;
+          previousPeriodEnd = boundaries.prevEnd;
         }
         break;
-      default: // 'last24hours' or no period specified
-        currentPeriodStart = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-        previousPeriodStart = new Date(now.getTime() - 48 * 60 * 60 * 1000);
-        previousPeriodEnd = currentPeriodStart;
+      default: { // 'last24hours' or no period specified
+        const boundaries = getTimezoneAwarePeriodBoundaries(1, 2);
+        currentPeriodStart = boundaries.currentStart;
+        previousPeriodStart = boundaries.prevStart;
+        previousPeriodEnd = boundaries.prevEnd;
         break;
+      }
     }
 
     // For backward compatibility, keep the original variable names
@@ -317,21 +346,6 @@ export const getDashboardAnalytics = async (
 
     let inactiveUsers = systemInactiveUsers + neverLoggedInUsers;
     const registeredButNeverLoggedIn = neverLoggedInUsers;
-
-    // Verify that our breakdown equals the total registered users in the period
-    // const calculatedTotal = activeUsers + inactiveUsers;
-    // if (calculatedTotal !== currentTotalRegisteredUsers) {
-    //   console.warn(`User count mismatch: activeUsers (${activeUsers}) + inactiveUsers (${inactiveUsers}) = ${calculatedTotal}, but totalRegisteredUsers.current = ${currentTotalRegisteredUsers}`);
-
-    //   // If there's a mismatch, we need to ensure the total matches
-    //   // This could happen if there are users who don't fit our current categories
-    //   // For now, let's adjust inactiveUsers to make the total match
-    //   if (calculatedTotal < currentTotalRegisteredUsers) {
-    //     // Add the difference to inactiveUsers to ensure total matches
-    //     const difference = currentTotalRegisteredUsers - calculatedTotal;
-    //     inactiveUsers += difference;
-    //   }
-    // }
 
     // 3. Game Coverage - Percentage of total games that have been played
     // Track all users: authenticated (userId) + anonymous (sessionId)
@@ -2084,9 +2098,76 @@ export const getGamesPopularityMetrics = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const now = new Date();
-    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+    const { period, startDate, endDate, timezone } = req.query;
+    const userTimezone = (timezone as string) || 'UTC';
+
+    // Get current time in the user's timezone for proper day boundaries
+    const nowUtc = new Date();
+    const nowInUserTz = toZonedTime(nowUtc, userTimezone);
+
+    // Helper to calculate period boundaries in user's timezone
+    const getTimezoneAwarePeriodBoundaries = (daysBack: number, prevDaysBack: number) => {
+      const startOfTodayInUserTz = new Date(nowInUserTz);
+      startOfTodayInUserTz.setHours(0, 0, 0, 0);
+
+      const currentStart = new Date(startOfTodayInUserTz);
+      currentStart.setDate(currentStart.getDate() - daysBack + 1);
+
+      const prevStart = new Date(startOfTodayInUserTz);
+      prevStart.setDate(prevStart.getDate() - prevDaysBack + 1);
+
+      const prevEnd = new Date(currentStart);
+
+      return { currentStart, prevStart, prevEnd };
+    };
+
+    let now = nowUtc;
+    let currentPeriodStart: Date;
+    let previousPeriodStart: Date;
+    let previousPeriodEnd: Date;
+
+    // Determine time ranges based on the period parameter (timezone-aware)
+    switch (period) {
+      case 'last7days': {
+        const boundaries = getTimezoneAwarePeriodBoundaries(7, 14);
+        currentPeriodStart = boundaries.currentStart;
+        previousPeriodStart = boundaries.prevStart;
+        previousPeriodEnd = boundaries.prevEnd;
+        break;
+      }
+      case 'last30days': {
+        const boundaries = getTimezoneAwarePeriodBoundaries(30, 60);
+        currentPeriodStart = boundaries.currentStart;
+        previousPeriodStart = boundaries.prevStart;
+        previousPeriodEnd = boundaries.prevEnd;
+        break;
+      }
+      case 'custom':
+        if (startDate && endDate) {
+          currentPeriodStart = new Date(startDate as string);
+          currentPeriodStart.setHours(0, 0, 0, 0);
+          const customEndDate = new Date(endDate as string);
+          customEndDate.setHours(23, 59, 59, 999);
+          const daysDiff = Math.ceil(
+            (customEndDate.getTime() - currentPeriodStart.getTime()) / (1000 * 60 * 60 * 24)
+          );
+          previousPeriodStart = new Date(currentPeriodStart.getTime() - daysDiff * 24 * 60 * 60 * 1000);
+          previousPeriodEnd = currentPeriodStart;
+          now = customEndDate;
+        } else {
+          const boundaries = getTimezoneAwarePeriodBoundaries(1, 2);
+          currentPeriodStart = boundaries.currentStart;
+          previousPeriodStart = boundaries.prevStart;
+          previousPeriodEnd = boundaries.prevEnd;
+        }
+        break;
+      default: { // last24hours
+        const boundaries = getTimezoneAwarePeriodBoundaries(1, 2);
+        currentPeriodStart = boundaries.currentStart;
+        previousPeriodStart = boundaries.prevStart;
+        previousPeriodEnd = boundaries.prevEnd;
+      }
+    }
 
     // Get all games with basic info
     const games = await gameRepository.find({
@@ -2104,18 +2185,20 @@ export const getGamesPopularityMetrics = async (
     // Get metrics for all games
     const gamesMetrics = await Promise.all(
       games.map(async (game) => {
-        // Get total plays and average play time (duration >= 30 seconds)
+        // Get total plays and average play time for the selected period (duration >= 30 seconds)
         const overallMetrics = await analyticsRepository
           .createQueryBuilder('analytics')
           .select('COUNT(*)', 'totalPlays')
           .addSelect('AVG(analytics.duration)', 'averagePlayTime')
+          .addSelect('SUM(analytics.duration)', 'totalTime')
           .where('analytics.gameId = :gameId', { gameId: game.id })
           .andWhere('analytics.startTime IS NOT NULL')
           .andWhere('analytics.endTime IS NOT NULL')
           .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
+          .andWhere('analytics.createdAt > :currentPeriodStart', { currentPeriodStart })
           .getRawOne();
 
-        // Get plays in last 24 hours (duration >= 30 seconds)
+        // Get plays in current period (duration >= 30 seconds)
         const currentPeriodPlays = await analyticsRepository
           .createQueryBuilder('analytics')
           .select('COUNT(*)', 'count')
@@ -2123,12 +2206,12 @@ export const getGamesPopularityMetrics = async (
           .andWhere('analytics.startTime IS NOT NULL')
           .andWhere('analytics.endTime IS NOT NULL')
           .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
-          .andWhere('analytics.createdAt > :twentyFourHoursAgo', {
-            twentyFourHoursAgo,
+          .andWhere('analytics.createdAt > :currentPeriodStart', {
+            currentPeriodStart,
           })
           .getRawOne();
 
-        // Get plays in previous 24 hours (duration >= 30 seconds)
+        // Get plays in previous period (duration >= 30 seconds)
         const previousPeriodPlays = await analyticsRepository
           .createQueryBuilder('analytics')
           .select('COUNT(*)', 'count')
@@ -2137,8 +2220,8 @@ export const getGamesPopularityMetrics = async (
           .andWhere('analytics.endTime IS NOT NULL')
           .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
           .andWhere('analytics.createdAt BETWEEN :start AND :end', {
-            start: fortyEightHoursAgo,
-            end: twentyFourHoursAgo,
+            start: previousPeriodStart,
+            end: previousPeriodEnd,
           })
           .getRawOne();
 
@@ -2164,7 +2247,7 @@ export const getGamesPopularityMetrics = async (
 
         const totalPlays = parseInt(overallMetrics?.totalPlays) || 0;
         const avgPlayTime = parseFloat(overallMetrics?.averagePlayTime) || 0;
-        const totalTime = Math.round(totalPlays * avgPlayTime); // Total time in seconds
+        const totalTime = parseInt(overallMetrics?.totalTime) || 0; // Total time from SUM(duration)
 
         return {
           id: game.id,

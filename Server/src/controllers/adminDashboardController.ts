@@ -347,21 +347,6 @@ export const getDashboardAnalytics = async (
     let inactiveUsers = systemInactiveUsers + neverLoggedInUsers;
     const registeredButNeverLoggedIn = neverLoggedInUsers;
 
-    // Verify that our breakdown equals the total registered users in the period
-    // const calculatedTotal = activeUsers + inactiveUsers;
-    // if (calculatedTotal !== currentTotalRegisteredUsers) {
-    //   console.warn(`User count mismatch: activeUsers (${activeUsers}) + inactiveUsers (${inactiveUsers}) = ${calculatedTotal}, but totalRegisteredUsers.current = ${currentTotalRegisteredUsers}`);
-
-    //   // If there's a mismatch, we need to ensure the total matches
-    //   // This could happen if there are users who don't fit our current categories
-    //   // For now, let's adjust inactiveUsers to make the total match
-    //   if (calculatedTotal < currentTotalRegisteredUsers) {
-    //     // Add the difference to inactiveUsers to ensure total matches
-    //     const difference = currentTotalRegisteredUsers - calculatedTotal;
-    //     inactiveUsers += difference;
-    //   }
-    // }
-
     // 3. Game Coverage - Percentage of total games that have been played
     // Track all users: authenticated (userId) + anonymous (sessionId)
     const totalGames = await gameRepository.count();

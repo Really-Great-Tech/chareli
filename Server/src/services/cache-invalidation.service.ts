@@ -1,4 +1,5 @@
 import { cacheService } from './cache.service';
+import { jsonCdnService } from './jsonCdn.service';
 import { cachePatterns } from '../config/cache.config';
 import logger from '../utils/logger';
 
@@ -32,6 +33,9 @@ class CacheInvalidationService {
       // Invalidate all search results (games may appear in search)
       await cacheService.invalidateAllSearches();
 
+      // Regenerate CDN JSON files and purge Cloudflare cache
+      await jsonCdnService.invalidateCache(['games_active', 'games_all', 'games_popular']);
+
       logger.info(`Successfully invalidated caches for game ${gameId}`);
     } catch (error) {
       logger.error(`Error invalidating caches for game ${gameId}:`, error);
@@ -51,6 +55,9 @@ class CacheInvalidationService {
 
       // Invalidate games in this category
       await cacheService.invalidateGamesInCategory(categoryId);
+
+      // Regenerate CDN JSON files for categories
+      await jsonCdnService.invalidateCache(['categories']);
 
       logger.info(`Successfully invalidated caches for category ${categoryId}`);
     } catch (error) {
@@ -82,6 +89,9 @@ class CacheInvalidationService {
       // Invalidate search (new game should be searchable)
       await cacheService.invalidateAllSearches();
 
+      // Regenerate CDN JSON files and purge Cloudflare cache
+      await jsonCdnService.invalidateCache(['games_active', 'games_all', 'games_popular']);
+
       logger.info(`Successfully invalidated caches for new game ${gameId}`);
     } catch (error) {
       logger.error(`Error invalidating caches for new game ${gameId}:`, error);
@@ -111,6 +121,9 @@ class CacheInvalidationService {
 
       // Invalidate search
       await cacheService.invalidateAllSearches();
+
+      // Regenerate CDN JSON files and purge Cloudflare cache
+      await jsonCdnService.invalidateCache(['games_active', 'games_all', 'games_popular']);
 
       logger.info(`Successfully invalidated caches for deleted game ${gameId}`);
     } catch (error) {

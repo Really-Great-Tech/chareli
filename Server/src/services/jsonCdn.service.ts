@@ -4,6 +4,7 @@ import { Category } from '../entities/Category';
 import { GameLike } from '../entities/GameLike';
 import { SystemConfig } from '../entities/SystemConfig';
 import { R2StorageAdapter } from './r2.storage.adapter';
+import { cloudflareCacheService } from './cloudflare-cache.service';
 import logger from '../utils/logger';
 import config from '../config/config';
 import { In } from 'typeorm';
@@ -28,6 +29,7 @@ class JsonCdnService {
   private config: JsonCdnConfig;
   private isGenerating = false;
   private r2Adapter: R2StorageAdapter;
+  private lastVersion: number = Date.now(); // Version timestamp for cache-busting
   private metrics = {
     generationCount: 0,
     lastGenerationDuration: 0,
@@ -747,6 +749,7 @@ Disallow: /
 
   /**
    * Invalidate specific cache entries by regenerating them
+   * Also purges Cloudflare cache for the regenerated files
    */
   async invalidateCache(paths: string[]): Promise<void> {
     if (!this.config.enabled) {
@@ -756,10 +759,13 @@ Disallow: /
 
     logger.info(`Invalidating CDN cache for: ${paths.join(', ')}`);
 
+    const regeneratedPaths: string[] = [];
+
     try {
       for (const path of paths) {
         if (path.includes('categories')) {
           await this.generateCategoriesJson();
+          regeneratedPaths.push('categories.json');
         } else if (
           path.includes('games_active') ||
           path.includes('games_all')
@@ -767,9 +773,11 @@ Disallow: /
           // Regenerate both active and all games lists
           await this.generateActiveGamesJson();
           await this.generateAllGamesJson();
+          regeneratedPaths.push('games_active.json', 'games_all.json');
         } else if (path.includes('games_popular') || path.includes('popular')) {
           // Regenerate popular games JSON
           await this.generatePopularGamesJson();
+          regeneratedPaths.push('games_popular.json');
         } else if (path.includes('games/')) {
           const slug = path.replace('games/', '').replace('.json', '');
           const gameRepository = AppDataSource.getRepository(Game);
@@ -779,9 +787,20 @@ Disallow: /
           });
           if (game) {
             await this.generateGameDetailJson(game.id, slug);
+            regeneratedPaths.push(`games/${slug}.json`);
           }
         }
       }
+
+      // Update version timestamp for cache-busting
+      this.lastVersion = Date.now();
+
+      // Purge Cloudflare cache for regenerated files
+      if (regeneratedPaths.length > 0) {
+        logger.info(`Purging Cloudflare cache for: ${regeneratedPaths.join(', ')}`);
+        await cloudflareCacheService.purgeCdnJsonFiles(regeneratedPaths);
+      }
+
       logger.info('Cache invalidation completed');
     } catch (error) {
       logger.error('Error during cache invalidation:', error);
@@ -807,12 +826,21 @@ Disallow: /
   }
 
   /**
+   * Get latest CDN version timestamp for cache-busting
+   * Frontend uses this to append ?v=<version> to CDN URLs
+   */
+  getVersion(): number {
+    return this.lastVersion;
+  }
+
+  /**
    * Get service metrics
    */
   getMetrics() {
     return {
       ...this.metrics,
       isGenerating: this.isGenerating,
+      lastVersion: this.lastVersion,
       config: {
         enabled: this.config.enabled,
         refreshIntervalMinutes: this.config.refreshIntervalMinutes,

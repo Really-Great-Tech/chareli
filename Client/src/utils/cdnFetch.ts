@@ -2,13 +2,14 @@
  * CDN Fetch Utility with API Fallback
  *
  * Attempts to fetch from CDN first, falls back to API on failure.
- * Includes timeout, error handling, and metrics tracking.
+ * Includes timeout, error handling, metrics tracking, and cache-busting via version parameter.
  */
 
 interface CDNConfig {
   enabled: boolean;
   baseUrl: string;
   timeout: number;
+  version: number | null;
 }
 
 interface FetchOptions {
@@ -30,8 +31,18 @@ export interface CDNResponse<T> {
   duration: number;
 }
 
+interface CDNVersionResponse {
+  success: boolean;
+  data: {
+    version: number;
+    updatedAt: string;
+    enabled: boolean;
+  };
+}
+
 class CDNFetchService {
   private config: CDNConfig;
+  private versionFetchPromise: Promise<void> | null = null;
   private metrics = {
     cdnHits: 0,
     apiHits: 0,
@@ -43,6 +54,7 @@ class CDNFetchService {
       enabled: import.meta.env.VITE_CDN_ENABLED === 'true',
       baseUrl: import.meta.env.VITE_CDN_BASE_URL || '',
       timeout: parseInt(import.meta.env.VITE_CDN_TIMEOUT || '3000', 10),
+      version: null,
     };
 
     if (this.config.enabled) {
@@ -51,7 +63,44 @@ class CDNFetchService {
         baseUrl: this.config.baseUrl,
         timeout: this.config.timeout,
       });
+
+      // Fetch initial version (deferred, non-blocking)
+      this.versionFetchPromise = this.fetchVersion();
     }
+  }
+
+  /**
+   * Fetch the current CDN version from the backend
+   * Used for cache-busting via ?v=<version> query parameter
+   */
+  private async fetchVersion(): Promise<void> {
+    try {
+      const apiBase = import.meta.env.VITE_API_URL || '';
+      const response = await fetch(`${apiBase}/cdn/version`, {
+        headers: { Accept: 'application/json' },
+      });
+
+      if (!response.ok) {
+        console.warn('[CDN] Failed to fetch version:', response.status);
+        return;
+      }
+
+      const data: CDNVersionResponse = await response.json();
+      if (data.success && data.data.version) {
+        this.config.version = data.data.version;
+        console.log('[CDN] Version fetched:', this.config.version);
+      }
+    } catch (error) {
+      console.warn('[CDN] Failed to fetch version:', error);
+      // Continue without version - URLs will work but may serve cached content
+    }
+  }
+
+  /**
+   * Refresh the CDN version (useful after content updates)
+   */
+  async refreshVersion(): Promise<void> {
+    await this.fetchVersion();
   }
 
   /**
@@ -62,6 +111,12 @@ class CDNFetchService {
 
     // Try CDN first if enabled
     if (this.config.enabled && this.config.baseUrl) {
+      // Wait for initial version fetch if still in progress
+      if (this.versionFetchPromise) {
+        await this.versionFetchPromise;
+        this.versionFetchPromise = null;
+      }
+
       try {
         const data = await this.fetchFromCDN<T>(options);
         const duration = performance.now() - startTime;
@@ -99,10 +154,12 @@ class CDNFetchService {
   }
 
   /**
-   * Fetch from CDN with timeout
+   * Fetch from CDN with timeout and cache-busting version parameter
    */
   private async fetchFromCDN<T>(options: FetchOptions): Promise<T> {
-    const url = `${this.config.baseUrl}/${options.cdnPath}`;
+    // Build URL with version parameter for cache-busting
+    const versionParam = this.config.version ? `?v=${this.config.version}` : '';
+    const url = `${this.config.baseUrl}/${options.cdnPath}${versionParam}`;
     const timeout = options.timeout || this.config.timeout;
 
     const controller = new AbortController();

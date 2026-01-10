@@ -38,7 +38,7 @@ export default function GameActivity({ filters }: GameActivityProps) {
               <TableRow className="text-base font-normal">
                 <TableHead>Game</TableHead>
                 <TableHead>Total Plays</TableHead>
-                <TableHead>Average Play Time</TableHead>
+                <TableHead>Total Time Played</TableHead>
                 <TableHead>Most Played At</TableHead>
                 <TableHead>Game Status</TableHead>
                 <TableHead>Popularity</TableHead>
@@ -72,7 +72,7 @@ export default function GameActivity({ filters }: GameActivityProps) {
               <TableRow className="text-lg font-bold">
                 <TableHead>Game</TableHead>
                 <TableHead>Total Plays</TableHead>
-                <TableHead>Average Play Time</TableHead>
+                <TableHead>Total Time Played</TableHead>
                 <TableHead>Most Played At</TableHead>
                 <TableHead>Game Status</TableHead>
                 <TableHead>Popularity</TableHead>
@@ -152,7 +152,7 @@ export default function GameActivity({ filters }: GameActivityProps) {
               </TableHead>
               <TableHead>
                 {" "}
-                <p className="pr-8">Average Play Time</p>
+                <p className="pr-8">Total Time Played</p>
               </TableHead>
               <TableHead>Most Played At</TableHead>
               <TableHead>
@@ -195,7 +195,7 @@ export default function GameActivity({ filters }: GameActivityProps) {
                   </TableCell>
                   <TableCell>
                     <p className="font-dmmono pr-8">
-                      {formatTime(game.metrics.averagePlayTime * 60)}
+                      {formatTime(game.metrics.totalTime)}
                     </p>
                   </TableCell>
                   <TableCell>

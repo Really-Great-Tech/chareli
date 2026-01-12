@@ -863,6 +863,7 @@ export const getDashboardAnalytics = async (
       parseInt(dailyAnonymousVisitorsResult?.count) || 0;
 
     // 2. Total Visitors (Authenticated + Anonymous) for current and previous periods
+    // Now includes both game sessions AND page visits to align with GA4
     let currentTotalVisitorsQuery = analyticsRepository
       .createQueryBuilder('analytics')
       .select(
@@ -870,8 +871,10 @@ export const getDashboardAnalytics = async (
         'count'
       )
       .leftJoin('analytics.user', 'user')
-      .where('analytics.gameId IS NOT NULL')
-      .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
+      .where(
+        '(analytics.gameId IS NOT NULL OR analytics.activityType = :pageVisit)',
+        { pageVisit: 'homepage_visit' }
+      )
       .andWhere('analytics.createdAt BETWEEN :start AND :end', {
         start: twentyFourHoursAgo,
         end: now,
@@ -888,8 +891,10 @@ export const getDashboardAnalytics = async (
         'count'
       )
       .leftJoin('analytics.user', 'user')
-      .where('analytics.gameId IS NOT NULL')
-      .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
+      .where(
+        '(analytics.gameId IS NOT NULL OR analytics.activityType = :pageVisit)',
+        { pageVisit: 'homepage_visit' }
+      )
       .andWhere('analytics.createdAt BETWEEN :start AND :end', {
         start: fortyEightHoursAgo,
         end: twentyFourHoursAgo,

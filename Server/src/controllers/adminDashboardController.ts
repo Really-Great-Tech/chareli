@@ -619,9 +619,9 @@ export const getDashboardAnalytics = async (
     const totalPlayTime = Number(actualTimePlayed?.totalPlayTime) || 0;
 
     const currentTotalTimePlayed =
-      currentTotalTimePlayedResult?.totalPlayTime || 0;
+      Number(currentTotalTimePlayedResult?.totalPlayTime) || 0;
     const previousTotalTimePlayed =
-      previousTotalTimePlayedResult?.totalPlayTime || 0;
+      Number(previousTotalTimePlayedResult?.totalPlayTime) || 0;
     const totalTimePlayedPercentageChange =
       previousTotalTimePlayed > 0
         ? Math.max(

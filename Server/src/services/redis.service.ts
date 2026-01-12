@@ -402,6 +402,42 @@ class RedisService {
     return result ?? -1;
   }
 
+  // ============= SET OPERATIONS =============
+
+  /**
+   * Add a member to a set
+   */
+  async sadd(key: string, member: string): Promise<number> {
+    const result = await this.executeWithTimeout(async () => {
+      return await this.redis.sadd(key, member);
+    }, 'sadd');
+
+    return result ?? 0;
+  }
+
+  /**
+   * Check if a member exists in a set
+   * Returns 1 if member exists, 0 otherwise
+   */
+  async sismember(key: string, member: string): Promise<number> {
+    const result = await this.executeWithTimeout(async () => {
+      return await this.redis.sismember(key, member);
+    }, 'sismember');
+
+    return result ?? 0;
+  }
+
+  /**
+   * Remove a member from a set
+   */
+  async srem(key: string, member: string): Promise<number> {
+    const result = await this.executeWithTimeout(async () => {
+      return await this.redis.srem(key, member);
+    }, 'srem');
+
+    return result ?? 0;
+  }
+
   // ============= LIKE TRACKING METHODS =============
 
   /**

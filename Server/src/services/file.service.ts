@@ -8,6 +8,7 @@ import type { ImageVariants, ImageDimensions } from '../entities/Files';
  */
 export const IMAGE_VARIANT_SIZES = {
   thumbnail: 256,
+  xsmall: 400, // Optimized for LCP at medium viewports
   small: 512,
   medium: 768,
   large: 1536,
@@ -18,6 +19,7 @@ export const IMAGE_VARIANT_SIZES = {
  */
 export const WEBP_QUALITY = {
   thumbnail: 80,
+  xsmall: 81, // Optimized for LCP at medium viewports
   small: 82,
   medium: 85,
   large: 90,
@@ -137,6 +139,36 @@ export async function generateImageVariants(
         `size: ${(thumbnailBuffer.length / 1024).toFixed(2)}KB`
     );
 
+    // Generate xsmall variant (400px width) - Optimized for LCP at medium viewports
+    const xsmallBuffer = await sharp(originalBuffer)
+      .resize(IMAGE_VARIANT_SIZES.xsmall, null, {
+        fit: 'inside',
+        withoutEnlargement: true,
+      })
+      .webp({ quality: WEBP_QUALITY.xsmall })
+      .toBuffer();
+
+    const xsmallDimensions = await getImageDimensions(xsmallBuffer);
+    const xsmallKey = `${basePath}/${fileNameWithoutExt}-xsmall.webp`;
+
+    if ('uploadWithExactKey' in storageService) {
+      await (storageService as any).uploadWithExactKey(
+        xsmallKey,
+        xsmallBuffer,
+        'image/webp'
+      );
+    } else {
+      await storageService.uploadFile(xsmallBuffer, xsmallKey, 'image/webp');
+    }
+
+    variants.xsmall = storageService.getPublicUrl(xsmallKey);
+    dimensions.xsmall = xsmallDimensions;
+
+    logger.debug(
+      `✅ XSmall: ${xsmallDimensions.width}x${xsmallDimensions.height}, ` +
+        `size: ${(xsmallBuffer.length / 1024).toFixed(2)}KB`
+    );
+
     // Generate small variant (512px width)
     const smallBuffer = await sharp(originalBuffer)
       .resize(IMAGE_VARIANT_SIZES.small, null, {
@@ -229,7 +261,7 @@ export async function generateImageVariants(
 
     const totalTime = Date.now() - startTime;
     logger.info(
-      `🎉 Successfully generated 4 variants for ${originalKey} in ${totalTime}ms`
+      `🎉 Successfully generated 5 variants for ${originalKey} in ${totalTime}ms`
     );
 
     return { variants, dimensions };
@@ -279,6 +311,12 @@ export async function generateMissingVariants(
       size: IMAGE_VARIANT_SIZES.thumbnail,
       quality: WEBP_QUALITY.thumbnail,
       suffix: 'thumb',
+    },
+    {
+      name: 'xsmall',
+      size: IMAGE_VARIANT_SIZES.xsmall,
+      quality: WEBP_QUALITY.xsmall,
+      suffix: 'xsmall',
     },
     {
       name: 'small',

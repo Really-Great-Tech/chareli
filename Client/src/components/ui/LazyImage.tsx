@@ -11,6 +11,7 @@ import './LazyImage.css';
 // Image variant interfaces (matching backend)
 interface ImageVariants {
   thumbnail?: string; // 256px width WebP
+  xsmall?: string; // 400px width WebP - Optimized for LCP
   small?: string; // 512px width WebP
   medium?: string; // 768px width WebP
   large?: string; // 1536px width WebP
@@ -19,6 +20,7 @@ interface ImageVariants {
 interface ImageDimensions {
   original?: { width: number; height: number };
   thumbnail?: { width: number; height: number };
+  xsmall?: { width: number; height: number }; // 400px - Optimized for LCP
   small?: { width: number; height: number };
   medium?: { width: number; height: number };
   large?: { width: number; height: number };
@@ -112,6 +114,9 @@ export const LazyImage: React.FC<LazyImageProps> = ({
     if (variants.thumbnail) {
       srcsetParts.push(`${variants.thumbnail} 256w`);
     }
+    if (variants.xsmall) {
+      srcsetParts.push(`${variants.xsmall} 400w`);
+    }
     if (variants.small) {
       srcsetParts.push(`${variants.small} 512w`);
     }
@@ -125,10 +130,11 @@ export const LazyImage: React.FC<LazyImageProps> = ({
     return srcsetParts.length > 0 ? srcsetParts.join(', ') : undefined;
   }, [hasVariants, variants]);
 
-  // Determine best variant source for main src (prefer small/medium for better quality)
+  // Determine best variant source for main src (prefer xsmall/small for better quality)
   const bestSrc = React.useMemo(() => {
     if (hasVariants && variants) {
       return (
+        variants.xsmall ||
         variants.small ||
         variants.medium ||
         variants.large ||

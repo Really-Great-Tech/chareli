@@ -29,6 +29,9 @@ export default function GamePlay() {
     null
   );
 
+  // Milestone tracking ref for triggered milestones
+  const triggeredMilestonesRef = useRef<Set<number>>(new Set());
+
   const handleOpenSignUpModal = () => {
     setIsModalOpen(true);
   };
@@ -263,8 +266,45 @@ export default function GamePlay() {
 
       // Track game start in Google Analytics
       trackGameplay.gameStart(game.id, game.title);
+
+      // Reset milestones for new game session
+      triggeredMilestonesRef.current.clear();
     }
   }, [game, createAnalytics]);
+
+  // Track play duration milestones (30s, 1m, 5m, 10m)
+  useEffect(() => {
+    if (!game || isGameLoading) return;
+
+    // Milestone thresholds in seconds
+    const MILESTONES = [30, 60, 300, 600];
+
+    const interval = setInterval(() => {
+      if (!gameStartTimeRef.current) return;
+
+      const elapsedSeconds = Math.floor(
+        (Date.now() - gameStartTimeRef.current.getTime()) / 1000
+      );
+
+      MILESTONES.forEach((milestone: number) => {
+        if (
+          elapsedSeconds >= milestone &&
+          !triggeredMilestonesRef.current.has(milestone)
+        ) {
+          triggeredMilestonesRef.current.add(milestone);
+
+          // Format milestone label for readability
+          const label = milestone < 60
+            ? `${milestone}s`
+            : `${milestone / 60}m`;
+
+          trackGameplay.gameMilestone(game.id, game.title, label, milestone);
+        }
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [game, isGameLoading]);
 
   const location = useLocation();
   const { mutate: updateAnalytics } = useUpdateAnalytics();

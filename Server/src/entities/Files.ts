@@ -9,6 +9,7 @@ import {
 
 export interface ImageVariants {
   thumbnail?: string; // 256px width WebP
+  xsmall?: string; // 400px width WebP - Optimized for LCP
   small?: string; // 512px width WebP
   medium?: string; // 768px width WebP
   large?: string; // 1536px width WebP
@@ -17,6 +18,7 @@ export interface ImageVariants {
 export interface ImageDimensions {
   original?: { width: number; height: number };
   thumbnail?: { width: number; height: number };
+  xsmall?: { width: number; height: number }; // 400px - Optimized for LCP
   small?: { width: number; height: number };
   medium?: { width: number; height: number };
   large?: { width: number; height: number };

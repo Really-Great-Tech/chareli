@@ -114,6 +114,8 @@ export async function processImageJob(
     try {
       const { redisService } = await import('../services/redis.service');
       const REDIS_STATUS_KEY = 'image-reprocessing:status';
+      const REDIS_QUEUED_KEY = 'image-reprocessing:queued';
+
       const statusStr = await redisService.get(REDIS_STATUS_KEY);
 
       if (statusStr) {
@@ -123,6 +125,9 @@ export async function processImageJob(
           await redisService.set(REDIS_STATUS_KEY, JSON.stringify(status));
         }
       }
+
+      // Remove from queued set now that processing is complete
+      await redisService.srem(REDIS_QUEUED_KEY, fileId);
     } catch (redisError) {
       // Redis update is optional, don't fail the job if it errors
       logger.debug('Could not update reprocessing progress:', redisError);
@@ -156,6 +161,11 @@ export async function processImageJob(
         fileRecord.isProcessed = false;
         await fileRepository.save(fileRecord);
       }
+
+      // Also remove from queued set on failure
+      const { redisService } = await import('../services/redis.service');
+      const REDIS_QUEUED_KEY = 'image-reprocessing:queued';
+      await redisService.srem(REDIS_QUEUED_KEY, fileId);
     } catch (dbError) {
       logger.error(`Failed to update error status in database:`, dbError);
     }

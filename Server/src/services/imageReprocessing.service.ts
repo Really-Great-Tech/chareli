@@ -6,6 +6,7 @@ import logger from '../utils/logger';
 
 const REDIS_STATUS_KEY = 'image-reprocessing:status';
 const REDIS_ERRORS_KEY = 'image-reprocessing:errors';
+const REDIS_QUEUED_KEY = 'image-reprocessing:queued'; // Track queued file IDs to prevent duplicates
 const DEFAULT_BATCH_SIZE = 10;
 const RATE_LIMIT_MS = 1000; // 1 second between batches
 
@@ -143,7 +144,23 @@ export class ImageReprocessingService {
   async reset(): Promise<void> {
     await redisService.del(REDIS_STATUS_KEY);
     await redisService.del(REDIS_ERRORS_KEY);
+    await redisService.del(REDIS_QUEUED_KEY); // Clear queued set
     logger.info('🔄 Image reprocessing status reset');
+  }
+
+  /**
+   * Check if a file is already queued for processing
+   */
+  private async isFileQueued(fileId: string): Promise<boolean> {
+    const result = await redisService.sismember(REDIS_QUEUED_KEY, fileId);
+    return result === 1;
+  }
+
+  /**
+   * Mark a file as queued
+   */
+  private async markFileQueued(fileId: string): Promise<void> {
+    await redisService.sadd(REDIS_QUEUED_KEY, fileId);
   }
 
   /**
@@ -180,6 +197,12 @@ export class ImageReprocessingService {
 
       // Process batch
       for (const file of files) {
+        // Skip if already queued (prevents duplicate processing)
+        if (await this.isFileQueued(file.id)) {
+          logger.debug(`Skipping ${file.s3Key} - already queued`);
+          continue;
+        }
+
         try {
           // Queue image processing job
           await queueService.addImageProcessingJob({
@@ -187,9 +210,10 @@ export class ImageReprocessingService {
             s3Key: file.s3Key,
           });
 
-          logger.debug(
-            `Queued ${file.s3Key} for processing`
-          );
+          // Mark as queued to prevent re-queuing
+          await this.markFileQueued(file.id);
+
+          logger.debug(`Queued ${file.s3Key} for processing`);
         } catch (error) {
           // Track error
           status.failed++;

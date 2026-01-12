@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from "react";
 import {
   Dialog,
 } from "../ui/dialog";
@@ -11,17 +12,66 @@ interface WelcomeModalProps {
 }
 
 export function WelcomeModal({ open, onOpenChange, onContinue }: WelcomeModalProps) {
+  const [countdown, setCountdown] = useState(10);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const hasRedirectedRef = useRef(false);
+
+  // Reset countdown when modal opens
+  useEffect(() => {
+    if (open) {
+      setCountdown(10);
+      hasRedirectedRef.current = false;
+    } else {
+      // Clear timer when modal closes
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    }
+  }, [open]);
+
+  // Handle countdown and auto-redirect
+  useEffect(() => {
+    if (!open) return;
+
+    timerRef.current = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          // Clear interval and trigger redirect
+          if (timerRef.current) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+          }
+          // Use setTimeout to avoid state update during render
+          if (!hasRedirectedRef.current) {
+            hasRedirectedRef.current = true;
+            setTimeout(() => onContinue(), 0);
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [open, onContinue]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <CustomDialogContent className="w-[95vw] sm:max-w-[800px] dark:bg-[#0F1221] border-0 shadow-2xl">
         <div className="relative p-4 sm:p-6">
           {/* Decorative elements */}
           <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#6A7282] via-[#6A7282] to-[#5A626F] rounded-t-lg"></div>
-          
+
           {/* Background decorative circles */}
           <div className="absolute top-4 right-4 w-12 h-12 bg-gradient-to-br from-[#6A7282]/10 to-[#6A7282]/10 rounded-full blur-xl"></div>
           <div className="absolute bottom-4 left-4 w-10 h-10 bg-gradient-to-br from-[#5A626F]/10 to-[#6A7282]/10 rounded-full blur-lg"></div>
-          
+
           {/* Welcome Icon */}
           <div className="flex justify-center mb-3 sm:mb-4">
             <div className="relative">
@@ -59,7 +109,7 @@ export function WelcomeModal({ open, onOpenChange, onContinue }: WelcomeModalPro
                 </p>
               </div>
             </div>
-            
+
             <div className="bg-gradient-to-r from-[#6A7282]/5 to-[#6A7282]/5 rounded-xl p-3 sm:p-4 border-l-4 border-[#6A7282] shadow-inner">
               <div className="flex items-start space-x-2 sm:space-x-3">
                 <div className="flex-shrink-0 w-4 h-4 sm:w-5 sm:h-5 bg-[#6A7282] rounded-full flex items-center justify-center">
@@ -99,7 +149,7 @@ export function WelcomeModal({ open, onOpenChange, onContinue }: WelcomeModalPro
               className="w-full bg-gradient-to-r from-[#6A7282] to-[#6A7282] hover:from-[#5A626F] hover:to-[#5A626F] text-white font-dmmono py-3 text-base rounded-xl shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-xl border-0 relative overflow-hidden"
             >
               <span className="relative z-10 flex items-center justify-center space-x-2 cursor-pointer">
-                <span>Continue to Login</span>
+                <span>Continue to Login ({countdown}s)</span>
                 <span className="text-lg">🚀</span>
               </span>
               {/* Button shine effect */}

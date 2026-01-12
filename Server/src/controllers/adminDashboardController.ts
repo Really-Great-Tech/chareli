@@ -475,12 +475,11 @@ export const getDashboardAnalytics = async (
           )
         : 0;
 
-    // 4. Total Authenticated Sessions (game-related only, duration >= 30 seconds, userId IS NOT NULL)
+    // 4. Total Game Sessions (all users - authenticated + guest, duration >= 30 seconds)
     let currentTotalSessionsQuery = analyticsRepository
       .createQueryBuilder('analytics')
-      .innerJoin('analytics.user', 'user')
+      .leftJoin('analytics.user', 'user')
       .where('analytics.gameId IS NOT NULL')
-      .andWhere('analytics.userId IS NOT NULL')
       .andWhere('analytics.startTime IS NOT NULL')
       .andWhere('analytics.endTime IS NOT NULL')
       .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
@@ -491,9 +490,8 @@ export const getDashboardAnalytics = async (
 
     let previousTotalSessionsQuery = analyticsRepository
       .createQueryBuilder('analytics')
-      .innerJoin('analytics.user', 'user')
+      .leftJoin('analytics.user', 'user')
       .where('analytics.gameId IS NOT NULL')
-      .andWhere('analytics.userId IS NOT NULL')
       .andWhere('analytics.startTime IS NOT NULL')
       .andWhere('analytics.endTime IS NOT NULL')
       .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
@@ -504,9 +502,8 @@ export const getDashboardAnalytics = async (
 
     let actualSessionsQuery = analyticsRepository
       .createQueryBuilder('analytics')
-      .innerJoin('analytics.user', 'user')
+      .leftJoin('analytics.user', 'user')
       .where('analytics.gameId IS NOT NULL')
-      .andWhere('analytics.userId IS NOT NULL')
       .andWhere('analytics.startTime IS NOT NULL')
       .andWhere('analytics.endTime IS NOT NULL')
       .andWhere('analytics.duration >= :minDuration', { minDuration: 30 });
@@ -549,13 +546,12 @@ export const getDashboardAnalytics = async (
           )
         : 0;
 
-    // 5. Total Authenticated Time Played (in seconds, game-related only, duration >= 30 seconds, userId IS NOT NULL)
+    // 5. Total Time Played (all users - authenticated + guest, duration >= 30 seconds)
     let currentTotalTimePlayedQuery = analyticsRepository
       .createQueryBuilder('analytics')
       .select('SUM(analytics.duration)', 'totalPlayTime')
-      .innerJoin('analytics.user', 'user')
+      .leftJoin('analytics.user', 'user')
       .where('analytics.gameId IS NOT NULL')
-      .andWhere('analytics.userId IS NOT NULL')
       .andWhere('analytics.startTime IS NOT NULL')
       .andWhere('analytics.endTime IS NOT NULL')
       .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
@@ -567,9 +563,8 @@ export const getDashboardAnalytics = async (
     let previousTotalTimePlayedQuery = analyticsRepository
       .createQueryBuilder('analytics')
       .select('SUM(analytics.duration)', 'totalPlayTime')
-      .innerJoin('analytics.user', 'user')
+      .leftJoin('analytics.user', 'user')
       .where('analytics.gameId IS NOT NULL')
-      .andWhere('analytics.userId IS NOT NULL')
       .andWhere('analytics.startTime IS NOT NULL')
       .andWhere('analytics.endTime IS NOT NULL')
       .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
@@ -581,9 +576,8 @@ export const getDashboardAnalytics = async (
     let actualTimePlayedQuery = analyticsRepository
       .createQueryBuilder('analytics')
       .select('SUM(analytics.duration)', 'totalPlayTime')
-      .innerJoin('analytics.user', 'user')
+      .leftJoin('analytics.user', 'user')
       .where('analytics.gameId IS NOT NULL')
-      .andWhere('analytics.userId IS NOT NULL')
       .andWhere('analytics.startTime IS NOT NULL')
       .andWhere('analytics.endTime IS NOT NULL')
       .andWhere('analytics.duration >= :minDuration', { minDuration: 30 });

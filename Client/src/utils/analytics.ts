@@ -114,3 +114,21 @@ export const trackGameplay = {
     });
   },
 };
+
+/**
+ * Track user interaction events
+ */
+export const trackInteraction = {
+  /**
+   * Track when user clicks "See More Games" button
+   */
+  seeMoreGames: (currentPage: number, currentCategory: string, totalGamesLoaded: number) => {
+    trackEvent("see_more_games", {
+      page: currentPage,
+      category: currentCategory,
+      total_games_loaded: totalGamesLoaded,
+      event_category: "Engagement",
+      event_label: `Page ${currentPage} - ${currentCategory}`,
+    });
+  },
+};

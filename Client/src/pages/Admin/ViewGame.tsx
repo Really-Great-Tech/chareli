@@ -116,7 +116,7 @@ export default function ViewGame() {
                 </Button>
               </>
             ) : null}
-            
+
             {permissions.canDelete ? (
               <Button
                 className="flex items-center justify-center gap-2 w-full bg-[#EF4444] text-white tracking-wider hover:bg-[#dc2626] cursor-pointer"
@@ -125,7 +125,7 @@ export default function ViewGame() {
                 Delete <RiDeleteBin6Line />
               </Button>
             ) : null}
-            
+
             {permissions.isViewer && (
               <div className="flex items-center justify-center w-full py-2 px-4 bg-gray-300 text-gray-600 rounded-md">
                 <span className="text-sm font-medium">View Only</span>
@@ -166,15 +166,25 @@ export default function ViewGame() {
               <h3 className="font-normal mb-1 text-[#475568] dark:text-white">
                 Game Code
               </h3>
-              <a
-                href={(game as any).game?.gameFile?.url || "#"}
-                className="text-[#475568] underline dark:text-white font-dmmono tracking-wider text-sm break-all overflow-wrap-anywhere block"
-                target="_blank"
-                rel="noopener noreferrer"
-                title={(game as any).game?.gameFile?.url || "#"}
-              >
-                {(game as any).game?.gameFile?.url || "#"}
-              </a>
+              {(() => {
+                const gameFile = (game as any).game?.gameFile;
+                const slug = (game as any).game?.slug;
+                // Construct slug-based URL if we have both gameFile and slug
+                const slugBasedUrl = gameFile?.s3Key && slug
+                  ? gameFile.url?.replace(/\/games\/[^/]+\//, `/games/${slug}/`)
+                  : gameFile?.url;
+                return (
+                  <a
+                    href={slugBasedUrl || "#"}
+                    className="text-[#475568] underline dark:text-white font-dmmono tracking-wider text-sm break-all overflow-wrap-anywhere block"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={slugBasedUrl || "#"}
+                  >
+                    {slugBasedUrl || "#"}
+                  </a>
+                );
+              })()}
             </div>
           </div>
           <div>
@@ -215,7 +225,7 @@ export default function ViewGame() {
               </div>
               <div className="flex flex-col justify-start">
                 <span className="text-[#475568] text-base font mb-1 dark:text-white">
-                  Sessions
+                  Game Sessions
                 </span>
                 <span className="text-sm text-[#475568] font-sans dark:text-white">
                   {game?.analytics?.totalSessions ?? "-"}

@@ -20,14 +20,19 @@ import { RiGamepadLine } from "react-icons/ri";
 export function MostPlayedGames() {
   const { data: gamesWithAnalytics, isLoading } = useGamesAnalytics();
 
-  // Sort games by total sessions (most played first)
+  // Sort state
+  const [sortBy, setSortBy] = useState<'time' | 'sessions'>('sessions');
+
+  // Sort games based on selected sort option
   const allGames = useMemo<GameAnalytics[]>(() => {
     if (!gamesWithAnalytics) return [];
-    return [...gamesWithAnalytics].sort(
-      (a, b) =>
-        (b.analytics?.totalSessions || 0) - (a.analytics?.totalSessions || 0)
-    );
-  }, [gamesWithAnalytics]);
+    return [...gamesWithAnalytics].sort((a, b) => {
+      if (sortBy === 'time') {
+        return (b.analytics?.totalPlayTime || 0) - (a.analytics?.totalPlayTime || 0);
+      }
+      return (b.analytics?.totalSessions || 0) - (a.analytics?.totalSessions || 0);
+    });
+  }, [gamesWithAnalytics, sortBy]);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -44,8 +49,31 @@ export function MostPlayedGames() {
 
   return (
     <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
-      <div className="flex justify-between p-4 text-2xl">
+      <div className="flex justify-between items-center p-4 text-2xl">
         <p className="bg-[#F1F5F9] dark:bg-[#121C2D]">Most Played Games</p>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-500 mr-2">Sort by:</span>
+          <button
+            onClick={() => { setSortBy('time'); setCurrentPage(1); }}
+            className={`px-3 py-1 rounded text-sm transition-colors cursor-pointer ${
+              sortBy === 'time'
+                ? 'bg-[#6A7282] text-white'
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+            }`}
+          >
+            Time Played
+          </button>
+          <button
+            onClick={() => { setSortBy('sessions'); setCurrentPage(1); }}
+            className={`px-3 py-1 rounded text-sm transition-colors cursor-pointer ${
+              sortBy === 'sessions'
+                ? 'bg-[#6A7282] text-white'
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+            }`}
+          >
+            Total Plays
+          </button>
+        </div>
       </div>
       <div className="px-4 pb-4">
         <Table>
@@ -153,7 +181,7 @@ export function MostPlayedGames() {
                   {(() => {
                     const pages = [];
                     const maxVisiblePages = 5;
-                    
+
                     if (totalPages <= maxVisiblePages) {
                       // Show all pages if total is small
                       for (let i = 1; i <= totalPages; i++) {
@@ -175,7 +203,7 @@ export function MostPlayedGames() {
                       // Smart truncation for many pages
                       const startPage = Math.max(1, currentPage - 2);
                       const endPage = Math.min(totalPages, currentPage + 2);
-                      
+
                       // First page
                       if (startPage > 1) {
                         pages.push(
@@ -199,7 +227,7 @@ export function MostPlayedGames() {
                           );
                         }
                       }
-                      
+
                       // Current range
                       for (let i = startPage; i <= endPage; i++) {
                         pages.push(
@@ -216,7 +244,7 @@ export function MostPlayedGames() {
                           </button>
                         );
                       }
-                      
+
                       // Last page
                       if (endPage < totalPages) {
                         if (endPage < totalPages - 1) {
@@ -241,7 +269,7 @@ export function MostPlayedGames() {
                         );
                       }
                     }
-                    
+
                     return pages;
                   })()}
                 </div>

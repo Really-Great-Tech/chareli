@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { backendService } from './api.service';
 import { BackendRoute } from './constants';
 import type {
@@ -15,9 +15,12 @@ export const useGames = (params?: {
   filter?: 'popular' | 'recommended' | 'recently_added';
   search?: string;
   limit?: number;
+  page?: number;
 }) => {
   return useQuery<PaginatedResponse<GameResponse>>({
     queryKey: [BackendRoute.GAMES, params],
+    // Keep previous data visible while fetching next page (important for pagination)
+    placeholderData: keepPreviousData,
     queryFn: async () => {
       // Try CDN for popular filter (only if no search active)
       if (
@@ -48,13 +51,21 @@ export const useGames = (params?: {
       }
 
       // Try CDN for active games without filters
+      // Skip CDN when pagination is explicitly requested (page > 1 or limit set)
+      // This enables true server-side pagination for better initial load performance
+      const isPaginationRequested = (params?.page && params.page > 1) || params?.limit;
+
+
+
       if (
         cdnFetch.isEnabled() &&
         params?.status === 'active' &&
         !params.categoryId &&
         !params.filter &&
-        !params.search
+        !params.search &&
+        !isPaginationRequested
       ) {
+
         try {
           const result = await cdnFetch.fetch<GameResponse[]>({
             cdnPath: 'games_active.json',
@@ -77,18 +88,33 @@ export const useGames = (params?: {
       }
 
       // API fallback for filtered queries or if CDN fails
-      console.debug('[Games] Fetching from API with params:', params);
-      const response = await backendService.get(BackendRoute.GAMES, { params });
-      console.debug('[Games] API response:', response.data);
+
+      // Note: backendService uses axios interceptor that already unwraps response.data
+      // So 'response' here IS the actual data, not the axios response wrapper
+      const responseData = await backendService.get(BackendRoute.GAMES, { params }) as any;
+
 
       // Handle both response formats:
-      // 1. Full PaginatedResponse: { success, data, total, page, limit, count, totalPages }
+      // 1. Full PaginatedResponse: { data, pagination: { page, limit, total, totalPages } }
       // 2. Simple filter response: { data }
-      const responseData = response.data;
+      // 3. Legacy format: array of games
 
-      if (responseData.data && Array.isArray(responseData.data)) {
-        // Response already in correct format
-        return responseData as PaginatedResponse<GameResponse>;
+      if (responseData?.data && Array.isArray(responseData.data)) {
+        // Backend returns { data, pagination: { total, page, limit, totalPages } }
+        // Normalize to frontend PaginatedResponse format with total at root level
+        const pagination = responseData.pagination || {};
+
+
+
+        return {
+          success: true,
+          data: responseData.data,
+          total: pagination.total ?? responseData.total ?? responseData.data.length,
+          count: responseData.data.length,
+          page: pagination.page ?? responseData.page ?? 1,
+          limit: pagination.limit ?? responseData.limit ?? responseData.data.length,
+          totalPages: pagination.totalPages ?? responseData.totalPages ?? 1,
+        } as PaginatedResponse<GameResponse>;
       } else if (Array.isArray(responseData)) {
         // Legacy format - wrap in pagination structure
         return {

@@ -105,6 +105,7 @@ interface Config {
   cloudflare: {
     apiToken: string;
     cdnZoneId: string;
+    appZoneId: string;
   };
 }
 
@@ -240,6 +241,7 @@ const config: Config = {
   cloudflare: {
     apiToken: process.env.CLOUDFLARE_API_TOKEN || '',
     cdnZoneId: process.env.CLOUDFLARE_CDN_ZONE_ID || '',
+    appZoneId: process.env.CLOUDFLARE_APP_ZONE_ID || '',
   },
 };
 

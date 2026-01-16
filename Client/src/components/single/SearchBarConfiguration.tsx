@@ -10,12 +10,13 @@ interface SearchBarConfigurationRef {
 
 interface SearchBarConfigurationProps {
   disabled?: boolean;
+  onChange?: () => void;
 }
 
 const SearchBarConfiguration = forwardRef<SearchBarConfigurationRef, SearchBarConfigurationProps>(
-  ({ disabled = false }, ref) => {
+  ({ disabled = false, onChange }, ref) => {
     const [showSearchBar, setShowSearchBar] = useState(true);
-    
+
     const { data: uiConfigData, isLoading: isLoadingConfig } = useSystemConfigByKey('ui_settings');
 
     // Load initial configuration
@@ -32,6 +33,7 @@ const SearchBarConfiguration = forwardRef<SearchBarConfigurationRef, SearchBarCo
 
     const handleToggleSearchBar = (checked: boolean) => {
       setShowSearchBar(checked);
+      onChange?.();
     };
 
     return (
@@ -53,8 +55,8 @@ const SearchBarConfiguration = forwardRef<SearchBarConfigurationRef, SearchBarCo
               color="#6A7282"
               disabled={disabled || isLoadingConfig}
             />
-            <Label 
-              htmlFor="show-search-bar" 
+            <Label
+              htmlFor="show-search-bar"
               className="text-base font-medium text-black dark:text-white cursor-pointer"
             >
               Show Search Bar

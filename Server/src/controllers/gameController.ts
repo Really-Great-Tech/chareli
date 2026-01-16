@@ -267,44 +267,14 @@ export const getAllGames = async (
       .leftJoinAndSelect('game.createdBy', 'createdBy');
 
     // Handle special filters
+    // Flag to control ordering - recently_added uses createdAt DESC only
+    let orderByRecent = false;
+
     if (filter === 'recently_added') {
-      // Try cache first
-      const cacheKey = 'filter:recently_added';
-      const cached = await cacheService.getGamesList(1, 10, cacheKey);
-      if (cached) {
-        logger.debug('Cache hit for recently_added filter');
-        res.status(200).json(cached);
-        return;
-      }
-
-      // Get the last 10 games added, ordered by creation date
-      queryBuilder
-        .andWhere('game.status = :status', { status: GameStatus.ACTIVE })
-        .orderBy('game.createdAt', 'DESC')
-        .limit(10);
-
-      const games = await queryBuilder.getMany();
-
-      // Transform game file and thumbnail URLs to direct storage URLs
-      games.forEach((game) => {
-        if (game.gameFile) {
-          const s3Key = game.gameFile.s3Key;
-          game.gameFile.s3Key = storageService.getPublicUrl(s3Key);
-        }
-        if (game.thumbnailFile) {
-          const s3Key = game.thumbnailFile.s3Key;
-          game.thumbnailFile.s3Key = storageService.getPublicUrl(s3Key);
-        }
-      });
-
-      const responseData = { data: games };
-
-      // Cache for 2 minutes (120s)
-      await cacheService.setGamesList(1, 10, responseData, cacheKey, 120);
-      logger.debug('Cached recently_added filter');
-
-      res.status(200).json(responseData);
-      return;
+      // Set flag to order by creation date instead of position
+      orderByRecent = true;
+      // Apply active status filter for recently_added
+      queryBuilder.andWhere('game.status = :status', { status: GameStatus.ACTIVE });
     } else if (filter === 'popular') {
       // Try cache first for popular filter
       const cacheKey = 'filter:popular';
@@ -375,6 +345,7 @@ export const getAllGames = async (
           return;
         }
       } else {
+        // Auto mode: order by number of game sessions (highest first)
         queryBuilder = gameRepository
           .createQueryBuilder('game')
           .leftJoinAndSelect('game.category', 'category')
@@ -382,19 +353,14 @@ export const getAllGames = async (
           .leftJoinAndSelect('game.gameFile', 'gameFile')
           .leftJoinAndSelect('game.createdBy', 'createdBy')
           .leftJoin('analytics', 'a', 'a.gameId = game.id')
-          .addSelect([
-            'COUNT(DISTINCT a.userId) as playerCount',
-            'SUM(a.duration) as totalPlayTime',
-            'COUNT(a.id) as sessionCount',
-          ])
+          .addSelect('COUNT(a.id)', 'sessionCount')
+          .andWhere('game.status = :status', { status: GameStatus.ACTIVE })
           .groupBy('game.id')
           .addGroupBy('category.id')
           .addGroupBy('thumbnailFile.id')
           .addGroupBy('gameFile.id')
           .addGroupBy('createdBy.id')
-          .orderBy('playerCount', 'DESC')
-          .addOrderBy('totalPlayTime', 'DESC')
-          .addOrderBy('sessionCount', 'DESC');
+          .orderBy('sessionCount', 'DESC');
       }
     } else if (filter === 'recommended' && req.user?.userId) {
       const userTopCategory = await AppDataSource.getRepository(Analytics)
@@ -556,9 +522,16 @@ export const getAllGames = async (
     // Apply pagination (middleware ensures limitNumber is always set)
     queryBuilder.skip((pageNumber - 1) * limitNumber).take(limitNumber);
 
-    queryBuilder
-      .orderBy('game.position', 'ASC')
-      .addOrderBy('game.createdAt', 'DESC');
+    // Apply ordering based on filter type
+    if (orderByRecent) {
+      // For recently_added filter, order only by creation date (newest first)
+      queryBuilder.orderBy('game.createdAt', 'DESC');
+    } else {
+      // Default: order by position first, then by creation date
+      queryBuilder
+        .orderBy('game.position', 'ASC')
+        .addOrderBy('game.createdAt', 'DESC');
+    }
 
     const games = await queryBuilder.getMany();
 

@@ -21,7 +21,47 @@ app.use(requestLogger);
 
 // Security middleware
 app.use(helmet()); // Adds various HTTP headers for security
-app.use(cors());
+
+// CORS configuration
+const corsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    // Allow requests with no origin (like mobile apps, curl, or same-origin)
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    // List of allowed origins based on environment
+    const allowedOrigins = [
+      config.app.clientUrl,
+      'http://localhost:5173',
+      'http://localhost:3000',
+      // Add staging and production domains
+      'https://staging.arcadesbox.com',
+      'https://arcadesbox.com',
+      'https://www.arcadesbox.com',
+    ].filter(Boolean); // Remove any empty strings
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    // Allow Cloudflare Pages preview deployments
+    if (origin.endsWith('.pages.dev')) {
+      return callback(null, true);
+    }
+
+    // In development, allow all origins
+    if (config.env === 'development') {
+      return callback(null, true);
+    }
+
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+};
+app.use(cors(corsOptions));
 
 // Content Security Policy
 app.use((req, res, next) => {

@@ -5,6 +5,7 @@ import { File } from '../entities/Files';
 import { ApiError } from '../middlewares/errorHandler';
 import { storageService } from '../services/storage.service';
 import { jsonCdnService } from '../services/jsonCdn.service';
+import { cacheService } from '../services/cache.service';
 import logger from '../utils/logger';
 import multer from 'multer';
 
@@ -383,15 +384,18 @@ export const createSystemConfig = async (
       }
     }
 
-    // Trigger CDN regeneration for popular games if that setting was updated
+    // Trigger cache invalidation for popular games if that setting was updated
     if (key === 'popular_games_settings') {
       try {
-        logger.info('Popular games settings updated, regenerating CDN...');
+        logger.info('Popular games settings updated, invalidating caches...');
+        // Clear Redis API cache
+        await cacheService.invalidateGamesList();
+        // Regenerate CDN JSON and purge Cloudflare
         await jsonCdnService.invalidateCache(['games_popular']);
-        logger.info('Popular games CDN regeneration triggered successfully');
-      } catch (cdnError) {
-        // Log but don't fail the request if CDN regeneration fails
-        logger.error('Failed to regenerate popular games CDN:', cdnError);
+        logger.info('Popular games cache invalidation completed successfully');
+      } catch (cacheError) {
+        // Log but don't fail the request if cache invalidation fails
+        logger.error('Failed to invalidate popular games caches:', cacheError);
       }
     }
 

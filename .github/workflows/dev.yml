@@ -258,6 +258,15 @@ jobs:
           command: pages deploy ./frontend-build-output --project-name=${{ vars.PAGES_PROJECT_NAME }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Purge Cloudflare Cache
+        run: |
+          echo "Purging Cloudflare cache for zone..."
+          curl -X POST "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache" \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}'
+          echo "Cache purge completed"
+
   notify-discord:
     name: Notify Discord
     needs:

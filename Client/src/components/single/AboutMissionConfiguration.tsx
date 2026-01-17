@@ -13,10 +13,11 @@ export interface AboutMissionConfigurationRef {
 
 interface AboutMissionConfigurationProps {
   disabled?: boolean;
+  onChange?: () => void;
 }
 
 const AboutMissionConfiguration = forwardRef<AboutMissionConfigurationRef, AboutMissionConfigurationProps>(
-  ({ disabled }, ref) => {
+  ({ disabled, onChange }, ref) => {
     const [aboutText, setAboutText] = useState(
       "Arcades Box is an online gaming community where players can enjoy a wide variety of online games, quick, simple, and fun. From classic card and puzzle games to fast paced arcade titles, our platform offers something for everyone. All games run directly in your web browser, with no downloads or installations required. Whether you're on desktop, tablet, or mobile, you can jump in and play instantly. Registered members enjoy completely ad free access, personalised features, and a smooth, uninterrupted gaming experience."
     );
@@ -68,7 +69,10 @@ const AboutMissionConfiguration = forwardRef<AboutMissionConfigurationRef, About
             <Textarea
               id="about-text"
               value={aboutText}
-              onChange={(e) => setAboutText(e.target.value)}
+              onChange={(e) => {
+                setAboutText(e.target.value);
+                onChange?.();
+              }}
               disabled={disabled}
               className="min-h-[120px] bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-black dark:text-white resize-y"
               placeholder="Enter the About Us text..."
@@ -85,7 +89,10 @@ const AboutMissionConfiguration = forwardRef<AboutMissionConfigurationRef, About
             <Textarea
               id="mission-text"
               value={missionText}
-              onChange={(e) => setMissionText(e.target.value)}
+              onChange={(e) => {
+                setMissionText(e.target.value);
+                onChange?.();
+              }}
               disabled={disabled}
               className="min-h-[120px] bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-black dark:text-white resize-y"
               placeholder="Enter the Mission text..."

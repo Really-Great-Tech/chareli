@@ -84,6 +84,22 @@ export interface GameFile {
   s3Key: string;
   url: string;
   type: string;
+  variants?: {
+    thumbnail?: string;
+    xsmall?: string;
+    small?: string;
+    medium?: string;
+    large?: string;
+  };
+  dimensions?: {
+    original?: { width: number; height: number };
+    thumbnail?: { width: number; height: number };
+    xsmall?: { width: number; height: number };
+    small?: { width: number; height: number };
+    medium?: { width: number; height: number };
+    large?: { width: number; height: number };
+  };
+  isProcessed?: boolean;
   createdAt: string;
   updatedAt: string;
 }

@@ -14,12 +14,13 @@ export interface BulkFreeTimeConfigurationRef {
 
 interface BulkFreeTimeConfigurationProps {
   disabled?: boolean;
+  onChange?: () => void;
 }
 
 const BulkFreeTimeConfiguration = forwardRef<
   BulkFreeTimeConfigurationRef,
   BulkFreeTimeConfigurationProps
->(({ disabled }, ref) => {
+>(({ disabled, onChange }, ref) => {
   const [defaultFreeTime, setDefaultFreeTime] = useState(0);
   const [disableFreeTimeForGuests, setDisableFreeTimeForGuests] =
     useState(false);
@@ -85,7 +86,10 @@ const BulkFreeTimeConfiguration = forwardRef<
             type="number"
             min="0"
             value={defaultFreeTime}
-            onChange={(e) => setDefaultFreeTime(parseInt(e.target.value) || 0)}
+            onChange={(e) => {
+              setDefaultFreeTime(parseInt(e.target.value) || 0);
+              onChange?.();
+            }}
             disabled={disabled || disableFreeTimeForGuests}
             className="max-w-xs bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-black dark:text-white"
             placeholder="e.g. 30"
@@ -98,9 +102,10 @@ const BulkFreeTimeConfiguration = forwardRef<
           <Checkbox
             id="disable-free-time-guests"
             checked={disableFreeTimeForGuests}
-            onCheckedChange={(checked) =>
-              setDisableFreeTimeForGuests(checked === true)
-            }
+            onCheckedChange={(checked) => {
+              setDisableFreeTimeForGuests(checked === true);
+              onChange?.();
+            }}
             disabled={disabled}
             color="#6A7282"
           />

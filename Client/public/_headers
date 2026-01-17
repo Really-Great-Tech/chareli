@@ -1,29 +1,50 @@
-# CloudFlare Pages Headers Configuration
+# Cloudflare Pages Headers Configuration
 # Fix MIME type issues and set proper headers
 
+# --------------------------------------------------
 # robots.txt
+# --------------------------------------------------
 /robots.txt
   Content-Type: text/plain; charset=utf-8
 
-# JavaScript and TypeScript files
+
+# --------------------------------------------------
+# JavaScript ES Modules (CRITICAL — must match /assets)
+# --------------------------------------------------
+/assets/*.js
+  Content-Type: application/javascript; charset=utf-8
+  X-Content-Type-Options: nosniff
+
+/assets/*.mjs
+  Content-Type: application/javascript; charset=utf-8
+  X-Content-Type-Options: nosniff
+
+# Safety fallback (non-asset JS)
 /*.js
   Content-Type: application/javascript; charset=utf-8
-/*.mjs
-  Content-Type: application/javascript; charset=utf-8
-/*.ts
-  Content-Type: application/javascript; charset=utf-8
-/*.tsx
-  Content-Type: application/javascript; charset=utf-8
+  X-Content-Type-Options: nosniff
 
-# JSON files
+
+# --------------------------------------------------
+# JSON
+# --------------------------------------------------
 /*.json
   Content-Type: application/json; charset=utf-8
 
-# CSS files
+
+# --------------------------------------------------
+# CSS
+# --------------------------------------------------
+/assets/*.css
+  Content-Type: text/css; charset=utf-8
+
 /*.css
   Content-Type: text/css; charset=utf-8
 
+
+# --------------------------------------------------
 # Images
+# --------------------------------------------------
 /*.svg
   Content-Type: image/svg+xml
 /*.png
@@ -37,7 +58,10 @@
 /*.gif
   Content-Type: image/gif
 
+
+# --------------------------------------------------
 # Fonts
+# --------------------------------------------------
 /*.woff
   Content-Type: font/woff
 /*.woff2
@@ -47,11 +71,17 @@
 /*.otf
   Content-Type: font/otf
 
-# HTML files with caching
+
+# --------------------------------------------------
+# HTML
+# --------------------------------------------------
 /*.html
   Content-Type: text/html; charset=utf-8
   Cache-Control: public, max-age=0, must-revalidate
 
-# Static assets with long cache
+
+# --------------------------------------------------
+# Long-term caching for static assets (AFTER MIME rules)
+# --------------------------------------------------
 /assets/*
   Cache-Control: public, max-age=31536000, immutable

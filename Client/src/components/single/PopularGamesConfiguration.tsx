@@ -13,12 +13,13 @@ interface PopularGamesConfigurationRef {
 
 interface PopularGamesConfigurationProps {
   disabled?: boolean;
+  onChange?: () => void;
 }
 
 const PopularGamesConfiguration = forwardRef<
   PopularGamesConfigurationRef,
   PopularGamesConfigurationProps
->(({ disabled = false }, ref) => {
+>(({ disabled = false, onChange }, ref) => {
   const [isManualMode, setIsManualMode] = useState(false);
   const [selectedGameIds, setSelectedGameIds] = useState<string[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -27,9 +28,10 @@ const PopularGamesConfiguration = forwardRef<
     useSystemConfigByKey('popular_games_settings');
   const { data: allGamesData, isLoading: isLoadingGames } = useGames({
     status: 'active',
+    limit: 1000, // Fetch all games for admin configuration
   });
 
-  const allGames = Array.isArray(allGamesData) ? allGamesData : [];
+  const allGames = allGamesData?.data || [];
 
   // Load initial configuration
   useEffect(() => {
@@ -61,6 +63,7 @@ const PopularGamesConfiguration = forwardRef<
     if (!checked) {
       setSelectedGameIds([]);
     }
+    onChange?.();
   };
 
   const handleGameSelect = (gameId: string) => {
@@ -71,10 +74,12 @@ const PopularGamesConfiguration = forwardRef<
     }
     // Close dropdown after selection
     setIsDropdownOpen(false);
+    onChange?.();
   };
 
   const handleRemoveGame = (gameId: string) => {
     setSelectedGameIds((prev) => prev.filter((id) => id !== gameId));
+    onChange?.();
   };
 
   const selectedGames = allGames.filter((game) =>
@@ -97,6 +102,7 @@ const PopularGamesConfiguration = forwardRef<
         )}
 
         <div className="space-y-4">
+          {/* Mode Selection */}
           <div className="flex items-center space-x-3">
             <Checkbox
               checked={isManualMode}
@@ -109,11 +115,25 @@ const PopularGamesConfiguration = forwardRef<
               htmlFor="manual-popular-games"
               className="text-sm font-medium text-black dark:text-white cursor-pointer"
             >
-              Games
+              Manual Selection
             </Label>
+            <span className={`text-xs px-2 py-0.5 rounded ${
+              isManualMode
+                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+                : 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+            }`}>
+              {isManualMode ? 'Manual Mode' : 'Auto Mode'}
+            </span>
           </div>
 
-          {isManualMode && (
+          {/* Mode Description */}
+          <p className="text-xs text-gray-500 dark:text-gray-400 ml-6">
+            {isManualMode
+              ? 'You choose which games appear in the Popular section.'
+              : 'Games are automatically selected based on play count and engagement metrics.'}
+          </p>
+
+          {isManualMode ? (
             <div className="space-y-4">
               {/* Dropdown for selecting games */}
               <div className="relative w-full max-w-md">
@@ -125,7 +145,7 @@ const PopularGamesConfiguration = forwardRef<
                   disabled={disabled || isLoadingGames}
                   className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-left text-sm text-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between hover:border-[#6A7282] focus:border-[#6A7282] focus:outline-none"
                 >
-                  <span className="text-gray-500">Select Games</span>
+                  <span className="text-gray-500">Select Games ({availableGames.length} available)</span>
                   <ChevronDown
                     className={`h-4 w-4 text-gray-500 transition-transform ${
                       isDropdownOpen ? 'rotate-180' : ''
@@ -151,33 +171,38 @@ const PopularGamesConfiguration = forwardRef<
 
               {/* Selected games preview */}
               {selectedGames.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-4">
-                  {selectedGames.map((game) => (
-                    <div key={game.id} className="relative group">
-                      <div className="relative h-32 w-full rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-600">
-                        <LazyImage
-                          src={game.thumbnailFile?.s3Key || emptyGameImg}
-                          alt={game.title}
-                          className="w-full h-full object-cover"
-                          variants={game.thumbnailFile?.variants}
-                          dimensions={game.thumbnailFile?.dimensions}
-                          enableTransform={!game.thumbnailFile?.variants}
-                          loadingClassName="rounded-lg"
-                          spinnerColor="#6A7282"
-                        />
-                        <button
-                          onClick={() => handleRemoveGame(game.id)}
-                          className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
-                          disabled={disabled}
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
+                <div>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Selected Games ({selectedGames.length})
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {selectedGames.map((game) => (
+                      <div key={game.id} className="relative group">
+                        <div className="relative h-32 w-full rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-600">
+                          <LazyImage
+                            src={game.thumbnailFile?.s3Key || emptyGameImg}
+                            alt={game.title}
+                            className="w-full h-full object-cover"
+                            variants={game.thumbnailFile?.variants}
+                            dimensions={game.thumbnailFile?.dimensions}
+                            enableTransform={!game.thumbnailFile?.variants}
+                            loadingClassName="rounded-lg"
+                            spinnerColor="#6A7282"
+                          />
+                          <button
+                            onClick={() => handleRemoveGame(game.id)}
+                            className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
+                            disabled={disabled}
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                        <p className="text-xs font-medium text-gray-900 dark:text-white mt-1 truncate">
+                          {game.title}
+                        </p>
                       </div>
-                      <p className="text-xs font-medium text-gray-900 dark:text-white mt-1 truncate">
-                        {game.title}
-                      </p>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -187,6 +212,12 @@ const PopularGamesConfiguration = forwardRef<
                   the popular section.
                 </div>
               )}
+            </div>
+          ) : (
+            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mt-2">
+              <p className="text-sm text-green-700 dark:text-green-300">
+                <strong>Auto Mode Active:</strong> Games are automatically ranked by the highest number of game sessions (plays).
+              </p>
             </div>
           )}
         </div>

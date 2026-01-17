@@ -3,6 +3,7 @@ import { Game, GameStatus } from '../entities/Games';
 import { Category } from '../entities/Category';
 import { GameLike } from '../entities/GameLike';
 import { SystemConfig } from '../entities/SystemConfig';
+import { Analytics } from '../entities/Analytics';
 import { R2StorageAdapter } from './r2.storage.adapter';
 import { cloudflareCacheService } from './cloudflare-cache.service';
 import logger from '../utils/logger';
@@ -291,12 +292,131 @@ class JsonCdnService {
 
       if (!popularConfig || popularConfig.value?.mode !== 'manual') {
         logger.info(
-          'Popular games not in manual mode, generating empty popular games JSON'
+          'Popular games in AUTO mode, generating based on play counts'
         );
-        await this.uploadJson('games_popular.json', {
-          games: [],
-          metadata: this.createMetadata(0),
+
+        // Auto Mode: Get top played games from analytics (Last 30 days)
+        const analyticsRepository = AppDataSource.getRepository(Analytics);
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        const topGamesResult = await analyticsRepository
+          .createQueryBuilder('analytics')
+          .select('analytics.gameId', 'gameId')
+          .addSelect('COUNT(*)', 'count')
+          .leftJoin('analytics.user', 'user')
+          .leftJoin('user.role', 'role')
+          .where('analytics.gameId IS NOT NULL')
+          .andWhere('analytics.createdAt >= :startDate', { startDate: thirtyDaysAgo })
+          // Exclude admin activity
+          .andWhere("(role.name = 'player' OR analytics.userId IS NULL)")
+          .groupBy('analytics.gameId')
+          .orderBy('count', 'DESC')
+          .limit(20)
+          .getRawMany();
+
+        const gameIds = topGamesResult.map(result => result.gameId);
+
+        if (gameIds.length === 0) {
+           logger.info('No popular games found in analytics, generating empty JSON');
+           await this.uploadJson('games_popular.json', {
+             games: [],
+             metadata: this.createMetadata(0),
+           });
+           return;
+        }
+
+        // Fetch full game details for the top games
+        const gameRepository = AppDataSource.getRepository(Game);
+        const games = await gameRepository.find({
+          where: {
+            id: In(gameIds),
+            status: GameStatus.ACTIVE,
+          },
+          relations: ['category', 'createdBy', 'thumbnailFile', 'gameFile'],
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            description: true,
+            status: true,
+            config: true,
+            baseLikeCount: true,
+            lastLikeIncrement: true,
+            position: true,
+            processingStatus: true,
+            createdAt: true,
+            updatedAt: true,
+            category: {
+              id: true,
+              name: true,
+              description: true,
+            },
+            createdBy: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+            thumbnailFile: {
+              id: true,
+              s3Key: true,
+              type: true,
+              variants: true,
+              dimensions: true,
+              isProcessed: true,
+            },
+            gameFile: {
+              id: true,
+              s3Key: true,
+              type: true,
+              variants: true,
+              dimensions: true,
+              isProcessed: true,
+            },
+          },
         });
+
+        // Order games by popularity (matching the analytics order)
+        const orderedGames = gameIds
+          .map((id) => games.find((game) => game.id === id))
+          .filter((game): game is Game => game !== undefined);
+
+        // Get all user likes
+        const userLikesMap = await this.getBatchUserLikesCount(
+          orderedGames.map((g) => g.id)
+        );
+
+        // Transform and upload
+        const gamesWithUrls = orderedGames.map((game) => {
+          const userLikesCount = userLikesMap.get(game.id) || 0;
+          return {
+            ...game,
+            likeCount: this.calculateLikeCount(game, userLikesCount),
+            thumbnailFile: game.thumbnailFile
+              ? {
+                  ...game.thumbnailFile,
+                  s3Key: this.r2Adapter.getPublicUrl(game.thumbnailFile.s3Key),
+                }
+              : null,
+            gameFile: game.gameFile
+              ? {
+                  ...game.gameFile,
+                  s3Key: this.r2Adapter.getPublicUrl(game.gameFile.s3Key),
+                }
+              : null,
+          };
+        });
+
+        const json = {
+          games: gamesWithUrls,
+          metadata: this.createMetadata(gamesWithUrls.length),
+        };
+
+        await this.uploadJson('games_popular.json', json);
+        logger.info(
+          `Generated games_popular.json (AUTO mode, ${gamesWithUrls.length} games)`
+        );
         return;
       }
 

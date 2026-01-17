@@ -267,44 +267,14 @@ export const getAllGames = async (
       .leftJoinAndSelect('game.createdBy', 'createdBy');
 
     // Handle special filters
+    // Flag to control ordering - recently_added uses createdAt DESC only
+    let orderByRecent = false;
+
     if (filter === 'recently_added') {
-      // Try cache first
-      const cacheKey = 'filter:recently_added';
-      const cached = await cacheService.getGamesList(1, 10, cacheKey);
-      if (cached) {
-        logger.debug('Cache hit for recently_added filter');
-        res.status(200).json(cached);
-        return;
-      }
-
-      // Get the last 10 games added, ordered by creation date
-      queryBuilder
-        .andWhere('game.status = :status', { status: GameStatus.ACTIVE })
-        .orderBy('game.createdAt', 'DESC')
-        .limit(10);
-
-      const games = await queryBuilder.getMany();
-
-      // Transform game file and thumbnail URLs to direct storage URLs
-      games.forEach((game) => {
-        if (game.gameFile) {
-          const s3Key = game.gameFile.s3Key;
-          game.gameFile.s3Key = storageService.getPublicUrl(s3Key);
-        }
-        if (game.thumbnailFile) {
-          const s3Key = game.thumbnailFile.s3Key;
-          game.thumbnailFile.s3Key = storageService.getPublicUrl(s3Key);
-        }
-      });
-
-      const responseData = { data: games };
-
-      // Cache for 2 minutes (120s)
-      await cacheService.setGamesList(1, 10, responseData, cacheKey, 120);
-      logger.debug('Cached recently_added filter');
-
-      res.status(200).json(responseData);
-      return;
+      // Set flag to order by creation date instead of position
+      orderByRecent = true;
+      // Apply active status filter for recently_added
+      queryBuilder.andWhere('game.status = :status', { status: GameStatus.ACTIVE });
     } else if (filter === 'popular') {
       // Try cache first for popular filter
       const cacheKey = 'filter:popular';
@@ -375,26 +345,100 @@ export const getAllGames = async (
           return;
         }
       } else {
-        queryBuilder = gameRepository
+        // Auto mode: order by number of game sessions in the last 30 days (highest first)
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        // Step 1: Get Game IDs and Counts efficiently using raw query
+        // This avoids "must appear in GROUP BY" errors with getMany/leftJoinAndSelect
+        const popularityQuery = gameRepository
           .createQueryBuilder('game')
-          .leftJoinAndSelect('game.category', 'category')
-          .leftJoinAndSelect('game.thumbnailFile', 'thumbnailFile')
-          .leftJoinAndSelect('game.gameFile', 'gameFile')
-          .leftJoinAndSelect('game.createdBy', 'createdBy')
-          .leftJoin('analytics', 'a', 'a.gameId = game.id')
-          .addSelect([
-            'COUNT(DISTINCT a.userId) as playerCount',
-            'SUM(a.duration) as totalPlayTime',
-            'COUNT(a.id) as sessionCount',
-          ])
+          .select('game.id', 'id')
+          .addSelect('COUNT(a.id)', 'session_count')
+          .leftJoin(Analytics, 'a', 'a.gameId = game.id')
+          .leftJoin('a.user', 'user')
+          .leftJoin('user.role', 'role')
+          .where('game.status = :status', { status: GameStatus.ACTIVE })
+          .andWhere(
+            '(a.createdAt >= :startDate OR a.createdAt IS NULL)',
+            { startDate: thirtyDaysAgo }
+          )
+          // Exclude admin activity (only include players and anonymous users)
+          .andWhere("(role.name = 'player' OR a.userId IS NULL OR a.id IS NULL)")
           .groupBy('game.id')
-          .addGroupBy('category.id')
-          .addGroupBy('thumbnailFile.id')
-          .addGroupBy('gameFile.id')
-          .addGroupBy('createdBy.id')
-          .orderBy('playerCount', 'DESC')
-          .addOrderBy('totalPlayTime', 'DESC')
-          .addOrderBy('sessionCount', 'DESC');
+          .orderBy('session_count', 'DESC');
+
+        // Apply filters to the COUNT query too (search/category)
+        if (categoryId) {
+          popularityQuery.andWhere('game.categoryId = :categoryId', { categoryId });
+        }
+        if (createdById) {
+          popularityQuery.andWhere('game.createdById = :createdById', { createdById });
+        }
+        if (search) {
+          popularityQuery.andWhere(
+            '(game.title ILIKE :search OR game.description ILIKE :search)',
+            { search: `%${search}%` }
+          );
+        }
+
+        const total = await popularityQuery.getCount();
+        const rawResults = await popularityQuery
+          .offset((pageNumber - 1) * limitNumber)
+          .limit(limitNumber)
+          .getRawMany();
+
+        const gameIds = rawResults.map(r => r.id);
+
+        // Step 2: Fetch full game entities
+        let games: Game[] = [];
+        if (gameIds.length > 0) {
+            games = await gameRepository.find({
+                where: { id: In(gameIds) },
+                relations: ['category', 'thumbnailFile', 'gameFile', 'createdBy'],
+            });
+
+            // Step 3: Sort games in memory to match the popularity order
+            games.sort((a, b) => {
+                const indexA = gameIds.indexOf(a.id);
+                const indexB = gameIds.indexOf(b.id);
+                return indexA - indexB;
+            });
+        }
+
+        // Transform URLs
+        games.forEach((game) => {
+          if (game.gameFile) {
+            game.gameFile.s3Key = storageService.getPublicUrl(game.gameFile.s3Key);
+          }
+          if (game.thumbnailFile) {
+            game.thumbnailFile.s3Key = storageService.getPublicUrl(game.thumbnailFile.s3Key);
+          }
+        });
+
+        const totalPages = Math.ceil(total / limitNumber);
+        const responseData = {
+          data: games,
+          pagination: {
+            page: pageNumber,
+            limit: limitNumber,
+            total,
+            totalPages,
+          },
+        };
+
+        // Cache result
+        if (cacheService.isEnabled()) {
+            await cacheService.setGamesList(
+                pageNumber,
+                limitNumber,
+                responseData,
+                'filter:popular'
+            );
+        }
+
+        res.status(200).json(responseData);
+        return;
       }
     } else if (filter === 'recommended' && req.user?.userId) {
       const userTopCategory = await AppDataSource.getRepository(Analytics)
@@ -556,9 +600,19 @@ export const getAllGames = async (
     // Apply pagination (middleware ensures limitNumber is always set)
     queryBuilder.skip((pageNumber - 1) * limitNumber).take(limitNumber);
 
-    queryBuilder
-      .orderBy('game.position', 'ASC')
-      .addOrderBy('game.createdAt', 'DESC');
+    // Apply ordering based on filter type
+    if (orderByRecent) {
+      // For recently_added filter, order only by creation date (newest first)
+      queryBuilder.orderBy('game.createdAt', 'DESC');
+    } else if (filter === 'popular') {
+      // Popular filter already specifies ordering in the query builder setup above
+      // Do nothing here to preserve that ordering
+    } else {
+      // Default: order by position first, then by creation date
+      queryBuilder
+        .orderBy('game.position', 'ASC')
+        .addOrderBy('game.createdAt', 'DESC');
+    }
 
     const games = await queryBuilder.getMany();
 

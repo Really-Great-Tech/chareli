@@ -1,7 +1,8 @@
 import { Suspense, lazy } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { createBrowserRouter } from 'react-router-dom';
 import { ProtectedRoute } from './ProtectedRoute';
 
+const RootLayout = lazy(() => import('../layout/RootLayout'));
 const ErrorPage = lazy(() => import('../pages/ErrorPage'));
 const Home = lazy(() => import('../pages/Home/Home'));
 const About = lazy(() => import('../pages/About/About'));
@@ -56,71 +57,99 @@ const RouteFallback = () => (
   </div>
 );
 
-export const AppRoutes = () => {
-  return (
-    <Suspense fallback={<RouteFallback />}>
-      <Routes>
-        <Route path="/">
-          <Route element={<MainLayout />}>
-            <Route index element={<Home />} />
-            <Route path="about" element={<About />} />
-            <Route path="categories" element={<Categories />} />
-            <Route path="gameplay/:gameId" element={<GamePlay />} />
-            <Route path="terms" element={<Terms />} />
-            <Route path="privacy" element={<Privacy />} />
-            <Route path="*" element={<ErrorPage />} />
-          </Route>
-        </Route>
+// Wrapper component to provide Suspense for lazy-loaded routes
+const SuspenseWrapper = ({ children }: { children: React.ReactNode }) => (
+  <Suspense fallback={<RouteFallback />}>{children}</Suspense>
+);
 
-        <Route path="reset-password">
-          <Route path=":token" element={<ResetPasswordPage />} />
-          <Route path="phone/:userId" element={<ResetPasswordPage />} />
-        </Route>
-        <Route
-          path="register-invitation/:token"
-          element={<RegisterInvitationPage />}
-        />
+// Config-protected route wrapper
+const ConfigProtectedRoute = () => (
+  <SuspenseWrapper>
+    <ProtectedRoute requireAdmin={true} requireConfig={true} />
+  </SuspenseWrapper>
+);
 
-        <Route path="admin/" element={<ProtectedRoute requireAdmin={true} />}>
-          <Route element={<AdminLayout />}>
-            <Route index element={<AdminHome />} />
-            {/* <Route path="about" element={<AdminAbout />} />*/}
-            <Route path="game-management" element={<GameManagement />} />
-            <Route path="categories" element={<GameCategories />} />
-            <Route path="categories/:categoryId" element={<CategoryDetail />} />
-            <Route path="management" element={<UserManagement />} />
-            <Route path="management/:userId" element={<UserManagementView />} />
-            <Route path="team" element={<TeamManagement />} />
-            <Route path="analytics" element={<Analytics />} />
-            <Route path="view-game/:gameId" element={<ViewGame />} />
-            <Route path="view-profile" element={<ViewProfile />} />
-          </Route>
-        </Route>
+// Route configuration using object format for createBrowserRouter
+export const routes = [
+  {
+    // Root layout wrapper for analytics tracking and canonical tags
+    element: <SuspenseWrapper><RootLayout /></SuspenseWrapper>,
+    errorElement: <SuspenseWrapper><ErrorPage /></SuspenseWrapper>,
+    children: [
+      // Public routes with MainLayout
+      {
+        path: '/',
+        element: <SuspenseWrapper><MainLayout /></SuspenseWrapper>,
+        children: [
+          { index: true, element: <SuspenseWrapper><Home /></SuspenseWrapper> },
+          { path: 'about', element: <SuspenseWrapper><About /></SuspenseWrapper> },
+          { path: 'categories', element: <SuspenseWrapper><Categories /></SuspenseWrapper> },
+          { path: 'gameplay/:gameId', element: <SuspenseWrapper><GamePlay /></SuspenseWrapper> },
+          { path: 'terms', element: <SuspenseWrapper><Terms /></SuspenseWrapper> },
+          { path: 'privacy', element: <SuspenseWrapper><Privacy /></SuspenseWrapper> },
+        ],
+      },
 
-        {/* Config routes - require config access (excludes viewers) */}
-        <Route
-          path="admin/"
-          element={<ProtectedRoute requireAdmin={true} requireConfig={true} />}
-        >
-          <Route element={<AdminLayout />}>
-            <Route path="config" element={<Configuration />} />
-            <Route path="settings" element={<Settings />} />
-          </Route>
-        </Route>
+      // Reset password routes
+      {
+        path: 'reset-password/:token',
+        element: <SuspenseWrapper><ResetPasswordPage /></SuspenseWrapper>,
+      },
+      {
+        path: 'reset-password/phone/:userId',
+        element: <SuspenseWrapper><ResetPasswordPage /></SuspenseWrapper>,
+      },
 
-        {/* Cache Dashboard - Superadmin only (dev/test env only) */}
-        {/* Additional access control is enforced in the CacheDashboard component */}
-        <Route path="admin/" element={<ProtectedRoute requireAdmin={true} />}>
-          <Route element={<AdminLayout />}>
-            <Route path="cache" element={<CacheDashboard />} />
-            <Route path="image-reprocessing" element={<ImageReprocessing />} />
-          </Route>
-        </Route>
+      // Register invitation
+      {
+        path: 'register-invitation/:token',
+        element: <SuspenseWrapper><RegisterInvitationPage /></SuspenseWrapper>,
+      },
 
-        <Route path="*" element={<ErrorPage />} />
-      </Routes>
-    </Suspense>
-  );
-};
+      // Admin routes (general - for all admin users including viewers)
+      {
+        path: 'admin',
+        element: <SuspenseWrapper><ProtectedRoute requireAdmin={true} /></SuspenseWrapper>,
+        children: [
+          {
+            element: <SuspenseWrapper><AdminLayout /></SuspenseWrapper>,
+            children: [
+              { index: true, element: <SuspenseWrapper><AdminHome /></SuspenseWrapper> },
+              { path: 'game-management', element: <SuspenseWrapper><GameManagement /></SuspenseWrapper> },
+              { path: 'categories', element: <SuspenseWrapper><GameCategories /></SuspenseWrapper> },
+              { path: 'categories/:categoryId', element: <SuspenseWrapper><CategoryDetail /></SuspenseWrapper> },
+              { path: 'management', element: <SuspenseWrapper><UserManagement /></SuspenseWrapper> },
+              { path: 'management/:userId', element: <SuspenseWrapper><UserManagementView /></SuspenseWrapper> },
+              { path: 'team', element: <SuspenseWrapper><TeamManagement /></SuspenseWrapper> },
+              { path: 'analytics', element: <SuspenseWrapper><Analytics /></SuspenseWrapper> },
+              { path: 'view-game/:gameId', element: <SuspenseWrapper><ViewGame /></SuspenseWrapper> },
+              { path: 'view-profile', element: <SuspenseWrapper><ViewProfile /></SuspenseWrapper> },
+              { path: 'cache', element: <SuspenseWrapper><CacheDashboard /></SuspenseWrapper> },
+              { path: 'image-reprocessing', element: <SuspenseWrapper><ImageReprocessing /></SuspenseWrapper> },
+              // Config routes - require config access (excludes viewers)
+              // Nested ProtectedRoute to check config permission
+              {
+                element: <ConfigProtectedRoute />,
+                children: [
+                  { path: 'config', element: <SuspenseWrapper><Configuration /></SuspenseWrapper> },
+                  { path: 'settings', element: <SuspenseWrapper><Settings /></SuspenseWrapper> },
+                ],
+              },
+            ],
+          },
+        ],
+      },
 
-export default AppRoutes;
+      // Catch-all 404
+      {
+        path: '*',
+        element: <SuspenseWrapper><ErrorPage /></SuspenseWrapper>,
+      },
+    ],
+  },
+];
+
+// Create the browser router
+export const router = createBrowserRouter(routes);
+
+export default router;

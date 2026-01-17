@@ -9,13 +9,14 @@ interface UserInactivityConfigurationRef {
 
 interface UserInactivityConfigurationProps {
   disabled?: boolean;
+  onChange?: () => void;
 }
 
 const UserInactivityConfiguration = forwardRef<UserInactivityConfigurationRef, UserInactivityConfigurationProps>(
-  ({ disabled = false }, ref) => {
+  ({ disabled = false, onChange }, ref) => {
     const [inactivityDays, setInactivityDays] = useState(14);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    
+
     const { data: inactivityConfigData, isLoading: isLoadingConfig } = useSystemConfigByKey('user_inactivity_settings');
 
     // Load initial configuration
@@ -42,6 +43,7 @@ const UserInactivityConfiguration = forwardRef<UserInactivityConfigurationRef, U
     const handleSelectDays = (days: number) => {
       setInactivityDays(days);
       setIsDropdownOpen(false);
+      onChange?.();
     };
 
     const selectedOption = dayOptions.find(option => option.value === inactivityDays);
@@ -64,7 +66,7 @@ const UserInactivityConfiguration = forwardRef<UserInactivityConfigurationRef, U
                 Timer (in days)
               </Label>
             </div>
-            
+
             <div className="relative w-full max-w-xs sm:max-w-sm">
               <button
                 type="button"
@@ -75,7 +77,7 @@ const UserInactivityConfiguration = forwardRef<UserInactivityConfigurationRef, U
                 <span>{selectedOption?.label || `${inactivityDays} days`}</span>
                 <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
-              
+
               {isDropdownOpen && (
                 <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-40 overflow-y-auto">
                   {dayOptions.map((option) => (
@@ -84,7 +86,7 @@ const UserInactivityConfiguration = forwardRef<UserInactivityConfigurationRef, U
                       type="button"
                       onClick={() => handleSelectDays(option.value)}
                       className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-600 first:rounded-t-lg last:rounded-b-lg ${
-                        inactivityDays === option.value 
+                        inactivityDays === option.value
                           ? 'bg-[#6A7282] text-white hover:bg-[#5A626F]'
                           : 'text-gray-900 dark:text-white'
                       }`}

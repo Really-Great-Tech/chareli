@@ -4,6 +4,9 @@ import { SystemConfig } from '../entities/SystemConfig';
 import { File } from '../entities/Files';
 import { ApiError } from '../middlewares/errorHandler';
 import { storageService } from '../services/storage.service';
+import { jsonCdnService } from '../services/jsonCdn.service';
+import { cacheService } from '../services/cache.service';
+import logger from '../utils/logger';
 import multer from 'multer';
 
 const systemConfigRepository = AppDataSource.getRepository(SystemConfig);
@@ -60,32 +63,32 @@ export const getAllSystemConfigs = async (
 ): Promise<void> => {
   try {
     const { search } = req.query;
-    
+
     const queryBuilder = systemConfigRepository.createQueryBuilder('config');
-    
+
     if (search) {
       queryBuilder.where(
         'config.key ILIKE :search OR config.description ILIKE :search',
         { search: `%${search}%` }
       );
     }
-    
+
     const configs = await queryBuilder.getMany();
-    
+
     // Process file-based configs
     for (const config of configs) {
       if ((config.key === 'terms' || config.key === 'privacy') && config.value?.fileId) {
         const file = await fileRepository.findOne({
           where: { id: config.value.fileId }
         });
-        
+
         if (file) {
           // Transform storage key to full URL
           const fileWithUrl = {
             ...file,
             s3Key: storageService.getPublicUrl(file.s3Key)
           };
-          
+
           // Add file data to config value
           config.value = {
             ...config.value,
@@ -94,7 +97,7 @@ export const getAllSystemConfigs = async (
         }
       }
     }
-    
+
     res.status(200).json({
       success: true,
       count: configs.length,
@@ -134,29 +137,29 @@ export const getSystemConfigByKey = async (
 ): Promise<void> => {
   try {
     const { key } = req.params;
-    
+
     const config = await systemConfigRepository.findOne({
       where: { key }
     });
-    
+
     if (!config) {
       res.status(200).json({ success: false, message: 'No config found.' });
       return;
     }
-    
+
     // Handle file-based configs (like 'terms' and 'privacy')
     if ((key === 'terms' || key === 'privacy') && config.value?.fileId) {
       const file = await fileRepository.findOne({
         where: { id: config.value.fileId }
       });
-      
+
       if (file) {
         // Transform storage key to full URL
         const fileWithUrl = {
           ...file,
           s3Key: storageService.getPublicUrl(file.s3Key)
         };
-        
+
         // Add file data to config value
         config.value = {
           ...config.value,
@@ -164,7 +167,7 @@ export const getSystemConfigByKey = async (
         };
       }
     }
-    
+
     res.status(200).json({
       success: true,
       data: config,
@@ -195,26 +198,26 @@ export const getFormattedSystemConfigs = async (
 ): Promise<void> => {
   try {
     const configs = await systemConfigRepository.find();
-    
+
     const formattedConfigs = configs.reduce<Record<string, any>>((acc, config) => {
       acc[config.key] = config.value;
       return acc;
     }, {});
-    
+
     // Process file-based configs for formatted response
     for (const config of configs) {
       if ((config.key === 'terms' || config.key === 'privacy') && config.value?.fileId) {
         const file = await fileRepository.findOne({
           where: { id: config.value.fileId }
         });
-        
+
         if (file) {
           // Transform storage key to full URL
           const fileWithUrl = {
             ...file,
             s3Key: storageService.getPublicUrl(file.s3Key)
           };
-          
+
           // Add file data to formatted config
           formattedConfigs[config.key] = {
             ...config.value,
@@ -223,7 +226,7 @@ export const getFormattedSystemConfigs = async (
         }
       }
     }
-    
+
     res.status(200).json({
       success: true,
       data: formattedConfigs,
@@ -335,7 +338,7 @@ export const createSystemConfig = async (
       }
     } else {
       const value = req.body.value;
-      
+
       if (config) {
         // Update existing config
         config.value = value;
@@ -365,19 +368,34 @@ export const createSystemConfig = async (
       const file = await fileRepository.findOne({
         where: { id: savedConfig.value.fileId }
       });
-      
+
       if (file) {
         // Transform storage key to full URL
         const fileWithUrl = {
           ...file,
           s3Key: storageService.getPublicUrl(file.s3Key)
         };
-        
+
         // Add file data to config value
         savedConfig.value = {
           ...savedConfig.value,
           file: fileWithUrl
         };
+      }
+    }
+
+    // Trigger cache invalidation for popular games if that setting was updated
+    if (key === 'popular_games_settings') {
+      try {
+        logger.info('Popular games settings updated, invalidating caches...');
+        // Clear Redis API cache
+        await cacheService.invalidateGamesList();
+        // Regenerate CDN JSON and purge Cloudflare
+        await jsonCdnService.invalidateCache(['games_popular']);
+        logger.info('Popular games cache invalidation completed successfully');
+      } catch (cacheError) {
+        // Log but don't fail the request if cache invalidation fails
+        logger.error('Failed to invalidate popular games caches:', cacheError);
       }
     }
 
@@ -445,36 +463,36 @@ export const updateSystemConfig = async (
   try {
     const { key } = req.params;
     const { value, description } = req.body;
-    
+
     const config = await systemConfigRepository.findOne({
       where: { key }
     });
-    
+
     if (!config) {
       return next(ApiError.notFound(`Configuration with key ${key} not found`));
     }
-    
+
     // Update config
     config.value = value;
     if (description !== undefined) {
       config.description = description;
     }
-    
+
     await systemConfigRepository.save(config);
-    
+
     // Handle file-based configs for response
     if ((key === 'terms' || key === 'privacy') && config.value?.fileId) {
       const file = await fileRepository.findOne({
         where: { id: config.value.fileId }
       });
-      
+
       if (file) {
         // Transform storage key to full URL
         const fileWithUrl = {
           ...file,
           s3Key: storageService.getPublicUrl(file.s3Key)
         };
-        
+
         // Add file data to config value
         config.value = {
           ...config.value,
@@ -482,7 +500,7 @@ export const updateSystemConfig = async (
         };
       }
     }
-    
+
     res.status(200).json({
       success: true,
       data: config,
@@ -527,17 +545,17 @@ export const deleteSystemConfig = async (
 ): Promise<void> => {
   try {
     const { key } = req.params;
-    
+
     const config = await systemConfigRepository.findOne({
       where: { key }
     });
-    
+
     if (!config) {
       return next(ApiError.notFound(`Configuration with key ${key} not found`));
     }
-    
+
     await systemConfigRepository.remove(config);
-    
+
     res.status(200).json({
       success: true,
       message: 'Configuration deleted successfully'

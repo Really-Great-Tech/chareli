@@ -27,7 +27,7 @@ const PopularSection = ({
     filter: 'popular',
     status: 'active',
     search: searchQuery || undefined,
-    limit: 4, // This limit will only apply to auto mode, manual mode ignores it
+    limit: 6, // This limit will only apply to auto mode, manual mode ignores it
   });
   const games: any = gamesData?.data || [];
   const { handleGameClick } = useGameClickHandler();

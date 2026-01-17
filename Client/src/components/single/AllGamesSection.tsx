@@ -24,16 +24,23 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
   );
   const containerRef = useRef<HTMLDivElement>(null);
   const savedScrollPosition = useRef<number>(0);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [accumulatedGames, setAccumulatedGames] = useState<any[]>([]);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
+  // Refs to track loading state for IntersectionObserver
+  const isLoadingMoreRef = useRef(false);
+  const isFetchingRef = useRef(false);
+
+  // Flag to control scroll restoration
+  const [shouldRestoreScroll, setShouldRestoreScroll] = useState(false);
+
   const { data: categoriesData, isLoading: categoriesLoading } =
     useCategories();
 
-  // Determine if we should use pagination (not for 'recent' filter which has its own limit)
   const shouldUsePagination = selectedCategory !== 'recent';
 
   const {
@@ -48,27 +55,27 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
         : selectedCategory === 'recent'
         ? undefined
         : selectedCategory,
-    filter: selectedCategory === 'recent' ? 'recently_added' : undefined,
+    filter: 'recently_added',
     status: 'active',
     search: searchQuery || undefined,
-    // Only add pagination params when pagination is enabled
     ...(shouldUsePagination && {
       page: currentPage,
       limit: GAMES_PER_PAGE,
     }),
   });
 
-  // Use accumulated games for display
-  // Fall back to gamesData.data when accumulatedGames is empty (handles initial load and category switches)
-  const games: any = shouldUsePagination
-    ? (accumulatedGames.length > 0 ? accumulatedGames : (gamesData?.data || []))
-    : (gamesData?.data || []);
+  // Derived games list
+  // Simplified: If we have accumulated games, use them. Otherwise fallback to current data.
+  const games: any = useMemo(() => {
+    if (!shouldUsePagination) return gamesData?.data || [];
+    if (accumulatedGames.length > 0) return accumulatedGames;
+    return gamesData?.data || [];
+  }, [shouldUsePagination, accumulatedGames, gamesData]);
 
   // Calculate if there are more games to load
   const totalGames = gamesData?.total || 0;
-  const hasMoreGames = shouldUsePagination && totalGames > 0 && games.length < totalGames && games.length > 0;
+  const hasMoreGames = shouldUsePagination && totalGames > 0 && games.length < totalGames;
 
-  // Combine static filters with dynamic categories
   const allCategories = useMemo(
     () => [
       { id: 'all', name: 'All Games', color: '#64748A' },
@@ -82,88 +89,90 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
     [categoriesData]
   );
 
-  // Compute section header based on selected category
   const sectionHeader = useMemo(() => {
     const category = allCategories.find((cat) => cat.id === selectedCategory);
     return category?.name || 'All Games';
   }, [selectedCategory, allCategories]);
 
-  // Accumulate games from paginated responses
-  useEffect(() => {
-    if (gamesData?.data && gamesData.data.length > 0) {
-      if (currentPage === 1) {
-        // First page: replace all games
-        setAccumulatedGames(gamesData.data);
-      } else {
-        // Subsequent pages: append to existing games (avoid duplicates)
-        setAccumulatedGames((prev) => {
-          const existingIds = new Set(prev.map((g: any) => g.id));
-          const newGames = gamesData.data.filter((g: any) => !existingIds.has(g.id));
-          return [...prev, ...newGames];
-        });
-      }
-      setIsLoadingMore(false);
-    }
-  }, [gamesData?.data, currentPage]);
-
-  // Reset pagination when category or search changes
+  // 1. Reset Effect: Handles Category/Search changes
   useEffect(() => {
     setCurrentPage(1);
-    setAccumulatedGames([]);
+    setAccumulatedGames([]); // Clear data immediately to prevent ID conflicts
+    setIsLoadingMore(false);
+    setShouldRestoreScroll(true); // Enable scroll restoration for the new category
   }, [selectedCategory, searchQuery]);
 
-  // Handle "See More Games" button click
+  // 2. Accumulation Effect: Handles incoming data
+  useEffect(() => {
+    // If fetching, wait until finished to ensure data is fresh and consistent
+    if (isFetching || !gamesData?.data) {
+      return;
+    }
+
+    // Always reset loading spinner when data arrives
+    setIsLoadingMore(false);
+
+    if (currentPage === 1) {
+      // First page: replace all games
+      setAccumulatedGames(gamesData.data);
+    } else {
+      // Subsequent pages: strictly append
+      setAccumulatedGames((prev) => {
+        // Safety: If prev is empty but we are on page > 1,
+        // it means state was lost; recover by showing current chunk.
+        if (prev.length === 0) return gamesData.data;
+
+        const existingIds = new Set(prev.map((g: any) => g.id));
+        const newGames = gamesData.data.filter((g: any) => !existingIds.has(g.id));
+
+        if (newGames.length === 0) return prev;
+        return [...prev, ...newGames];
+      });
+    }
+  }, [gamesData, currentPage, isFetching]);
+
   const handleSeeMoreGames = useCallback(() => {
     const nextPage = currentPage + 1;
     setIsLoadingMore(true);
-
-    // Track the interaction for analytics
     trackInteraction.seeMoreGames(nextPage, sectionHeader, games.length);
-
     setCurrentPage(nextPage);
   }, [currentPage, sectionHeader, games.length]);
 
   const { handleGameClick } = useGameClickHandler();
 
-  // Screen size detection
   useEffect(() => {
     const updateScreenSize = () => {
       const width = window.innerWidth;
       if (width < 768) {
-        setScreenSize('mobile'); // 2 columns
+        setScreenSize('mobile');
       } else if (width < 1024) {
-        setScreenSize('tablet'); // 3 columns
+        setScreenSize('tablet');
       } else {
-        setScreenSize('desktop'); // 3+ columns
+        setScreenSize('desktop');
       }
     };
-
     updateScreenSize();
     window.addEventListener('resize', updateScreenSize);
     return () => window.removeEventListener('resize', updateScreenSize);
   }, []);
 
-  // Scroll position management - prevent auto-scroll to bottom
+  // Save scroll position
   useEffect(() => {
-    // Save current scroll position before category change
     const saveScrollPosition = () => {
       savedScrollPosition.current = window.scrollY;
     };
-
-    // Save scroll position when category is about to change
     if (selectedCategory !== 'all') {
       saveScrollPosition();
     }
   }, [selectedCategory]);
 
-  // Restore scroll position after games load and prevent layout shifts
+  // Restore scroll position ONLY when switching categories (via flag)
   useEffect(() => {
+    if (!shouldRestoreScroll) return;
+
     if (!gamesLoading && games.length > 0) {
-      // Small delay to ensure DOM has updated
       const timer = setTimeout(() => {
-        // On mobile, prevent automatic scrolling to bottom
         if (screenSize === 'mobile') {
-          // Force scroll to a controlled position instead of auto-scroll
           if (savedScrollPosition.current > 0) {
             window.scrollTo({
               top: Math.min(
@@ -174,7 +183,6 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
             });
           }
         } else {
-          // On desktop, restore saved position
           if (savedScrollPosition.current > 0) {
             window.scrollTo({
               top: savedScrollPosition.current,
@@ -182,32 +190,25 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
             });
           }
         }
+        setShouldRestoreScroll(false);
       }, 100);
-
       return () => clearTimeout(timer);
     }
-  }, [gamesLoading, games.length, screenSize]);
+  }, [gamesLoading, games.length, screenSize, shouldRestoreScroll]);
 
-  // Prevent unwanted scroll behavior on mobile
+  // Prevent unwanted scroll on mobile
   useEffect(() => {
     if (screenSize === 'mobile') {
-      // Override scroll restoration for mobile
       if ('scrollRestoration' in history) {
         history.scrollRestoration = 'manual';
       }
-
-      // Prevent automatic scrolling caused by layout changes
       const preventAutoScroll = (e: Event) => {
-        // If user didn't initiate the scroll, prevent it
         if (!e.isTrusted) {
           e.preventDefault();
           return false;
         }
       };
-
-      // Add passive event listener to monitor scrolls
       window.addEventListener('scroll', preventAutoScroll, { passive: false });
-
       return () => {
         window.removeEventListener('scroll', preventAutoScroll);
         if ('scrollRestoration' in history) {
@@ -217,6 +218,39 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
     }
   }, [screenSize]);
 
+  // Sync refs for Observer
+  useEffect(() => {
+    isLoadingMoreRef.current = isLoadingMore;
+  }, [isLoadingMore]);
+
+  useEffect(() => {
+    isFetchingRef.current = isFetching;
+  }, [isFetching]);
+
+  // Infinite scroll Observer
+  useEffect(() => {
+    const sentinel = loadMoreRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        // Trigger if visible AND not loading AND not fetching
+        if (entry.isIntersecting && !isLoadingMoreRef.current && !isFetchingRef.current) {
+          handleSeeMoreGames();
+        }
+      },
+      {
+        root: null,
+        rootMargin: '200px',
+        threshold: 0.1,
+      }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [handleSeeMoreGames]); // Stable dependency
+
   return (
     <div ref={containerRef} className="p-4">
       <div>
@@ -224,55 +258,41 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
           {sectionHeader}
         </h2>
       </div>
-      {/* filtering tabs */}
+
+      {/* Filtering tabs */}
       <div className="relative mb-8">
         {categoriesLoading ? (
           <div>Loading categories...</div>
         ) : (
           <div className="relative">
-            {/* Fade effect for left edge */}
             <div
               className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white dark:from-[#0f1221] to-transparent z-10 pointer-events-none opacity-0 transition-opacity duration-300"
               id="left-fade"
             ></div>
-
-            {/* Fade effect for right edge */}
             <div
               className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white dark:from-[#0f1221] to-transparent z-10 pointer-events-none opacity-0 transition-opacity duration-300"
               id="right-fade"
             ></div>
-
-            {/* Scrollable container */}
             <div
               className="flex gap-3 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
               onScroll={(e) => {
                 const container = e.currentTarget;
                 const leftFade = document.getElementById('left-fade');
                 const rightFade = document.getElementById('right-fade');
-
                 if (leftFade && rightFade) {
-                  // Show left fade if scrolled right
-                  leftFade.style.opacity =
-                    container.scrollLeft > 10 ? '1' : '0';
-
-                  // Show right fade if not at the end
-                  const isAtEnd =
-                    container.scrollLeft >=
-                    container.scrollWidth - container.clientWidth - 10;
+                  leftFade.style.opacity = container.scrollLeft > 10 ? '1' : '0';
+                  const isAtEnd = container.scrollLeft >= container.scrollWidth - container.clientWidth - 10;
                   rightFade.style.opacity = isAtEnd ? '0' : '1';
                 }
               }}
               ref={(el) => {
                 if (el) {
-                  // Initial fade state check
                   setTimeout(() => {
                     const leftFade = document.getElementById('left-fade');
                     const rightFade = document.getElementById('right-fade');
-
                     if (leftFade && rightFade) {
                       leftFade.style.opacity = el.scrollLeft > 10 ? '1' : '0';
-                      const isAtEnd =
-                        el.scrollLeft >= el.scrollWidth - el.clientWidth - 10;
+                      const isAtEnd = el.scrollLeft >= el.scrollWidth - el.clientWidth - 10;
                       rightFade.style.opacity = isAtEnd ? '0' : '1';
                     }
                   }, 100);
@@ -294,19 +314,11 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
                         : 'bg-[#94A3B8]'
                     }`}
                     onClick={() => setSelectedCategory(category.id)}
-                    title={
-                      category.name.length > 18 ? category.name : undefined
-                    }
+                    title={category.name.length > 18 ? category.name : undefined}
                   >
                     <h3 className="block truncate text-sm font-medium m-0 font-worksans">
                       {truncatedName}
                     </h3>
-                    {category.name.length > 18 && (
-                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-20 shadow-lg">
-                        {category.name}
-                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
-                      </div>
-                    )}
                   </Button>
                 );
               })}
@@ -376,32 +388,21 @@ const AllGamesSection = ({ searchQuery }: AllGamesSectionProps) => {
             </div>
           )}
 
-          {/* See More Games Button */}
+          {/* Infinite scroll sentinel */}
           {!gamesLoading && !gamesError && games.length > 0 && hasMoreGames && (
-            <div className="flex justify-center mt-8 mb-4">
-              <Button
-                type="button"
-                onClick={handleSeeMoreGames}
-                disabled={isLoadingMore || isFetching}
-                className="bg-[#64748A] hover:bg-[#4e5c6e] text-white px-8 py-3 rounded-lg font-worksans text-base transition-all duration-300 flex items-center gap-2 cursor-pointer"
-              >
-                {isLoadingMore || isFetching ? (
-                  <>
-                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Loading...
-                  </>
-                ) : (
-                  <>
-                    See More Games
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </>
-                )}
-              </Button>
+            <div
+              ref={loadMoreRef}
+              className="flex justify-center mt-8 mb-4 py-4"
+            >
+              {(isLoadingMore || isFetching) && (
+                <div className="flex items-center gap-2 text-[#64748A]">
+                  <svg className="animate-spin h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span className="font-worksans">Loading more games...</span>
+                </div>
+              )}
             </div>
           )}
         </Card>

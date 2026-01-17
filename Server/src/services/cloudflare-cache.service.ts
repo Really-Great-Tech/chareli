@@ -14,43 +14,50 @@ interface CloudflareApiResponse {
 /**
  * Cloudflare Cache Purge Service
  *
- * Handles cache purging for the CDN domain (arcadesbox.org) via Cloudflare API.
- * Used to invalidate cached JSON files after regeneration.
+ * Handles cache purging for:
+ * 1. CDN domain (arcadesbox.org) - used for JSON files
+ * 2. App domain (arcadesbox.com) - used for frontend assets
  */
 class CloudflareCacheService {
   private apiToken: string;
-  private zoneId: string;
+  private cdnZoneId: string;
+  private appZoneId: string;
   private baseUrl = 'https://api.cloudflare.com/client/v4';
 
   constructor() {
     this.apiToken = config.cloudflare?.apiToken || '';
-    this.zoneId = config.cloudflare?.cdnZoneId || '';
+    this.cdnZoneId = config.cloudflare?.cdnZoneId || '';
+    this.appZoneId = config.cloudflare?.appZoneId || '';
 
     if (this.isEnabled()) {
       logger.info('[CloudflareCache] Service initialized', {
-        zoneId: this.zoneId ? `${this.zoneId.slice(0, 8)}...` : 'not set',
+        cdnZoneId: this.cdnZoneId ? `${this.cdnZoneId.slice(0, 8)}...` : 'not set',
+        appZoneId: this.appZoneId ? `${this.appZoneId.slice(0, 8)}...` : 'not set',
       });
     } else {
       logger.warn(
-        '[CloudflareCache] Service disabled - missing CLOUDFLARE_API_TOKEN or CLOUDFLARE_CDN_ZONE_ID'
+        '[CloudflareCache] Service partially disabled - check CLOUDFLARE config'
       );
     }
   }
 
   /**
-   * Check if service is properly configured
+   * Check if service is properly configured (needs at least API token and one zone)
    */
   isEnabled(): boolean {
-    return Boolean(this.apiToken && this.zoneId);
+    return Boolean(this.apiToken && (this.cdnZoneId || this.appZoneId));
   }
 
   /**
-   * Purge specific URLs from Cloudflare cache
+   * Purge specific URLs from Cloudflare cache (defaults to CDN zone)
    * @param urls - Array of full URLs to purge (max 30 per request)
+   * @param zoneId - Optional zone ID (defaults to CDN zone)
    */
-  async purgeUrls(urls: string[]): Promise<boolean> {
-    if (!this.isEnabled()) {
-      logger.debug('[CloudflareCache] Skipping purge - service not enabled');
+  async purgeUrls(urls: string[], zoneId?: string): Promise<boolean> {
+    const targetZoneId = zoneId || this.cdnZoneId;
+
+    if (!this.apiToken || !targetZoneId) {
+      logger.debug('[CloudflareCache] Skipping purge - service/zone not enabled');
       return false;
     }
 
@@ -71,7 +78,7 @@ class CloudflareCacheService {
     for (const batch of batches) {
       try {
         const response = await fetch(
-          `${this.baseUrl}/zones/${this.zoneId}/purge_cache`,
+          `${this.baseUrl}/zones/${targetZoneId}/purge_cache`,
           {
             method: 'POST',
             headers: {
@@ -89,12 +96,13 @@ class CloudflareCacheService {
             status: response.status,
             errors: result.errors,
             urls: batch,
+            zone: targetZoneId === this.cdnZoneId ? 'CDN' : 'APP'
           });
           allSuccess = false;
         } else {
           logger.info('[CloudflareCache] Successfully purged URLs', {
             count: batch.length,
-            urls: batch,
+            zone: targetZoneId === this.cdnZoneId ? 'CDN' : 'APP'
           });
         }
       } catch (error) {
@@ -115,7 +123,7 @@ class CloudflareCacheService {
    * @param paths - Relative paths like ['games_active.json', 'categories.json']
    */
   async purgeCdnJsonFiles(paths: string[]): Promise<boolean> {
-    if (!this.isEnabled()) {
+    if (!this.apiToken || !this.cdnZoneId) {
       return false;
     }
 
@@ -137,22 +145,21 @@ class CloudflareCacheService {
       urls,
     });
 
-    return this.purgeUrls(urls);
+    return this.purgeUrls(urls, this.cdnZoneId);
   }
 
   /**
-   * Purge all cached content for the zone
-   * WARNING: Use sparingly - affects all cached content
+   * Purge all cached content for a specific zone
    */
-  async purgeAll(): Promise<boolean> {
-    if (!this.isEnabled()) {
-      logger.debug('[CloudflareCache] Skipping purge all - service not enabled');
+  async purgeZone(zoneId: string): Promise<boolean> {
+    if (!this.apiToken || !zoneId) {
+      logger.debug('[CloudflareCache] Skipping purge zone - missing token or zoneId');
       return false;
     }
 
     try {
       const response = await fetch(
-        `${this.baseUrl}/zones/${this.zoneId}/purge_cache`,
+        `${this.baseUrl}/zones/${zoneId}/purge_cache`,
         {
           method: 'POST',
           headers: {
@@ -166,21 +173,37 @@ class CloudflareCacheService {
       const result = (await response.json()) as CloudflareApiResponse;
 
       if (!response.ok || !result.success) {
-        logger.error('[CloudflareCache] Failed to purge all', {
+        logger.error('[CloudflareCache] Failed to purge zone', {
           status: response.status,
           errors: result.errors,
+          zoneId
         });
         return false;
       }
 
-      logger.warn('[CloudflareCache] Purged ALL cached content for zone');
+      logger.warn(`[CloudflareCache] Purged ALL content for zone ${zoneId}`);
       return true;
     } catch (error) {
-      logger.error('[CloudflareCache] Error purging all', {
+      logger.error('[CloudflareCache] Error purging zone', {
         error: error instanceof Error ? error.message : error,
+        zoneId
       });
       return false;
     }
+  }
+
+  /**
+   * Purge ALL content for CDN Zone (arcadesbox.org)
+   */
+  async purgeAll(): Promise<boolean> {
+    return this.purgeZone(this.cdnZoneId);
+  }
+
+  /**
+   * Purge ALL content for App Zone (arcadesbox.com)
+   */
+  async purgeApp(): Promise<boolean> {
+    return this.purgeZone(this.appZoneId);
   }
 }
 

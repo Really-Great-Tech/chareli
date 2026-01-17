@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useBlocker } from 'react-router-dom';
 import { Checkbox } from '../../../components/ui/checkbox';
 import { Label } from '../../../components/ui/label';
 import { useCreateSystemConfig, useSystemConfigByKey } from '../../../backend/configuration.service';
@@ -13,6 +14,7 @@ import UserInactivityConfiguration, { type UserInactivityConfigurationRef } from
 import PopularGamesConfiguration, { type PopularGamesConfigurationRef } from '../../../components/single/PopularGamesConfiguration';
 import AboutMissionConfiguration, { type AboutMissionConfigurationRef } from '../../../components/single/AboutMissionConfiguration';
 import BulkFreeTimeConfiguration, { type BulkFreeTimeConfigurationRef } from '../../../components/single/BulkFreeTimeConfiguration';
+import { UnsavedChangesModal } from '../../../components/modals/UnsavedChangesModal';
 
 interface AuthMethodSettings {
   enabled: boolean;
@@ -49,6 +51,7 @@ export default function Configuration() {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const searchBarConfigRef = useRef<SearchBarConfigurationRef>(null);
   const userInactivityConfigRef = useRef<UserInactivityConfigurationRef>(null);
   const popularGamesConfigRef = useRef<PopularGamesConfigurationRef>(null);
@@ -64,6 +67,29 @@ export default function Configuration() {
       setAuthSettings(configData.value.settings);
     }
   }, [configData]);
+
+  // Mark page as having unsaved changes
+  const markDirty = useCallback(() => {
+    setHasUnsavedChanges(true);
+  }, []);
+
+  // Browser beforeunload event - warns when closing/refreshing with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        // Modern browsers ignore custom messages, but the prompt will still show
+        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+
+  // React Router blocker - shows modal when navigating away with unsaved changes
+  const blocker = useBlocker(hasUnsavedChanges);
 
   // const handleEmailAuth = (checked: boolean) => {
   //   setAuthSettings({
@@ -85,6 +111,7 @@ export default function Configuration() {
   // };
 
   const handleSmsAuth = (checked: boolean) => {
+    markDirty();
     setAuthSettings({
       email: {
         enabled: false,
@@ -104,6 +131,7 @@ export default function Configuration() {
   };
 
   const handleBoth = (checked: boolean) => {
+    markDirty();
     setAuthSettings({
       email: {
         enabled: false,
@@ -123,6 +151,7 @@ export default function Configuration() {
   };
 
   const handleEmailFirstName = (checked: boolean) => {
+    markDirty();
     setAuthSettings(prev => ({
       ...prev,
       email: {
@@ -133,6 +162,7 @@ export default function Configuration() {
   };
 
   const handleEmailLastName = (checked: boolean) => {
+    markDirty();
     setAuthSettings(prev => ({
       ...prev,
       email: {
@@ -143,6 +173,7 @@ export default function Configuration() {
   };
 
   const handleSmsFirstName = (checked: boolean) => {
+    markDirty();
     setAuthSettings(prev => ({
       ...prev,
       sms: {
@@ -153,6 +184,7 @@ export default function Configuration() {
   };
 
   const handleSmsLastName = (checked: boolean) => {
+    markDirty();
     setAuthSettings(prev => ({
       ...prev,
       sms: {
@@ -163,6 +195,7 @@ export default function Configuration() {
   };
 
   const handleOtpDeliveryMethod = (method: 'email' | 'sms' | 'none') => {
+    markDirty();
     setAuthSettings(prev => ({
       ...prev,
       both: {
@@ -211,7 +244,7 @@ export default function Configuration() {
           value: popularGamesSettings,
           description: 'Popular games configuration for homepage'
         });
-        
+
         // Invalidate games queries to refresh popular section
         queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES] });
       }
@@ -229,20 +262,20 @@ export default function Configuration() {
       // Save bulk free time settings and update all games
       if (bulkFreeTimeConfigRef.current) {
         const bulkFreeTimeSettings = bulkFreeTimeConfigRef.current.getSettings();
-        
+
         // Save the configuration
         await createConfig({
           key: 'bulk_free_time_settings',
           value: bulkFreeTimeSettings,
           description: 'Default free game time configuration'
         });
-        
+
         // Update all games with the new free time
         try {
           await backendService.post('/api/games/bulk-update-free-time', {
             freeTime: bulkFreeTimeSettings.defaultFreeTime
           });
-          
+
           // Invalidate games queries to refresh the cache
           queryClient.invalidateQueries({ queryKey: [BackendRoute.GAMES] });
         } catch (bulkUpdateError) {
@@ -252,6 +285,7 @@ export default function Configuration() {
       }
 
       toast.success('Configuration saved successfully!');
+      setHasUnsavedChanges(false); // Reset dirty state on successful save
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       toast.error('Failed to save configuration');
@@ -262,14 +296,22 @@ export default function Configuration() {
 
   return (
     <div className="min-h-screen p-4 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 relative">
+      {/* Unsaved Changes Modal for in-app navigation */}
+      <UnsavedChangesModal
+        open={blocker.state === 'blocked'}
+        onOpenChange={() => {}}
+        onStay={() => blocker.reset?.()}
+        onConfirmLeave={() => blocker.proceed?.()}
+      />
+
       {isLoadingConfig && (
         <div className="absolute inset-0 bg-white/50 dark:bg-gray-900/50 flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-[#6A7282]" />
         </div>
       )}
-      
-      <SearchBarConfiguration ref={searchBarConfigRef} disabled={isSubmitting} />
-      
+
+      <SearchBarConfiguration ref={searchBarConfigRef} disabled={isSubmitting} onChange={markDirty} />
+
       <h1 className="text-lg sm:text-xl font-worksans text-[#6A7282] dark:text-white mb-4">User Sign Up Configuration</h1>
       <div className="space-y-4">
         {/* Email Authentication Section - ACTIVE (Email-only mode) */}
@@ -277,7 +319,7 @@ export default function Configuration() {
           <div className="flex items-center mb-2">
             <Checkbox
               checked={true}
-              onCheckedChange={() => {}} 
+              onCheckedChange={() => {}}
               id="email-auth"
               color="#6A7282"
               disabled={false}
@@ -370,7 +412,7 @@ export default function Configuration() {
               Both <span className="text-sm text-gray-500">(Disabled - Email-only mode)</span>
             </Label>
           </div>
-          
+
           {/* OTP Delivery Method Selection */}
           {authSettings.both.enabled && (
             <div className="ml-6 mt-4">
@@ -429,11 +471,11 @@ export default function Configuration() {
         </div>
       </div>
       <DynamicPopupConfiguration />
-      <UserInactivityConfiguration ref={userInactivityConfigRef} disabled={isSubmitting} />
-      <PopularGamesConfiguration ref={popularGamesConfigRef} disabled={isSubmitting} />
-      <AboutMissionConfiguration ref={aboutMissionConfigRef} disabled={isSubmitting} />
-      <BulkFreeTimeConfiguration ref={bulkFreeTimeConfigRef} disabled={isSubmitting} />
-      
+      <UserInactivityConfiguration ref={userInactivityConfigRef} disabled={isSubmitting} onChange={markDirty} />
+      <PopularGamesConfiguration ref={popularGamesConfigRef} disabled={isSubmitting} onChange={markDirty} />
+      <AboutMissionConfiguration ref={aboutMissionConfigRef} disabled={isSubmitting} onChange={markDirty} />
+      <BulkFreeTimeConfiguration ref={bulkFreeTimeConfigRef} disabled={isSubmitting} onChange={markDirty} />
+
       <div className="flex justify-end mt-6 mb-4 px-2">
         <button
           className="bg-[#6A7282] text-white px-6 py-3 rounded-lg hover:bg-[#5A626F] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer font-medium text-sm sm:text-base min-w-[140px] justify-center shadow-lg"

@@ -37,11 +37,15 @@ export const useGames = (params?: {
           if (result.source === 'cdn') {
             console.log('[Games] Using CDN for popular games');
             // CDN returns flat array, wrap in pagination structure
+            // Apply limit if specified (e.g., PopularSection requests limit: 6)
+            const limitedData = params?.limit
+              ? result.data.slice(0, params.limit)
+              : result.data;
             return {
-              data: result.data,
+              data: limitedData,
               total: result.data.length,
               page: 1,
-              limit: result.data.length,
+              limit: limitedData.length,
             } as PaginatedResponse<GameResponse>;
           }
         } catch (error) {

@@ -167,21 +167,20 @@ export default function ViewGame() {
                 Game Code
               </h3>
               {(() => {
-                const gameFile = (game as any).game?.gameFile;
                 const slug = (game as any).game?.slug;
-                // Construct slug-based URL if we have both gameFile and slug
-                const slugBasedUrl = gameFile?.s3Key && slug
-                  ? gameFile.url?.replace(/\/games\/[^/]+\//, `/games/${slug}/`)
-                  : gameFile?.url;
+                // Construct the public gameplay URL
+                const gameplayUrl = slug
+                  ? `${window.location.origin}/games/${slug}`
+                  : null;
                 return (
                   <a
-                    href={slugBasedUrl || "#"}
+                    href={gameplayUrl || "#"}
                     className="text-[#475568] underline dark:text-white font-dmmono tracking-wider text-sm break-all overflow-wrap-anywhere block"
                     target="_blank"
                     rel="noopener noreferrer"
-                    title={slugBasedUrl || "#"}
+                    title={gameplayUrl || "#"}
                   >
-                    {slugBasedUrl || "#"}
+                    {gameplayUrl || "-"}
                   </a>
                 );
               })()}

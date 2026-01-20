@@ -247,8 +247,8 @@ export const getDashboardAnalytics = async (
       .where('analytics.gameId IS NOT NULL')
       .andWhere('analytics.duration >= :minDuration', { minDuration: 30 })
       .andWhere('analytics.createdAt BETWEEN :start AND :end', {
-        start: dailyActiveUsers24HoursAgo,
-        end: dailyActiveUsersNow,
+        start: twentyFourHoursAgo,
+        end: now,
       })
       .andWhere("(role.name = 'player' OR analytics.userId IS NULL)");
 
@@ -1088,44 +1088,38 @@ export const getDashboardAnalytics = async (
         : 0;
 
     // 5. User Type Breakdown (Authenticated vs Anonymous)
-    const totalSessionsInPeriod =
-      currentTotalSessions + currentAnonymousSessions;
-    const totalTimePlayedInPeriod =
-      currentTotalTimePlayed + currentAnonymousTimePlayed;
+    // 5. User Type Breakdown (Authenticated vs Anonymous)
+    // Note: currentTotalSessions and currentTotalTimePlayed include BOTH authenticated and anonymous users
+    // So we need to subtract anonymous counts to get authenticated counts
+
+    // Sessions breakdown
+    const totalSessions = currentTotalSessions; // This is already the total
+    const anonymousSessions = currentAnonymousSessions;
+    const authenticatedSessions = Math.max(0, totalSessions - anonymousSessions);
+
+    // Time breakdown
+    const totalTime = currentTotalTimePlayed; // This is already the total
+    const anonymousTime = currentAnonymousTimePlayed;
+    const authenticatedTime = Math.max(0, totalTime - anonymousTime);
 
     const authenticatedSessionsPercentage =
-      totalSessionsInPeriod > 0
-        ? Number(
-            ((currentTotalSessions / totalSessionsInPeriod) * 100).toFixed(2)
-          )
+      totalSessions > 0
+        ? Number(((authenticatedSessions / totalSessions) * 100).toFixed(2))
         : 0;
 
     const anonymousSessionsPercentage =
-      totalSessionsInPeriod > 0
-        ? Number(
-            ((currentAnonymousSessions / totalSessionsInPeriod) * 100).toFixed(
-              2
-            )
-          )
+      totalSessions > 0
+        ? Number(((anonymousSessions / totalSessions) * 100).toFixed(2))
         : 0;
 
     const authenticatedTimePercentage =
-      totalTimePlayedInPeriod > 0
-        ? Number(
-            ((currentTotalTimePlayed / totalTimePlayedInPeriod) * 100).toFixed(
-              2
-            )
-          )
+      totalTime > 0
+        ? Number(((authenticatedTime / totalTime) * 100).toFixed(2))
         : 0;
 
     const anonymousTimePercentage =
-      totalTimePlayedInPeriod > 0
-        ? Number(
-            (
-              (currentAnonymousTimePlayed / totalTimePlayedInPeriod) *
-              100
-            ).toFixed(2)
-          )
+      totalTime > 0
+        ? Number(((anonymousTime / totalTime) * 100).toFixed(2))
         : 0;
 
     // Build response object
@@ -1185,12 +1179,12 @@ export const getDashboardAnalytics = async (
           ),
         },
         userTypeBreakdown: {
-          authenticatedSessions: currentTotalSessions,
-          anonymousSessions: currentAnonymousSessions,
+          authenticatedSessions,
+          anonymousSessions,
           authenticatedSessionsPercentage,
           anonymousSessionsPercentage,
-          authenticatedTimePlayed: currentTotalTimePlayed,
-          anonymousTimePlayed: currentAnonymousTimePlayed,
+          authenticatedTimePlayed: authenticatedTime,
+          anonymousTimePlayed: anonymousTime,
           authenticatedTimePercentage,
           anonymousTimePercentage,
         },

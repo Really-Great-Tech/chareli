@@ -13,6 +13,13 @@ export interface Category {
   description?: string;
   isDefault: boolean;
   games?: Game[];
+  gameCount?: number;
+  topGames?: {
+    id: string;
+    title: string;
+    thumbnailUrl?: string;
+    sessionCount: number;
+  }[];
   createdAt: string;
   updatedAt: string;
 }

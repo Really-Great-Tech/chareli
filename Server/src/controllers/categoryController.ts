@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppDataSource } from '../config/database';
 import { Category } from '../entities/Category';
+import { Game } from '../entities/Games';
 import { ApiError } from '../middlewares/errorHandler';
 import { File } from '../entities/Files';
 import { storageService } from '../services/storage.service';
@@ -105,14 +106,60 @@ export const getAllCategories = async (
 
     const categories = await queryBuilder.getMany();
 
+    // Get game count and top 3 games for each category
+    const categoriesWithAnalytics = await Promise.all(
+      categories.map(async (category) => {
+        // Get game count
+        const gameCount = await AppDataSource.getRepository(Game).count({
+          where: { categoryId: category.id },
+        });
+
+        // Get top 3 games by sessions (filtered by valid analytics)
+        // Similar logic to getCategoryById but limited to top 3
+        const topGamesQuery = `
+          SELECT
+            g.id,
+            g.title,
+            f."s3Key" as "thumbnailKey",
+            COUNT(DISTINCT a.id) as total_sessions
+          FROM games g
+          LEFT JOIN files f ON g."thumbnailFileId" = f.id
+          LEFT JOIN analytics a ON g.id = a."game_id" AND a."endTime" IS NOT NULL AND a.duration >= 30
+          WHERE g."categoryId" = $1
+          GROUP BY g.id, g.title, f."s3Key"
+          ORDER BY total_sessions DESC
+          LIMIT 3
+        `;
+
+        const topGamesResult = await AppDataSource.query(topGamesQuery, [
+          category.id,
+        ]);
+
+        const topGames = topGamesResult.map((game: any) => ({
+          id: game.id,
+          title: game.title,
+          thumbnailUrl: game.thumbnailKey
+            ? storageService.getPublicUrl(game.thumbnailKey)
+            : null,
+          sessionCount: parseInt(game.total_sessions) || 0,
+        }));
+
+        return {
+          ...category,
+          gameCount,
+          topGames,
+        };
+      })
+    );
+
     const responseData = {
       success: true,
-      count: categories.length,
+      count: categoriesWithAnalytics.length,
       total,
       page: pageNumber,
       limit: limitNumber,
       totalPages: Math.ceil(total / limitNumber),
-      data: categories,
+      data: categoriesWithAnalytics,
     };
 
     // Cache the response (30 minutes TTL - categories rarely change)

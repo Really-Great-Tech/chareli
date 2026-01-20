@@ -7,7 +7,7 @@ import {
   useCategories,
   useDeleteCategory,
 } from '../../../backend/category.service';
-import { useGames } from '../../../backend/games.service';
+// import { useGames } from '../../../backend/games.service';
 import { DeleteConfirmationModal } from '../../../components/modals/DeleteConfirmationModal';
 import { toast } from 'sonner';
 import { usePermissions } from '../../../hooks/usePermissions';
@@ -22,10 +22,10 @@ export default function GameCategories() {
   );
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const { data: categories, isLoading: loadingCategories } = useCategories();
-  const { data: games, isLoading: loadingGames } = useGames();
   const { mutateAsync: deleteCategory, isPending: issDeletingCategory } =
     useDeleteCategory();
-  const isLoading = loadingCategories || loadingGames;
+  // const { data: games, isLoading: loadingGames } = useGames();
+  const isLoading = loadingCategories;
 
   const handleDelete = async () => {
     if (!selectedCategoryId) return;
@@ -117,18 +117,31 @@ export default function GameCategories() {
               <p className="text-[#475568] mb-2 font-worksans text-base tracking-wider dark:text-white">
                 {cat.description || 'No description'}
               </p>
-              <span className="text-[#6A7282] font-bold text-sm shadow-none tracking-wider">
-                {(() => {
-                  const gamesArray = Array.isArray(games)
-                    ? games
-                    : (games as any)?.data || [];
-                  return (
-                    gamesArray.filter((game: any) => game.categoryId === cat.id)
-                      .length || 0
-                  );
-                })()}{' '}
-                games
-              </span>
+
+              <div className="flex flex-col gap-2 mt-2">
+                <span className="text-[#6A7282] font-bold text-sm shadow-none tracking-wider dark:text-gray-300">
+                  {cat.gameCount || 0} games
+                </span>
+
+                {/* Top 3 Games Section */}
+                {cat.topGames && cat.topGames.length > 0 && (
+                  <div className="mt-1 pt-2 border-t border-gray-200 dark:border-gray-700">
+                    <p className="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Top 3 Games (Sessions)</p>
+                    <div className="space-y-1">
+                      {cat.topGames.map((game: any, index: number) => (
+                        <div key={game.id} className="flex items-center justify-between text-xs">
+                          <span className="truncate max-w-[150px] text-gray-700 dark:text-gray-300">
+                            {index + 1}. {game.title}
+                          </span>
+                          <span className="text-gray-500 font-mono">
+                            {game.sessionCount}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           ))
         )}

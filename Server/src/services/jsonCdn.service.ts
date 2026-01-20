@@ -9,6 +9,7 @@ import { cloudflareCacheService } from './cloudflare-cache.service';
 import logger from '../utils/logger';
 import config from '../config/config';
 import { In } from 'typeorm';
+import { calculateLikeCount } from '../utils/gameUtils';
 
 interface JsonCdnConfig {
   enabled: boolean;
@@ -86,42 +87,7 @@ class JsonCdnService {
     }
   }
 
-  /**
-   * Calculate current like count for a game (same logic as gameController)
-   */
-  private calculateLikeCount(game: Game, userLikesCount: number = 0): number {
-    const now = new Date();
-    const lastIncrement = new Date(game.lastLikeIncrement);
 
-    // Calculate days elapsed since last increment
-    const msPerDay = 24 * 60 * 60 * 1000;
-    const daysElapsed = Math.floor(
-      (now.getTime() - lastIncrement.getTime()) / msPerDay
-    );
-
-    let autoIncrement = 0;
-    if (daysElapsed > 0) {
-      // Calculate total increment using deterministic random for each day
-      for (let day = 1; day <= daysElapsed; day++) {
-        // Create deterministic seed from gameId + date
-        const incrementDate = new Date(lastIncrement);
-        incrementDate.setDate(incrementDate.getDate() + day);
-        const dateStr = incrementDate.toISOString().split('T')[0];
-        const seed = game.id + dateStr;
-
-        // Simple hash function for deterministic random (1, 2, or 3)
-        let hash = 0;
-        for (let i = 0; i < seed.length; i++) {
-          hash = (hash << 5) - hash + seed.charCodeAt(i);
-          hash = hash & hash; // Convert to 32bit integer
-        }
-        const increment = (Math.abs(hash) % 3) + 1;
-        autoIncrement += increment;
-      }
-    }
-
-    return game.baseLikeCount + autoIncrement + userLikesCount;
-  }
 
   /**
    * Get user likes count for multiple games in a single query (batch optimization)
@@ -248,7 +214,7 @@ class JsonCdnService {
         const userLikesCount = userLikesMap.get(game.id) || 0;
         return {
           ...game,
-          likeCount: this.calculateLikeCount(game, userLikesCount),
+          likeCount: calculateLikeCount(game, userLikesCount),
           thumbnailFile: game.thumbnailFile
             ? {
                 ...game.thumbnailFile,
@@ -392,7 +358,7 @@ class JsonCdnService {
           const userLikesCount = userLikesMap.get(game.id) || 0;
           return {
             ...game,
-            likeCount: this.calculateLikeCount(game, userLikesCount),
+            likeCount: calculateLikeCount(game, userLikesCount),
             thumbnailFile: game.thumbnailFile
               ? {
                   ...game.thumbnailFile,
@@ -501,7 +467,7 @@ class JsonCdnService {
         const userLikesCount = userLikesMap.get(game.id) || 0;
         return {
           ...game,
-          likeCount: this.calculateLikeCount(game, userLikesCount),
+          likeCount: calculateLikeCount(game, userLikesCount),
           thumbnailFile: game.thumbnailFile
             ? {
                 ...game.thumbnailFile,
@@ -728,7 +694,7 @@ Disallow: /
         const userLikesCount = userLikesMap.get(game.id) || 0;
         return {
           ...game,
-          likeCount: this.calculateLikeCount(game, userLikesCount),
+          likeCount: calculateLikeCount(game, userLikesCount),
           thumbnailFile: game.thumbnailFile
             ? {
                 ...game.thumbnailFile,
@@ -811,7 +777,7 @@ Disallow: /
       // Transform file s3Key to public URLs and add likeCount
       const gameWithUrls = {
         ...game,
-        likeCount: this.calculateLikeCount(game, userLikesCount),
+        likeCount: calculateLikeCount(game, userLikesCount),
         thumbnailFile: game.thumbnailFile
           ? {
               ...game.thumbnailFile,

@@ -76,7 +76,7 @@ class CDNFetchService {
   private async fetchVersion(): Promise<void> {
     try {
       const apiBase = import.meta.env.VITE_API_URL || '';
-      const response = await fetch(`${apiBase}/cdn/version`, {
+      const response = await fetch(`${apiBase}/api/cdn/version`, {
         headers: { Accept: 'application/json' },
       });
 

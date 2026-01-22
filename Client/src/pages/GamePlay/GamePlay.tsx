@@ -14,6 +14,10 @@ import { trackGameplay } from '../../utils/analytics';
 import { useSystemConfigByKey } from '../../backend/configuration.service';
 import { useLikeGame, useUnlikeGame } from '../../backend/gameLikes.service';
 import { getVisitorSessionId } from '../../utils/sessionUtils';
+import { GameBreadcrumb } from '../../components/single/GameBreadcrumb';
+import { GameSchemaLD } from '../../components/single/GameSchemaLD';
+import { GameInfoSection } from '../../components/single/GameInfoSection';
+import { RecommendedGamesGrid } from '../../components/single/RecommendedGamesGrid';
 
 export default function GamePlay() {
   const { gameId } = useParams();
@@ -26,7 +30,7 @@ export default function GamePlay() {
   const gameStartTimeRef = useRef<Date | null>(null);
   const gameLoadStartTimeRef = useRef<Date | null>(null);
   const updateEndTimeRef = useRef<((reason?: string) => Promise<void>) | null>(
-    null
+    null,
   );
 
   // Milestone tracking ref for triggered milestones
@@ -43,7 +47,7 @@ export default function GamePlay() {
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const { isAuthenticated } = useAuth();
   const { data: freeTimeConfig } = useSystemConfigByKey(
-    'bulk_free_time_settings'
+    'bulk_free_time_settings',
   );
   const { mutate: likeGame, isPending: isLiking } = useLikeGame();
   const { mutate: unlikeGame, isPending: isUnliking } = useUnlikeGame();
@@ -142,8 +146,6 @@ export default function GamePlay() {
       document.body.style.touchAction = '';
     };
   }, [isMobile, expanded]);
-
-  // console.log(isSignUpModalOpen, timeRemaining); // DEBUG: Removed spam
 
   // Reset loading states when gameId changes (for similar games navigation)
   useEffect(() => {
@@ -261,7 +263,7 @@ export default function GamePlay() {
           onSuccess: (response) => {
             analyticsIdRef.current = response.id;
           },
-        }
+        },
       );
 
       // Track game start in Google Analytics
@@ -283,7 +285,7 @@ export default function GamePlay() {
       if (!gameStartTimeRef.current) return;
 
       const elapsedSeconds = Math.floor(
-        (Date.now() - gameStartTimeRef.current.getTime()) / 1000
+        (Date.now() - gameStartTimeRef.current.getTime()) / 1000,
       );
 
       MILESTONES.forEach((milestone: number) => {
@@ -294,9 +296,7 @@ export default function GamePlay() {
           triggeredMilestonesRef.current.add(milestone);
 
           // Format milestone label for readability
-          const label = milestone < 60
-            ? `${milestone}s`
-            : `${milestone / 60}m`;
+          const label = milestone < 60 ? `${milestone}s` : `${milestone / 60}m`;
 
           trackGameplay.gameMilestone(game.id, game.title, label, milestone);
         }
@@ -322,7 +322,7 @@ export default function GamePlay() {
         let durationSeconds = 0;
         if (startTime) {
           durationSeconds = Math.floor(
-            (endTime.getTime() - startTime.getTime()) / 1000
+            (endTime.getTime() - startTime.getTime()) / 1000,
           );
         }
 
@@ -341,7 +341,7 @@ export default function GamePlay() {
               game.id,
               game.title,
               durationSeconds,
-              reason
+              reason,
             );
           }
         }
@@ -356,7 +356,7 @@ export default function GamePlay() {
         gameStartTimeRef.current = null;
       }
     },
-    [game, updateAnalytics]
+    [game, updateAnalytics],
   );
 
   // Store latest updateEndTime in ref to avoid dependency issues
@@ -389,10 +389,9 @@ export default function GamePlay() {
 
         if (startTime) {
           durationSeconds = Math.floor(
-            (endTime.getTime() - startTime.getTime()) / 1000
+            (endTime.getTime() - startTime.getTime()) / 1000,
           );
         }
-
 
         // Track game exit event via Zaraz (using trackGameplay utility)
         if ((window as any).shouldLoadAnalytics) {
@@ -401,7 +400,7 @@ export default function GamePlay() {
               game.id,
               game.title,
               durationSeconds,
-              'page_unload'
+              'page_unload',
             );
           } catch (error) {
             console.error('Failed to send analytics event:', error);
@@ -458,7 +457,14 @@ export default function GamePlay() {
           <div
             ref={gameContainerRef}
             className={expanded ? 'fixed inset-0 z-40 bg-black' : 'relative'}
-            style={!expanded ? { height: 'calc(100vh - 64px)' } : undefined}
+            style={
+              !expanded
+                ? {
+                    height: 'calc(100vh - 64px)',
+                    padding: '16px',
+                  }
+                : undefined
+            }
           >
             <div
               className={`relative ${
@@ -466,7 +472,14 @@ export default function GamePlay() {
                   ? 'h-full w-full flex flex-col'
                   : 'w-full h-full flex flex-col'
               } overflow-hidden`}
-              // style={{ background: "#18181b" }}
+              style={
+                !expanded
+                  ? {
+                      border: '2px solid #fb923c',
+                      borderRadius: '32px',
+                    }
+                  : undefined
+              }
             >
               {/* Back button - always shown, visible above modal */}
               <button
@@ -650,6 +663,41 @@ export default function GamePlay() {
               </div>
             </div>
           </div>
+
+          {/* SEO Content Section - Only visible when not in fullscreen */}
+          {!expanded && game && (
+            <div
+              className="bg-white dark:bg-[#0F1221]"
+              style={{
+                maxWidth: '1408px',
+                margin: '0 auto',
+                padding: '32px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '32px',
+              }}
+            >
+              {/* Schema.org JSON-LD for SEO */}
+              <GameSchemaLD game={game} likeCount={likeCount} />
+
+              {/* Breadcrumb Navigation */}
+              <div>
+                <GameBreadcrumb
+                  categoryName={game.category?.name}
+                  categoryId={game.category?.id}
+                  gameTitle={game.title}
+                />
+              </div>
+
+              {/* Game Information Section */}
+              <GameInfoSection game={game} likeCount={likeCount} />
+
+              {/* Recommended Games Grid */}
+              {game.recommendedGames && game.recommendedGames.length > 0 && (
+                <RecommendedGamesGrid games={game.recommendedGames} />
+              )}
+            </div>
+          )}
         </>
       ) : (
         <div className="flex items-center justify-center h-[80vh]">

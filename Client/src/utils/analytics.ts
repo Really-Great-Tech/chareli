@@ -113,6 +113,23 @@ export const trackGameplay = {
       event_label: gameTitle,
     });
   },
+
+  /**
+   * Track when user shares a game
+   */
+  gameShare: (
+    gameId: string,
+    gameTitle: string,
+    method: 'web_share' | 'clipboard'
+  ) => {
+    trackEvent("game_share", {
+      game_id: gameId,
+      game_title: gameTitle,
+      share_method: method,
+      event_category: "Engagement",
+      event_label: `${gameTitle} - ${method}`,
+    });
+  },
 };
 
 /**

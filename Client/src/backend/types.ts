@@ -136,7 +136,20 @@ export interface GameData {
   createdAt: string;
   updatedAt: string;
   slug: string;
-  similarGames?: SimilarGame[];
+  metadata?: {
+    developer?: string;
+    howToPlay?: string;
+    features?: string[];
+    tags?: string[];
+    seoKeywords?: string;
+    schemaVersion?: string;
+  };
+  statistics?: {
+    totalSessions: number;
+    uniquePlayers: number;
+    averageSessionDuration: number;
+  };
+  recommendedGames?: SimilarGame[];
 }
 
 export type GameResponse = GameData;

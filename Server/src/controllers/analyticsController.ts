@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppDataSource } from '../config/database';
 import { Analytics } from '../entities/Analytics';
+import { User } from '../entities/User';
 import { ApiError } from '../middlewares/errorHandler';
 import { Between, FindOptionsWhere } from 'typeorm';
 import { cacheService } from '../services/cache.service';
@@ -8,6 +9,7 @@ import { queueService } from '../services/queue.service';
 import logger from '../utils/logger';
 
 const analyticsRepository = AppDataSource.getRepository(Analytics);
+const userRepository = AppDataSource.getRepository(User);
 
 /**
  * @swagger
@@ -598,6 +600,31 @@ export const trackHomepageVisit = async (
       return next(
         ApiError.badRequest('Either authentication or sessionId is required')
       );
+    }
+
+    // Additional safeguard: Check if authenticated user is admin
+    // This provides triple-layer protection:
+    // 1. Controller level (here) - prevents queueing
+    // 2. Worker level - prevents saving if somehow queued
+    // 3. Query level - filters out if somehow saved
+    if (userId) {
+      const user = await userRepository.findOne({
+        where: { id: userId },
+        relations: ['role'],
+      });
+
+      // Exclude all admin-type roles from analytics
+      const adminRoles = ['superadmin', 'admin', 'editor', 'viewer'];
+      if (user && user.role && adminRoles.includes(user.role.name)) {
+        logger.debug(
+          `[Analytics Controller] Skipping homepage visit for ${user.role.name} user ${userId} - admin activities excluded from analytics`
+        );
+        res.status(202).json({
+          success: true,
+          message: 'Admin activities excluded from analytics',
+        });
+        return;
+      }
     }
 
     // Enqueue homepage visit tracking job (non-blocking)

@@ -6,13 +6,10 @@ import CanonicalTag from '../components/single/CanonicalTag';
 const AnalyticsTracker = () => {
   const location = useLocation();
 
-  // Track page visit once per session to count total visitors
+  // Track page visits with current auth state
+  // Runs on location change so it picks up token after login
   useEffect(() => {
     const trackPageVisit = async () => {
-      // Check if we've already tracked this session
-      const hasTracked = sessionStorage.getItem('page_visit_tracked');
-      if (hasTracked) return;
-
       try {
         const baseURL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
 
@@ -24,7 +21,6 @@ const AnalyticsTracker = () => {
         }
 
         const url = `${baseURL}/api/analytics/homepage-visit`;
-        const isDevelopment = baseURL.includes('localhost') || baseURL.includes('127.0.0.1');
 
         const token = localStorage.getItem('token');
         const headers: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -32,41 +28,28 @@ const AnalyticsTracker = () => {
           headers['Authorization'] = `Bearer ${token}`;
         }
 
-        if (isDevelopment) {
-          // Use regular fetch for development (sendBeacon has CORS issues on localhost)
-          fetch(url, {
-            method: 'POST',
-            headers,
-            body: JSON.stringify({ sessionId }),
-          }).catch(() => {}); // Silently fail
-        } else {
-          // Use sendBeacon for production (works during page unload)
-          // Note: sendBeacon doesn't support custom headers like Authorization
-          // So we fall back to fetch with keepalive: true if token exists
-          if (token) {
-             fetch(url, {
-              method: 'POST',
-              headers,
-              body: JSON.stringify({ sessionId }),
-              keepalive: true,
-            }).catch(() => {});
-          } else {
-             const data = new Blob([JSON.stringify({ sessionId })], {
-              type: 'application/json',
-            });
-            navigator.sendBeacon(url, data);
+        // Always use fetch with keepalive for reliability and auth support
+        // keepalive ensures the request completes even during page unload (like sendBeacon)
+        fetch(url, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ sessionId }),
+          keepalive: true,  // Ensures request completes even during page unload
+          credentials: 'include',  // Send cookies if needed
+        }).catch((error) => {
+          // Only log errors in development to avoid console spam
+          const isDevelopment = baseURL.includes('localhost') || baseURL.includes('127.0.0.1');
+          if (isDevelopment) {
+            console.warn('Failed to track page visit:', error);
           }
-        }
-
-        // Mark as tracked for this session
-        sessionStorage.setItem('page_visit_tracked', 'true');
+        });
       } catch (error) {
         console.warn('Failed to track page visit:', error);
       }
     };
 
     trackPageVisit();
-  }, []); // Run once on mount
+  }, [location]);  // Re-run when location changes (includes after login redirect)
 
   useEffect(() => {
     // Only track if analytics is enabled for this domain

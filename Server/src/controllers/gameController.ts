@@ -1243,6 +1243,7 @@ export const updateGame = async (
       position,
       thumbnailFileKey: rawThumbnailFileKey,
       gameFileKey: rawGameFileKey,
+      metadata, // Add metadata to destructured fields
     } = req.body;
 
     // Decode HTML entities in file keys if provided
@@ -1493,6 +1494,11 @@ export const updateGame = async (
     if (description !== undefined) game.description = description;
     if (status) game.status = status as GameStatus;
     if (config !== undefined) game.config = config;
+
+    // Update metadata if provided
+    if (metadata !== undefined) {
+      game.metadata = metadata;
+    }
 
     await queryRunner.manager.save(game);
 

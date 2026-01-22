@@ -51,11 +51,6 @@ export function GameInfoSection({ game, likeCount }: GameInfoSectionProps) {
   // Get developer name from metadata, default to ArcadesBox
   const developerName = metadata?.developer || 'ArcadesBox';
 
-  // Parse How to Play into bullet points (split by newlines)
-  const howToPlaySteps = metadata?.howToPlay
-    ? metadata.howToPlay.split('\n').filter((line) => line.trim())
-    : [];
-
   // Get total players for vote count
   const voteCount = statistics?.uniquePlayers || 0;
 
@@ -137,28 +132,29 @@ export function GameInfoSection({ game, likeCount }: GameInfoSectionProps) {
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white font-dmmono">
             Game Description
           </h2>
-          <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line font-worksans text-sm leading-relaxed">
-            {game.description}
-          </p>
+          <div
+            className="prose prose-sm dark:prose-invert max-w-none
+              prose-headings:font-dmmono prose-p:font-worksans prose-li:font-worksans
+              prose-ul:list-disc prose-ol:list-decimal prose-ul:ml-6 prose-ol:ml-6
+              dark:prose-headings:text-white dark:prose-p:text-gray-300 dark:prose-li:text-gray-300"
+            dangerouslySetInnerHTML={{ __html: game.description }}
+          />
         </section>
       )}
 
       {/* How to Play */}
-      {howToPlaySteps.length > 0 && (
+      {metadata?.howToPlay && (
         <section className="space-y-3">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white font-dmmono">
             How to Play
           </h2>
-          <ul className="space-y-2 list-disc list-inside">
-            {howToPlaySteps.map((step, index) => (
-              <li
-                key={index}
-                className="text-gray-700 dark:text-gray-300 font-worksans text-sm leading-relaxed"
-              >
-                {step.replace(/^[•\-*]\s*/, '')} {/* Remove any existing bullet markers */}
-              </li>
-            ))}
-          </ul>
+          <div
+            className="prose prose-sm dark:prose-invert max-w-none
+              prose-headings:font-dmmono prose-p:font-worksans prose-li:font-worksans
+              prose-ul:list-disc prose-ol:list-decimal prose-ul:ml-6 prose-ol:ml-6
+              dark:prose-headings:text-white dark:prose-p:text-gray-300 dark:prose-li:text-gray-300"
+            dangerouslySetInnerHTML={{ __html: metadata.howToPlay }}
+          />
         </section>
       )}
 

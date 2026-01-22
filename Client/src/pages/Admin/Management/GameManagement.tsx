@@ -327,7 +327,7 @@ export default function GameManagement() {
   const paginatedGames = filteredGames.slice(gamesStartIndex, gamesEndIndex);
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-[#F1F5F9] dark:bg-[#121C2D]">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <h1 className="text-[#6A7282] dark:text-white text-2xl sm:text-3xl font-worksans">
           All Games

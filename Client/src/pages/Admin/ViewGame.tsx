@@ -24,7 +24,7 @@ import { formatTime } from "../../utils/main";
 import { usePermissions } from "../../hooks/usePermissions";
 import { GameBreadcrumb } from "../../components/single/GameBreadcrumb";
 import { GameInfoSection } from "../../components/single/GameInfoSection";
-import { SEOEditSheet } from "../../components/single/SEOEditSheet";
+import DOMPurify from 'dompurify';
 
 export default function ViewGame() {
   const permissions = usePermissions();
@@ -35,6 +35,17 @@ export default function ViewGame() {
   const toggleStatus = useToggleGameStatus();
   const deleteGame = useDeleteGame();
 
+  // Helper function to ensure tags is always an array
+  const ensureArray = (value: any): string[] => {
+    if (!value) return [];
+    if (Array.isArray(value)) return value;
+    // If it's an object with numeric keys (converted from array), convert back to array
+    if (typeof value === 'object') {
+      return Object.values(value).filter((v): v is string => typeof v === 'string');
+    }
+    return [];
+  };
+
   const handleBack = () => {
     navigate("/admin/game-management");
   };
@@ -42,7 +53,7 @@ export default function ViewGame() {
   const [editOpen, setEditOpen] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDisableModal, setShowDisableModal] = useState(false);
-  const [showSEOEdit, setShowSEOEdit] = useState(false);
+
 
   if (isLoading) {
     return (
@@ -141,13 +152,21 @@ export default function ViewGame() {
         </div>
         {/* Right: Details */}
         <div className="flex-1 flex flex-col gap-6">
-          <div className="bg-transparent dark:bg-[#121C2D] rounded-2xl p-6">
+          <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl p-6">
             <h3 className="text-base font-normal mb-2 text-[#475568] tracking-wider dark:text-white">
               Overview
             </h3>
-            <p className="text-[#475568] whitespace-pre-line dark:text-white font-dmmono text-sm tracking-wider break-words overflow-wrap-anywhere">
-              {(game as any).game?.description || "-"}
-            </p>
+            {(game as any).game?.description ? (
+              <div
+                className="prose prose-sm dark:prose-invert max-w-none
+                  prose-headings:font-dmmono prose-p:font-worksans prose-li:font-worksans
+                  prose-ul:list-disc prose-ol:list-decimal prose-ul:ml-6 prose-ol:ml-6
+                  dark:prose-headings:text-white dark:prose-p:text-gray-300 dark:prose-li:text-gray-300"
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize((game as any).game.description) }}
+              />
+            ) : (
+              <p className="text-[#475568] dark:text-white font-dmmono text-sm">-</p>
+            )}
 
             {/* SEO Metadata Display */}
             {(game as any).game?.metadata && (
@@ -157,9 +176,14 @@ export default function ViewGame() {
                     <h4 className="text-xs font-semibold text-[#475568] dark:text-gray-400 mb-1 tracking-wider">
                       HOW TO PLAY
                     </h4>
-                    <p className="text-[#475568] whitespace-pre-line dark:text-white font-worksans text-sm">
-                      {(game as any).game.metadata.howToPlay}
-                    </p>
+                    <div
+                      className="prose prose-sm dark:prose-invert max-w-none
+                        prose-headings:font-dmmono prose-p:font-worksans prose-li:font-worksans
+                        prose-ul:list-disc prose-ol:list-decimal prose-ul:ml-6 prose-ol:ml-6
+                        dark:prose-headings:text-white dark:prose-p:text-gray-300 dark:prose-li:text-gray-300
+                        text-[#475568] dark:text-white font-worksans text-sm"
+                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize((game as any).game.metadata.howToPlay) }}
+                    />
                   </div>
                 )}
                 {(game as any).game.metadata.features && (game as any).game.metadata.features.length > 0 && (
@@ -174,28 +198,31 @@ export default function ViewGame() {
                     </ul>
                   </div>
                 )}
-                {(game as any).game.metadata.tags && (game as any).game.metadata.tags.length > 0 && (
-                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <h4 className="text-xs font-semibold text-[#475568] dark:text-gray-400 mb-2 tracking-wider">
-                      TAGS
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {(game as any).game.metadata.tags.map((tag: string, idx: number) => (
-                        <span
-                          key={idx}
-                          className="px-2 py-1 bg-gray-200 dark:bg-gray-700 text-[#475568] dark:text-white rounded text-xs font-worksans"
-                        >
-                          {tag}
-                        </span>
-                      ))}
+                {(() => {
+                  const tags = ensureArray((game as any).game.metadata?.tags);
+                  return tags.length > 0 ? (
+                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                      <h4 className="text-xs font-semibold text-[#475568] dark:text-gray-400 mb-2 tracking-wider">
+                        TAGS
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {tags.map((tag: string, idx: number) => (
+                          <span
+                            key={idx}
+                            className="px-2 py-1 bg-gray-200 dark:bg-gray-700 text-[#475568] dark:text-white rounded text-xs font-worksans"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  ) : null;
+                })()}
               </>
             )}
           </div>
           <div className="flex flex-col md:flex-row gap-4">
-            <div className="bg-transparent dark:bg-[#121C2D] rounded-2xl p-4 flex-1">
+            <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl p-4 flex-1">
               <h3 className="font-normal mb-1 text-[#475568] tracking-wider text-base dark:text-white">
                 Game Category
               </h3>
@@ -203,7 +230,7 @@ export default function ViewGame() {
                 {(game as any).game?.category?.name || "-"}
               </p>
             </div>
-            <div className="bg-transparent dark:bg-[#121C2D] rounded-2xl p-4 flex-1">
+            <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl p-4 flex-1">
               <h3 className="font-normal mb-1 text-[#475568] dark:text-white">
                 Position
               </h3>
@@ -213,7 +240,7 @@ export default function ViewGame() {
                   : "Not assigned"}
               </p>
             </div>
-            <div className="bg-transparent dark:bg-[#121C2D] rounded-2xl p-4 flex-1">
+            <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl p-4 flex-1">
               <h3 className="font-normal mb-1 text-[#475568] dark:text-white">
                 Gameplay URL
               </h3>
@@ -243,7 +270,7 @@ export default function ViewGame() {
             </p>
           </div>
           <div className="flex flex-col md:flex-row gap-4">
-            <div className="bg-transparent dark:bg-[#121C2D] rounded-2xl p-4 flex gap-4">
+            <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl p-4 flex gap-4">
               <div className="bg-[#6A7282] rounded-full px-3 py-3 items-center">
                 <FiClock className="w-8 h-8  text-white dark:text-[#OF1621]" />
               </div>
@@ -256,7 +283,7 @@ export default function ViewGame() {
                 </span>
               </div>
             </div>
-            <div className="bg-transparent dark:bg-[#121C2D] rounded-2xl p-4 flex gap-4">
+            <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl p-4 flex gap-4">
               <div className="bg-[#6A7282] rounded-full px-3 py-3">
                 <LuGamepad2 className="w-8 h-8 text-white dark:text-[#OF1621]" />
               </div>
@@ -269,7 +296,7 @@ export default function ViewGame() {
                 </span>
               </div>
             </div>
-            <div className="bg-transparent dark:bg-[#121C2D] rounded-2xl p-4 flex-1 flex gap-4">
+            <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl p-4 flex-1 flex gap-4">
               <div className="bg-[#6A7282] rounded-full px-3 py-3">
                 <TbCalendarClock className="w-8 h-8 text-white dark:text-[#OF1621]" />
               </div>
@@ -299,7 +326,7 @@ export default function ViewGame() {
             <Button
               variant="outline"
               className="flex items-center gap-2 border-2 border-gray-300 dark:border-gray-600"
-              onClick={() => setShowSEOEdit(true)}
+              onClick={() => navigate(`/admin/edit-game-seo/${gameId}`)}
             >
               <CiEdit className="w-4 h-4" />
               Edit SEO Content
@@ -322,6 +349,7 @@ export default function ViewGame() {
           <GameInfoSection
             game={(game as any)?.game}
             likeCount={gameData?.likeCount || 0}
+            hideEditButton={true}
           />
         </div>
       </div>
@@ -373,13 +401,6 @@ export default function ViewGame() {
       <EditSheet
         open={editOpen}
         onOpenChange={setEditOpen}
-        gameId={gameId || ""}
-      />
-
-      {/* SEO Edit Sheet */}
-      <SEOEditSheet
-        open={showSEOEdit}
-        onOpenChange={setShowSEOEdit}
         gameId={gameId || ""}
       />
     </div>

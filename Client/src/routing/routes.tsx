@@ -32,6 +32,7 @@ const Configuration = lazy(
   () => import('../pages/Admin/Configuration/Configuration')
 );
 const ViewGame = lazy(() => import('../pages/Admin/ViewGame'));
+const EditGameSEO = lazy(() => import('../pages/Admin/EditGameSEO'));
 const GameCategories = lazy(
   () => import('../pages/Admin/Category/GameCategories')
 );
@@ -123,6 +124,7 @@ export const routes = [
               { path: 'team', element: <SuspenseWrapper><TeamManagement /></SuspenseWrapper> },
               { path: 'analytics', element: <SuspenseWrapper><Analytics /></SuspenseWrapper> },
               { path: 'view-game/:gameId', element: <SuspenseWrapper><ViewGame /></SuspenseWrapper> },
+              { path: 'edit-game-seo/:gameId', element: <SuspenseWrapper><EditGameSEO /></SuspenseWrapper> },
               { path: 'view-profile', element: <SuspenseWrapper><ViewProfile /></SuspenseWrapper> },
               { path: 'cache', element: <SuspenseWrapper><CacheDashboard /></SuspenseWrapper> },
               { path: 'image-reprocessing', element: <SuspenseWrapper><ImageReprocessing /></SuspenseWrapper> },

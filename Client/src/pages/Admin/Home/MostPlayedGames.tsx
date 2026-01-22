@@ -48,9 +48,9 @@ export function MostPlayedGames() {
   const gamesToShow = getGamesForPage(currentPage);
 
   return (
-    <Card className="bg-transparent dark:bg-[#121C2D] shadow-none border-none w-full">
+    <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
       <div className="flex justify-between items-center p-4 text-2xl">
-        <p className="bg-transparent dark:bg-[#121C2D]">Most Played Games</p>
+        <p>Most Played Games</p>
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-500 mr-2">Sort by:</span>
           <button

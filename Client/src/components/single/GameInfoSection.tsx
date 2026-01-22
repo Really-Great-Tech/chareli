@@ -1,18 +1,35 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FiShare2 } from 'react-icons/fi';
+import { LuPenLine } from 'react-icons/lu';
 import type { GameData } from '../../backend/types';
 import { format } from 'date-fns';
 import { trackGameplay } from '../../utils/analytics';
+import DOMPurify from 'dompurify';
+import { usePermissions } from '../../hooks/usePermissions';
 
 interface GameInfoSectionProps {
   game: GameData;
   likeCount: number;
+  hideEditButton?: boolean;
 }
 
-export function GameInfoSection({ game, likeCount }: GameInfoSectionProps) {
+export function GameInfoSection({ game, likeCount, hideEditButton = false }: GameInfoSectionProps) {
   const { metadata, statistics } = game;
   const [shareStatus, setShareStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const navigate = useNavigate();
+  const permissions = usePermissions();
+
+  // Helper function to ensure tags is always an array
+  const ensureArray = (value: any): string[] => {
+    if (!value) return [];
+    if (Array.isArray(value)) return value;
+    // If it's an object with numeric keys (converted from array), convert back to array
+    if (typeof value === 'object') {
+      return Object.values(value).filter((v): v is string => typeof v === 'string');
+    }
+    return [];
+  };
 
   // Handle share button click
   const handleShare = async () => {
@@ -110,19 +127,33 @@ export function GameInfoSection({ game, likeCount }: GameInfoSectionProps) {
         </span>
       </div>
 
-      {/* Share Button */}
-      <div className="relative">
-        <button
-          onClick={handleShare}
-          className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300 text-sm font-worksans"
-        >
-          <FiShare2 className="w-4 h-4" />
-          {shareStatus === 'success' ? 'Copied!' : 'Share'}
-        </button>
-        {shareStatus === 'success' && (
-          <div className="absolute top-full mt-2 left-0 bg-green-500 text-white px-3 py-1.5 rounded text-xs font-worksans whitespace-nowrap shadow-lg">
-            ✓ Link copied to clipboard
-          </div>
+      {/* Share and Edit Buttons */}
+      <div className="flex items-center gap-3">
+        {/* Share Button */}
+        <div className="relative">
+          <button
+            onClick={handleShare}
+            className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300 text-sm font-worksans"
+          >
+            <FiShare2 className="w-4 h-4" />
+            {shareStatus === 'success' ? 'Copied!' : 'Share'}
+          </button>
+          {shareStatus === 'success' && (
+            <div className="absolute top-full mt-2 left-0 bg-green-500 text-white px-3 py-1.5 rounded text-xs font-worksans whitespace-nowrap shadow-lg">
+              ✓ Link copied to clipboard
+            </div>
+          )}
+        </div>
+
+        {/* Admin Edit Button */}
+        {!hideEditButton && permissions.hasAdminAccess && (
+          <button
+            onClick={() => navigate(`/admin/view-game/${game.id}`)}
+            className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300 text-sm font-worksans"
+          >
+            <LuPenLine className="w-4 h-4" />
+            Edit
+          </button>
         )}
       </div>
 
@@ -137,7 +168,7 @@ export function GameInfoSection({ game, likeCount }: GameInfoSectionProps) {
               prose-headings:font-dmmono prose-p:font-worksans prose-li:font-worksans
               prose-ul:list-disc prose-ol:list-decimal prose-ul:ml-6 prose-ol:ml-6
               dark:prose-headings:text-white dark:prose-p:text-gray-300 dark:prose-li:text-gray-300"
-            dangerouslySetInnerHTML={{ __html: game.description }}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(game.description) }}
           />
         </section>
       )}
@@ -153,25 +184,28 @@ export function GameInfoSection({ game, likeCount }: GameInfoSectionProps) {
               prose-headings:font-dmmono prose-p:font-worksans prose-li:font-worksans
               prose-ul:list-disc prose-ol:list-decimal prose-ul:ml-6 prose-ol:ml-6
               dark:prose-headings:text-white dark:prose-p:text-gray-300 dark:prose-li:text-gray-300"
-            dangerouslySetInnerHTML={{ __html: metadata.howToPlay }}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(metadata.howToPlay) }}
           />
         </section>
       )}
 
       {/* Tags - Clickable links to categories */}
-      {metadata?.tags && metadata.tags.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {metadata.tags.map((tag, index) => (
-            <Link
-              key={index}
-              to={`/category/${encodeURIComponent(tag.toLowerCase())}`}
-              className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md text-xs font-medium font-worksans transition-colors"
-            >
-              {tag}
-            </Link>
-          ))}
-        </div>
-      )}
+      {(() => {
+        const tags = ensureArray(metadata?.tags);
+        return tags.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {tags.map((tag, index) => (
+              <Link
+                key={index}
+                to={`/category/${encodeURIComponent(tag.toLowerCase())}`}
+                className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md text-xs font-medium font-worksans transition-colors"
+              >
+                {tag}
+              </Link>
+            ))}
+          </div>
+        ) : null;
+      })()}
     </div>
   );
 }

@@ -44,7 +44,7 @@ export default function Home() {
 
   const { data: analyticsData } = useSignupAnalyticsData();
   return (
-    <div>
+    <div className="bg-[#F1F5F9] dark:bg-[#121C2D]">
       {/* stats cards */}
       <div className="px-6 pb-3">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
@@ -83,7 +83,7 @@ export default function Home() {
 
         {/* insights */}
         <div className="col-span-1 md:col-span-2 lg:col-span-4 mb-2 mt-2">
-          <Card className="bg-transparent dark:bg-[#121C2D] shadow-none border-none w-full">
+          <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
             <div className="flex p-3 justify-between">
               <p className="text-lg sm:text-2xl">Click insights</p>
               <DashboardTimeFilter
@@ -116,7 +116,7 @@ export default function Home() {
 
         {/* bar chart - insights */}
         <div className="w-full mt-3">
-          <Card className="bg-transparent dark:bg-[#121C2D] shadow-none border-none w-full">
+          <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
             <div className="justify-between items-center flex p-3">
               <p className="text-base sm:text-xl lg:text-2xl">
                 Click insights (Buttons)
@@ -151,7 +151,7 @@ export default function Home() {
 
         {/* Registration insights donut chart */}
         <div className="w-full mt-3">
-          <Card className="bg-transparent dark:bg-[#121C2D] shadow-none border-none w-full">
+          <Card className="bg-[#F1F5F9] dark:bg-[#121C2D] shadow-none border-none w-full">
             <div className="justify-between items-center flex p-3">
               <p className="text-lg sm:text-xl lg:text-2xl">
                 Registration insights

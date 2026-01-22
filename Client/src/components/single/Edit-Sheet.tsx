@@ -256,7 +256,17 @@ export function EditSheet({ open, onOpenChange, gameId }: EditSheetProps) {
       howToPlay: game.metadata?.howToPlay || '',
       // Convert arrays to comma-separated strings for form display
       features: game.metadata?.features?.join(', ') || '',
-      tags: game.metadata?.tags?.join(', ') || '',
+      // Handle tags as either array or object (defensive coding)
+      tags: (() => {
+        const tags = game.metadata?.tags;
+        if (!tags) return '';
+        if (Array.isArray(tags)) return tags.join(', ');
+        // If it's an object with numeric keys, convert to array first
+        if (typeof tags === 'object') {
+          return Object.values(tags).filter((v): v is string => typeof v === 'string').join(', ');
+        }
+        return '';
+      })(),
     },
   };
 

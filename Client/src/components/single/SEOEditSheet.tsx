@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { RichTextEditor } from '../ui/RichTextEditor';
 import { GameBreadcrumb } from './GameBreadcrumb';
 import { X } from 'lucide-react';
+import DOMPurify from 'dompurify';
 
 interface SEOEditSheetProps {
   open: boolean;
@@ -48,11 +49,18 @@ export function SEOEditSheet({ open, onOpenChange, gameId }: SEOEditSheetProps) 
 
   const handleSubmit = async (values: FormValues, { setSubmitting }: any) => {
     try {
+      // Sanitize HTML content with DOMPurify before sending
       const gameData = {
-        description: values.description,
+        description: values.description ? DOMPurify.sanitize(values.description, {
+          ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a', 'blockquote'],
+          ALLOWED_ATTR: ['href', 'class'],
+        }) : undefined,
         metadata: {
           developer: values.developer || undefined,
-          howToPlay: values.howToPlay || undefined,
+          howToPlay: values.howToPlay ? DOMPurify.sanitize(values.howToPlay, {
+            ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a', 'blockquote'],
+            ALLOWED_ATTR: ['href', 'class'],
+          }) : undefined,
           tags: values.tags.length > 0 ? values.tags : undefined,
         },
       };
@@ -124,34 +132,22 @@ export function SEOEditSheet({ open, onOpenChange, gameId }: SEOEditSheetProps) 
                   <Label htmlFor="developer" className="text-sm mb-2 block dark:text-white">
                     Developer
                   </Label>
-                  <Field
-                    as={Input}
+                  <select
                     id="developer"
                     name="developer"
-                    className="w-full h-10 rounded-md border border-gray-300 dark:border-gray-600 dark:text-white bg-white dark:bg-[#121C2D] px-3 text-sm focus:border-blue-500 focus:outline-none"
-                    placeholder="RGT"
-                  />
+                    className="w-full h-10 rounded-md border border-gray-300 dark:border-gray-600 dark:text-white dark:bg-[#121C2D] bg-white px-3 text-sm focus:border-blue-500 focus:outline-none"
+                    value={values.developer}
+                    onChange={(e) => setFieldValue('developer', e.target.value)}
+                  >
+                    <option value="">Select Developer</option>
+                    <option value="RGT">RGT</option>
+                    <option value="ArcadesBox">ArcadesBox</option>
+                  </select>
                   <ErrorMessage
                     name="developer"
                     component="div"
                     className="text-red-500 mt-1 text-sm"
                   />
-                </div>
-
-                {/* Developer Dropdown Placeholder */}
-                <div>
-                  <Label className="text-sm mb-2 block dark:text-white">
-                    Developer
-                  </Label>
-                  <select
-                    className="w-full h-10 rounded-md border border-gray-300 dark:border-gray-600 dark:text-white dark:bg-[#121C2D] bg-white px-3 text-sm focus:border-blue-500 focus:outline-none"
-                    value={values.developer}
-                    onChange={(e) => setFieldValue('developer', e.target.value)}
-                  >
-                    <option value="">Placeholder</option>
-                    <option value="RGT">RGT</option>
-                    <option value="ArcadesBox">ArcadesBox</option>
-                  </select>
                 </div>
 
                 {/*Released Date */}

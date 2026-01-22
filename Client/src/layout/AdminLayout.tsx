@@ -162,7 +162,7 @@ const AdminLayout: React.FC = () => {
             top: `${navbarHeight}px`,
           }}
         >
-          <aside className="h-full bg-[#fef7ed] dark:bg-[#0f1221]/95 backdrop-blur-sm transition-colors duration-300 border-r border-gray-200 dark:border-gray-800">
+          <aside className="h-full bg-[#F1F5F9] dark:bg-[#0f1221]/95 backdrop-blur-sm transition-colors duration-300 border-r border-gray-200 dark:border-gray-800">
             <div className="flex flex-col h-full relative">
               <nav className="flex-1">
                 <ul className="space-y-5 px-2 py-4">
@@ -175,7 +175,7 @@ const AdminLayout: React.FC = () => {
                           `flex items-center p-2 rounded-lg transition-colors ${
                             isActive
                               ? 'bg-[#6A7282] text-white'
-                              : 'hover:text-[#6A7282] hover:bg-[#F1F5F9] dark:text-white dark:hover:text-[#6A7282] text-[#121C2D]'
+                              : 'hover:text-[#6A7282] hover:bg-[#E2E8F0] dark:text-white dark:hover:text-[#6A7282] text-[#121C2D]'
                           } ${isSidebarCollapsed ? 'justify-center' : ''}`
                         }
                         onClick={() => {

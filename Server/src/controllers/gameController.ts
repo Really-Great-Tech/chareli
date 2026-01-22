@@ -1497,7 +1497,25 @@ export const updateGame = async (
 
     // Update metadata if provided
     if (metadata !== undefined) {
-      game.metadata = metadata;
+      // Ensure tags is always an array (not an object)
+      if (metadata.tags) {
+        if (Array.isArray(metadata.tags)) {
+          // Already an array, ensure it's a proper array (not object with numeric keys)
+          metadata.tags = [...metadata.tags];
+        } else if (typeof metadata.tags === 'object' && metadata.tags !== null) {
+          // Convert object with numeric keys back to array
+          metadata.tags = Object.values(metadata.tags).filter((v): v is string => typeof v === 'string');
+        } else {
+          // Invalid format, set to empty array
+          metadata.tags = [];
+        }
+      }
+      
+      // Merge with existing metadata to preserve other fields
+      game.metadata = {
+        ...game.metadata,
+        ...metadata,
+      };
     }
 
     await queryRunner.manager.save(game);

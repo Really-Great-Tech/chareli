@@ -41,7 +41,7 @@ export default function GameCategories() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-8 bg-[#F1F5F9] dark:bg-[#121C2D]">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
         <h1 className="text-lg sm:text-3xl font-worksans text-[#6A7282] dark:text-white">
           Game Category

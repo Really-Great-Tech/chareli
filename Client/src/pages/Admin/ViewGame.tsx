@@ -75,7 +75,7 @@ export default function ViewGame() {
       </button>
       <div className="flex flex-col md:flex-row gap-6">
         {/* Left: Game Card */}
-        <div className="bg-transparent dark:bg-[#334154] rounded-2xl p-6 flex flex-col items-center w-full md:w-1/3">
+        <div className="bg-[#F1F5F9] dark:bg-[#121C2D] rounded-2xl p-6 flex flex-col items-center w-full md:w-1/3">
           <div className="w-28 h-28 rounded-full overflow-hidden mb-4 bg-gray-100">
             <LazyImage
               src={(game as any)?.game.thumbnailFile?.url || gameImg}

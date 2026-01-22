@@ -18,6 +18,7 @@ import { GameBreadcrumb } from '../../components/single/GameBreadcrumb';
 import { GameSchemaLD } from '../../components/single/GameSchemaLD';
 import { GameInfoSection } from '../../components/single/GameInfoSection';
 import { RecommendedGamesGrid } from '../../components/single/RecommendedGamesGrid';
+import { usePermissions } from '../../hooks/usePermissions';
 
 export default function GamePlay() {
   const { gameId } = useParams();
@@ -46,6 +47,7 @@ export default function GamePlay() {
   const [loadProgress, setLoadProgress] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const { isAuthenticated } = useAuth();
+  const { hasAdminAccess } = usePermissions();
   const { data: freeTimeConfig } = useSystemConfigByKey(
     'bulk_free_time_settings',
   );
@@ -248,7 +250,7 @@ export default function GamePlay() {
 
   // Create analytics record when game starts
   useEffect(() => {
-    if (game) {
+    if (game && !hasAdminAccess) {
       const startTime = new Date();
       gameStartTimeRef.current = startTime;
 
@@ -272,11 +274,11 @@ export default function GamePlay() {
       // Reset milestones for new game session
       triggeredMilestonesRef.current.clear();
     }
-  }, [game, createAnalytics]);
+  }, [game, createAnalytics, hasAdminAccess, isAuthenticated]);
 
   // Track play duration milestones (30s, 1m, 5m, 10m)
   useEffect(() => {
-    if (!game || isGameLoading) return;
+    if (!game || isGameLoading || hasAdminAccess) return;
 
     // Milestone thresholds in seconds
     const MILESTONES = [30, 60, 300, 600];
@@ -304,7 +306,7 @@ export default function GamePlay() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [game, isGameLoading]);
+  }, [game, isGameLoading, hasAdminAccess]);
 
   const location = useLocation();
   const { mutate: updateAnalytics } = useUpdateAnalytics();

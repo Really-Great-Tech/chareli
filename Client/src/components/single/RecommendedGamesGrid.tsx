@@ -21,7 +21,7 @@ export function RecommendedGamesGrid({ games }: RecommendedGamesGridProps) {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="space-y-8">
       <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6 font-dmmono">
         Recommended Games
       </h2>

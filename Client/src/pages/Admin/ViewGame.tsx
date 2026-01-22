@@ -13,6 +13,7 @@ import { useGameAnalyticsById } from "../../backend/analytics.service";
 import {
   useToggleGameStatus,
   useDeleteGame,
+  useGameById,
 } from "../../backend/games.service";
 import { toast } from "sonner";
 import { DeleteConfirmationModal } from "../../components/modals/DeleteConfirmationModal";
@@ -21,12 +22,15 @@ import { useState } from "react";
 import { EditSheet } from "../../components/single/Edit-Sheet";
 import { formatTime } from "../../utils/main";
 import { usePermissions } from "../../hooks/usePermissions";
+import { GameBreadcrumb } from "../../components/single/GameBreadcrumb";
+import { GameInfoSection } from "../../components/single/GameInfoSection";
 
 export default function ViewGame() {
   const permissions = usePermissions();
   const { gameId } = useParams();
   const navigate = useNavigate();
   const { data: game, isLoading } = useGameAnalyticsById(gameId || "");
+  const { data: gameData } = useGameById(gameId || ""); // Fetch full game data for likeCount
   const toggleStatus = useToggleGameStatus();
   const deleteGame = useDeleteGame();
 
@@ -142,6 +146,51 @@ export default function ViewGame() {
             <p className="text-[#475568] whitespace-pre-line dark:text-white font-dmmono text-sm tracking-wider break-words overflow-wrap-anywhere">
               {(game as any).game?.description || "-"}
             </p>
+
+            {/* SEO Metadata Display */}
+            {(game as any).game?.metadata && (
+              <>
+                {(game as any).game.metadata.howToPlay && (
+                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <h4 className="text-xs font-semibold text-[#475568] dark:text-gray-400 mb-1 tracking-wider">
+                      HOW TO PLAY
+                    </h4>
+                    <p className="text-[#475568] whitespace-pre-line dark:text-white font-worksans text-sm">
+                      {(game as any).game.metadata.howToPlay}
+                    </p>
+                  </div>
+                )}
+                {(game as any).game.metadata.features && (game as any).game.metadata.features.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <h4 className="text-xs font-semibold text-[#475568] dark:text-gray-400 mb-2 tracking-wider">
+                      FEATURES
+                    </h4>
+                    <ul className="list-disc list-inside text-[#475568] dark:text-white font-worksans text-sm space-y-1">
+                      {(game as any).game.metadata.features.map((feature: string, idx: number) => (
+                        <li key={idx}>{feature}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {(game as any).game.metadata.tags && (game as any).game.metadata.tags.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <h4 className="text-xs font-semibold text-[#475568] dark:text-gray-400 mb-2 tracking-wider">
+                      TAGS
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {(game as any).game.metadata.tags.map((tag: string, idx: number) => (
+                        <span
+                          key={idx}
+                          className="px-2 py-1 bg-gray-200 dark:bg-gray-700 text-[#475568] dark:text-white rounded text-xs font-worksans"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="bg-transparent dark:bg-[#121C2D] rounded-2xl p-4 flex-1">
@@ -232,6 +281,49 @@ export default function ViewGame() {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* SEO Content Preview Section */}
+      <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
+        {/* Section Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white font-dmmono">
+              SEO Content
+            </h2>
+          </div>
+          {permissions.canManageGames && (
+            <Button
+              variant="outline"
+              className="flex items-center gap-2 border-2 border-gray-300 dark:border-gray-600"
+              onClick={() => {
+                // TODO: Implement SEO edit functionality
+                toast.info("SEO editor coming soon!");
+              }}
+            >
+              <CiEdit className="w-4 h-4" />
+              Edit SEO Content
+            </Button>
+          )}
+        </div>
+
+        {/* SEO Preview Container */}
+        <div className="bg-white dark:bg-[#0F1221] rounded-lg p-6 sm:p-8">
+          {/* Breadcrumb */}
+          <div className="mb-8">
+            <GameBreadcrumb
+              categoryName={(game as any)?.game?.category?.name}
+              categoryId={(game as any)?.game?.category?.id}
+              gameTitle={(game as any)?.game?.title}
+            />
+          </div>
+
+          {/* Game Info Section */}
+          <GameInfoSection
+            game={(game as any)?.game}
+            likeCount={gameData?.likeCount || 0}
+          />
         </div>
       </div>
 

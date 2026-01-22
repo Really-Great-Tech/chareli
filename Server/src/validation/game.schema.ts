@@ -20,7 +20,8 @@ export const createGameSchema = yup.object({
     .integer('Position must be an integer')
     .min(1, 'Position must be at least 1'),
   metadata: yup.object({
-    howToPlay: yup.string().trim().nullable(),
+    developer: yup.string().trim().nullable(),
+    howToPlay: yup.string().nullable(), // Remove .trim() to preserve HTML
     features: yup.array().of(yup.string().trim()).nullable(),
     tags: yup.array().of(yup.string().trim()).nullable(),
     seoKeywords: yup.string().trim().nullable(),
@@ -50,7 +51,8 @@ export const updateGameSchema = yup
       .integer('Position must be an integer')
       .min(1, 'Position must be at least 1'),
     metadata: yup.object({
-      howToPlay: yup.string().trim().nullable(),
+      developer: yup.string().trim().nullable(),
+      howToPlay: yup.string().nullable(), // Remove .trim() to preserve HTML
       features: yup.array().of(yup.string().trim()).nullable(),
       tags: yup.array().of(yup.string().trim()).nullable(),
       seoKeywords: yup.string().trim().nullable(),

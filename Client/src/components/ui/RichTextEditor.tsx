@@ -2,6 +2,9 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
+import BulletList from '@tiptap/extension-bullet-list';
+import OrderedList from '@tiptap/extension-ordered-list';
+import ListItem from '@tiptap/extension-list-item';
 import {
   FiBold,
   FiItalic,
@@ -26,7 +29,26 @@ export function RichTextEditor({
 }: RichTextEditorProps) {
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        bulletList: false, // Disable default to use custom
+        orderedList: false, // Disable default to use custom
+        listItem: false, // Disable default to use custom
+      }),
+      BulletList.configure({
+        HTMLAttributes: {
+          class: 'list-disc ml-6 my-2',
+        },
+      }),
+      OrderedList.configure({
+        HTMLAttributes: {
+          class: 'list-decimal ml-6 my-2',
+        },
+      }),
+      ListItem.configure({
+        HTMLAttributes: {
+          class: 'ml-2',
+        },
+      }),
       Link.configure({
         openOnClick: false,
       }),
@@ -150,14 +172,19 @@ export function RichTextEditor({
       </div>
 
       {/* Editor Content */}
-      <EditorContent
-        editor={editor}
-        className="prose prose-sm dark:prose-invert max-w-none p-4 min-h-[150px] focus-within:outline-none
-          prose-headings:font-dmmono prose-p:font-worksans prose-li:font-worksans
-          prose-ul:list-disc prose-ol:list-decimal
-          prose-ul:pl-6 prose-ol:pl-6
-          dark:prose-headings:text-white dark:prose-p:text-gray-300 dark:prose-li:text-gray-300"
-      />
+      <div
+        onClick={() => editor?.chain().focus().run()}
+        className="cursor-text min-h-[150px] flex-1"
+      >
+        <EditorContent
+          editor={editor}
+          className="prose prose-sm dark:prose-invert max-w-none p-4 h-full
+            prose-headings:font-dmmono prose-p:font-worksans prose-li:font-worksans
+            prose-ul:my-2 prose-ol:my-2
+            dark:prose-headings:text-white dark:prose-p:text-gray-300 dark:prose-li:text-gray-300
+            [&_.ProseMirror]:min-h-[120px] [&_.ProseMirror]:outline-none [&_.ProseMirror]:h-full"
+        />
+      </div>
     </div>
   );
 }

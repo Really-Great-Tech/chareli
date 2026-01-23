@@ -9,6 +9,7 @@ const AnalyticsTracker = () => {
   const location = useLocation();
   const { user } = useAuth();
 
+  // 1. Auth/session lifecycle
   // Clear session ID when user logs in
   useEffect(() => {
     if (user) {
@@ -16,6 +17,7 @@ const AnalyticsTracker = () => {
     }
   }, [user]);
 
+  // 2. Backend analytics
   // Track page visits with current auth state
   // Runs on location change so it picks up token after login
   useEffect(() => {
@@ -55,8 +57,9 @@ const AnalyticsTracker = () => {
     };
 
     trackPageVisit();
-  }, [location]);  // Re-run when location changes (includes after login redirect)
+  }, [location,user]);  // Re-run when location changes (includes after login redirect)
 
+  // 3. Client-side analytics + SEO
   useEffect(() => {
     // Only track if analytics is enabled for this domain
     if (!(window as any).shouldLoadAnalytics) {

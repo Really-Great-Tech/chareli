@@ -6,7 +6,7 @@ import { ProfileModal } from "../modals/ProfileModal";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useTrackSignupClick } from "../../backend/signup.analytics.service";
-import { getVisitorSessionId } from "../../utils/sessionUtils";
+import { getOrCreateSessionId } from "../../utils/sessionUtils";
 import { usePermissions } from "../../hooks/usePermissions";
 import Logo from "../../assets/logo.svg";
 import aboutIcon from "../../assets/about.svg";
@@ -211,7 +211,7 @@ const Navbar: React.FC = () => {
                 <Button
                   onClick={() => {
                     trackSignup({
-                      sessionId: getVisitorSessionId(),
+                      sessionId: getOrCreateSessionId(),
                       type: "navbar",
                     });
                     setIsSignUpModalOpen(true);
@@ -308,7 +308,7 @@ const Navbar: React.FC = () => {
             <Button
               onClick={() => {
                 trackSignup({
-                  sessionId: getVisitorSessionId(),
+                  sessionId: getOrCreateSessionId(),
                   type: "navbar",
                 });
                 setIsSignUpModalOpen(true);

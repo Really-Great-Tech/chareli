@@ -13,7 +13,7 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { trackGameplay } from '../../utils/analytics';
 import { useSystemConfigByKey } from '../../backend/configuration.service';
 import { useLikeGame, useUnlikeGame } from '../../backend/gameLikes.service';
-import { getVisitorSessionId } from '../../utils/sessionUtils';
+import { getOrCreateSessionId } from '../../utils/sessionUtils';
 import { GameBreadcrumb } from '../../components/single/GameBreadcrumb';
 import { GameSchemaLD } from '../../components/single/GameSchemaLD';
 import { GameInfoSection } from '../../components/single/GameInfoSection';
@@ -259,7 +259,7 @@ export default function GamePlay() {
           gameId: game.id,
           activityType: 'game_session',
           startTime: new Date(),
-          ...(!isAuthenticated && { sessionId: getVisitorSessionId() }),
+          ...(!isAuthenticated && { sessionId: getOrCreateSessionId() }),
         },
         {
           onSuccess: (response) => {

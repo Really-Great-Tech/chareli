@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { backendService } from './api.service';
 import { BackendRoute } from './constants';
 import type {
@@ -19,8 +19,6 @@ export const useGames = (params?: {
 }) => {
   return useQuery<PaginatedResponse<GameResponse>>({
     queryKey: [BackendRoute.GAMES, params],
-    // Keep previous data visible while fetching next page (important for pagination)
-    placeholderData: keepPreviousData,
     queryFn: async () => {
       // Try CDN for popular filter (only if no search active)
       if (

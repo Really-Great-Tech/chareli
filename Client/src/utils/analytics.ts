@@ -148,4 +148,16 @@ export const trackInteraction = {
       event_label: `Page ${currentPage} - ${currentCategory}`,
     });
   },
+
+  /**
+   * Track when user clicks "Back to Top" in All Games section
+   */
+  backToTop: (currentCategory: string, totalGamesLoaded: number) => {
+    trackEvent("back_to_top_all_games", {
+      category: currentCategory,
+      total_games_loaded: totalGamesLoaded,
+      event_category: "Engagement",
+      event_label: `Back to Top - ${currentCategory}`,
+    });
+  },
 };

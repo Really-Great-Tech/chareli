@@ -4,9 +4,19 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
 import { visualizer } from 'rollup-plugin-visualizer';
+import { createHtmlPlugin } from 'vite-plugin-html';
 
 export default defineConfig(({ mode }) => {
-  const plugins: PluginOption[] = [react(), tailwindcss()];
+  const plugins: PluginOption[] = [react(), tailwindcss(),createHtmlPlugin({
+      minify: {
+        collapseWhitespace: true,
+        removeComments: true,
+        removeRedundantAttributes: true,
+        removeEmptyAttributes: true,
+        minifyCSS: true,
+        minifyJS: true,
+      },
+    }),];
 
   if (mode === 'analyze' || process.env.ANALYZE === 'true') {
     plugins.push(
@@ -60,6 +70,7 @@ export default defineConfig(({ mode }) => {
           },
         },
       },
+      sourcemap: false,
       minify: 'terser',
       terserOptions: {
         compress: {
@@ -67,9 +78,9 @@ export default defineConfig(({ mode }) => {
           drop_debugger: true,
         },
         format: {
-          comments: false, // Remove all comments
+          comments: false,
         },
       },
-    },
+    }
   };
 });

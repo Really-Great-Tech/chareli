@@ -25,7 +25,7 @@ import {
   RiEqualizer2Line,
   RiGamepadLine,
 } from "react-icons/ri";
-import { CreateGameSheet } from "../../../components/single/CreateGame-Sheet";
+// import { CreateGameSheet } from "../../../components/single/CreateGame-Sheet";
 import { useNavigate } from "react-router-dom";
 
 import { cn } from "../../../lib/utils";
@@ -399,11 +399,12 @@ export default function GameManagement() {
                 </Button>
               )}
               {!reorderOpen && (
-                <CreateGameSheet>
-                  <Button className="bg-[#6A7282] text-white hover:bg-[#6A7282] tracking-wider py-2 sm:py-[14px] text-sm sm:text-base h-[48px] font-dmmono cursor-pointer">
-                    Create New Game
-                  </Button>
-                </CreateGameSheet>
+                <Button
+                  className="bg-[#6A7282] text-white hover:bg-[#6A7282] tracking-wider py-2 sm:py-[14px] text-sm sm:text-base h-[48px] font-dmmono cursor-pointer"
+                  onClick={() => navigate('/admin/create-game')}
+                >
+                  Create New Game
+                </Button>
               )}
             </>
           )}

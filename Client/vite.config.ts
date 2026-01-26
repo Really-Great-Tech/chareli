@@ -66,6 +66,9 @@ export default defineConfig(({ mode }) => {
           drop_console: true,
           drop_debugger: true,
         },
+        format: {
+          comments: false, // Remove all comments
+        },
       },
     },
   };

@@ -199,7 +199,11 @@ export default function EditGame() {
   const initialValues: FormValues = {
     title: game.title || '',
     developer: game.metadata?.developer || '',
-    platform: game.metadata?.platform || 'desktop',
+    platform: Array.isArray(game.metadata?.platform)
+      ? game.metadata.platform
+      : game.metadata?.platform
+        ? [game.metadata.platform]
+        : ['desktop'],
     categoryId: game.category?.id || '',
     position: game.position || 0,
     config: game.config || 1,
@@ -221,6 +225,8 @@ export default function EditGame() {
           categoryName={game.category?.name}
           categoryId={game.category?.id}
           gameTitle={game.title}
+          overrideLink={`/admin/view-game/${gameId}`}
+          overrideText="Game Detail"
         />
         <h1 className="text-2xl font-bold mt-4 text-gray-900 dark:text-white">
           Edit Game
@@ -347,22 +353,38 @@ export default function EditGame() {
 
             {/* Platform */}
             <div className="space-y-2">
-              <Label htmlFor="platform">Platform</Label>
-              <Field name="platform">
-                {({ field }: any) => (
-                  <select
-                    {...field}
-                    id="platform"
-                    className="w-full h-10 rounded-md border border-gray-300 dark:border-gray-600 dark:text-white bg-white dark:bg-gray-800 px-3 text-gray-700 focus:border-[#6A7282] focus:outline-none text-sm"
-                  >
-                    <option value="desktop">Desktop</option>
-                    <option value="mobile">Mobile</option>
-                    <option value="tablet">Tablet</option>
-                  </select>
-                )}
-              </Field>
+              <Label>Platform</Label>
+              <SearchableSelect
+                options={[
+                  { value: 'Desktop', label: 'Desktop' },
+                  { value: 'Mobile', label: 'Mobile' },
+                  { value: 'Tablet', label: 'Tablet' },
+                ]}
+                value={values.platform}
+                onValueChange={(value) => setFieldValue('platform', value)}
+                placeholder="Select platforms..."
+                isMulti={true}
+              />
               <ErrorMessage
                 name="platform"
+                component="p"
+                className="text-sm text-red-500"
+              />
+            </div>
+
+            {/* Release Date */}
+            <div className="space-y-2">
+              <Label htmlFor="releaseDate">Release Date</Label>
+              <Field
+                as={Input}
+                id="releaseDate"
+                name="releaseDate"
+                type="date"
+                placeholder="Select release date"
+                className="bg-white dark:bg-gray-800"
+              />
+              <ErrorMessage
+                name="releaseDate"
                 component="p"
                 className="text-sm text-red-500"
               />

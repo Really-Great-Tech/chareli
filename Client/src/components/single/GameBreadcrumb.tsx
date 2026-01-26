@@ -12,12 +12,16 @@ interface GameBreadcrumbProps {
   categoryName?: string;
   categoryId?: string;
   gameTitle: string;
+  overrideLink?: string;
+  overrideText?: string;
 }
 
 export function GameBreadcrumb({
   categoryName,
   categoryId,
   gameTitle,
+  overrideLink,
+  overrideText,
 }: GameBreadcrumbProps) {
   return (
     <Breadcrumb className="mb-4">
@@ -28,7 +32,16 @@ export function GameBreadcrumb({
           </BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbSeparator />
-        {categoryName && categoryId && (
+        {overrideLink && overrideText ? (
+          <>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to={overrideLink}>{overrideText}</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+          </>
+        ) : categoryName && categoryId ? (
           <>
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
@@ -39,7 +52,7 @@ export function GameBreadcrumb({
             </BreadcrumbItem>
             <BreadcrumbSeparator />
           </>
-        )}
+        ) : null}
         <BreadcrumbItem>
           <BreadcrumbPage className="font-semibold text-foreground">
             {gameTitle}

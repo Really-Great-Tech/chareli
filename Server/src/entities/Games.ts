@@ -117,7 +117,8 @@ export class Game {
     tags?: string[];
     seoKeywords?: string;
     developer?: string;
-    platform?: string;
+    platform?: string[];
+    releaseDate?: string;
     faqOverride?: string;
     schemaVersion?: string;
   } | null;

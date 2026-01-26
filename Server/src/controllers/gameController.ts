@@ -956,6 +956,7 @@ export const createGame = async (
       position,
       thumbnailFileKey: rawThumbnailFileKey,
       gameFileKey: rawGameFileKey,
+      metadata, // Destructure metadata
     } = req.body;
 
     // Decode HTML entities in file keys
@@ -1061,6 +1062,7 @@ export const createGame = async (
       position: assignedPosition,
       processingStatus: GameProcessingStatus.PENDING,
       createdById: req.user?.userId,
+      metadata: metadata || undefined,
     });
 
     await queryRunner.manager.save(game);
@@ -1510,7 +1512,7 @@ export const updateGame = async (
           metadata.tags = [];
         }
       }
-      
+
       // Merge with existing metadata to preserve other fields
       game.metadata = {
         ...game.metadata,

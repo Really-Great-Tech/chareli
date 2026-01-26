@@ -127,12 +127,14 @@ export default function GamePlay() {
   };
 
   // Auto-expand to fullscreen on mobile devices
-  useEffect(() => {
-    if (isMobile) {
-      setExpanded(true);
-    }
-  }, [isMobile]);
+  // Auto-expand to fullscreen on mobile devices - DISABLED to show SEO content
+  // useEffect(() => {
+  //   if (isMobile) {
+  //     setExpanded(true);
+  //   }
+  // }, [isMobile]);
 
+  // Prevent body scroll on mobile fullscreen to fix viewport issues
   // Prevent body scroll on mobile fullscreen to fix viewport issues
   useEffect(() => {
     if (isMobile && expanded) {

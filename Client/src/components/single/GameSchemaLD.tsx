@@ -38,7 +38,7 @@ export function GameSchemaLD({ game, likeCount }: GameSchemaLDProps) {
       image: game.thumbnailFile?.s3Key,
       genre: game.category?.name,
       gamePlatform: game.metadata?.platform
-        ? `Browser (${game.metadata.platform})`
+        ? `Browser (${Array.isArray(game.metadata.platform) ? game.metadata.platform.join(', ') : game.metadata.platform})`
         : 'Browser (desktop, mobile, tablet)',
       author: {
         '@type': 'Organization',

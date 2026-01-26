@@ -143,7 +143,8 @@ export interface GameData {
     tags?: string[];
     seoKeywords?: string;
     schemaVersion?: string;
-    platform?: string;
+    releaseDate?: string;
+    platform?: string[];
     faqOverride?: string;
   };
   statistics?: {

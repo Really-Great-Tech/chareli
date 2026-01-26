@@ -47,7 +47,8 @@ interface FormValues {
   thumbnailFile?: UploadedFile;
   gameFile?: UploadedFile;
   developer?: string;
-  platform?: string;
+  platform?: string[];
+  releaseDate?: string;
   metadata?: {
     howToPlay?: string;
     tags?: string[];
@@ -73,6 +74,7 @@ const validationSchema = yupObject({
     key: yupString().required(),
   }),
   developer: yupString().optional(),
+  releaseDate: yupString().optional(),
 });
 
 // Initial values
@@ -82,7 +84,8 @@ const initialValues: FormValues = {
   config: 1,
   categoryId: '',
   developer: '',
-  platform: 'desktop',
+  releaseDate: '',
+  platform: ['desktop'],
   metadata: {
     howToPlay: '',
     tags: [],
@@ -190,7 +193,8 @@ export function CreateGameSheet({
       // Send file keys instead of files
       const metadata: any = {
         developer: values.developer || undefined,
-        platform: values.platform || 'desktop',
+        platform: values.platform && values.platform.length > 0 ? values.platform : ['desktop'],
+        releaseDate: values.releaseDate || undefined,
         howToPlay: values.metadata?.howToPlay ? DOMPurify.sanitize(values.metadata.howToPlay, {
           ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a', 'blockquote'],
           ALLOWED_ATTR: ['href', 'class'],
@@ -459,32 +463,56 @@ export function CreateGameSheet({
                 />
               </div>
 
-              {/* Platform Dropdown */}
-              <div>
-                <Label
-                  htmlFor="platform"
-                  className="text-base mb-2 block dark:text-white"
-                >
-                  Platform
-                </Label>
-                <Field name="platform">
-                  {({ field }: any) => (
-                    <select
-                      {...field}
-                      id="platform"
-                      className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white bg-[#F1F5F9] dark:bg-[#121C2D] px-3 text-gray-700 focus:border-[#6A7282] focus:outline-none font-worksans tracking-wider text-sm"
-                    >
-                      <option value="desktop">Desktop</option>
-                      <option value="mobile">Mobile</option>
-                      <option value="tablet">Tablet</option>
-                    </select>
-                  )}
-                </Field>
-                <ErrorMessage
-                  name="platform"
-                  component="div"
-                  className="text-red-500 mt-1 font-worksans text-sm tracking-wider"
-                />
+              {/* Platform & Release Date */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Platform */}
+                <div>
+                  <Label className="text-base mb-2 block dark:text-white">
+                    Platform
+                  </Label>
+                  <Field name="platform">
+                    {({ field, form }: any) => (
+                      <SearchableSelect
+                        options={[
+                          { value: 'Desktop', label: 'Desktop' },
+                          { value: 'Mobile', label: 'Mobile' },
+                          { value: 'Tablet', label: 'Tablet' },
+                        ]}
+                        value={field.value}
+                        onValueChange={(value) => form.setFieldValue('platform', value)}
+                        placeholder="Select platforms..."
+                        isMulti={true}
+                      />
+                    )}
+                  </Field>
+                  <ErrorMessage
+                    name="platform"
+                    component="div"
+                    className="text-red-500 mt-1 font-worksans text-sm tracking-wider"
+                  />
+                </div>
+
+                {/* Release Date */}
+                <div>
+                  <Label
+                    htmlFor="releaseDate"
+                    className="text-base mb-2 block dark:text-white"
+                  >
+                    Release Date (Optional)
+                  </Label>
+                  <Field
+                    as={Input}
+                    type="date"
+                    id="releaseDate"
+                    name="releaseDate"
+                    className="w-full h-12 rounded-md border border-[#CBD5E0] dark:text-white bg-[#F1F5F9] dark:bg-[#121C2D] px-3 text-gray-700 focus:border-[#6A7282] focus:outline-none font-worksans tracking-wider text-sm"
+                  />
+                  <ErrorMessage
+                    name="releaseDate"
+                    component="div"
+                    className="text-red-500 mt-1 font-worksans text-sm tracking-wider"
+                  />
+                </div>
               </div>
 
               {/* Description */}

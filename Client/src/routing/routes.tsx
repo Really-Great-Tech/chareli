@@ -1,5 +1,6 @@
-import { Suspense, lazy } from 'react';
+import { lazy } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
+import { SuspenseWrapper, ConfigProtectedRoute } from './RouteWrappers';
 import { ProtectedRoute } from './ProtectedRoute';
 
 const RootLayout = lazy(() => import('../layout/RootLayout'));
@@ -32,7 +33,7 @@ const Configuration = lazy(
   () => import('../pages/Admin/Configuration/Configuration')
 );
 const ViewGame = lazy(() => import('../pages/Admin/ViewGame'));
-
+const CreateGame = lazy(() => import('../pages/Admin/CreateGame'));
 const EditGame = lazy(() => import('../pages/Admin/EditGame'));
 const GameCategories = lazy(
   () => import('../pages/Admin/Category/GameCategories')
@@ -53,23 +54,6 @@ const ImageReprocessing = lazy(
   () => import('../pages/Admin/ImageReprocessing/ImageReprocessing')
 );
 
-const RouteFallback = () => (
-  <div className="flex min-h-screen items-center justify-center bg-[#0F1221] text-white">
-    <span className="text-lg font-dmmono">Loading...</span>
-  </div>
-);
-
-// Wrapper component to provide Suspense for lazy-loaded routes
-const SuspenseWrapper = ({ children }: { children: React.ReactNode }) => (
-  <Suspense fallback={<RouteFallback />}>{children}</Suspense>
-);
-
-// Config-protected route wrapper
-const ConfigProtectedRoute = () => (
-  <SuspenseWrapper>
-    <ProtectedRoute requireAdmin={true} requireConfig={true} />
-  </SuspenseWrapper>
-);
 
 // Route configuration using object format for createBrowserRouter
 export const routes = [
@@ -125,7 +109,7 @@ export const routes = [
               { path: 'team', element: <SuspenseWrapper><TeamManagement /></SuspenseWrapper> },
               { path: 'analytics', element: <SuspenseWrapper><Analytics /></SuspenseWrapper> },
               { path: 'view-game/:gameId', element: <SuspenseWrapper><ViewGame /></SuspenseWrapper> },
-
+              { path: 'create-game', element: <SuspenseWrapper><CreateGame /></SuspenseWrapper> },
               { path: 'edit-game/:gameId', element: <SuspenseWrapper><EditGame /></SuspenseWrapper> },
               { path: 'view-profile', element: <SuspenseWrapper><ViewProfile /></SuspenseWrapper> },
               { path: 'cache', element: <SuspenseWrapper><CacheDashboard /></SuspenseWrapper> },

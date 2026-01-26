@@ -1,6 +1,7 @@
 import { IoEyeOutline } from "react-icons/io5";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import { CiEdit } from "react-icons/ci";
+import { Plus, Trash2 } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { LazyImage } from "../../components/ui/LazyImage";
 import gameImg from "@/assets/gamesImg/1.svg";
@@ -18,17 +19,17 @@ import {
 import { toast } from "sonner";
 import { DeleteConfirmationModal } from "../../components/modals/DeleteConfirmationModal";
 import { ToggleGameStatusModal } from "../../components/modals/ToggleGameStatusModal";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { formatTime } from "../../utils/main";
 import { usePermissions } from "../../hooks/usePermissions";
 import { GameBreadcrumb } from "../../components/single/GameBreadcrumb";
 import { GameInfoSection } from "../../components/single/GameInfoSection";
 import DOMPurify from 'dompurify';
-// FAQ Editor imports - commented out, using default template only
-// import { RichTextEditor } from "../../components/ui/RichTextEditor";
-// import { DEFAULT_FAQ_TEMPLATE } from "../../utils/faqTemplate";
-// import { useUpdateGame } from "../../backend/games.service";
+import { RichTextEditor } from "../../components/ui/RichTextEditor";
+import { DEFAULT_FAQ_TEMPLATE, parseFAQ, generateFAQHtml, renderFAQ, type FAQItem } from "../../utils/faqTemplate";
+import { useUpdateGame } from "../../backend/games.service";
+import { Input } from "../../components/ui/input";
 
 export default function ViewGame() {
   const permissions = usePermissions();
@@ -57,11 +58,39 @@ export default function ViewGame() {
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDisableModal, setShowDisableModal] = useState(false);
-  // FAQ Editor state - commented out, using default template only
-  // const [useDefaultFAQ, setUseDefaultFAQ] = useState(true);
-  // const [customFAQ, setCustomFAQ] = useState('');
-  // const [isSavingFAQ, setIsSavingFAQ] = useState(false);
-  // const updateGame = useUpdateGame();
+
+  const [faqItems, setFaqItems] = useState<FAQItem[]>([]);
+  const [isSavingFAQ, setIsSavingFAQ] = useState(false);
+  const updateGame = useUpdateGame();
+
+  // Initialize FAQ items when game data is loaded
+  useEffect(() => {
+    // gameData comes from useGameById, which contains the full metadata
+    // Check if gameData is wrapped in .game or is the object itself
+    // Based on games.service.ts, useGameById returns the object directly or wrapped.
+    // Let's safe check both.
+    const gameSource = (gameData as any)?.game || gameData;
+
+    if (gameSource) {
+      // Get raw content (override or default template)
+      const cachedContent = gameSource?.metadata?.faqOverride || DEFAULT_FAQ_TEMPLATE;
+
+      // Interpolate placeholders
+      const renderedContent = renderFAQ(cachedContent, gameSource);
+
+      const parsed = parseFAQ(renderedContent);
+
+      if (parsed.length === 0) {
+        // Fallback
+        const defaultRendered = renderFAQ(DEFAULT_FAQ_TEMPLATE, gameSource);
+        setFaqItems(parseFAQ(defaultRendered));
+      } else {
+        setFaqItems(parsed);
+      }
+    }
+  }, [gameData, (gameData as any)?.game]);
+
+
 
 
   if (isLoading) {
@@ -175,48 +204,6 @@ export default function ViewGame() {
               />
             ) : (
               <p className="text-[#475568] dark:text-white font-dmmono text-sm">-</p>
-            )}
-
-            {/* SEO Metadata Display */}
-            {(game as any).game?.metadata && (
-              <>
-                {(game as any).game.metadata.howToPlay && (
-                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <h4 className="text-xs font-semibold text-[#475568] dark:text-gray-400 mb-1 tracking-wider">
-                      HOW TO PLAY
-                    </h4>
-                    <div
-                      className="prose prose-sm dark:prose-invert max-w-none
-                        prose-headings:font-dmmono prose-p:font-worksans prose-li:font-worksans
-                        prose-ul:list-disc prose-ol:list-decimal prose-ul:ml-6 prose-ol:ml-6
-                        dark:prose-headings:text-white dark:prose-p:text-gray-300 dark:prose-li:text-gray-300
-                        text-[#475568] dark:text-white font-worksans text-sm"
-                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize((game as any).game.metadata.howToPlay) }}
-                    />
-                  </div>
-                )}
-
-                {(() => {
-                  const tags = ensureArray((game as any).game.metadata?.tags);
-                  return tags.length > 0 ? (
-                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                      <h4 className="text-xs font-semibold text-[#475568] dark:text-gray-400 mb-2 tracking-wider">
-                        TAGS
-                      </h4>
-                      <div className="flex flex-wrap gap-2">
-                        {tags.map((tag: string, idx: number) => (
-                          <span
-                            key={idx}
-                            className="px-2 py-1 bg-gray-200 dark:bg-gray-700 text-[#475568] dark:text-white rounded text-xs font-worksans"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  ) : null;
-                })()}
-              </>
             )}
           </div>
           <div className="flex flex-col md:flex-row gap-4">
@@ -355,7 +342,6 @@ export default function ViewGame() {
       {/* FAQ Customization Section - COMMENTED OUT FOR NOW */}
       {/* User requested to use hardcoded default template only */}
       {/* To re-enable in future: uncomment this section and the related state/imports */}
-      {/*
       <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
@@ -363,114 +349,131 @@ export default function ViewGame() {
               FAQ Section
             </h2>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Customize the FAQ content or use the default template
+              Manage Frequently Asked Questions
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <Button
-              variant={useDefaultFAQ ? "default" : "outline"}
-              size="sm"
-              onClick={() => {
-                setUseDefaultFAQ(true);
-                setCustomFAQ('');
-              }}
-            >
-              Use Default Template
-            </Button>
-            <Button
-              variant={!useDefaultFAQ ? "default" : "outline"}
-              size="sm"
-              onClick={() => {
-                setUseDefaultFAQ(false);
-                setCustomFAQ((game as any)?.game?.metadata?.faqOverride || DEFAULT_FAQ_TEMPLATE);
-              }}
-            >
-              Customize FAQ
-            </Button>
+             {permissions.isSuperAdmin && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                   setFaqItems(prev => [
+                    ...prev,
+                    { question: 'New Question', answer: '<p>New Answer</p>' }
+                  ]);
+                }}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Question
+              </Button>
+            )}
           </div>
         </div>
 
         <div className="bg-white dark:bg-[#0F1221] rounded-lg p-6">
-          {useDefaultFAQ ? (
-            <div className="border rounded-lg p-6 bg-gray-50 dark:bg-gray-800">
-              <p className="text-sm text-gray-700 dark:text-gray-300 mb-3 font-semibold">
-                Using default FAQ template
-              </p>
-              <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
-                Placeholders will be replaced automatically:
-              </p>
-              <ul className="text-xs text-gray-500 dark:text-gray-500 list-disc ml-5 space-y-1">
-                <li>[Game Name] → {(game as any)?.game?.title}</li>
-                <li>[Genre] → {(game as any)?.game?.category?.name || 'game'}</li>
-              </ul>
-              <p className="text-xs text-gray-500 dark:text-gray-500 mt-4">
-                To customize the FAQ, click "Customize FAQ" above.
-              </p>
-            </div>
-          ) : (
-            <div>
-              <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
-                <p className="text-sm text-blue-700 dark:text-blue-300 font-semibold mb-1">
-                  💡 Tip: Use Placeholders
-                </p>
-                <p className="text-xs text-blue-600 dark:text-blue-400">
-                  Keep <code className="bg-blue-100 dark:bg-blue-800 px-1 rounded">[Game Name]</code> and <code className="bg-blue-100 dark:bg-blue-800 px-1 rounded">[Genre]</code> in your FAQ - they'll be automatically replaced when displayed!
-                </p>
-              </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                Edit the FAQ content below. Use rich formatting to structure your FAQ.
-              </p>
-              <RichTextEditor
-                content={customFAQ}
-                onChange={(html) => setCustomFAQ(html)}
-                placeholder="Customize FAQ content with formatting..."
-              />
-              <div className="flex justify-end gap-3 mt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setUseDefaultFAQ(true);
-                    setCustomFAQ('');
-                  }}
-                  disabled={isSavingFAQ}
-                >
-                  Cancel
-                </Button>
+            <div className="space-y-6">
+              {faqItems.map((item, index) => (
+                <div key={index} className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
+                  <div className="flex justify-between items-start gap-4 mb-4">
+                     <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Question
+                        </label>
+                        <Input
+                          value={item.question}
+                          onChange={(e) => {
+                            const newItems = [...faqItems];
+                            newItems[index].question = e.target.value;
+                            setFaqItems(newItems);
+                          }}
+                          disabled={!permissions.isSuperAdmin}
+                          className="font-semibold"
+                          placeholder="Enter question text"
+                        />
+                     </div>
+                     {permissions.isSuperAdmin && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                             const newItems = faqItems.filter((_, i) => i !== index);
+                             setFaqItems(newItems);
+                          }}
+                          className="text-red-500 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900/20"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </Button>
+                     )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Answer
+                    </label>
+                    <RichTextEditor
+                      content={item.answer}
+                      onChange={(html) => {
+                         const newItems = [...faqItems];
+                         newItems[index].answer = html;
+                         setFaqItems(newItems);
+                      }}
+                      placeholder="Enter answer text..."
+                      disabled={!permissions.canWrite} // SuperAdmin, Admin, Editor can write
+                    />
+                  </div>
+                </div>
+              ))}
+
+              {faqItems.length === 0 && (
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  No FAQ items found.
+                </div>
+              )}
+
+              <div className="flex justify-end gap-3 mt-6 pt-4 border-t dark:border-gray-700">
                 <Button
                   onClick={async () => {
                     try {
                       setIsSavingFAQ(true);
-                      await updateGame.mutateAsync({
+                      // Ensure we are saving valid HTML
+                      const html = generateFAQHtml(faqItems, (game as any)?.game?.title || 'Game');
+
+                      if (!html) {
+                        return;
+                      }
+
+                      const gameSource = (gameData as any)?.game || gameData;
+                      const updateData = {
                         id: gameId || '',
                         data: {
                           metadata: {
-                            ...(game as any)?.game?.metadata,
-                            faqOverride: DOMPurify.sanitize(customFAQ, {
-                              ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a', 'blockquote'],
-                              ALLOWED_ATTR: ['href', 'class'],
-                            }),
+                            ...gameSource?.metadata,
+                            faqOverride: html,
                           },
                         },
-                      });
-                      toast.success('FAQ updated successfully!');
-                      setUseDefaultFAQ(true);
-                    } catch {
-                      toast.error('Failed to update FAQ');
+                      };
+
+                      await updateGame.mutateAsync(updateData);
+                      toast.success("FAQ updated successfully");
+
+                      // Optimistically update local state if needed, though invalidation should handle it
+                    } catch (error) {
+                      console.error("Failed to save FAQ:", error);
+                      toast.error("Failed to update FAQ");
                     } finally {
                       setIsSavingFAQ(false);
                     }
                   }}
-                  disabled={isSavingFAQ || !customFAQ.trim()}
+                  disabled={isSavingFAQ || !permissions.canWrite}
                   className="bg-[#6A7282] hover:bg-[#5A626F] text-white"
                 >
-                  {isSavingFAQ ? 'Saving...' : 'Save FAQ'}
+                  {isSavingFAQ ? 'Saving...' : 'Save Changes'}
                 </Button>
               </div>
             </div>
-          )}
         </div>
       </div>
-      */}
 
       {/* Toggle Game Status Modal */}
       <ToggleGameStatusModal

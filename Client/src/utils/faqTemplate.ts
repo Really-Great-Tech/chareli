@@ -27,6 +27,72 @@ export const DEFAULT_FAQ_TEMPLATE = `
 <p>Most games on Arcades Box use your browser's local storage to save your progress and high scores. Make sure not to clear your browser cache if you want to keep your current stats!</p>
 `;
 
+
+
+export interface FAQItem {
+  question: string;
+  answer: string;
+}
+
+/**
+ * Parses an HTML string into FAQ items
+ * Expected format: <h3>Title</h3> followed by pairs of <h4>Question</h4> and <p>Answer</p>
+ */
+export function parseFAQ(html: string): FAQItem[] {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const items: FAQItem[] = [];
+
+  const headings = doc.querySelectorAll('h4');
+  headings.forEach((heading) => {
+    let answer = '';
+    let next = heading.nextSibling;
+
+    // Collect all nodes until the next H4 or end of container
+    while (next) {
+      // Stop if we hit the next H4
+      if (next.nodeName === 'H4') break;
+
+      if (next.nodeType === 1) { // Element Node
+        answer += (next as Element).outerHTML;
+      } else if (next.nodeType === 3) { // Text Node
+        answer += next.textContent;
+      }
+
+      next = next.nextSibling;
+    }
+
+    // Clean up the question text (remove "Q: " prefix if present)
+    let question = heading.textContent || '';
+    if (question.startsWith('Q: ')) {
+      question = question.substring(3);
+    }
+
+    items.push({
+      question: question.trim(),
+      answer: answer.trim()
+    });
+  });
+
+  return items;
+}
+
+/**
+ * Generates HTML string from FAQ items
+ */
+export function generateFAQHtml(items: FAQItem[], gameTitle: string): string {
+  if (items.length === 0) return '';
+
+  let html = `<h3>${gameTitle} FAQ</h3>\n\n`;
+
+  items.forEach(item => {
+    html += `<h4>Q: ${item.question}</h4>\n`;
+    html += `${item.answer}\n\n`;
+  });
+
+  return html;
+}
+
 /**
  * Replaces template placeholders with actual game data
  * @param template - HTML template string with placeholders

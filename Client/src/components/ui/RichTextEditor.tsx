@@ -19,6 +19,7 @@ interface RichTextEditorProps {
   onChange: (content: string) => void;
   placeholder?: string;
   className?: string;
+  disabled?: boolean;
 }
 
 export function RichTextEditor({
@@ -26,8 +27,10 @@ export function RichTextEditor({
   onChange,
   placeholder = 'Start typing...',
   className = '',
+  disabled = false,
 }: RichTextEditorProps) {
   const editor = useEditor({
+    editable: !disabled,
     extensions: [
       StarterKit.configure({
         bulletList: false, // Disable default to use custom
@@ -62,6 +65,11 @@ export function RichTextEditor({
     },
   });
 
+  // Update editable state if disabled prop changes
+  if (editor && editor.isEditable === disabled) {
+    editor.setEditable(!disabled);
+  }
+
   if (!editor) {
     return null;
   }
@@ -80,11 +88,12 @@ export function RichTextEditor({
   };
 
   return (
-    <div className={`border border-gray-300 dark:border-gray-600 rounded-md ${className}`}>
+    <div className={`border border-gray-300 dark:border-gray-600 rounded-md ${className} ${disabled ? 'opacity-60 cursor-not-allowed bg-gray-50 dark:bg-gray-900' : ''}`}>
       {/* Toolbar */}
-      <div className="border-b border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 p-2 flex flex-wrap gap-1">
+      <div className={`border-b border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 p-2 flex flex-wrap gap-1 ${disabled ? 'pointer-events-none' : ''}`}>
         {/* Style Dropdown */}
         <select
+          disabled={disabled}
           onChange={(e) => {
             const level = e.target.value;
             if (level === 'normal') {
@@ -107,6 +116,7 @@ export function RichTextEditor({
         {/* Text Formatting */}
         <button
           type="button"
+          disabled={disabled}
           onClick={toggleBold}
           className={`p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 ${
             editor.isActive('bold') ? 'bg-gray-300 dark:bg-gray-600' : ''
@@ -117,6 +127,7 @@ export function RichTextEditor({
         </button>
         <button
           type="button"
+          disabled={disabled}
           onClick={toggleItalic}
           className={`p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 ${
             editor.isActive('italic') ? 'bg-gray-300 dark:bg-gray-600' : ''
@@ -127,6 +138,7 @@ export function RichTextEditor({
         </button>
         <button
           type="button"
+          disabled={disabled}
           onClick={toggleUnderline}
           className={`p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 ${
             editor.isActive('strike') ? 'bg-gray-300 dark:bg-gray-600' : ''
@@ -137,6 +149,7 @@ export function RichTextEditor({
         </button>
         <button
           type="button"
+          disabled={disabled}
           onClick={addLink}
           className={`p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 ${
             editor.isActive('link') ? 'bg-gray-300 dark:bg-gray-600' : ''
@@ -151,6 +164,7 @@ export function RichTextEditor({
         {/* Lists */}
         <button
           type="button"
+          disabled={disabled}
           onClick={toggleBulletList}
           className={`p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 ${
             editor.isActive('bulletList') ? 'bg-gray-300 dark:bg-gray-600' : ''
@@ -161,6 +175,7 @@ export function RichTextEditor({
         </button>
         <button
           type="button"
+          disabled={disabled}
           onClick={toggleOrderedList}
           className={`p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 ${
             editor.isActive('orderedList') ? 'bg-gray-300 dark:bg-gray-600' : ''
@@ -173,8 +188,8 @@ export function RichTextEditor({
 
       {/* Editor Content */}
       <div
-        onClick={() => editor?.chain().focus().run()}
-        className="cursor-text min-h-[150px] flex-1"
+        onClick={() => !disabled && editor?.chain().focus().run()}
+        className={`cursor-text min-h-[150px] flex-1 ${disabled ? 'cursor-not-allowed' : ''}`}
       >
         <EditorContent
           editor={editor}

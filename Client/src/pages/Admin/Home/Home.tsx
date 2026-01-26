@@ -7,7 +7,7 @@ import { DashboardCountryFilter } from '../../../components/single/DashboardCoun
 import { DashboardTimezoneFilter } from '../../../components/single/DashboardTimezoneFilter';
 import StatsCard from './StatsCard';
 import PieChart from '../../../components/charts/piechart';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSignupAnalyticsData } from '../../../backend/signup.analytics.service';
 import {
   useDashboardAnalytics,
@@ -20,10 +20,20 @@ import GameActivity from '../Analytics/GameActivity';
 import { DonutChart } from '../../../components/charts/donutChart';
 import HorizontalBarChart from '../../../components/charts/barChart';
 import { UserTypeBreakdown } from '../../../components/charts/UserTypeBreakdown';
+import { useNavigate } from 'react-router-dom';
 // import { RecentUserActivity } from './RecentUserActivity';
 
 export default function Home() {
   const permissions = usePermissions();
+  const navigate = useNavigate();
+
+  // Redirect Content Managers (Editors) who can't view analytics to the games list
+  useEffect(() => {
+    if (!permissions.canViewAnalytics && permissions.canManageGames) {
+      navigate('/admin/game-management');
+    }
+  }, [permissions, navigate]);
+
   const [isAcceptInviteOpen, setIsAcceptInviteOpen] = useState(false);
   const [statsTimeRange, setStatsTimeRange] = useState<DashboardTimeRange>({
     period: 'last24hours',

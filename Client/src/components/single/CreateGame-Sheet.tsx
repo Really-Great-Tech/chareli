@@ -661,8 +661,8 @@ export function CreateGameSheet({
                   {({ field, form }: any) => (
                     <SearchableSelect
                       value={field.value}
-                      onValueChange={(value: string) =>
-                        form.setFieldValue('categoryId', value)
+                      onValueChange={(value: string | string[]) =>
+                        form.setFieldValue('categoryId', value as string)
                       }
                       options={
                         categories?.map((category) => ({

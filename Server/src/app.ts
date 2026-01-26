@@ -11,12 +11,15 @@ import logger from './utils/logger';
 import { specs } from './config/swagger';
 import config from './config/config';
 import { redisService } from './services/redis.service';
-// import { cloudFrontService } from './services/cloudfront.service';
+
 
 const app: Express = express();
 
 // Request logging middleware
 app.use(requestLogger);
+
+import { crawlProtection } from './middlewares/crawlProtection';
+app.use(crawlProtection);
 
 
 // Security middleware

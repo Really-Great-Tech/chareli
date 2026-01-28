@@ -70,10 +70,10 @@ export function GameInfoSection({ game, likeCount, hideEditButton = false }: Gam
   // Format release date to "Month Year" format
   const releaseDate = metadata?.releaseDate
     ? format(new Date(metadata.releaseDate), 'MMMM yyyy')
-    : 'N/A';
+    : null;
 
-  // Get developer name from metadata, default to Unknown
-  const developerName = metadata?.developer || 'N/A';
+  // Get developer name from metadata
+  const developerName = metadata?.developer || null;
 
   return (
     <div className="space-y-6 md:space-y-8 px-4 md:px-0">
@@ -92,22 +92,26 @@ export function GameInfoSection({ game, likeCount, hideEditButton = false }: Gam
 
       {/* Metadata List */}
       <div className="space-y-3 text-sm">
-        <div className="flex gap-2">
-          <span className="text-gray-500 dark:text-gray-400 font-worksans">
-            Developer:
-          </span>
-          <span className="text-gray-900 dark:text-white font-worksans">
-            {developerName}
-          </span>
-        </div>
-        <div className="flex gap-2">
-          <span className="text-gray-500 dark:text-gray-400 font-worksans">
-            Released:
-          </span>
-          <span className="text-gray-900 dark:text-white font-worksans">
-            {releaseDate}
-          </span>
-        </div>
+        {developerName && (
+          <div className="flex gap-2">
+            <span className="text-gray-500 dark:text-gray-400 font-worksans">
+              Developer:
+            </span>
+            <span className="text-gray-900 dark:text-white font-worksans">
+              {developerName}
+            </span>
+          </div>
+        )}
+        {releaseDate && (
+          <div className="flex gap-2">
+            <span className="text-gray-500 dark:text-gray-400 font-worksans">
+              Released:
+            </span>
+            <span className="text-gray-900 dark:text-white font-worksans">
+              {releaseDate}
+            </span>
+          </div>
+        )}
         <div className="flex gap-2">
           <span className="text-gray-500 dark:text-gray-400 font-worksans">
             Platform:

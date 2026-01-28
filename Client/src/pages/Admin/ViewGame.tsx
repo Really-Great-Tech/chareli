@@ -109,13 +109,15 @@ export default function ViewGame() {
                 >
                   Edit <CiEdit className="dark:text-white" />
                 </Button>
-                <Button
-                  className="flex items-center justify-center gap-2 w-full bg-[#6A7282] text-white tracking-wider hover:bg-[#5A626F] cursor-pointer"
-                  onClick={() => setShowDisableModal(true)}
-                >
-                  {game?.status === "active" ? "Disable" : "Enable"}{" "}
-                  <IoEyeOutline />
-                </Button>
+                {(permissions.isAdmin || permissions.isSuperAdmin) && (
+                  <Button
+                    className="flex items-center justify-center gap-2 w-full bg-[#6A7282] text-white tracking-wider hover:bg-[#5A626F] cursor-pointer"
+                    onClick={() => setShowDisableModal(true)}
+                  >
+                    {game?.status === "active" ? "Disable" : "Enable"}{" "}
+                    <IoEyeOutline />
+                  </Button>
+                )}
               </>
             ) : null}
 

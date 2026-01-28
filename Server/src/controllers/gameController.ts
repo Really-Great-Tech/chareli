@@ -1250,6 +1250,19 @@ export const updateGame = async (
       metadata, // Add metadata to destructured fields
     } = req.body;
 
+    // Check if user is trying to update status and has permission
+    if (status !== undefined) {
+      const userRole = req.user?.role;
+      if (
+        userRole !== RoleType.ADMIN &&
+        userRole !== RoleType.SUPERADMIN
+      ) {
+        return next(
+          ApiError.forbidden('Editors cannot change game status. Please contact an Admin.')
+        );
+      }
+    }
+
     // Decode HTML entities in file keys if provided
     const thumbnailFileKey = rawThumbnailFileKey?.replace(/&#x2F;/g, '/');
     const gameFileKey = rawGameFileKey?.replace(/&#x2F;/g, '/');

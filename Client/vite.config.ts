@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import type { PluginOption } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
@@ -30,6 +30,9 @@ export default defineConfig(({ mode }) => {
     );
   }
 
+  // Load env variables
+  const env = loadEnv(mode, process.cwd(), '');
+
   return {
     plugins,
     resolve: {
@@ -37,6 +40,15 @@ export default defineConfig(({ mode }) => {
         '@': path.resolve(__dirname, 'src'),
       },
       dedupe: ['react', 'react-dom'],
+    },
+    // Proxy /sitemap.xml to backend
+    server: {
+      proxy: {
+        '/sitemap.xml': {
+          target: env.VITE_API_URL,
+          changeOrigin: true,
+        },
+      },
     },
     build: {
       rollupOptions: {

@@ -70,10 +70,33 @@ const AdminLayout: React.FC = () => {
 
   // Filter menu items based on permissions
   const menuItems = allMenuItems.filter((item) => {
-    if (item.requiresConfig) {
-      return permissions.canAccessConfig;
+    // 1. Config Check
+    if (item.requiresConfig && !permissions.canAccessConfig) {
+      return false;
     }
-    return true;
+
+    // 2. Role-based Visibility Checks
+    switch (item.title) {
+      case 'Home':
+        // Hide Home from Editors (strictly per request)
+        return !permissions.isEditor;
+
+      case 'Game Management':
+        return permissions.canManageGames; // Editors, Admins, SuperAdmins
+
+      case 'Game Category':
+        // Hide Categories from Editors (since they can't manage them or shouldn't see them)
+        return !permissions.isEditor;
+
+      case 'User Management':
+        return permissions.canManageUsers; // Admins, SuperAdmins
+
+      case 'Team Management':
+        return permissions.canEditTeam; // Admins, SuperAdmins
+
+      default:
+        return true;
+    }
   });
 
   // Add Cache Dashboard for superadmin when enabled

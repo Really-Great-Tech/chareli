@@ -70,10 +70,10 @@ export function GameInfoSection({ game, likeCount, hideEditButton = false }: Gam
   // Format release date to "Month Year" format
   const releaseDate = metadata?.releaseDate
     ? format(new Date(metadata.releaseDate), 'MMMM yyyy')
-    : 'Unknown';
+    : 'N/A';
 
   // Get developer name from metadata, default to Unknown
-  const developerName = metadata?.developer || 'Unknown';
+  const developerName = metadata?.developer || 'N/A';
 
   return (
     <div className="space-y-6 md:space-y-8 px-4 md:px-0">

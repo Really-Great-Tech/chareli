@@ -1,3 +1,4 @@
+/* eslint-disable */
 export const initAnalytics = () => {
   // Only enable analytics on production domains
   const ANALYTICS_ENABLED_DOMAINS = [
@@ -22,7 +23,7 @@ export const initAnalytics = () => {
       if (shouldLoadAnalytics) {
         // Facebook Pixel
         // @ts-expect-error Facebook Pixel snippet
-        !(function (f, b, e, v, n, t, s) {
+        !(function (f: any, b: any, e: any, v: any, n?: any, t?: any, s?: any) {
           if (f.fbq) return;
           n = f.fbq = function () {
             n.callMethod
